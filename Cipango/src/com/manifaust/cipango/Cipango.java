@@ -1,84 +1,137 @@
 package com.manifaust.cipango;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
-import org.farng.mp3.*;
+import de.vdheide.mp3.*;
 
-/**
- * 
- */
-
-/**
- * @author Tony Wong
- *
- */
-public class Cipango extends JTextArea {
-	/**
-	 * 
-	 */
+public class Cipango extends JPanel implements ActionListener {
 	private static final long serialVersionUID = -6145211126923439676L;
+	
+	JButton openButton;
+	JTextArea infoArea;
+	JFileChooser fc;
+	
+	ID3 id3;
+	ID3v2 id3v2;
 
-	/**
-	 * @param args
-	 */
 	public Cipango() {
-		File path = new File("C:\\Documents and Settings\\tonyw\\workspace\\" +
-					"Cipango\\music\\MM Jukebox Plus Upgrade.mp3");
-		MP3File song = null;
-		try {
-			song = new MP3File(path);
-		} catch (IOException e) {
-			throw new RuntimeException();
-		} catch (TagException e) {
-			throw new RuntimeException();
-		}
+		super(new BorderLayout());
+		
+		infoArea = new JTextArea(20, 40);
+		infoArea.setEditable(false);
+		JScrollPane infoScrollPane = new JScrollPane(infoArea);
+		
+		fc = new JFileChooser();
+		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		
+		openButton = new JButton("Open a File...");
+		openButton.addActionListener(this);
 
-		if (song.hasID3v1Tag() && song.hasID3v2Tag()) {
-			append("Has both types of tags, " +
-					"here's the v1 tag:\n" + song.getID3v1Tag() +
-					"Here's the v2 tag:\n" + song.getID3v2Tag());
-		} else if (song.hasID3v1Tag()) {
-			append("Has v1 tag:\n" + song.getID3v1Tag());
-		} else if (song.hasID3v2Tag()) {
-			append("Has v2 tag:\n" + song.getID3v2Tag());
-		} else {
-			append("No tag found!");
-		}
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(openButton);
 		
-		OutputStreamWriter out = new OutputStreamWriter(new ByteArrayOutputStream());
-		append(out.getEncoding());
-		
-		append("\u00F6 \u4E9E 亞");
-		System.out.println("\u00F6 \u4E9E 亞");
-		
-		SortedMap<String,Charset> charSets = Charset.availableCharsets();
-		Iterator<String> it = charSets.keySet().iterator();
-	    while(it.hasNext()) {
-	    	String csName = it.next();
-	    	System.out.print(csName);
-	    	Iterator aliases = charSets.get(csName).aliases().iterator();
-	    	if(aliases.hasNext())
-	    		System.out.print(": ");
-	    	while(aliases.hasNext()) {
-	    		System.out.print(aliases.next());
-		        if(aliases.hasNext())
-		        	System.out.print(", ");
-	    	}
-	    	System.out.println();
-	    }
+		add(buttonPanel, BorderLayout.PAGE_START);
+		add(infoScrollPane, BorderLayout.CENTER);
+
+
 	}
 
 	public static void main(String[] args) {
-		JFrame f = new JFrame("Test");
-		f.add(new JScrollPane(new Cipango()));
-		f.setSize(400, 400);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.setVisible(true);
+		JFrame frame = new JFrame("Cipango v0.1");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(new Cipango());
+		frame.pack();
+		frame.setVisible(true);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == openButton) {
+			int returnVal = fc.showOpenDialog(Cipango.this);
+			
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File file = fc.getSelectedFile();
+				listTracks(file);
+			} else {
+				infoArea.append("Open command cancelled by user.\n");
+			} 
+		}
+	}
+
+	private void listTracks(File file) {
+		File[] filelist = file.listFiles(new FilenameFilter() {
+			private Pattern pattern = Pattern.compile("(.*)\\.mp3$");
+			public boolean accept(File dir, String name) {
+				Matcher m = pattern.matcher(name);
+				if (m.matches())
+					System.out.println(m.group(1));
+				return m.matches();
+			}
+		});
+		
+		for (File mp3file : filelist) {
+			try {
+				id3 = new ID3(mp3file); // V1 tag
+				id3.encoding = "GB18030-2000";
+				id3v2 = new ID3v2(mp3file); // V2 tag
+
+				boolean hasv1 = id3.checkForTag();
+				boolean hasv2 = id3v2.hasTag();
+
+				infoArea.append(mp3file.getName() + ":\n");
+				if (hasv1) {
+					try {
+						infoArea.append("    v1 - ");
+						infoArea.append("Artist: " + id3.getArtist() + ", ");
+						infoArea.append("Title: " + id3.getTitle() + "\n");
+					} catch (NoID3TagException e) {
+						System.out.println("Error reading v1 tag of "
+								+ mp3file.getName());
+					}
+				} else {
+					System.out.println(mp3file.getName() + " has no v1 tag");
+				}
+				if (hasv2) {
+					try {
+						id3v2.getFrames();
+						infoArea.append("    v2 - ");
+
+						byte[] artistEncoded= ((ID3v2Frame)
+								(id3v2.getFrame("TPE1").elementAt(0))).getContent();
+						String artistDecoded = new String(artistEncoded, id3.encoding);
+						byte[] titleEncoded= ((ID3v2Frame)
+								(id3v2.getFrame("TIT2").elementAt(0))).getContent();
+						String titleDecoded = new String(titleEncoded, id3.encoding);
+						
+						infoArea.append("Artist: " + artistDecoded + ", ");
+						infoArea.append("Title: " + titleDecoded + "\n");
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				} else {
+					System.out.println(mp3file.getName() + " has no v2 tag");
+				}
+			} catch (ID3v2IllegalVersionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ID3v2WrongCRCException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ID3v2DecompressionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }

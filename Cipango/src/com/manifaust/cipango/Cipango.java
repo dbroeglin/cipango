@@ -1,14 +1,16 @@
 package com.manifaust.cipango;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 import de.vdheide.mp3.*;
 
@@ -18,31 +20,10 @@ public class Cipango extends JPanel implements ActionListener {
 	JButton openButton;
 	JTextArea infoArea;
 	JFileChooser fc;
+	JTree fsTree;
 	
 	ID3 id3;
 	ID3v2 id3v2;
-
-	public Cipango() {
-		super(new BorderLayout());
-		
-		infoArea = new JTextArea(20, 40);
-		infoArea.setEditable(false);
-		JScrollPane infoScrollPane = new JScrollPane(infoArea);
-		
-		fc = new JFileChooser();
-		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		
-		openButton = new JButton("Open a File...");
-		openButton.addActionListener(this);
-
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(openButton);
-		
-		add(buttonPanel, BorderLayout.PAGE_START);
-		add(infoScrollPane, BorderLayout.CENTER);
-
-
-	}
 
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Cipango v0.1");
@@ -50,6 +31,78 @@ public class Cipango extends JPanel implements ActionListener {
 		frame.add(new Cipango());
 		frame.pack();
 		frame.setVisible(true);
+	}
+
+	public Cipango() {
+		super(new BorderLayout());
+		
+		infoArea = new JTextArea(20, 40);
+		infoArea.setEditable(false);
+		
+		File homeDir = new File(System.getProperty("user.home"));
+		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(homeDir);
+		populate(homeDir, rootNode);
+		fsTree = new JTree(rootNode);
+	    DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+	    renderer.setLeafIcon(UIManager.getIcon("Tree.closedIcon"));
+	    fsTree.setCellRenderer(renderer);
+		
+		JScrollPane fsScrollPane = new JScrollPane(fsTree);
+		JScrollPane infoScrollPane = new JScrollPane(infoArea);
+		JSplitPane splitPane = new JSplitPane(
+				JSplitPane.HORIZONTAL_SPLIT, fsScrollPane, infoScrollPane);
+		Dimension minimumSize = new Dimension(100, 50);
+		fsScrollPane.setMinimumSize(minimumSize);
+		infoScrollPane.setMinimumSize(minimumSize);
+		
+		fc = new JFileChooser();
+		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		
+		openButton = new JButton("Open a Folder...");
+		openButton.addActionListener(this);
+
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(openButton);
+		
+		add(buttonPanel, BorderLayout.PAGE_START);
+		add(splitPane, BorderLayout.CENTER);
+
+		String home = System.getProperty("user.home");
+		System.out.println("user.home = " + home); 
+	}
+	
+	private void populate(File topDir, DefaultMutableTreeNode topNode) {
+		DefaultMutableTreeNode tempNode;
+		DefaultMutableTreeNode dummyNode;
+		AllowDirectoriesFilter dirPassFilter = new AllowDirectoriesFilter();
+		
+		// Allow users to only select folders
+		String[] fileNameList = topDir.list(dirPassFilter);
+		
+		for(int i = 0; i < fileNameList.length; i++) {
+			File tempFile = new File(topDir
+					+ System.getProperty("file.separator") + fileNameList[i]);
+			tempNode = new DefaultMutableTreeNode(tempFile);
+			topNode.add(tempNode);
+			// Add dummy nodes to folders that should look expandable
+			if (tempFile.list(dirPassFilter).length != 0) {
+				dummyNode = new DefaultMutableTreeNode("Dummy!");
+				tempNode.add(dummyNode);
+			}
+		}
+	}
+	
+	private class AllowDirectoriesFilter implements FilenameFilter {
+		@Override
+		public boolean accept(File fileDir, String fileName) {
+			File file = new File(
+					fileDir + System.getProperty("file.separator") + fileName);
+			if (file.isDirectory() == true) {
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 
 	@Override
@@ -80,7 +133,7 @@ public class Cipango extends JPanel implements ActionListener {
 		for (File mp3file : filelist) {
 			try {
 				id3 = new ID3(mp3file); // V1 tag
-				id3.encoding = "GB18030-2000";
+				id3.encoding = "big5-hkscs";
 				id3v2 = new ID3v2(mp3file); // V2 tag
 
 				boolean hasv1 = id3.checkForTag();

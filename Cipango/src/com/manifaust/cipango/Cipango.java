@@ -9,12 +9,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.tree.*;
 
 import de.vdheide.mp3.*;
 
-public class Cipango extends JPanel implements ActionListener {
+public class Cipango extends JPanel implements ActionListener, TreeWillExpandListener {
 	private static final long serialVersionUID = -6145211126923439676L;
 	
 	JButton openButton;
@@ -46,6 +47,7 @@ public class Cipango extends JPanel implements ActionListener {
 	    DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
 	    renderer.setLeafIcon(UIManager.getIcon("Tree.closedIcon"));
 	    fsTree.setCellRenderer(renderer);
+	    fsTree.addTreeWillExpandListener(this);
 		
 		JScrollPane fsScrollPane = new JScrollPane(fsTree);
 		JScrollPane infoScrollPane = new JScrollPane(infoArea);
@@ -71,10 +73,22 @@ public class Cipango extends JPanel implements ActionListener {
 		System.out.println("user.home = " + home); 
 	}
 	
+	/**
+	 * This method takes a directory and the node associated with that directory
+	 * and adds all its children folders to that node. For those child
+	 * directories that have folders underneath them, this method will add
+	 * dummy nodes to make the child directories look expandable.
+	 * 
+	 * @param topDir The folder with child directories to be added
+	 * @param topNode The node associated with topDir
+	 */
 	private void populate(File topDir, DefaultMutableTreeNode topNode) {
 		DefaultMutableTreeNode tempNode;
 		DefaultMutableTreeNode dummyNode;
 		AllowDirectoriesFilter dirPassFilter = new AllowDirectoriesFilter();
+		
+		// Get rid of the dummy node at current level
+		topNode.removeAllChildren();
 		
 		// Allow users to only select folders
 		String[] fileNameList = topDir.list(dirPassFilter);
@@ -84,7 +98,7 @@ public class Cipango extends JPanel implements ActionListener {
 					+ System.getProperty("file.separator") + fileNameList[i]);
 			tempNode = new DefaultMutableTreeNode(tempFile);
 			topNode.add(tempNode);
-			// Add dummy nodes to folders that should look expandable
+			// Add dummy nodes to child directories that should look expandable
 			if (tempFile.list(dirPassFilter).length != 0) {
 				dummyNode = new DefaultMutableTreeNode("Dummy!");
 				tempNode.add(dummyNode);
@@ -92,6 +106,9 @@ public class Cipango extends JPanel implements ActionListener {
 		}
 	}
 	
+	/**
+	 * This filter will only allow directories to pass.
+	 */
 	private class AllowDirectoriesFilter implements FilenameFilter {
 		@Override
 		public boolean accept(File fileDir, String fileName) {
@@ -105,6 +122,9 @@ public class Cipango extends JPanel implements ActionListener {
 		}
 	}
 
+	/**
+	 * Detects "Open Folder" button press.
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == openButton) {
@@ -119,6 +139,11 @@ public class Cipango extends JPanel implements ActionListener {
 		}
 	}
 
+	/**
+	 * Outputs the ID3v1 and ID3v2 information of all mp3 files in a folder.
+	 * 
+	 * @param file The directory containing mp3 files 
+	 */
 	private void listTracks(File file) {
 		File[] filelist = file.listFiles(new FilenameFilter() {
 			private Pattern pattern = Pattern.compile("(.*)\\.mp3$");
@@ -186,5 +211,25 @@ public class Cipango extends JPanel implements ActionListener {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	@Override
+	public void treeWillCollapse(TreeExpansionEvent arg0)
+			throws ExpandVetoException {
+		// Always allow collapse
+	}
+
+	/**
+	 * Finds the node/directory being expanded, and loads its children onto
+	 * the tree.
+	 */
+	@Override
+	public void treeWillExpand(TreeExpansionEvent tee)
+			throws ExpandVetoException {
+		DefaultMutableTreeNode expandingNode =
+			(DefaultMutableTreeNode)tee.getPath().getLastPathComponent();
+		File expandingDir = (File)expandingNode.getUserObject();
+		// Load children directories onto tree
+		populate(expandingDir, expandingNode);
 	}
 }

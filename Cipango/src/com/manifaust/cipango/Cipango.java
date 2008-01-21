@@ -13,6 +13,8 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.*;
 
+import net.miginfocom.swing.MigLayout;
+
 import de.vdheide.mp3.*;
 
 public class Cipango extends JPanel implements ActionListener, TreeWillExpandListener {
@@ -29,16 +31,14 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 	public static void main(String[] args) {
 		JFrame frame = new JFrame("Cipango v0.1");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(new Cipango());
+		MigLayout layout = new MigLayout();
+		frame.add(new Cipango(layout));
 		frame.pack();
 		frame.setVisible(true);
 	}
 
-	public Cipango() {
-		super(new BorderLayout());
-		
-		infoArea = new JTextArea(20, 40);
-		infoArea.setEditable(false);
+	public Cipango(MigLayout layout) {
+		super(layout);
 		
 		File homeDir = new File(System.getProperty("user.home"));
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(homeDir);
@@ -50,12 +50,11 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 	    fsTree.addTreeWillExpandListener(this);
 		
 		JScrollPane fsScrollPane = new JScrollPane(fsTree);
-		JScrollPane infoScrollPane = new JScrollPane(infoArea);
+		JSplitPane fileInfoPane = createFileInfoPane();
 		JSplitPane splitPane = new JSplitPane(
-				JSplitPane.HORIZONTAL_SPLIT, fsScrollPane, infoScrollPane);
+				JSplitPane.HORIZONTAL_SPLIT, fsScrollPane, fileInfoPane);
 		Dimension minimumSize = new Dimension(100, 50);
 		fsScrollPane.setMinimumSize(minimumSize);
-		infoScrollPane.setMinimumSize(minimumSize);
 		
 		fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -63,16 +62,21 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 		openButton = new JButton("Open a Folder...");
 		openButton.addActionListener(this);
 
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(openButton);
-		
-		add(buttonPanel, BorderLayout.PAGE_START);
-		add(splitPane, BorderLayout.CENTER);
+		add(openButton, "wrap");
+		add(splitPane);
 
 		String home = System.getProperty("user.home");
 		System.out.println("user.home = " + home); 
 	}
 	
+	private JSplitPane createFileInfoPane() {
+		infoArea = new JTextArea(20, 40);
+		infoArea.setEditable(false);
+		
+		JPanel encodedTagsPanel = new JPanel(new MigLayout());
+		return new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoArea, encodedTagsPanel);
+	}
+
 	/**
 	 * This method takes a directory and the node associated with that directory
 	 * and adds all its children folders to that node. For those child

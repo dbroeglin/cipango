@@ -1,60 +1,63 @@
 package com.manifaust.cipango;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.*;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
+import javax.swing.event.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.*;
 
 import net.miginfocom.swing.MigLayout;
 
 import de.vdheide.mp3.*;
 
-public class Cipango extends JPanel implements ActionListener, TreeWillExpandListener {
-	private static final long serialVersionUID = -6145211126923439676L;
-	
+public class Cipango extends JFrame implements ActionListener,
+		TreeWillExpandListener, TreeSelectionListener {
+	JFrame frame;
 	JButton openButton;
-	JTextArea infoArea;
+	private JPanel infoArea; // top-right
 	JFileChooser fc;
 	JTree fsTree;
+	private JTable mp3Table = new JTable(new DefaultTableModel());
+	private Vector columnNames = new Vector(Arrays.asList(
+			"File Name", "Artist v1", "Title v1", "Artist v2", "Title v2"));
 	
-	ID3 id3;
-	ID3v2 id3v2;
-
 	public static void main(String[] args) {
-		JFrame frame = new JFrame("Cipango v0.1");
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		JFrame frame = new Cipango();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		MigLayout layout = new MigLayout();
-		frame.add(new Cipango(layout));
 		frame.pack();
 		frame.setVisible(true);
 	}
 
-	public Cipango(MigLayout layout) {
-		super(layout);
+	public Cipango() {
+		super("Cipango v0.2");
 		
 		File homeDir = new File(System.getProperty("user.home"));
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(homeDir);
+		MyNode rootNode = new MyNode(homeDir);
 		populate(homeDir, rootNode);
 		fsTree = new JTree(rootNode);
 	    DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
 	    renderer.setLeafIcon(UIManager.getIcon("Tree.closedIcon"));
 	    fsTree.setCellRenderer(renderer);
 	    fsTree.addTreeWillExpandListener(this);
+	    fsTree.addTreeSelectionListener(this);
 		
 		JScrollPane fsScrollPane = new JScrollPane(fsTree);
 		JSplitPane fileInfoPane = createFileInfoPane();
 		JSplitPane splitPane = new JSplitPane(
 				JSplitPane.HORIZONTAL_SPLIT, fsScrollPane, fileInfoPane);
-		Dimension minimumSize = new Dimension(100, 50);
-		fsScrollPane.setMinimumSize(minimumSize);
+		fsScrollPane.setPreferredSize(new Dimension(200, 300));
 		
 		fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
@@ -62,19 +65,30 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 		openButton = new JButton("Open a Folder...");
 		openButton.addActionListener(this);
 
-		add(openButton, "wrap");
-		add(splitPane);
-
-		String home = System.getProperty("user.home");
-		System.out.println("user.home = " + home); 
+		JPanel toolBar = new JPanel(new MigLayout());
+		toolBar.add(openButton, "wrap");
+		
+		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+		getContentPane().add(toolBar);
+		getContentPane().add(splitPane);
 	}
 	
+	// creates right-top and right-bottom panes
 	private JSplitPane createFileInfoPane() {
-		infoArea = new JTextArea(20, 40);
-		infoArea.setEditable(false);
-		
+		infoArea = new JPanel(new BorderLayout());
 		JPanel encodedTagsPanel = new JPanel(new MigLayout());
-		return new JSplitPane(JSplitPane.VERTICAL_SPLIT, infoArea, encodedTagsPanel);
+		
+		((DefaultTableModel)(mp3Table.getModel())).setColumnIdentifiers(columnNames);
+		mp3Table.setFillsViewportHeight(true);
+		mp3Table.setFont(new Font("Default", Font.PLAIN, 17));
+		mp3Table.setRowHeight(25);
+		infoArea.add(new JScrollPane(mp3Table));
+		
+		JSplitPane splitPane = new JSplitPane(
+				JSplitPane.VERTICAL_SPLIT, infoArea, encodedTagsPanel);
+		infoArea.setPreferredSize(new Dimension(500, 300));
+		encodedTagsPanel.setPreferredSize(new Dimension(500, 200));
+		return splitPane;
 	}
 
 	/**
@@ -86,9 +100,9 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 	 * @param topDir The folder with child directories to be added
 	 * @param topNode The node associated with topDir
 	 */
-	private void populate(File topDir, DefaultMutableTreeNode topNode) {
-		DefaultMutableTreeNode tempNode;
-		DefaultMutableTreeNode dummyNode;
+	private void populate(File topDir, MyNode topNode) {
+		MyNode tempNode;
+		MyNode dummyNode;
 		AllowDirectoriesFilter dirPassFilter = new AllowDirectoriesFilter();
 		
 		// Get rid of the dummy node at current level
@@ -100,11 +114,11 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 		for(int i = 0; i < fileNameList.length; i++) {
 			File tempFile = new File(topDir
 					+ System.getProperty("file.separator") + fileNameList[i]);
-			tempNode = new DefaultMutableTreeNode(tempFile);
+			tempNode = new MyNode(tempFile);
 			topNode.add(tempNode);
 			// Add dummy nodes to child directories that should look expandable
 			if (tempFile.list(dirPassFilter).length != 0) {
-				dummyNode = new DefaultMutableTreeNode("Dummy!");
+				dummyNode = new MyNode("Dummy!");
 				tempNode.add(dummyNode);
 			}
 		}
@@ -137,18 +151,18 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = fc.getSelectedFile();
 				listTracks(file);
-			} else {
-				infoArea.append("Open command cancelled by user.\n");
-			} 
+			}
 		}
 	}
 
 	/**
 	 * Outputs the ID3v1 and ID3v2 information of all mp3 files in a folder.
+	 * Modifies the DefaultTableModel of the JTable stored in infoArea JPanel.
 	 * 
 	 * @param file The directory containing mp3 files 
 	 */
 	private void listTracks(File file) {
+		// find files with mp3 file extension
 		File[] filelist = file.listFiles(new FilenameFilter() {
 			private Pattern pattern = Pattern.compile("(.*)\\.mp3$");
 			public boolean accept(File dir, String name) {
@@ -159,7 +173,13 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 			}
 		});
 		
-		for (File mp3file : filelist) {
+		Vector rowData = new Vector();
+		ID3 id3;
+		ID3v2 id3v2;
+
+		// extract id3 information to replace mp3table's model
+		for (int i = 0; i < filelist.length; i++) {
+			File mp3file = filelist[i];
 			try {
 				id3 = new ID3(mp3file); // V1 tag
 				id3.encoding = "big5-hkscs";
@@ -168,12 +188,14 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 				boolean hasv1 = id3.checkForTag();
 				boolean hasv2 = id3v2.hasTag();
 
-				infoArea.append(mp3file.getName() + ":\n");
+				Vector row = new Vector();
+				row.add(mp3file.getName());
+				
+				// check if there are id3v1 tags
 				if (hasv1) {
 					try {
-						infoArea.append("    v1 - ");
-						infoArea.append("Artist: " + id3.getArtist() + ", ");
-						infoArea.append("Title: " + id3.getTitle() + "\n");
+						row.add(id3.getArtist());
+						row.add(id3.getTitle());
 					} catch (NoID3TagException e) {
 						System.out.println("Error reading v1 tag of "
 								+ mp3file.getName());
@@ -181,10 +203,11 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 				} else {
 					System.out.println(mp3file.getName() + " has no v1 tag");
 				}
+				
+				// check if there are id3v2 tags
 				if (hasv2) {
 					try {
 						id3v2.getFrames();
-						infoArea.append("    v2 - ");
 
 						byte[] artistEncoded= ((ID3v2Frame)
 								(id3v2.getFrame("TPE1").elementAt(0))).getContent();
@@ -193,14 +216,15 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 								(id3v2.getFrame("TIT2").elementAt(0))).getContent();
 						String titleDecoded = new String(titleEncoded, id3.encoding);
 						
-						infoArea.append("Artist: " + artistDecoded + ", ");
-						infoArea.append("Title: " + titleDecoded + "\n");
+						row.add(artistDecoded);
+						row.add(titleDecoded);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
 					System.out.println(mp3file.getName() + " has no v2 tag");
 				}
+				rowData.add(row);
 			} catch (ID3v2IllegalVersionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -214,6 +238,7 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			((DefaultTableModel)mp3Table.getModel()).setDataVector(rowData, columnNames);
 		}
 	}
 
@@ -230,10 +255,38 @@ public class Cipango extends JPanel implements ActionListener, TreeWillExpandLis
 	@Override
 	public void treeWillExpand(TreeExpansionEvent tee)
 			throws ExpandVetoException {
-		DefaultMutableTreeNode expandingNode =
-			(DefaultMutableTreeNode)tee.getPath().getLastPathComponent();
+		MyNode expandingNode =
+			(MyNode)tee.getPath().getLastPathComponent();
 		File expandingDir = (File)expandingNode.getUserObject();
 		// Load children directories onto tree
 		populate(expandingDir, expandingNode);
+	}
+
+	@Override
+	public void valueChanged(TreeSelectionEvent e) {
+		MyNode node = (MyNode)fsTree.getLastSelectedPathComponent();
+		
+		if (node == null) {
+			return;
+		}
+		
+		listTracks((File)node.getUserObject());
+	}
+	
+	
+}
+
+class MyNode extends DefaultMutableTreeNode {
+	MyNode(File f) {
+		super(f);
+	}
+	
+	MyNode(String s) {
+		super(s);
+	}
+	
+	public String toString() {
+		File f = (File)this.getUserObject();
+		return f.getName();
 	}
 }

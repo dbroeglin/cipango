@@ -20,13 +20,13 @@ import de.vdheide.mp3.*;
 public class Cipango extends JFrame implements ActionListener,
 		TreeWillExpandListener, TreeSelectionListener {
 	JFrame frame;
-	JButton openButton;
 	private JPanel infoArea; // top-right
 	JFileChooser fc;
 	JTree fsTree;
 	private JTable mp3Table = new JTable(new DefaultTableModel());
 	private Vector columnNames = new Vector(Arrays.asList(
 			"File Name", "Artist v1", "Title v1", "Artist v2", "Title v2"));
+	private Toolbar toolbar = new Toolbar();
 	
 	public static void main(String[] args) {
 		try {
@@ -62,14 +62,10 @@ public class Cipango extends JFrame implements ActionListener,
 		fc = new JFileChooser();
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		
-		openButton = new JButton("Open a Folder...");
-		openButton.addActionListener(this);
-
-		JPanel toolBar = new JPanel(new MigLayout());
-		toolBar.add(openButton, "wrap");
 		
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-		getContentPane().add(toolBar);
+		getContentPane().add(toolbar);
+		toolbar.addOpenButtonListener(this);
 		getContentPane().add(splitPane);
 	}
 	

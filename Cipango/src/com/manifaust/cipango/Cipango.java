@@ -17,16 +17,16 @@ import net.miginfocom.swing.MigLayout;
 
 import de.vdheide.mp3.*;
 
-public class Cipango extends JFrame implements ActionListener,
-		TreeWillExpandListener, TreeSelectionListener {
-	JFrame frame;
+public class Cipango extends JFrame implements ActionListener, TreeSelectionListener {
+	private JFrame frame;
 	private JPanel infoArea; // top-right
-	JFileChooser fc;
-	JTree fsTree;
+	private JFileChooser fc;
+	private JTree fsTree = createFsTree();
 	private JTable mp3Table = new JTable(new DefaultTableModel());
 	private Vector columnNames = new Vector(Arrays.asList(
 			"File Name", "Artist v1", "Title v1", "Artist v2", "Title v2"));
 	private Toolbar toolbar = new Toolbar();
+	private File curDir;
 	
 	public static void main(String[] args) {
 		try {
@@ -41,16 +41,11 @@ public class Cipango extends JFrame implements ActionListener,
 	}
 
 	public Cipango() {
-		super("Cipango v0.2");
+		super("Cipango v0.3");
 		
-		File homeDir = new File(System.getProperty("user.home"));
-		MyNode rootNode = new MyNode(homeDir);
-		populate(homeDir, rootNode);
-		fsTree = new JTree(rootNode);
-	    DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
-	    renderer.setLeafIcon(UIManager.getIcon("Tree.closedIcon"));
-	    fsTree.setCellRenderer(renderer);
-	    fsTree.addTreeWillExpandListener(this);
+//	    DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+//	    renderer.setLeafIcon(UIManager.getIcon("Tree.closedIcon"));
+//	    fsTree.setCellRenderer(renderer);
 	    fsTree.addTreeSelectionListener(this);
 		
 		JScrollPane fsScrollPane = new JScrollPane(fsTree);
@@ -66,7 +61,17 @@ public class Cipango extends JFrame implements ActionListener,
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		getContentPane().add(toolbar);
 		toolbar.addOpenButtonListener(this);
+		toolbar.addEncodingComboListener(this);
 		getContentPane().add(splitPane);
+	}
+	
+	private JTree createFsTree() {
+		File root = new File(System.getProperty("user.home"));
+	    FileTreeModel model = new FileTreeModel(root);
+	    JTree tree = new JTree();
+	    tree.setModel(model);
+	    
+	    return tree;
 	}
 	
 	// creates right-top and right-bottom panes
@@ -88,66 +93,19 @@ public class Cipango extends JFrame implements ActionListener,
 	}
 
 	/**
-	 * This method takes a directory and the node associated with that directory
-	 * and adds all its children folders to that node. For those child
-	 * directories that have folders underneath them, this method will add
-	 * dummy nodes to make the child directories look expandable.
-	 * 
-	 * @param topDir The folder with child directories to be added
-	 * @param topNode The node associated with topDir
-	 */
-	private void populate(File topDir, MyNode topNode) {
-		MyNode tempNode;
-		MyNode dummyNode;
-		AllowDirectoriesFilter dirPassFilter = new AllowDirectoriesFilter();
-		
-		// Get rid of the dummy node at current level
-		topNode.removeAllChildren();
-		
-		// Allow users to only select folders
-		String[] fileNameList = topDir.list(dirPassFilter);
-		
-		for(int i = 0; i < fileNameList.length; i++) {
-			File tempFile = new File(topDir
-					+ System.getProperty("file.separator") + fileNameList[i]);
-			tempNode = new MyNode(tempFile);
-			topNode.add(tempNode);
-			// Add dummy nodes to child directories that should look expandable
-			if (tempFile.list(dirPassFilter).length != 0) {
-				dummyNode = new MyNode("Dummy!");
-				tempNode.add(dummyNode);
-			}
-		}
-	}
-	
-	/**
-	 * This filter will only allow directories to pass.
-	 */
-	private class AllowDirectoriesFilter implements FilenameFilter {
-		@Override
-		public boolean accept(File fileDir, String fileName) {
-			File file = new File(
-					fileDir + System.getProperty("file.separator") + fileName);
-			if (file.isDirectory() == true) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-
-	/**
 	 * Detects "Open Folder" button press.
 	 */
-	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == openButton) {
+		if (e.getSource() == toolbar.getOpenButton()) {
 			int returnVal = fc.showOpenDialog(Cipango.this);
 			
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File file = fc.getSelectedFile();
-				listTracks(file);
+				setCurDir(file);
+				listTracks();
 			}
+		} else if (e.getSource() == toolbar.getEncodingCombo()) {
+			listTracks();
 		}
 	}
 
@@ -157,9 +115,9 @@ public class Cipango extends JFrame implements ActionListener,
 	 * 
 	 * @param file The directory containing mp3 files 
 	 */
-	private void listTracks(File file) {
+	private void listTracks() {
 		// find files with mp3 file extension
-		File[] filelist = file.listFiles(new FilenameFilter() {
+		File[] filelist = getCurDir().listFiles(new FilenameFilter() {
 			private Pattern pattern = Pattern.compile("(.*)\\.mp3$");
 			public boolean accept(File dir, String name) {
 				Matcher m = pattern.matcher(name);
@@ -174,11 +132,11 @@ public class Cipango extends JFrame implements ActionListener,
 		ID3v2 id3v2;
 
 		// extract id3 information to replace mp3table's model
-		for (int i = 0; i < filelist.length; i++) {
+		for (int i = 0; filelist != null && i < filelist.length; i++) {
 			File mp3file = filelist[i];
 			try {
 				id3 = new ID3(mp3file); // V1 tag
-				id3.encoding = "big5-hkscs";
+				id3.encoding = toolbar.getEncoding();
 				id3v2 = new ID3v2(mp3file); // V2 tag
 
 				boolean hasv1 = id3.checkForTag();
@@ -238,51 +196,93 @@ public class Cipango extends JFrame implements ActionListener,
 		}
 	}
 
-	@Override
-	public void treeWillCollapse(TreeExpansionEvent arg0)
-			throws ExpandVetoException {
-		// Always allow collapse
-	}
-
 	/**
-	 * Finds the node/directory being expanded, and loads its children onto
-	 * the tree.
+	 * method for TreeSelectionListener implementation
+	 * update current directory and refresh track listing
 	 */
-	@Override
-	public void treeWillExpand(TreeExpansionEvent tee)
-			throws ExpandVetoException {
-		MyNode expandingNode =
-			(MyNode)tee.getPath().getLastPathComponent();
-		File expandingDir = (File)expandingNode.getUserObject();
-		// Load children directories onto tree
-		populate(expandingDir, expandingNode);
+	public void valueChanged(TreeSelectionEvent e) {
+		setCurDir((File)fsTree.getLastSelectedPathComponent());
+		listTracks();
 	}
 
-	@Override
-	public void valueChanged(TreeSelectionEvent e) {
-		MyNode node = (MyNode)fsTree.getLastSelectedPathComponent();
-		
-		if (node == null) {
-			return;
-		}
-		
-		listTracks((File)node.getUserObject());
+	public File getCurDir() {
+		return curDir;
 	}
-	
+
+	public void setCurDir(File curDir) {
+		this.curDir = curDir;
+	}
 	
 }
 
-class MyNode extends DefaultMutableTreeNode {
-	MyNode(File f) {
-		super(f);
-	}
+/**
+ * The methods in this class allow the JTree component to traverse
+ * the file system tree, and display the files and directories.
+ **/
+class FileTreeModel implements TreeModel {
+	// We specify the root directory when we create the model.
+	protected File root;
+	AllowDirectoriesFilter dirFilter = new AllowDirectoriesFilter();
 	
-	MyNode(String s) {
-		super(s);
+	public FileTreeModel(File root) { this.root = root; }
+
+	// The model knows how to return the root object of the tree
+	public Object getRoot() { return root; }
+
+	// TODO: implement better leaf folder view
+	// Tell JTree whether an object in the tree is a leaf or not
+	public boolean isLeaf(Object node) {  return ((File)node).isFile(); }
+
+	// Tell JTree how many children a node has
+	public int getChildCount(Object parent) {
+		String[] children = ((File)parent).list(dirFilter);
+		if (children == null) return 0;
+		return children.length;
 	}
-	
-	public String toString() {
-		File f = (File)this.getUserObject();
-		return f.getName();
+
+	// Fetch any numbered child of a node for the JTree.
+	// Our model returns File objects for all nodes in the tree.  The
+	// JTree displays these by calling the File.toString() method.
+	public Object getChild(Object parent, int index) {
+		String[] children = ((File)parent).list(dirFilter);
+		if ((children == null) || (index >= children.length)) return null;
+		return new File((File) parent, children[index]);
+	}
+
+	// Figure out a child's position in its parent node.
+	public int getIndexOfChild(Object parent, Object child) {
+		String[] children = ((File)parent).list(dirFilter);
+		if (children == null) return -1;
+		String childname = ((File)child).getName();
+		for(int i = 0; i < children.length; i++) {
+			if (childname.equals(children[i])) return i;
+		}
+		return -1;
+	}
+
+	// This method is only invoked by the JTree for editable trees.  
+	// This TreeModel does not allow editing, so we do not implement 
+	// this method.  The JTree editable property is false by default.
+	public void valueForPathChanged(TreePath path, Object newvalue) {}
+
+	// Since this is not an editable tree model, we never fire any events,
+	// so we don't actually have to keep track of interested listeners.
+	public void addTreeModelListener(TreeModelListener l) {}
+	public void removeTreeModelListener(TreeModelListener l) {}
+}
+
+/**
+ * This filter will only allow directories to pass.
+ */
+class AllowDirectoriesFilter implements FilenameFilter {
+	@Override
+	public boolean accept(File fileDir, String fileName) {
+		File file = new File(
+				fileDir + System.getProperty("file.separator") + fileName);
+		if (file.isDirectory() == true) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

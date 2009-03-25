@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.cipango</groupId>
+    <artifactId>cipango-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.cipango</groupId>
+  <artifactId>cipango-jonas</artifactId>
+  <packaging>bundle</packaging>
+  <name>Cipango JOnAS</name>
+  <description>Cipango integration into JOnAS</description>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>1.4.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <_include>-target/classes/META-INF/${pom.artifactId}.bnd</_include>
+          </instructions>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-ipojo-plugin</artifactId>
+        <version>${ipojo.version}</version>
+        <configuration>
+          <ignoreAnnotations>true</ignoreAnnotations>
+          <classifier>ipojo</classifier>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>ipojo-bundle</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <inherited>true</inherited>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <!-- Make sure that we're using a JDK >= 1.5 -->
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <rules>
+            <requireJavaVersion>
+              <version>1.5</version>
+            </requireJavaVersion>
+          </rules>
+        </configuration>
+      </plugin>
+    
+      <plugin>
+        <groupId>org.ow2.util.maven</groupId>
+        <artifactId>maven-jbuilding-plugin</artifactId>
+        <version>${ow2-util-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>generate-maven2-deployment-plans</id>
+            <inherited>true</inherited>
+            <goals>
+              <goal>generate-maven2-deployment-plans</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+          <execution>
+            <id>copy-bundles</id>
+            <inherited>true</inherited>
+            <goals>
+              <goal>assemble</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <bundles>
+            <dependency>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
+                <side>server</side>
+              </dependency>
+          </bundles>
+          <deploymentPlans>
+           <deploymentPlan>
+              <name>web</name>
+              <bundles>
+                <dependency>
+                  <groupId>javax.servlet</groupId>
+                  <artifactId>sip-api</artifactId>
+                  <version>1.1</version>
+                </dependency>
+                <dependency>
+                  <groupId>org.mortbay.jetty</groupId>
+                  <artifactId>jetty-util</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.mortbay.jetty</groupId>
+                  <artifactId>jetty</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.mortbay.jetty</groupId>
+                  <artifactId>jetty-management</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-management</artifactId>
+                  <version>${project.version}</version>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.mortbay.jetty</groupId>
+                  <artifactId>jetty-naming</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.mortbay.jetty</groupId>
+                  <artifactId>jetty-plus</artifactId>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-plus</artifactId>
+                  <version>${project.version}</version>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>ipojo</classifier>
+                </dependency>
+                <dependency>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-annotations</artifactId>
+                  <version>${project.version}</version>
+                  <side>server</side>
+                </dependency>
+                <dependency>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-dar</artifactId>
+                  <version>${project.version}</version>
+                  <side>server</side>
+                </dependency>
+              </bundles>
+            </deploymentPlan>
+          </deploymentPlans>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.ow2.jonas</groupId>
+      <artifactId>jonas-web-container-base</artifactId>
+      <version>${jonas.version}</version>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.ow2.bundles</groupId>
+      <artifactId>ow2-util-log</artifactId>
+      <version>${ow2-bundles.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.jonas</groupId>
+      <artifactId>jonas-security</artifactId>
+      <version>${jonas.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.ow2.jonas</groupId>
+      <artifactId>jonas-commons</artifactId>
+      <version>${jonas.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-management</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <!-- Jasper JSP compiler -->
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-2.1</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-ajp</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-annotations</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-html</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <!-- Needed for org.apache.AnnotationProcessor interface -->
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>catalina</artifactId>
+      <version>6.0.14</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-commons</artifactId>
+    </dependency>    
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+    </dependency>
+
+  </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>copy-jonas</id>
+      <activation>
+        <property>
+          <name>jonas</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <configuration>
+                  <tasks>
+                    <copy todir="${jonas.home}">
+                      <fileset dir="${project.build.directory}/assemble-resources"/>
+                      <fileset dir="${project.build.directory}/configuration-resources"/>
+                    </copy>
+                    <fileset dir="${jonas.home}/conf" includes="${project.src.directory}/main/resources/cipango*.xml"/>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
+  <properties>
+    <jonas.version>5.1.0-M2-SNAPSHOT</jonas.version>
+    <ow2-bundles.version>1.0.10-SNAPSHOT</ow2-bundles.version>
+    <ow2-util-plugin.version>1.0.11-SNAPSHOT</ow2-util-plugin.version>
+    <ipojo.version>1.0.0</ipojo.version>
+    <jonas.home>C:\java\misc\osgi\jonas-telco-osgi-5.1.0-M2-SNAPSHOT</jonas.home>
+  </properties>
+ 
+
+</project>

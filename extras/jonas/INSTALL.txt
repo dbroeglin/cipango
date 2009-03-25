@@ -1,0 +1,41 @@
+
+I) Fix Jetty
+------------
+
+	1) With Felix, when a ClassNotFound is thrown a specific message is like:
+		java.lang.ClassNotFoundException: *** Package 'org.mortbay.component.management' is imported by bundle 112 from bundle 108, but the exported package from bundle 108 does not contain the requested class 'org.mortbay.component.management.AbstractLifeCycleMBean'. Please verify that the class name is correct in the importing bundle 112 and/or that the exported package is correctly bundled in 108. ***
+	is set, so a log is done at warn level instead of debug.
+	This patch is required only if management is enabled (enabled only if the System property org.cipango.jonas.management.enabled is set to true)
+	To fix it, apply the patch ObjectMBean.patch in $Jetty.src.home.
+
+I) Fix JOnAS
+-------------
+	1) When JOnAS deploys a Sip application, it parses  @Resource annotations before creation of the SipAppContext.
+	So it cannot found matching JNDI name for SipFactoty resources. A patch has been done to ignore these errors.
+	To fix this issue apply the patch JndiEnvRefsGroupDesc.patch on JOnAS source home directory.
+
+II) Add bundles
+--------------
+	1) Set in pom.xml the value of jonas.home
+	2) Ensure the sip-api jar in your maven repository have OSGi headers.
+	3) Excute
+		mvn install -Djonas
+
+III) Expose sun.misc package to OSGi
+-----------------------------------
+	1) Extract $JONAS_BASE/lib/bootstrap/felix-launcher.jar to a temp directory
+	2) Edit org/ow2/jonas/launcher/felix/jonas-autodeploy-bundles.properties
+	3) Add the line
+              sun.misc; \
+After the line
+              sun.security.provider; \
+  4) Repackage the jar and replace $JONAS_BASE/lib/bootstrap/felix-launcher.jar
+
+IV) Set configuration
+--------------------
+	1) Edit $JONAS_BASE/conf/jonas.properties 
+	2) Comment the lines
+#jonas.service.web.class    org.ow2.jonas.web.tomcat6.Tomcat6Service
+#jonas.service.web.class    org.ow2.jonas.web.jetty6.Jetty6Service 
+	3) Add the line
+jonas.service.web.class    org.cipango.jonas.CipangoService

@@ -1,0 +1,21 @@
+==============================================================
+ Cipango SIP Container
+ Copyright 2008 NEXCOM Systems
+==============================================================
+
+This product includes some software developed at The Apache Software 
+Foundation (http://www.apache.org/).
+
+The Jetty Web Container is copyright Mort Bay Consulting Pty Ltd and 
+distributed under Apache 2.0 licence.
+
+The javax.servlet package used by Jetty is copyright 
+Sun Microsystems, Inc and Apache Software Foundation. It is 
+distributed under the Common Development and Distribution License.
+You can obtain a copy of the license at 
+https://glassfish.dev.java.net/public/CDDLv1.0.html.
+
+The default JSP implementation is provided by the Glassfish JSP engine
+from project Glassfish http://glassfish.dev.java.net.  Copyright 2005
+Sun Microsystems, Inc. and portions Copyright Apache Software Foundation.
+

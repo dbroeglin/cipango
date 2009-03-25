@@ -1,0 +1,30 @@
+Index: org/mortbay/jetty/plugin/AbstractJettyMojo.java
+===================================================================
+--- org/mortbay/jetty/plugin/AbstractJettyMojo.java	(revision 4333)
++++ org/mortbay/jetty/plugin/AbstractJettyMojo.java	(working copy)
+@@ -26,6 +26,7 @@
+ import org.apache.maven.plugin.MojoExecutionException;
+ import org.apache.maven.plugin.MojoFailureException;
+ import org.apache.maven.project.MavenProject;
++import org.cipango.plugin.CipangoPluginSipAppContext;
+ import org.mortbay.jetty.Server;
+ import org.mortbay.jetty.plugin.util.ConsoleScanner;
+ import org.mortbay.jetty.plugin.util.JettyPluginServer;
+@@ -53,7 +54,7 @@
+      * The "virtual" webapp created by the plugin
+      * @parameter
+      */
+-    protected Jetty6PluginWebAppContext webAppConfig;
++    protected CipangoPluginSipAppContext webAppConfig;
+ 
+ 
+ 
+@@ -428,7 +429,7 @@
+         //way of doing things
+         if (webAppConfig == null)
+         {
+-            webAppConfig = new Jetty6PluginWebAppContext();
++            webAppConfig = new CipangoPluginSipAppContext();
+             webAppConfig.setContextPath((getContextPath().startsWith("/") ? getContextPath() : "/"+ getContextPath()));
+             if (getTmpDirectory() != null)
+                 webAppConfig.setTempDirectory(getTmpDirectory());

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<server>
+
+  <!-- ==================================================================== -->
+  <!-- Web Container                                                        -->
+  <!-- ==================================================================== -->
+
+  <!--
+     | Be sure to check that the configuration values are valid for your
+     | environment.
+   -->
+
+  <mbean code="org.cipango.jboss.CipangoService" 
+         name="jboss.web:service=WebServer" xmbean-dd="META-INF/sipserver-xmbean.xml">
+
+    <!-- ================================================================= -->
+    <!-- Your webdefault.xml file - The default settings for every webapp  -->
+    <!-- deployed by Jetty. Make systemwide changes here to your webapps   -->
+    <!-- configurations.                                                   -->
+    <!-- ================================================================= -->
+
+    <attribute name="WebDefaultResource">webdefault.xml</attribute>
+
+    <!-- ================================================================== -->
+    <!-- If true, .war files are unpacked to a temporary directory. This    -->
+    <!-- is useful with JSPs.                                               -->
+    <!-- ================================================================== -->
+
+    <attribute name="UnpackWars">true</attribute>
+
+    <!-- ================================================================== -->
+    <!-- If true, Jetty will register MBeans representative of every Servlet-->
+    <!-- and Filter within each WebApp immediately. This will slow down your-->
+    <!-- development iterations.                                            -->
+    <!-- ================================================================== -->
+
+    <attribute name="SupportJSR77">true</attribute>
+
+    <!-- ================================================================== -->
+    <!-- If true, Jetty first delegates loading a class to the webapp's     -->
+    <!-- parent class loader (a la Java 2). If false, Jetty follows the     -->
+    <!--  Servlet 2.3 specification, and tries the webapp's own loader      -->
+    <!-- first (for "non-system" classes)                                   -->
+    <!-- ================================================================== -->
+
+    <attribute name="Java2ClassLoadingCompliance">false</attribute>
+
+    <!-- ================================================================= -->
+    <!-- If you require JAAS authentication, configure the name of the     -->
+    <!-- attribute in which you expect to find the JAAS active subject:    -->
+    <!-- ================================================================= -->
+
+    <attribute name="SubjectAttributeName">j_subject</attribute>
+
+
+    <!-- ================================================================= -->
+    <!-- The name of the security realm to use if none is defined in       -->
+    <!-- jboss-web.xml                                                     -->
+    <!-- ================================================================= -->
+    <attribute name="DefaultSecurityDomain">java:/jaas/other</attribute>
+
+    <!-- ================================================================= -->
+    <!-- Configuring Jetty. The XML fragment contained in the              -->
+    <!-- name="ConfigurationElement" attribute is a Jetty-style            -->
+    <!-- configuration specification.  It is used to configure Jetty with  -->
+    <!-- a listener on port 8080, and a HTTP request log location.         -->
+    <!-- The placement here of other Jetty XML configuration statements    -->
+    <!-- for deploying webapps etc is not encouraged: if you REALLY NEED   -->
+    <!-- something extra, place it in WEB-INF/jetty-web.xml files          -->
+    <!-- ================================================================= -->
+
+    <attribute name="ConfigurationElement">
+<Configure class="org.cipango.SipServer" id="Server">
+  <!-- =========================================================== -->
+  <!-- Server Thread Pool                                          -->
+  <!-- =========================================================== -->
+  <Set name="ThreadPool">
+    <New class="org.mortbay.thread.BoundedThreadPool">
+      <Set name="minThreads">10</Set>
+      <Set name="lowThreads">50</Set>
+      <Set name="maxThreads">250</Set>
+    </New>
+  </Set>
+
+  <!-- =========================================================== -->
+  <!-- Connectors.                                                 -->
+  <!-- =========================================================== -->
+  <Call name="addConnector">
+    <Arg>
+        <New class="org.mortbay.jetty.nio.SelectChannelConnector">
+          <Set name="port"><SystemProperty default="8080" name="jetty.port"/></Set>
+          <Set name="maxIdleTime">30000</Set>
+          <Set name="Acceptors">2</Set>
+          <Set name="confidentialPort">8443</Set>
+        </New>
+    </Arg>
+  </Call>
+
+  <Set name="handler">
+     <New class="org.cipango.handler.SipContextHandlerCollection" id="Contexts"/>
+  </Set>
+
+  <Call name="initSip"/>
+
+  <Get name="transportHandler">
+    <Call name="addConnector">
+      <Arg>
+        <New class="org.cipango.sip.UdpConnector">
+          <Set name="port"><SystemProperty default="5060" name="sip.port"/></Set>
+          <Set name="host"><SystemProperty default="127.0.0.1" name="sip.host"/></Set>
+        </New>
+      </Arg>
+    </Call> 
+    <Call name="addConnector">
+      <Arg>
+        <New class="org.cipango.sip.TcpConnector">
+          <Set name="port"><SystemProperty default="5060" name="sip.port"/></Set>
+          <Set name="host"><SystemProperty default="127.0.0.1" name="sip.host"/></Set>
+        </New>
+      </Arg>
+    </Call>
+    <Set name="accessLog">
+     <New class="org.cipango.log.MessageLog">
+       <Set name="filename"><SystemProperty default="." name="cipango.home"/>/log/yyyy_mm_dd.message.log</Set>
+       <Set name="append">true</Set>
+       <Set name="retainDays">31</Set>
+     </New>
+    </Set>
+  </Get>
+
+  <Get name="transactionHandler">
+    <Set name="t1">500</Set>
+    <Set name="t2">4000</Set>
+    <Set name="t4">5000</Set>
+    <Set name="tD">32000</Set>
+    <Set name="timerC">180</Set>
+  </Get>
+      
+  
+  <Set name="SipThreadPool">
+    <New class="org.mortbay.thread.BoundedThreadPool">
+      <Set name="minThreads">10</Set>
+      <Set name="lowThreads">50</Set>
+      <Set name="maxThreads">250</Set>
+    </New>
+  </Set>
+
+  <!-- =========================================================== -->
+  <!-- extra options                                               -->
+  <!-- =========================================================== -->
+  <Set name="stopAtShutdown">true</Set>
+  
+       </Configure>
+     </attribute>
+  </mbean>
+</server>

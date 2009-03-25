@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sip-app
+   PUBLIC "-//Java Community Process//DTD SIP Application 1.0//EN"
+   "http://www.jcp.org/dtd/sip-app_1_0.dtd">
+
+<!-- ===================================================================== -->
+<!-- This file contains the default descriptor for sip applications.       -->
+<!-- ===================================================================== -->
+
+<sip-app>
+	<proxy-config>
+		<proxy-timeout>180</proxy-timeout>
+	</proxy-config>
+	
+	<session-config>
+		<session-timeout>12</session-timeout>
+	</session-config>
+</sip-app>

@@ -1,0 +1,12 @@
+Index: org/mortbay/jetty/plugin/Jetty6RunMojo.java
+===================================================================
+--- org/mortbay/jetty/plugin/Jetty6RunMojo.java	(revision 4333)
++++ org/mortbay/jetty/plugin/Jetty6RunMojo.java	(working copy)
+@@ -53,7 +53,6 @@
+  *  </p>
+  * @author janb
+  * 
+- * @goal run
+  * @requiresDependencyResolution runtime
+  * @execute phase="test-compile"
+  * @description Runs jetty6 directly from a maven project

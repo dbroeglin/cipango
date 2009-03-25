@@ -1,0 +1,102 @@
+# ---------------------------------------------------------------------------
+# JOnAS: Java(TM) Open Application Server
+# Copyright (C) 2007 Bull S.A.S.
+# Contact: jonas-team@ow2.org
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+# USA
+# ---------------------------------------------------------------------------
+# $Id: jonas-web-container-jetty-6.1.bnd 14675 2008-07-29 08:52:10Z fornacif $
+# ---------------------------------------------------------------------------
+
+# Need to get this package (and only this one) from catalina.jar
+# (for)
+Export-Package org.apache, \
+               org.cipango.jonas.*
+
+# Need to export the Jasper classes used by the generated JSP classes (not in bundle)
+-exportcontents org.apache.jasper.runtime;version=${jetty.version}, \
+                org.apache.jasper.compiler.*;version=${jetty.version}, \
+                org.apache.jasper.servlet;version=${jetty.version}, \
+                org.apache.jasper;version=${jetty.version}, \
+                org.objectweb.asm.*;version=${asm.version}, \
+                com.sun.el;version=${jetty.version}
+
+# Need to add this import (properties) because Bnd do not handle multiple level inheritance.
+# Ant will not be used (eclipse compiler instead)
+# sun.misc is a dependency not used by Jasper
+# Servlet/JSP resources are used by Jasper
+# org.eclipse.* are dependencies of the JDT core
+# org.ow2.jonas.deployment.api added for inherited class IServiceRefDesc
+Import-Package !org.apache.xml.*, \
+               !org.apache.bcel.*, \
+               !org.apache.env, \
+               !org.apache.bsf, \
+               !org.apache.tools.ant.launch.*, \
+               !org.apache.tools.ant.taskdefs.optional, \
+               !org.apache.tools.ant.util.optional, \
+               !org.eclipse.core.*, \
+               !org.eclipse.text.*, \
+               !org.eclipse.osgi.*, \
+               !org.eclipse.jface.*, \
+               !org.osgi.service.prefs, \
+               !sun.rmi.rmic, \
+               !sun.tools.javac, \
+               !com.sun.tools.javac,\
+               !kaffe.rmi.rmic, \
+               !com.sun.org.apache.xalan.internal.res, \
+               !com.sun.org.apache.xml.internal.utils, \
+               !com.sun.org.apache.xpath.internal, \
+               !com.sun.org.apache.xpath.internal.*, \
+               org.cipango, \
+               org.cipango.ar, \
+               org.cipango.handler, \
+               org.cipango.log, \
+               org.cipango.sip, \
+               *
+
+# Use * to allow import of custom application router.
+DynamicImport-Package javax.servlet.resources, \
+                      javax.servlet.jsp.resources, \
+                      org.slf4j, \
+                      org.ow2.jonas.deployment.api, \
+                      org.ow2.jonas.jmx, \
+                      org.ow2.util.ee.metadata.war.api, \
+                      org.ow2.jonas.naming, \
+                      org.ow2.jonas.properties, \
+                      org.ow2.jonas.workcleaner, \
+                      org.ow2.jonas.ws.axis,\
+                      org.ow2.jonas.ws, \
+                      org.ow2.util.ee.deploy.api.deployer,\
+                      org.ow2.util.ee.deploy.api.deployable, \
+                      org.cipango.annotations, \
+                      org.cipango.dar, \
+                      *
+
+# AJP and HTML are not bundles ...
+# JSP is the Jasper version used in Jetty (bundled from Glassfish)
+# Ant/JDT Core are required because of Jasper
+Embed-Dependency jetty-ajp;inline=true, \
+                 jetty-html;inline=true, \
+                 jsp-2.1;inline=true, \
+                 ant;inline=true, \
+                 asm-commons;inline=true, \
+                 asm-tree;inline=true, \
+                 asm;inline=true, \
+                 core;inline=true
+
+# Avoid adding transitive dependencies as first level
+# dependency in the POM to allow bundle inclusion
+Embed-Transitive true

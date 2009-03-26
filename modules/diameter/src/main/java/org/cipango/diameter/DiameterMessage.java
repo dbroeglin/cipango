@@ -15,6 +15,12 @@
 package org.cipango.diameter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.sip.SipServletMessage;
 
 
 import org.cipango.diameter.base.Base;
@@ -32,6 +38,8 @@ public abstract class DiameterMessage
 	protected DiameterConnection _connection;
 	
 	protected DiameterSession _session;
+	
+	private Map<String, Object> _attributes;
 	
 	public DiameterMessage()
 	{
@@ -187,5 +195,40 @@ public abstract class DiameterMessage
 	public String toString()
 	{
 		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command;
+	}
+	
+	public Object getAttribute(String name) 
+	{
+		if (_attributes != null) 
+			return _attributes.get(name);
+		return null;
+	}
+	
+	public void removeAttribute(String name)
+	{
+		if (_attributes == null)
+			return;
+		_attributes.remove(name);
+	}
+	
+
+	@SuppressWarnings("unchecked")
+	public Enumeration<String> getAttributeNames() 
+	{
+		if (_attributes != null) 
+			return Collections.enumeration(_attributes.keySet());
+		
+		return Collections.enumeration(Collections.EMPTY_LIST);
+	}
+	
+	public void setAttribute(String name, Object o) 
+	{
+		if (o == null || name == null) 
+			throw new NullPointerException("name or value is null");
+		
+		if (_attributes == null) 
+			_attributes = new HashMap<String, Object>();
+
+		_attributes.put(name, o);
 	}
 }

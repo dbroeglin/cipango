@@ -50,6 +50,7 @@ public abstract class Base
 	public static final int
 		DIGEST_REALM = 104,
 		DIGEST_QOP = 110,
+		DIGEST_ALGORITHM = 111,
 		DIGEST_HA1 = 121;
 	
 	// ======================== Commands ========================

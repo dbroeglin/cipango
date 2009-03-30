@@ -502,7 +502,7 @@ public class SipHeaders
 		
 		public boolean isMerge()
 		{
-			return _merge;
+			return _merge; 
 		}
 	}
 }

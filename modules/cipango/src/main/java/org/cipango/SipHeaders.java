@@ -411,7 +411,7 @@ public class SipHeaders
         __types[SESSION_EXPIRES_ORDINAL] = new HeaderInfo(SESSION_EXPIRES_ORDINAL, false);
         __types[SIP_ETAG_ORDINAL] = new HeaderInfo(SIP_ETAG_ORDINAL, false);
         __types[SIP_IF_MATCH_ORDINAL] = new HeaderInfo(SIP_IF_MATCH_ORDINAL, false);
-        __types[SUBSCRIPTION_STATE_ORDINAL] = new HeaderInfo(SUBSCRIPTION_STATE_ORDINAL, false);
+        __types[SUBSCRIPTION_STATE_ORDINAL] = new HeaderInfo(SUBSCRIPTION_STATE_ORDINAL, HeaderInfo.PARAMETERABLE, false, false, false);
         __types[TARGET_DIALOG_ORDINAL] = new HeaderInfo(TARGET_DIALOG_ORDINAL, false);
         __types[IN_REPLY_TO_ORDINAL] = new HeaderInfo(IN_REPLY_TO_ORDINAL, true);
         __types[MIN_EXPIRES_ORDINAL] = new HeaderInfo(MIN_EXPIRES_ORDINAL, false);

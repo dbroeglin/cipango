@@ -76,6 +76,14 @@ public class AVP
 			| (_buffer.peek(_buffer.getIndex() + 3) & 0xff);
 	}
 	
+	public byte[] getBytes()
+	{
+		byte[] bytes = new byte[_buffer.length()];
+		
+		_buffer.peek(_buffer.getIndex(), bytes, 0, _buffer.length());
+		return bytes;
+	}
+	
 	public String getString()
 	{
 		byte[] bytes = _buffer.array();

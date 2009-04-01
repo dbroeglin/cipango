@@ -10,12 +10,12 @@
 
   <modules>
     <module>modules/cipango</module>
-    <module>modules/examples</module>
     <module>modules/management</module>
     <module>modules/plus</module>
     <module>modules/annotations</module>
     <module>modules/dar</module>
-<!--    <module>modules/maven-plugin</module> -->
+    <module>modules/maven-plugin</module>
+    <module>modules/examples</module>
   </modules>
 
   <dependencyManagement>

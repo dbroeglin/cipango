@@ -34,30 +34,18 @@ public abstract class Constants
 	public static final String ID_PARAM 			= "id";
 	public static final String SUBSCRIPTION_ATT		= "Subscription";
 	
-	/* 
-	 * TODO:
-	 * substate-value       = "active" / "pending" / "terminated"
-                          / extension-substate
-   extension-substate   = token
-   subexp-params        =   ("reason" EQUAL event-reason-value)
-                          / ("expires" EQUAL delta-seconds)
-                          / ("retry-after" EQUAL delta-seconds)
-                          / generic-param
-   event-reason-value   =   "deactivated"
-                          / "probation"
-                          / "rejected"
-                          / "timeout"
-                          / "giveup"
-                          / "noresource"
-                          / event-reason-extension
-   event-reason-extension = token
-*/
 	public static final String SUBSCRIPTION_STATE	= "Subscription-State";
-	public static final String ACTIVE				= "active";
-	public static final String PENDING				= "pending";
-	public static final String TERMINATED			= "terminated";
+	
 	public static final String EXPIRES				= "expires";
-	public static final String SIP_FACTORY			= "javax.servlet.sip.SipFactory";
+	public static final String REASON				= "reason";
+	public static final String RETRY_AFTER			= "retry-after";
+	
+	public static final String DEACTIVATED			= "deactivated";
+	public static final String PROBATION			= "probation";
+	public static final String REJECTED				= "rejected";
+	public static final String TIMEOUT				= "timeout";
+	public static final String GIVEUP				= "giveup";
+	public static final String NORESOURCE			= "noresource";
 	
 	private Constants() { }	
 }

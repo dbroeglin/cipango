@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TimerTask;
 
+import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.event.PublishTimedValue;
 import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.State;
@@ -75,9 +76,8 @@ public class Presentity implements Resource
 	{
 		synchronized(_states)
 		{
-			State state = _states.get(etag).getValue();
 			removeEntryState(etag);
-			notifySubscribers(state);
+			notifySubscribers(null);
 		}
 	}
 
@@ -96,7 +96,6 @@ public class Presentity implements Resource
 		removeEntryState(oldState.getETag());
 		State newState = new State(contentType, content);
 		addState(newState, expires);
-		notifySubscribers(newState);
 		return newState;
 	}
 
@@ -111,7 +110,7 @@ public class Presentity implements Resource
 			{
 				TimedValue<Subscription, ExpirationSubscriptionTask> subscription = subscriptions.next();
 				int expires = subscription.getTask().getRemainingTime();
-				_presence.createNotification(subscription.getValue(), expires, getContent());
+				_presence.createNotification(subscription.getValue().getSession(), this, expires, getContent(), subscription.getValue().getState(), null);
 			}
 		}
 	}
@@ -120,7 +119,11 @@ public class Presentity implements Resource
 	{
 		removeEntryState(oldState.getETag());
 		State newState = oldState.resetETag();
-		addState(newState, expires);
+		synchronized(_states)
+		{
+			PublishTimedValue p = new PublishTimedValue(newState, new ExpirationPublishingTask(newState.getETag(), expires));
+			_states.put(newState.getETag(), p);
+		}
 		return newState;
 	}
 
@@ -149,13 +152,13 @@ public class Presentity implements Resource
 		synchronized (_subscriptions) 
 		{
 			_subscriptions.get(id).resetTask(new ExpirationSubscriptionTask(id, expires));
-			notifySubscriber(_subscriptions.get(id).getValue(), expires);
+			notifySubscriber(_subscriptions.get(id).getValue(), expires, null);
 		}
 	}
 
-	private void notifySubscriber(Subscription subscription, int expires) 
+	private void notifySubscriber(Subscription subscription, int expires, String reason) 
 	{
-		_presence.createNotification(subscription, expires, getContent());
+		_presence.createNotification(subscription.getSession(), this, expires, getContent(), subscription.getState(), reason);
 	}
 
 	public void startSubscription(String id) 
@@ -163,7 +166,7 @@ public class Presentity implements Resource
 		synchronized (_subscriptions) 
 		{
 			TimedValue<Subscription,ExpirationSubscriptionTask> subscriptionTimed = _subscriptions.get(id);
-			notifySubscriber(subscriptionTimed.getValue(), subscriptionTimed.getTask().getRemainingTime());
+			notifySubscriber(subscriptionTimed.getValue(), subscriptionTimed.getTask().getRemainingTime(), null);
 		}
 	}
 
@@ -205,16 +208,34 @@ public class Presentity implements Resource
 		@Override
 		public void run() 
 		{
-			removeSubscription(_id);
+			removeSubscription(_id, Constants.TIMEOUT);
 		}
 	}	
 
 	public void removeSubscription(String id) 
 	{
+		removeSubscription(id, null); 
+	}
+	
+	//FIXME
+	public void eraseSubscription(String id) 
+	{
 		synchronized (_subscriptions) 
 		{
-			_subscriptions.get(id).closeTask();
-			notifySubscriber(_subscriptions.get(id).getValue(),0);
+			TimedValue<Subscription,ExpirationSubscriptionTask> subscription = _subscriptions.get(id);
+			subscription.closeTask();
+			_subscriptions.remove(id);
+		}
+	}
+	
+	private void removeSubscription(String id, String reason) 
+	{
+		synchronized (_subscriptions) 
+		{
+			TimedValue<Subscription,ExpirationSubscriptionTask> subscription = _subscriptions.get(id);
+			subscription.closeTask();
+			subscription.getValue().setState(Subscription.State.TERMINATED);
+			notifySubscriber(subscription.getValue(), 0, reason);
 			_subscriptions.remove(id);
 		}
 	}

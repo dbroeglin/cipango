@@ -22,7 +22,6 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 
-import org.apache.log4j.Logger;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
@@ -31,8 +30,6 @@ import org.cipango.kaleo.event.Subscription;
 
 public class PresenceServlet extends SipServlet
 {
-	private final static Logger __log = Logger.getLogger(PresenceServlet.class);
-
 	private static final long serialVersionUID = -183362525207809670L;
 
 	private PresenceEventPackage _presence;
@@ -44,8 +41,6 @@ public class PresenceServlet extends SipServlet
 
 	protected void doPublish(SipServletRequest publish) throws IOException
 	{
-		__log.info("Publish received:"+publish);
-
 		String event = publish.getHeader(Constants.EVENT);
 
 		if (event == null || !event.equals(_presence.getName()))
@@ -117,7 +112,7 @@ public class PresenceServlet extends SipServlet
 			}
 			catch (Exception e)
 			{
-				__log.info("RAW Exception => BAD REQUEST", e);
+				log("RAW Exception => BAD REQUEST", e);
 				publish.createResponse(SipServletResponse.SC_BAD_REQUEST);
 				publish.send();
 				return;
@@ -198,8 +193,6 @@ public class PresenceServlet extends SipServlet
 
 	protected void doSubscribe(SipServletRequest subscribe) throws IOException
 	{
-		__log.info("Subscribe received:"+subscribe);
-
 		String eventHeader = subscribe.getHeader(Constants.EVENT);
 
 		if (eventHeader == null || !eventHeader.equals(_presence.getName()))
@@ -241,15 +234,15 @@ public class PresenceServlet extends SipServlet
 		if (subscription == null) 
 		{
 			//New subscription
-			
+
 			String uri = URIUtil.toCanonical(subscribe.getRequestURI());
 			Presentity presentity = _presence.getResource(uri);
-			
+
 			subscription = new Subscription(presentity, session);
-			
+
 			presentity.addSubscription(subscription, expires);
 			//TODO Authorization
-			if (subscription.getState().getValue() == Subscription.State.ACTIVE) 
+			if (subscription.getState().equals(Subscription.State.ACTIVE)) 
 			{
 				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
 				response.setExpires(expires);
@@ -268,17 +261,25 @@ public class PresenceServlet extends SipServlet
 		else
 		{ 
 			Presentity presentity = (Presentity) subscription.getResource();
-			
+
 			if(!presentity.isSubscribed(subscription.getId()))
 			{
-				__log.info("481");
 				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
 				response.setExpires(expires);
 				response.send();
 				return;
 			}
 
-			if (subscription.getState().getValue() == Subscription.State.ACTIVE) 
+			if(expires == 0)
+			{
+				presentity.removeSubscription(subscription.getId());
+			}
+			else
+			{
+				presentity.refreshSubscription(subscription.getId(), expires);
+			}
+
+			if (subscription.getState().equals(Subscription.State.ACTIVE)) 
 			{
 				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
 				response.setExpires(expires);
@@ -291,15 +292,6 @@ public class PresenceServlet extends SipServlet
 			//				response.send();
 			//				return;
 			//			}
-			if(expires == 0)
-			{
-				presentity.removeSubscription(subscription.getId());
-			}
-			else
-			{
-				presentity.refreshSubscription(subscription.getId(), expires);
-			}
-
 		}
 	}
 }

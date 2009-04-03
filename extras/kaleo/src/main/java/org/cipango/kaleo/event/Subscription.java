@@ -6,25 +6,25 @@ public class Subscription
 {
 	private Resource _resource;
 	private SipSession _session;
-	private State _state = new State();
+	private State _state = State.ACTIVE;
 	private String _id;
 	
-	public class State {
-		
-		public static final int ACTIVE = 0;
-		public static final int PENDING = 1;
-		public static final int TERMINATED = 2;
-		
-		private int _value;
-		
-		public int getValue() 
+	public enum State
+	{
+		ACTIVE("active"), 
+		PENDING("pending"), 
+		TERMINATED("terminated");
+
+		private String _name;
+
+		private State(String name)
 		{
-			return _value;
+			_name = name;
 		}
-		
-		public void setValue(int value) 
+
+		public String getName()
 		{
-			_value = value;
+			return _name;
 		}
 	}
 	
@@ -53,5 +53,10 @@ public class Subscription
 	public State getState() 
 	{
 		return _state;
+	}
+	
+	public void setState(State state) 
+	{
+		_state = state;
 	}
 }

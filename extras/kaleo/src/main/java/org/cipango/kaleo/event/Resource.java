@@ -33,6 +33,12 @@ public interface Resource
 	State modifyState(State state, int expires, String contentType, Object content);
 	
 	State refreshState(State state, int expires);
+	
+	void removeSubscription(String id);
+	
+	void addSubscription(Subscription subscription, int expires);
+	
+	void refreshSubscription(String id, int expires);
 
 	class Content 
 	{
@@ -56,4 +62,7 @@ public interface Resource
 			return _type;
 		}
 	}
+
+	//FIXME
+	void eraseSubscription(String id);
 }

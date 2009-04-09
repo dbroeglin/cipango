@@ -1,4 +1,4 @@
-package org.cipango.kaleo.presence;
+package org.cipango.kaleo.event;
 
 import java.util.LinkedList;
 
@@ -11,27 +11,40 @@ import javax.servlet.sip.SipSession;
 
 import org.apache.log4j.Logger;
 import org.cipango.kaleo.Constants;
-import org.cipango.kaleo.event.ContentHandler;
-import org.cipango.kaleo.event.EventPackage;
-import org.cipango.kaleo.event.Resource;
-import org.cipango.kaleo.event.Subscription.State;
 
-public abstract class NotificationsManager 
-implements EventPackage<Presentity>
+public class NotificationsManager 
 {
 	private final static Logger __log = Logger.getLogger(NotificationsManager.class);
 
 	private LinkedList<Notification> _notifications = new LinkedList<Notification>();
+
+	private Thread _notifier;
+	
+	private static NotificationsManager _notificationsManager;
+
+	public static NotificationsManager getInstance()
+	{
+		if(_notificationsManager == null)
+		{
+			_notificationsManager = new NotificationsManager();
+		}
+		return _notificationsManager;
+	}
+	
+	public NotificationsManager()
+	{
+		_notifier = new Thread(new Notifier());
+		_notifier.start();
+	}
 
 	/**
 	 * Create and post notification
 	 * @param subscription
 	 * @param expires
 	 */
-	public void createNotification(SipSession session, Resource resource,
-			int expires, Resource.Content content, State state, String reason)  
+	public void createNotification(EventPackage<?> evtPackage, SipSession session, int expires, Resource.Content content, Subscription.State state, Reason reason)  
 	{
-		Notification notification = new Notification(session, resource, expires, content, state, reason);
+		Notification notification = new Notification(evtPackage, session, expires, content, state, reason);
 		synchronized(_notifications) 
 		{
 			_notifications.addLast(notification);
@@ -72,22 +85,20 @@ implements EventPackage<Presentity>
 		try 
 		{
 			SipSession session = notification.getSession();
-			//FIXME
 			if(session.isValid())
 			{
 				SipServletRequest notify = session.createRequest("NOTIFY");
 				String type = notification.getContent().getType();
-				ContentHandler handler = getContentHandler(type);
+				ContentHandler handler = notification.getEventPackage().getContentHandler(type);
 				byte[] b = handler.getBytes(notification.getContent().getValue());
 				notify.addParameterableHeader(Constants.SUBSCRIPTION_STATE, notification.getSubscriptionStateHeader(), true);
-				notify.addHeader(Constants.EVENT, getName());
+				notify.addHeader(Constants.EVENT, notification.getEventPackage().getName());
 				notify.setContent(b, type);
 				notify.send();
 			}
 			else
 			{
 				//FIXME
-				notification.getResource().eraseSubscription(notification.getSession().getId());
 			}
 		} 
 		catch (Throwable e) 
@@ -100,26 +111,26 @@ implements EventPackage<Presentity>
 	{
 		private SipSession _session;
 
-		private Resource _ressource;
+		private EventPackage<?> _evtPackage;
 
 		private int _expires;
 
 		private Resource.Content _content;
 
-		private String _reason;
+		private Reason _reason;
 
-		private State _state;
+		private Subscription.State _state;
 
 		public Notification(
+				EventPackage<?> evtPackage,
 				SipSession session,
-				Resource resource,
 				int expires,
 				Resource.Content content,
-				State state,
-				String reason) 
+				Subscription.State state,
+				Reason reason) 
 		{
 			_session = session;
-			_ressource = resource;
+			_evtPackage = evtPackage;
 			_expires = expires;
 			_content = content;
 			_reason = reason;
@@ -140,7 +151,7 @@ implements EventPackage<Presentity>
 
 			Parameterable header = factory.createParameterable(_state.getName());
 
-			if(_state.equals(State.ACTIVE))
+			if(_state.equals(Subscription.State.ACTIVE))
 			{
 				/*
    If the "Subscription-State" header value is "active", it means that
@@ -153,7 +164,7 @@ implements EventPackage<Presentity>
 				header.setParameter(Constants.EXPIRES, new Integer(_expires).toString());
 
 			}
-			else if (_state.equals(State.PENDING))
+			else if (_state.equals(Subscription.State.PENDING))
 			{
 				/*
    If the "Subscription-State" value is "pending", the subscription has
@@ -167,7 +178,7 @@ implements EventPackage<Presentity>
 				 */
 				header.setParameter(Constants.EXPIRES, new Integer(_expires).toString());
 			}
-			else if(_state.equals(State.TERMINATED))
+			else if(_state.equals(Subscription.State.TERMINATED))
 			{
 				/*
 If the "Subscription-State" value is "terminated", the subscriber
@@ -214,18 +225,20 @@ If the "Subscription-State" value is "terminated", the subscriber
       semantics for "noresource".
 				 */
 				if(_reason != null)
-					header.setParameter(Constants.REASON, _reason);
+					header.setParameter(Constants.REASON, _reason.getName());
 
 			}
 			return header;
 		}
 
-		public SipSession getSession() {
+		public SipSession getSession() 
+		{
 			return _session;
 		}
 
-		public Resource getResource() {
-			return _ressource;
+		public EventPackage<?> getEventPackage() 
+		{
+			return _evtPackage;
 		}
 
 		public Resource.Content getContent() 

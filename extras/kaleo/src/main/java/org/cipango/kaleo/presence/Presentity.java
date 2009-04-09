@@ -17,36 +17,37 @@ package org.cipango.kaleo.presence;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TimerTask;
 
-import org.cipango.kaleo.Constants;
-import org.cipango.kaleo.event.PublishTimedValue;
+import org.cipango.kaleo.event.EventPackage;
+import org.cipango.kaleo.event.NotificationsManager;
+import org.cipango.kaleo.event.Reason;
 import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.State;
-import org.cipango.kaleo.event.SubscribeTimedValue;
 import org.cipango.kaleo.event.Subscription;
-import org.cipango.kaleo.event.TimedValue;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
-import org.cipango.kaleo.util.Timer;
 
-public class Presentity implements Resource
+public class Presentity 
+implements Resource
 {
 	private String _uri; 
 
-	private Map<String, TimedValue<State, ExpirationPublishingTask>> _states 
-	= new HashMap<String, TimedValue<State, ExpirationPublishingTask>>();
+	private Map<String, State> _states 
+	= new HashMap<String, State>();
 
 	//TODO : authorized subscriptions / pending subscriptions
 
-	private Map<String, TimedValue<Subscription, ExpirationSubscriptionTask>> _subscriptions 
-	= new HashMap<String, TimedValue<Subscription,ExpirationSubscriptionTask>>();
+	private Map<String, Subscription> _subscriptions 
+	= new HashMap<String, Subscription>();
 
-	private PresenceEventPackage _presence;
+	private EventPackage<?> _presence;
+	
+	private NotificationsManager _notificationManager;
 
-	public Presentity(String uri, PresenceEventPackage presenceEventPackage)
+	public Presentity(String uri, EventPackage<?> presenceEventPackage)
 	{
 		_uri = uri;
 		_presence = presenceEventPackage;
+		_notificationManager = NotificationsManager.getInstance();
 	}
 
 	public String getUri()
@@ -58,8 +59,8 @@ public class Presentity implements Resource
 	{
 		synchronized(_states)
 		{
-			PublishTimedValue p = new PublishTimedValue(state, new ExpirationPublishingTask(state.getETag(), expires));
-			_states.put(state.getETag(), p);
+			state.startTask(expires);
+			_states.put(state.getETag(), state);
 			notifySubscribers(state);
 		}
 	}
@@ -68,7 +69,7 @@ public class Presentity implements Resource
 	{
 		synchronized(_states)
 		{
-			return _states.get(etag).getValue();
+			return _states.get(etag);
 		}
 	}
 
@@ -94,7 +95,7 @@ public class Presentity implements Resource
 			Object content) 
 	{
 		removeEntryState(oldState.getETag());
-		State newState = new State(contentType, content);
+		State newState = new State(this, contentType, content);
 		addState(newState, expires);
 		return newState;
 	}
@@ -105,12 +106,12 @@ public class Presentity implements Resource
 		synchronized (_subscriptions) 
 		{
 			//Open for only change e-tag specific state notifications
-			Iterator<TimedValue<Subscription, ExpirationSubscriptionTask>> subscriptions = _subscriptions.values().iterator();
+			Iterator<Subscription> subscriptions = _subscriptions.values().iterator();
 			while(subscriptions.hasNext())
 			{
-				TimedValue<Subscription, ExpirationSubscriptionTask> subscription = subscriptions.next();
-				int expires = subscription.getTask().getRemainingTime();
-				_presence.createNotification(subscription.getValue().getSession(), this, expires, getContent(), subscription.getValue().getState(), null);
+				Subscription subscription = subscriptions.next();
+				int expires = subscription.getRemainingTime();
+				_notificationManager.createNotification(_presence, subscription.getSession(), expires, getContent(), subscription.getState(), null);
 			}
 		}
 	}
@@ -121,8 +122,8 @@ public class Presentity implements Resource
 		State newState = oldState.resetETag();
 		synchronized(_states)
 		{
-			PublishTimedValue p = new PublishTimedValue(newState, new ExpirationPublishingTask(newState.getETag(), expires));
-			_states.put(newState.getETag(), p);
+			newState.startTask(expires);
+			_states.put(newState.getETag(), newState);
 		}
 		return newState;
 	}
@@ -133,8 +134,8 @@ public class Presentity implements Resource
 		{
 			if(expires > 0)
 			{
-				SubscribeTimedValue p = new SubscribeTimedValue(subscription, new ExpirationSubscriptionTask(subscription.getId(), expires));
-				_subscriptions.put(subscription.getId(), p);
+				subscription.startTask(expires);
+				_subscriptions.put(subscription.getId(), subscription);
 			}
 		}
 	}
@@ -151,91 +152,33 @@ public class Presentity implements Resource
 	{
 		synchronized (_subscriptions) 
 		{
-			_subscriptions.get(id).resetTask(new ExpirationSubscriptionTask(id, expires));
-			notifySubscriber(_subscriptions.get(id).getValue(), expires, null);
+			_subscriptions.get(id).startTask(expires);
+			notifySubscriber(_subscriptions.get(id), expires, null);
 		}
 	}
 
-	private void notifySubscriber(Subscription subscription, int expires, String reason) 
+	private void notifySubscriber(Subscription subscription, int expires, Reason reason) 
 	{
-		_presence.createNotification(subscription.getSession(), this, expires, getContent(), subscription.getState(), reason);
+		_notificationManager.createNotification(_presence, subscription.getSession(), expires, getContent(), subscription.getState(), reason);
 	}
 
 	public void startSubscription(String id) 
 	{
 		synchronized (_subscriptions) 
 		{
-			TimedValue<Subscription,ExpirationSubscriptionTask> subscriptionTimed = _subscriptions.get(id);
-			notifySubscriber(subscriptionTimed.getValue(), subscriptionTimed.getTask().getRemainingTime(), null);
-		}
-	}
-
-	public class ExpirationPublishingTask extends TimerTask
-	{
-		String _etag;
-
-		public ExpirationPublishingTask(String etag, int expires)
-		{
-			_etag = etag;
-			Timer.getTimer().schedule(this, expires*1000);
-		}
-
-		@Override
-		public void run() 
-		{
-			removeState(_etag);
+			Subscription subscription = _subscriptions.get(id);
+			notifySubscriber(subscription, subscription.getRemainingTime(), null);
 		}
 	}	
-
-	public class ExpirationSubscriptionTask extends TimerTask
-	{
-		String _id;
-		Long _startDate = System.currentTimeMillis();
-		int _expires;
-
-		public ExpirationSubscriptionTask(String id, int expires)
-		{
-			_id = id;
-			_expires = expires;
-			Timer.getTimer().schedule(this, expires*1000);
-		}
-
-		public int getRemainingTime()
-		{
-			return (int) (_expires - (System.currentTimeMillis() - _startDate)/1000);
-		}
-
-		@Override
-		public void run() 
-		{
-			removeSubscription(_id, Constants.TIMEOUT);
-		}
-	}	
-
-	public void removeSubscription(String id) 
-	{
-		removeSubscription(id, null); 
-	}
 	
-	//FIXME
-	public void eraseSubscription(String id) 
+	public void removeSubscription(String id, Reason reason) 
 	{
 		synchronized (_subscriptions) 
 		{
-			TimedValue<Subscription,ExpirationSubscriptionTask> subscription = _subscriptions.get(id);
+			Subscription subscription = _subscriptions.get(id);
 			subscription.closeTask();
-			_subscriptions.remove(id);
-		}
-	}
-	
-	private void removeSubscription(String id, String reason) 
-	{
-		synchronized (_subscriptions) 
-		{
-			TimedValue<Subscription,ExpirationSubscriptionTask> subscription = _subscriptions.get(id);
-			subscription.closeTask();
-			subscription.getValue().setState(Subscription.State.TERMINATED);
-			notifySubscriber(subscription.getValue(), 0, reason);
+			subscription.setState(Subscription.State.TERMINATED);
+			notifySubscriber(subscription, 0, reason);
 			_subscriptions.remove(id);
 		}
 	}
@@ -253,7 +196,7 @@ public class Presentity implements Resource
 		//TODO: we suppose that we have only one state
 		synchronized (_states) 
 		{
-			State state = _states.values().iterator().next().getValue();
+			State state = _states.values().iterator().next();
 			return new Content(state.getContent(), PresenceEventPackage.PIDF);
 		}
 	}
@@ -281,10 +224,10 @@ public class Presentity implements Resource
 		String etags = "";
 		synchronized (_states) 
 		{
-			Iterator<TimedValue<State, ExpirationPublishingTask>> it = _states.values().iterator();
+			Iterator<State> it = _states.values().iterator();
 			while(it.hasNext())
 			{
-				State state = it.next().getValue();
+				State state = it.next();
 				etags = etags+"/"+state.getETag();
 			}
 		}

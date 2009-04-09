@@ -14,7 +14,10 @@
 
 package org.cipango.kaleo.event;
 
+import java.util.TimerTask;
+
 import org.cipango.kaleo.util.ID;
+import org.cipango.kaleo.util.Timer;
 
 /**
  * State information for a resource.
@@ -26,9 +29,12 @@ public class State
 	private String _etag;
 	private String _contentType;
 	private Object _content;
+	private Resource _resource;
+	private ExpirationPublishingTask _task;
 	
-	public State(String contentType, Object content)
+	public State(Resource resource, String contentType, Object content)
 	{
+		_resource = resource;
 		_contentType = contentType;
 		_content = content;
 		_etag = ID.newETag();
@@ -54,4 +60,32 @@ public class State
 	{
 		return _contentType;
 	}
+	
+	public void closeTask() 
+	{
+		if(_task != null)
+			_task.cancel();
+	}
+
+	public void startTask(int expires) 
+	{
+		if(_task != null)
+			_task.cancel();
+		_task = new ExpirationPublishingTask(expires);
+	}
+	
+	class ExpirationPublishingTask extends TimerTask
+	{
+
+		public ExpirationPublishingTask(int expires)
+		{
+			Timer.getTimer().schedule(this, expires*1000);
+		}
+
+		@Override
+		public void run() 
+		{
+			_resource.removeState(_etag);
+		}
+	}	
 }

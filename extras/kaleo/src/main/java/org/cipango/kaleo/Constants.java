@@ -40,13 +40,6 @@ public abstract class Constants
 	public static final String REASON				= "reason";
 	public static final String RETRY_AFTER			= "retry-after";
 	
-	public static final String DEACTIVATED			= "deactivated";
-	public static final String PROBATION			= "probation";
-	public static final String REJECTED				= "rejected";
-	public static final String TIMEOUT				= "timeout";
-	public static final String GIVEUP				= "giveup";
-	public static final String NORESOURCE			= "noresource";
-	
 	private Constants() { }	
 }
 

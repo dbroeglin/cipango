@@ -129,7 +129,7 @@ public class PresenceServlet extends SipServlet
 				publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
 				return;
 			}
-			State state = new State(contentType, content);
+			State state = new State(presentity, contentType, content);
 			presentity.addState(state, expires);
 			SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
 			response.setExpires(expires);
@@ -272,7 +272,7 @@ public class PresenceServlet extends SipServlet
 
 			if(expires == 0)
 			{
-				presentity.removeSubscription(subscription.getId());
+				presentity.removeSubscription(subscription.getId(), null);
 			}
 			else
 			{

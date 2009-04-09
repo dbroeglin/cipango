@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.cipango.kaleo.event.ContentHandler;
+import org.cipango.kaleo.event.EventPackage;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
 
 /**
@@ -28,7 +29,7 @@ import org.cipango.kaleo.presence.pidf.PidfHandler;
  *
  */
 public class PresenceEventPackage 
-extends NotificationsManager
+implements EventPackage<Presentity>
 {
 	public static final String NAME = "presence";
 	
@@ -39,16 +40,8 @@ extends NotificationsManager
 	public int _defaultExpires = 3600;
 
 	private Map<String, Presentity> _presentities = new HashMap<String, Presentity>();
-
-	private Thread _notifier;
-
+	
 	private PidfHandler _pidfHandler = new PidfHandler();
-
-	public PresenceEventPackage() 
-	{
-		_notifier = new Thread(new Notifier());
-		_notifier.start();
-	}
 
 	public String getName()
 	{

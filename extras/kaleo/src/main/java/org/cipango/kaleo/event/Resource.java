@@ -34,7 +34,7 @@ public interface Resource
 	
 	State refreshState(State state, int expires);
 	
-	void removeSubscription(String id);
+	void removeSubscription(String id, Reason reason);
 	
 	void addSubscription(Subscription subscription, int expires);
 	
@@ -62,7 +62,4 @@ public interface Resource
 			return _type;
 		}
 	}
-
-	//FIXME
-	void eraseSubscription(String id);
 }

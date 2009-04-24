@@ -42,10 +42,22 @@ public class Peer
 	
 	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
 	
+	public Peer()
+	{
+		_state = CLOSED;
+	}
+	
 	public Peer(String host)
 	{
 		_host = host;
 		_state = CLOSED;
+	}
+	
+	public void setHost(String host)
+	{
+		if (_host != null)
+			throw new IllegalArgumentException("Host already set");
+		_host = host;
 	}
 	
 	public String getHost()
@@ -194,6 +206,8 @@ public class Peer
 	
 	public void start()
 	{
+		if (_host == null)
+			throw new IllegalArgumentException("host not set");
 		_state.start();
 	}
 	

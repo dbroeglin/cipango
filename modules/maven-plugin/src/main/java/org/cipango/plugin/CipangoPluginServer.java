@@ -52,8 +52,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
 		}
 		sipConnectors[0].setPort(port);
 		sipConnectors[1].setPort(port);
-		
-		
+
 		return sipConnectors;
 	}
 
@@ -69,7 +68,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
         
         for (int i=0; i<connectors.length;i++)
         {
-            PluginLog.getLog().debug("Setting Connector: " + connectors[i].getClass().getName()
+            PluginLog.getLog().debug("Setting SIP Connector: " + connectors[i].getClass().getName()
             		+ " on port "+connectors[i].getPort());
             server.getTransportManager().addConnector(connectors[i]);
         }

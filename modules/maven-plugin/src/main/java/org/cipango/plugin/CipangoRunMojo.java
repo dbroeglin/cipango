@@ -16,13 +16,21 @@
 package org.cipango.plugin;
 
 import java.io.File;
+import java.util.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.cipango.Server;
+import org.cipango.diameter.Node;
+import org.cipango.diameter.Peer;
+import org.cipango.diameter.app.DiameterConfiguration;
 import org.cipango.log.AccessLog;
 import org.cipango.sip.SipConnector;
 import org.mortbay.jetty.plugin.Jetty6RunMojo;
 import org.mortbay.jetty.plugin.util.JettyPluginServer;
+import org.mortbay.jetty.plugin.util.PluginLog;
+import org.mortbay.jetty.webapp.Configuration;
+import org.mortbay.util.LazyList;
 
 /**
  *  <p>
@@ -102,7 +110,13 @@ public class CipangoRunMojo extends Jetty6RunMojo
      * @parameter default-value="true"
      */
     protected boolean annotationsEnabled;
-	
+    
+    /**
+     * Diameter node
+     * @parameter
+     */
+    protected Node diameterNode;
+    
     /**
      * @see org.cipango.plugin.AbstractJettyRunMojo#createServer()
      */
@@ -135,6 +149,18 @@ public class CipangoRunMojo extends Jetty6RunMojo
         }
         
         plugin.setMessageLogger(messageLog, project.getBuild().getDirectory());
+        
+        if (diameterNode != null)
+        {
+        	Server sipServer = plugin.getServer();
+        	diameterNode.setServer(sipServer);
+        	sipServer.setAttribute("org.cipango.diameter.Node", diameterNode);
+        	Configuration[] c = 
+        		(Configuration[]) LazyList.addToArray(webAppConfig.getConfigurations(), new DiameterConfiguration(), Configuration.class);
+        	webAppConfig.setConfigurations(c);
+        	PluginLog.getLog().info("Diameter port = " + diameterNode.getConnectors()[0].getPort());
+        	sipServer.addLifeCycle(diameterNode);
+        }
 
 		super.finishConfigurationBeforeStart();
 	}

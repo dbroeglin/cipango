@@ -205,4 +205,9 @@ public class Jetty6PluginServer implements JettyPluginServer
     {
         this.server.getThreadPool().join();
     }
+
+	public Server getServer()
+	{
+		return server;
+	}
 }

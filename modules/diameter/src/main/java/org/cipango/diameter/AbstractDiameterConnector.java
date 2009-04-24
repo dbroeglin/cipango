@@ -36,7 +36,7 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	
 	private Thread[] _acceptorThread;
 	private ArrayList<Buffer> _buffers;
-	private int _messageBufferSize = 2048;
+	private int _messageBufferSize = 8192;
 	
 	protected DiameterMessageListener _listener;
 	

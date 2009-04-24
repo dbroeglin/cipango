@@ -218,6 +218,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		}
 	}
 	
+	public void setPeers(Peer[] peers)
+	{
+		if (isRunning())
+			throw new IllegalArgumentException("Could not set peers while running");
+		for (Peer peer: peers)
+			addPeer(peer);
+	}
+	
 	public void receive(DiameterMessage message) throws IOException
 	{
 		Peer peer = message.getConnection().getPeer();

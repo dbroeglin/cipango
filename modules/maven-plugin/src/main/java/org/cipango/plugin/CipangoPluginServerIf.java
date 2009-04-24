@@ -1,5 +1,6 @@
 package org.cipango.plugin;
 
+import org.cipango.Server;
 import org.cipango.log.AccessLog;
 import org.cipango.sip.SipConnector;
 import org.mortbay.jetty.plugin.util.JettyPluginServer;
@@ -14,4 +15,6 @@ public interface CipangoPluginServerIf extends JettyPluginServer
 	public SipConnector[] createDefaultSipConnectors(String host, String port) throws Exception;
 	
 	public void setMessageLogger(AccessLog messageLog, String buildDirectory);
+	
+    public Server getServer();
 }

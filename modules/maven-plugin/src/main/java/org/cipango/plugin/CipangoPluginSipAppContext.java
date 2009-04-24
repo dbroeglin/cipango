@@ -18,13 +18,17 @@ public class CipangoPluginSipAppContext extends SipAppContext
     private File jettyEnvXmlFile;
     private File webXmlFile;
     private boolean annotationsEnabled = true;
-    private WebInfConfiguration webInfConfig = new WebInfConfiguration();
     private EnvConfiguration envConfig =  new EnvConfiguration();
-    private WebXmlConfiguration webXmlConfiguration = new WebXmlConfiguration();
     private CipangoMavenConfiguration mvnConfig = new CipangoMavenConfiguration();
-     private JettyWebXmlConfiguration jettyWebConfig = new JettyWebXmlConfiguration();
-    private TagLibConfiguration tagConfig = new TagLibConfiguration();
-    private Configuration[] configs = new Configuration[]{webInfConfig,envConfig, webXmlConfiguration, mvnConfig, jettyWebConfig, tagConfig};
+
+    private Configuration[] configs = 
+    	new Configuration[]{
+    		new WebInfConfiguration(),
+    		envConfig, 
+    		new WebXmlConfiguration(), 
+    		mvnConfig,  
+    		new JettyWebXmlConfiguration(), 
+    		new TagLibConfiguration()};
     
     public CipangoPluginSipAppContext()
     {

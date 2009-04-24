@@ -135,6 +135,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-diameter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.mortbay.jetty</groupId>
       <artifactId>jsp-2.1</artifactId>
       <version>${jetty.version}</version>

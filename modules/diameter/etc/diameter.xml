@@ -35,6 +35,20 @@
           </Arg>
         </Call>
         <Set name="server"><Ref id="Server"/></Set>
+        <!-- Call name="addPeer">
+          <Arg>
+            <New class="org.cipango.diameter.Peer">
+              <Arg>hss-nicolas.nexcom.voip</Arg>
+            </New>
+          </Arg>
+        </Call -->
+        <Call name="addPeer">
+          <Arg>
+            <New class="org.cipango.diameter.Peer">
+              <Arg>sip1.nexcom.voip</Arg>
+            </New>
+          </Arg>
+        </Call>
       </New>
     </Arg>
   </Call>

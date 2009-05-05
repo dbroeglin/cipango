@@ -77,8 +77,8 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 				session.setSubscriberURI(request.getSubscriberURI());
 				session.setRegion(request.getRegion());
 			
-	        if (Log.isDebugEnabled())
-	            Log.debug("new session {}", session);
+		        if (Log.isDebugEnabled())
+		            Log.debug("new session {}", session);
 			}
 			else
 			{

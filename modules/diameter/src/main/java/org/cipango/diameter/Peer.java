@@ -18,8 +18,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimerTask;
 
 import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Base.DisconnectCause;
 import org.mortbay.log.Log;
 
 /**
@@ -41,6 +43,12 @@ public class Peer
 	private DiameterConnection _iConnection;
 	
 	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
+	
+	private long _lastMsgDate;
+	
+	private boolean _waitForDwa = false;
+	
+	private boolean _stopped = true;
 	
 	public Peer()
 	{
@@ -100,6 +108,11 @@ public class Peer
 		return _state == OPEN;
 	}
 	
+	public boolean isClose()
+	{
+		return _state == CLOSED;
+	}
+		
 	public DiameterConnection getConnection()
 	{
 		return _iConnection != null ? _iConnection : _rConnection;
@@ -107,6 +120,7 @@ public class Peer
 	
 	public void send(DiameterRequest request) throws IOException
 	{
+		// FIXME find a solution when peer is starting.
 		if (!isOpen())
 			throw new IOException("peer not open");
 		
@@ -123,6 +137,7 @@ public class Peer
 	
 	public void receive(DiameterMessage message) throws IOException
 	{
+		_lastMsgDate = System.currentTimeMillis();
 		if (message.isRequest())
 			receiveRequest((DiameterRequest) message);
 		else
@@ -136,7 +151,12 @@ public class Peer
 		case Base.DWR:
 			receiveDWR(request);
 			return;
-
+		case Base.CER:
+			rConnCER(request);
+			return;
+		case Base.DPR:
+			_state.rcvDPR(request);
+			return;
 		default:
 			break;
 		}
@@ -149,6 +169,12 @@ public class Peer
 		{
 		case Base.CEA:
 			_state.rcvCEA(answer);
+			return;
+		case Base.DWA:
+			_waitForDwa = false;
+			return;
+		case Base.DPA:
+			_state.rcvDPA(answer);
 			return;
 		}
 		System.out.println("receive answer " + answer);
@@ -197,6 +223,103 @@ public class Peer
 		_state = state;
 	}
 	
+    protected boolean elect()
+    {
+        String other = getHost();
+        String local = _node.getIdentity();
+        
+        boolean won = (local.compareTo(other) > 0);
+        if (won)
+            Log.debug("Won election (" + local + ">" + other + ")");
+        return won;      
+    }
+    
+    protected void sendCER()
+    {
+    	DiameterRequest cer = new DiameterRequest(getNode(), Base.CER, 0, null);
+		getNode().addCapabilities(cer);
+		
+		try
+		{
+			getConnection().write(cer);
+		}
+		catch (IOException e)
+		{
+			Log.debug(e);
+		}
+    }
+    
+    protected void iDisc()
+    {
+        if (_iConnection != null) {
+            try
+			{
+				_iConnection.close();
+			} catch (IOException e)
+			{
+				Log.debug("Failed to disconnect " + _iConnection + " on peer " + this + ": " + e);
+			}
+            _iConnection = null;
+        }
+    }
+    
+    protected void rDisc()
+    {
+        if (_rConnection != null) {
+        	 try
+ 			{
+ 				_rConnection.close();
+ 			} catch (IOException e)
+ 			{
+ 				Log.debug("Failed to disconnect " + _rConnection + " on peer " + this + ": " + e);
+ 			}
+        	_rConnection = null;
+        }
+    }
+    
+    protected void sendCEA(DiameterRequest cer)
+    {
+    	DiameterAnswer cea = cer.createAnswer(Base.DIAMETER_SUCCESS);
+		try
+		{
+			cea.send();
+		}
+		catch (IOException e)
+		{
+			Log.debug(e);
+		}
+    	
+    }
+    
+    public void sendDWRIfNeeded(long tw)
+    {
+    	if (isOpen() && _lastMsgDate + tw  <= System.currentTimeMillis())
+    	{
+	    	if (_waitForDwa)
+			{
+				Log.warn("Close " + this + " as no DWA received");
+				close();
+			}
+	    	else
+			{
+				try
+				{
+					DiameterRequest request = new DiameterRequest(_node, Base.DWR, 0, null);
+			    	DiameterConnection connection = getConnection();
+					if (connection == null || !connection.isOpen())
+						throw new IOException("connection not open");
+					
+					connection.write(request);
+				} 
+				catch (IOException e)
+				{
+					// Ignore exception as 
+					Log.ignore(e);
+				}
+			}
+    	}
+    }
+    	
 	public String toString()
 	{
 		return _host + " (" + _state + ")";
@@ -206,9 +329,38 @@ public class Peer
 	
 	public void start()
 	{
+		_stopped = false;
 		if (_host == null)
 			throw new IllegalArgumentException("host not set");
 		_state.start();
+	}
+	/**
+	 * The Diameter application has signaled that a connection should be 
+	 * terminated (e.g., on system shutdown).
+	 */
+	public void stop() {
+		_stopped = true;
+		if (_state == OPEN)
+		{
+			try {
+				setState(CLOSING);
+				
+				DiameterRequest dpr = new DiameterRequest(_node, Base.DPR, 0, null);
+				dpr.add(AVP.ofInt(Base.DISCONNECT_CAUSE, DisconnectCause.REBOOTING));
+				getConnection().write(dpr);	
+			} catch (IOException e) {
+				Log.warn("Unable to send DPR on shutdown", e);
+			}
+		} 
+		else if (_state != CLOSING)
+			setState(CLOSED);
+	}
+	
+	protected void close() {
+		_rConnection = _iConnection = null;
+		setState(CLOSED);
+		if (!_stopped)
+			_node.scheduleReconnect(new ReconnectTask());
 	}
 	
 	public void rConnCER(DiameterRequest cer)
@@ -216,9 +368,17 @@ public class Peer
 		_state.rConnCER(cer);
 	}
 	
-	public void disc(DiameterConnection connection)
+	public void peerDisc(DiameterConnection connection)
 	{
 		_state.disc(connection);
+	}
+	
+	/**
+	 * An application-defined timer has expired while waiting for some event. 
+	 */
+	protected void timeout()
+	{
+		close();
 	}
 	
 	// ==================== Actions ====================
@@ -239,11 +399,14 @@ public class Peer
 				}
 				if (_iConnection != null)
 					_state.rcvConnAck();
+				else
+					_state.rcvConnNack();
 			}
 		}).start();
 		setState(WAIT_CONN_ACK);
 	}
 	
+	// FIXME: synchronization potential pb: the second event could run on the previous state.
 	abstract class State
 	{
 		private String _name;
@@ -258,6 +421,8 @@ public class Peer
 		public void rcvConnAck() { throw new IllegalStateException("rcvConnAck() in state " + _name); }
 		public void rcvConnNack() { throw new IllegalStateException("rcvConnNack() in state " + _name); }
 		public void rcvCEA(DiameterAnswer cea) { throw new IllegalStateException("rcvCEA() in state " + _name); }
+		public void rcvDPR(DiameterRequest dpr) { throw new IllegalStateException("rcvDPR() in state " + _name); }
+		public void rcvDPA(DiameterAnswer dpa) { throw new IllegalStateException("rcvDPA() in state " + _name); }
 		public void disc(DiameterConnection connection) { throw new IllegalStateException("disc() in state " + _name); } 
 		public String toString() { return _name; }
 	}
@@ -276,6 +441,7 @@ public class Peer
 	{
 		public synchronized void start()
 		{
+			_rConnection = _iConnection = null;
 			iSndConnReq();
 		}
 		
@@ -283,16 +449,12 @@ public class Peer
 		{
 			_rConnection = cer.getConnection();
 			
-			DiameterAnswer cea = cer.createAnswer(Base.DIAMETER_SUCCESS);
-			try
-			{
-				cea.send();
-			}
-			catch (IOException e)
-			{
-				Log.debug(e);
-			}
+			sendCEA(cer);
 			setState(OPEN);
+		}
+		
+		public synchronized void disc(DiameterConnection connection)
+		{
 		}
 	};
 	
@@ -311,19 +473,31 @@ public class Peer
 	{
 		public synchronized void rcvConnAck()
 		{
-			DiameterRequest cer = new DiameterRequest(getNode(), Base.CER, 0, null);
-			getNode().addCapabilities(cer);
-			
-			try
-			{
-				getConnection().write(cer);
-			}
-			catch (IOException e)
-			{
-				Log.debug(e);
-			}
+			sendCER();
 			setState(WAIT_CEA);
 		}
+
+		@Override
+		public synchronized void rcvConnNack()
+		{
+			_iConnection = null;
+			close();
+		}
+
+		@Override
+		public synchronized void rConnCER(DiameterRequest cer)
+		{
+			_rConnection = cer.getConnection();
+			if (elect())
+            {
+                iDisc();
+                sendCEA(cer);
+                setState(OPEN);
+            }
+            else 
+                setState(WAIT_RETURNS);
+		}
+		
 	};
 	
 	/**
@@ -343,16 +517,218 @@ public class Peer
 		{
 			setState(OPEN);
 		}
+
+		public synchronized void disc(DiameterConnection connection)
+		{
+			iDisc();
+			close();
+		}
+
+		public synchronized void rConnCER(DiameterRequest cer)
+		{
+			_rConnection = cer.getConnection();
+			if (elect())
+            {
+                iDisc();
+                sendCEA(cer);
+                setState(OPEN);
+            }
+            else 
+                setState(WAIT_RETURNS);
+		}
+		
 	};
 	
+	/**
+	 * <pre>
+	 * Wait-Conn-Ack/   I-Rcv-Conn-Ack   I-Snd-CER,Elect  Wait-Returns
+     * Elect            I-Rcv-Conn-Nack  R-Snd-CEA        R-Open
+     *                  R-Peer-Disc      R-Disc           Wait-Conn-Ack
+     *                  R-Conn-CER       R-Reject         Wait-Conn-Ack/
+     *                                                    Elect
+     *                  Timeout          Error            Closed
+     *</pre>
+	 */
+	State WAIT_CONN_ACK_ELECT = new State("Wait-Conn-Ack-Elect")
+	{
+
+		@Override
+		public synchronized void disc(DiameterConnection connection)
+		{
+			iDisc();
+			close();
+		}
+
+		@Override
+		public synchronized void rConnCER(DiameterRequest cer)
+		{
+			_rConnection = null;
+		}
+
+		@Override
+		public synchronized void rcvConnAck()
+		{
+			sendCER();
+			if (elect())
+			{
+				iDisc();
+				// TODO send CEA
+				setState(OPEN);
+			}
+			else
+				setState(WAIT_RETURNS);
+		}
+
+		@Override
+		public synchronized void rcvConnNack()
+		{
+			// TODO send CEA
+			setState(OPEN);
+		}
+		
+	};
+	
+	/**
+	 * <pre>
+	 *  Wait-Returns     Win-Election     I-Disc,R-Snd-CEA R-Open
+	 *                   I-Peer-Disc      I-Disc,          R-Open
+	 *                                    R-Snd-CEA
+	 *                   I-Rcv-CEA        R-Disc           I-Open
+	 *                   R-Peer-Disc      R-Disc           Wait-I-CEA
+	 *                   R-Conn-CER       R-Reject         Wait-Returns
+	 *                   Timeout          Error            Closed
+	 *</pre>
+	 */
+	State WAIT_RETURNS = new State("Wait-Returns")
+	{
+
+		@Override
+		public synchronized void disc(DiameterConnection connection)
+		{
+			if (connection == _iConnection)
+			{
+				iDisc();
+				// TODO sendCea
+				setState(OPEN);
+			}
+			else if (connection == _rConnection)
+			{
+				rDisc();
+				setState(WAIT_CEA);
+			}
+		}
+
+		@Override
+		public synchronized void rConnCER(DiameterRequest cer)
+		{
+			_rConnection = null;
+		}
+
+		@Override
+		public synchronized void rcvCEA(DiameterAnswer cea)
+		{
+			rDisc();
+			setState(OPEN);
+		}
+		
+	};
+	
+	/**
+	 * <pre>
+	 *  I-Open      Send-Message     I-Snd-Message    I-Open
+	 *              I-Rcv-Message    Process          I-Open
+	 *              I-Rcv-DWR        Process-DWR,     I-Open
+	 *                               I-Snd-DWA
+	 *              I-Rcv-DWA        Process-DWA      I-Open
+	 *              R-Conn-CER       R-Reject         I-Open
+	 *              Stop             I-Snd-DPR        Closing
+	 *              I-Rcv-DPR        I-Snd-DPA,       Closed
+	 *                                 I-Disc
+	 *              I-Peer-Disc      I-Disc           Closed
+	 *              I-Rcv-CER        I-Snd-CEA        I-Open
+	 *              I-Rcv-CEA        Process-CEA      I-Open
+	 *</pre>
+	 */
 	State OPEN = new State("Open")
 	{
 		public synchronized void disc(DiameterConnection connection)
 		{
 			if (connection == getConnection())
 			{
-				setState(CLOSED);
+				close();
 			}
 		}
+
+		@Override
+		public synchronized void rcvDPR(DiameterRequest dpr)
+		{
+			try {
+				DiameterAnswer dpa = dpr.createAnswer(Base.DIAMETER_SUCCESS);
+				dpr.getConnection().write(dpa);
+			} catch (IOException e) {
+				Log.warn("Unable to send DPA");
+			}
+			
+			setState(CLOSED);
+			_rConnection = _iConnection = null;
+			
+			// Start reconnect task if Disconnect cause is rebooting
+			AVP avp = dpr.getAVP(Base.DISCONNECT_CAUSE);
+			if (avp.getInt() == DisconnectCause.REBOOTING)
+			{
+				_node.scheduleReconnect(new ReconnectTask());
+			}
+		}	
 	};
+	
+	/**
+	 * <pre>
+	 *  Closing     I-Rcv-DPA        I-Disc           Closed
+	 *              R-Rcv-DPA        R-Disc           Closed
+	 *              Timeout          Error            Closed
+	 *              I-Peer-Disc      I-Disc           Closed
+	 *              R-Peer-Disc      R-Disc           Closed
+	 * </pre>
+	 */
+	State CLOSING = new State("Closing")
+	{
+
+		@Override
+		public void disc(DiameterConnection connection)
+		{
+			setState(CLOSED);
+		}
+
+		@Override
+		public void rcvDPA(DiameterAnswer dpa)
+		{
+			setState(CLOSED);
+		}
+		
+	};
+	
+	class ReconnectTask extends TimerTask
+	{
+        public ReconnectTask()
+        {
+            Log.debug("Create new reconnect Task for " + Peer.this );
+        }
+        
+        public void run()
+        {
+            try
+            {
+            	if (_node.isStarted())
+            	{
+            		Log.debug("Restarting peer: " + this);
+            		 if (!_stopped)
+            			 start();
+            	}
+            }
+            catch (Exception e)
+            {
+                Log.warn("Failed to reconnect to peer: " + Peer.this);
+            }
+        }
+    }
 }

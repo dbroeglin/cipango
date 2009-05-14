@@ -72,4 +72,11 @@ public abstract class Base
 		DIAMETER_MISSING_AVP = 5005,
 		DIAMETER_UNABLE_TO_COMPLY = 5012;
 	
+	public static class DisconnectCause 
+	{
+		public static final int REBOOTING = 0;
+		public static final int BUSY = 1;
+		public static final int DO_NOT_WANT_TO_TALK_TO_YOU = 2;
+	}
+	
 }

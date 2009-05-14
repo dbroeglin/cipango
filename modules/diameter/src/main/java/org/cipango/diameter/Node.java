@@ -17,13 +17,18 @@ package org.cipango.diameter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.cipango.diameter.base.Base;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.ims.IMS;
 import org.cipango.diameter.log.BasicMessageLog;
 import org.mortbay.component.AbstractLifeCycle;
+import org.mortbay.component.LifeCycle;
 import org.mortbay.jetty.Server;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
@@ -38,6 +43,8 @@ import org.mortbay.util.MultiException;
 public class Node extends AbstractLifeCycle implements DiameterHandler
 {
 	//public static String[] __dictionaryClasses = {"org.cipango.diameter.base.Base"};
+	public static final long DEFAULT_TW = 30000;
+	public static final long DEFAULT_TC = 30000;
 	
 	private Server _server;
 	
@@ -45,6 +52,8 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private String _identity;
 	private int _vendorId = 26588;
 	private String _productName = "cipango";
+	private long _tw = DEFAULT_TW;
+	private long _tc = DEFAULT_TC;
 	
 	private DiameterConnector[] _connectors;
 	private Map<String, Peer> _peers = new HashMap<String, Peer>();
@@ -52,6 +61,9 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private DiameterHandler _handler;
 	private SessionManager _sessionManager;
 	
+	private Timer _timer = new Timer("Diameter-watchdog");
+	private Random _random = new Random();
+		
 	public Node()
 	{
 	}
@@ -141,7 +153,50 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		{
 			peer.start();
 		}
+		_timer.schedule(new WatchdogTask(), _tw, 1000);
+		
 		Log.info("Started {}", this);
+	}
+	
+	@Override
+	protected void doStop() throws Exception 
+	{
+		Iterator<Peer> peers = _peers.values().iterator();
+		while (peers.hasNext()) 
+		{
+			Peer peer = peers.next();
+			Log.debug("Stopping peer: " + peer);
+			peer.stop();
+		} 
+		
+		// Wait at most 1 seconds for DPA reception
+		try {
+			boolean allClosed = false;
+			int iter = 20;
+			while (iter-- > 0 && allClosed)
+			{
+				allClosed = true;
+				peers = _peers.values().iterator();
+				while (peers.hasNext()) 
+				{
+					Peer peer = peers.next();
+					if (!peer.isClose())
+					{
+						allClosed = false;
+						Log.info("Wait 50ms for " + peer + " closing");
+						Thread.sleep(50);
+						break;
+					}
+				} 
+			}
+		} catch (Exception e) {
+			Log.ignore(e);
+		}
+		for (int i = 0; i < _connectors.length; i++)
+		{
+			if (_connectors[i] instanceof LifeCycle) 		
+				((LifeCycle) _connectors[i]).stop();
+		}
 	}
 	
 	public void setIdentity(String identity)
@@ -324,4 +379,51 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		return _identity;
 	}
+	
+	public long getTw()
+	{
+		return _tw;
+	}
+
+	public void setTw(long tw)
+	{
+		if (tw < 6000)
+			throw new IllegalArgumentException("Tw MUST NOT be set lower than 6 seconds");
+		_tw = tw;
+	}
+
+	public long getTc()
+	{
+		return _tc;
+	}
+
+	public void setTc(long tc)
+	{
+		_tc = tc;
+	}
+	
+	public void scheduleReconnect(TimerTask task)
+	{
+		_timer.schedule(task, _tc);
+	}
+
+    class WatchdogTask extends TimerTask
+    {
+
+		public void run()
+		{
+			if (!isRunning())
+			{
+				cancel();
+				return;
+			}
+			// Jitter is between -2 and 2 seconds
+			long twJitter = _random.nextInt(4000) - 2000;
+			Iterator<Peer> it = _peers.values().iterator();
+			while (it.hasNext())
+				it.next().sendDWRIfNeeded(_tw + twJitter);
+		}
+    }
+
+
 }

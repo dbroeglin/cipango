@@ -67,7 +67,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	{
 		Socket socket = _serverSocket.accept();
 		Connection connection = new Connection(socket);
-		new Thread(connection).start();
+		new Thread(connection, "Connection-" + acceptorID).start();
 	}
 	
 	public DiameterConnection getConnection(Peer peer) throws IOException
@@ -86,7 +86,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		Connection connection = new Connection(socket);
 		connection.setPeer(peer);
 		
-		new Thread(connection).start();
+		new Thread(connection, "Connection-" + peer.getHost()).start();
 
 		return connection;
 	}
@@ -197,7 +197,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 			finally
 			{
 				if (_peer != null)
-					_peer.disc(this);
+					_peer.peerDisc(this);
 			}
 		}
 	}

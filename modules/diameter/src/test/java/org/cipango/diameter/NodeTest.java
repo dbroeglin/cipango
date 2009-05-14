@@ -1,10 +1,5 @@
 package org.cipango.diameter;
 
-import java.net.InetAddress;
-
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.ims.IMS;
-
 import junit.framework.TestCase;
 
 public class NodeTest extends TestCase
@@ -14,7 +9,7 @@ public class NodeTest extends TestCase
 		Object o = null;
 		System.out.println(o instanceof String);
 	}
-	
+	/*
 	public void testCnx() throws Exception
 	{
 		Node server = new Node(3869);
@@ -39,4 +34,5 @@ public class NodeTest extends TestCase
 		
 		Thread.sleep(5000);
 	}
+	*/
 }

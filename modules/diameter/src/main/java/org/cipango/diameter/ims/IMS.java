@@ -32,7 +32,11 @@ public abstract class IMS
 		BIA = 310;
 	
 	public static final int 
+		TRANSACTION_IDENTIFIER = 401,
 		NAF_ID = 402,
+		KEY_EXPIRY_TIME = 404,
+		ME_KEY_MATERIAL = 405,
+		
 		PUBLIC_IDENTITY = 601,
 		SERVER_NAME = 602,
 		USER_DATA = 606,

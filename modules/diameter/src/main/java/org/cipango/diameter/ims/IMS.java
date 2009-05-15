@@ -27,9 +27,12 @@ public abstract class IMS
 		LIR = 302,
 		LIA = 302,
 		MAR = 303, 
-		MAA = 303;
+		MAA = 303,
+		BIR = 310,
+		BIA = 310;
 	
 	public static final int 
+		NAF_ID = 402,
 		PUBLIC_IDENTITY = 601,
 		SERVER_NAME = 602,
 		USER_DATA = 606,

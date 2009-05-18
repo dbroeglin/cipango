@@ -41,11 +41,13 @@ import org.mortbay.log.Log;
 public class DefaultApplicationRouter implements SipApplicationRouter
 {
 	public static final String __J_S_DAR_CONFIGURATION = "javax.servlet.sip.ar.dar.configuration";
+	public static final String MATCH_ON_NEW_OUTGOING_REQUESTS = "org.cipango.dar.matchOnNewOutgoingRequests";
 	public static final String DEFAULT_CONFIGURATION = "etc/dar.properties";
 
 	private Map<String, RouterInfo[]> _routerInfoMap;
 	private String _configuration;
 	private SortedSet<String> _applicationNames = new TreeSet<String>();
+	private boolean _matchOnNewOutgoingRequests;
 
 	public void applicationDeployed(List<String> newlyDeployedApplicationNames)
 	{
@@ -66,6 +68,9 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	public SipApplicationRouterInfo getNextApplication(SipServletRequest initialRequest,
 			SipApplicationRoutingRegion region, SipApplicationRoutingDirective directive, SipTargetedRequestInfo toto, Serializable stateInfo)
 	{
+		if (!_matchOnNewOutgoingRequests && initialRequest.getInitialRemoteAddr() == null)
+			return null;
+		
 		if (_routerInfoMap == null || _routerInfoMap.isEmpty())
 		{
 			if (stateInfo != null || _applicationNames.isEmpty())
@@ -116,6 +121,10 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 
 	public void init() 
 	{
+		
+		_matchOnNewOutgoingRequests = 
+			!System.getProperty(MATCH_ON_NEW_OUTGOING_REQUESTS, "true").equalsIgnoreCase("false");
+		
 		if (_configuration == null)
 		{
 			String configuration = System.getProperty(__J_S_DAR_CONFIGURATION);

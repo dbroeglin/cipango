@@ -73,7 +73,7 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 		
 		if (_routerInfoMap == null || _routerInfoMap.isEmpty())
 		{
-			if (stateInfo != null || _applicationNames.isEmpty())
+			if (stateInfo != null || _applicationNames.isEmpty() || directive != SipApplicationRoutingDirective.NEW)
 				return null;
 			
 			return new SipApplicationRouterInfo(_applicationNames.first(), 

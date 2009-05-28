@@ -985,7 +985,8 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 				}
 	            else 
 	            {
-	                startProxy();
+	            	if (LazyList.size(_targets) > 0)
+	            		startProxy();
 	                if (tryFinal())
 	                {
 	                	response.setBranchResponse(true);

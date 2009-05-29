@@ -296,7 +296,10 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     	
         Via via = request.getTopVia();
         via.setTransport(SipConnectors.getName(connector.getTransportOrdinal()));
-        via.setHost(connector.getAddr().getHostAddress());
+        String host = connector.getAddr().getHostAddress();
+        if (host.contains(":") && !host.contains("["))
+    		host = "[" + host + "]";
+        via.setHost(host);
         via.setPort(connector.getPort());
                 
         //if (connector.getTransportOrdinal() == SipConnectors.UDP_ORDINAL && (buffer.length() + 200 > _mtu)) 

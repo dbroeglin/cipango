@@ -53,7 +53,7 @@ public class SipURIImpl extends URIImpl implements SipURI
 		if (user != null)
 			_user = SipGrammar.unescape(user);
 	
-		_host = host;
+		setHost(host);
 		_port = port;
 		_scheme = "sip";
 	}
@@ -132,9 +132,9 @@ public class SipURIImpl extends URIImpl implements SipURI
 			endHost = indexHeaders;
 		
 		if (endHost < 0) 
-			_host = _uri.substring(indexHost);
+			setHost(_uri.substring(indexHost));
 		else
-			_host = _uri.substring(indexHost, endHost);
+			setHost(_uri.substring(indexHost, endHost));
 	
 		if (indexPort < 0) 
 		{
@@ -287,7 +287,10 @@ public class SipURIImpl extends URIImpl implements SipURI
 	
 	public void setHost(String host) 
 	{
-		_host = host;
+		if (host.contains(":") && !host.contains("["))
+    		_host = "[" + host + "]";
+    	else
+            _host = host;
 	}
 
 	public int getPort() 

@@ -17,6 +17,7 @@ package org.cipango.sip;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -226,7 +227,14 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
                 Via via = msg.getTopVia();
                 String remoteAddr = msg.getRemoteAddr();
                 
-                if (!via.getHost().equals(remoteAddr))
+                String host = via.getHost();
+                if (host.indexOf('[') != -1)
+                {
+                	// As there is multiple presentation of an IPv6 address, normalize it.
+                	host = InetAddress.getByName(host).getHostAddress();
+                }
+                
+                if (!host.equals(remoteAddr))
                     via.setReceived(remoteAddr);
 
                 if (via.getRport() != null)
@@ -254,13 +262,30 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         if (!sipUri.getLrParam())
             return false;
 
+        String host = sipUri.getHost();
         for (int i = 0; i < _connectors.length; i++)
         {
             SipConnector connector = _connectors[i];
-            if ((connector.getHost().equals(sipUri.getHost()) || connector.getAddr().getHostAddress().equals(sipUri.getHost()))
-            		&& (connector.getPort() == sipUri.getPort() 
-            				|| (sipUri.getPort() == -1 && connector.getPort() == connector.getDefaultPort()))) 
-                return true;
+            boolean samePort = connector.getPort() == sipUri.getPort() 
+						|| (sipUri.getPort() == -1 && connector.getPort() == connector.getDefaultPort());
+            if (samePort)
+            {
+            	
+	            if ((connector.getHost().equals(host) || connector.getAddr().getHostAddress().equals(host))) 
+	                return true;
+	            if (host.indexOf("[") != -1) // IPv6
+	            {
+	            	try
+					{
+						InetAddress addr = InetAddress.getByName(host);
+						if (connector.getAddr().equals(addr))
+							return true;
+					} catch (UnknownHostException e)
+					{
+						Log.ignore(e);
+					}
+	            }
+            }
         }
         return false;
     }

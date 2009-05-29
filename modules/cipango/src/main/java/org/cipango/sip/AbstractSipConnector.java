@@ -80,8 +80,8 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     public AbstractSipConnector(int type) 
     {
         _type = type;
-        _host = __localhost;
         _port = SipConnectors.getDefaultPort(_type);
+        setHost( __localhost);
         
         updateURI();
     }
@@ -112,7 +112,10 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     	if (host == null)
     		host = __localhost;
     	
-        _host = host;
+    	if (host.contains(":") && !host.contains("["))
+    		_host = "[" + host + "]";
+    	else
+            _host = host;
         
         updateURI();
     }
@@ -199,7 +202,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
         
         Log.info("Started {}", this);
     }
-    
+        
     protected void doStop() throws Exception 
     {
     	try { close(); } catch(IOException e) { Log.warn(e); }

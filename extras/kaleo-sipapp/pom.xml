@@ -29,5 +29,14 @@
 			<artifactId>jetty-util</artifactId>
 		</dependency>
 	</dependencies>
+	<build>
+		<plugins>
+      			<plugin>
+        			<groupId>org.cipango</groupId>
+        			<artifactId>maven-cipango-plugin</artifactId>
+     			</plugin>
+    		</plugins>
+  	</build>
+
 </project>
 

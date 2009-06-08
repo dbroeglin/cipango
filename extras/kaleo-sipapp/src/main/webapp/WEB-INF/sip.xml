@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip-app xmlns="http://www.jcp.org/xml/ns/sipservlet" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd"
+	version="1.1">
+	<app-name>org.cipango.kaleo</app-name>
+
+	<main-servlet>kaleo</main-servlet>
+	<display-name>Kaleo</display-name>
+
+	<servlet>
+		<servlet-name>kaleo</servlet-name>
+		<servlet-class>org.cipango.kaleo.KaleoServlet</servlet-class>
+		<load-on-startup/>
+	</servlet>
+
+	<servlet>
+		<servlet-name>presence</servlet-name>
+		<servlet-class>org.cipango.kaleo.presence.PresenceServlet</servlet-class>
+		<load-on-startup/>
+	</servlet>
+	
+	<servlet>
+		<servlet-name>registrar</servlet-name>
+		<servlet-class>org.cipango.kaleo.location.RegistrarServlet</servlet-class>
+		<load-on-startup/>
+	</servlet>
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+</sip-app>

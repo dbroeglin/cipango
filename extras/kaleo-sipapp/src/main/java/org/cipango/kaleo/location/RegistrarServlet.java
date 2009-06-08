@@ -20,6 +20,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
+import org.cipango.kaleo.presence.PresenceEventPackage;
 
 public class RegistrarServlet extends SipServlet
 {
@@ -38,9 +39,11 @@ public class RegistrarServlet extends SipServlet
 		_dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
 		
 		_sipFactory = (SipFactory) getServletContext().getAttribute(SIP_FACTORY);
+		
+		_locationService = (LocationService) getServletContext().getAttribute(LocationService.class.getName());
 	}
 	
-	protected void register(SipServletRequest register) throws IOException, ServletException
+	protected void doRegister(SipServletRequest register) throws IOException, ServletException
 	{
 		String aor = URIUtil.toCanonical(register.getRequestURI());
 		
@@ -156,7 +159,9 @@ public class RegistrarServlet extends SipServlet
 			for (Binding binding : bindings)
 			{
 				Address address = _sipFactory.createAddress(binding.getContact());
-				address.setExpires(binding.getExpires());
+				//address.setExpires(binding.getExpires());
+				address.setExpires(60);
+				
 				ok.addAddressHeader(Constants.CONTACT, address,false);
 			}
 		}

@@ -17,6 +17,7 @@ package org.cipango.kaleo.presence;
 import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.ServletException;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -27,19 +28,24 @@ import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PresenceServlet extends SipServlet
 {
 	private static final long serialVersionUID = -183362525207809670L;
 
+	private final Logger _log = LoggerFactory.getLogger(PresenceServlet.class);
+	
 	private PresenceEventPackage _presence;
 
 	public void init()
 	{
 		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());
+		
 	}
 
-	protected void doPublish(SipServletRequest publish) throws IOException
+	protected void doPublish(SipServletRequest publish) throws ServletException, IOException
 	{
 		String event = publish.getHeader(Constants.EVENT);
 
@@ -171,18 +177,13 @@ public class PresenceServlet extends SipServlet
 			if (expires == 0)
 			{
 				presentity.removeState(etag);
-
 			}
 			else
 			{
 				if (content != null)
-				{
-					state = presentity.modifyState(state, expires, contentType, content);
-				}
+					presentity.modifyState(state, expires, contentType, content);
 				else
-				{
-					state = presentity.refreshState(state, expires);
-				}
+					presentity.refreshState(state, expires);
 			}
 			SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
 			response.setExpires(expires);
@@ -191,24 +192,22 @@ public class PresenceServlet extends SipServlet
 		}
 	}
 
-	protected void doSubscribe(SipServletRequest subscribe) throws IOException
+	protected void doSubscribe(SipServletRequest subscribe) throws ServletException, IOException
 	{
-		String eventHeader = subscribe.getHeader(Constants.EVENT);
-
-		if (eventHeader == null || !eventHeader.equals(_presence.getName()))
+		String event = subscribe.getHeader(Constants.EVENT);
+		
+		if (event == null || !(event.equals(_presence.getName())))
 		{
 			SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_BAD_EVENT);
 			response.addHeader(Constants.ALLOW_EVENTS, _presence.getName());
 			response.send();
 			return;
 		}
-		//TODO header EVENT with ID PARAM?
-		//String id = eventParam.getParameter(Constants.ID_PARAM);
-
+		
 		int expires = subscribe.getExpires();
 		if (expires != -1)
 		{
-			if(expires != 0)
+			if (expires != 0)
 			{
 				if (expires < _presence.getMinExpires())
 				{
@@ -217,17 +216,42 @@ public class PresenceServlet extends SipServlet
 					response.send();
 					return;
 				}
-				else if (expires > _presence.getMaxExpires())
-				{
-					expires = _presence.getMaxExpires();
-				}
+			}
+			else if (expires > _presence.getMaxExpires())
+			{
+				expires = _presence.getMaxExpires();
 			}
 		}
-		else
+		else 
 		{
 			expires = _presence.getDefaultExpires();
 		}
-
+		SipSession session = subscribe.getSession();
+		Subscription subscription = (Subscription) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
+		
+		if (subscription == null)
+		{
+			String uri = URIUtil.toCanonical(subscribe.getRequestURI());
+			Presentity presentity = _presence.getResource(uri);
+			
+			subscription = new Subscription(presentity, session);
+			presentity.addSubscription(subscription, expires);
+			
+			session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, subscription);
+			
+			if (subscription.getState() == Subscription.State.ACTIVE)
+			{
+				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
+				response.setExpires(expires);
+				response.send();
+			}
+		}
+	}
+	
+	/*
+	protected void doSubscribe(SipServletRequest subscribe) throws IOException
+	{
+		
 		SipSession session = subscribe.getSession();
 		Subscription subscription = (Subscription)session.getAttribute(Constants.SUBSCRIPTION_ATT);
 
@@ -293,5 +317,5 @@ public class PresenceServlet extends SipServlet
 			//				return;
 			//			}
 		}
-	}
+*/
 }

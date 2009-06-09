@@ -40,5 +40,4 @@ public class Binding
 	{
 		return _cseq;
 	}
-
 }

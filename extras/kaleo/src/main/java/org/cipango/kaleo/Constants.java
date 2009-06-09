@@ -32,13 +32,15 @@ public abstract class Constants
 	public static final String UNSUPPORTED 			= "Unsupported";
 	public static final String WWW_AUTHENTICATE 	= "WWW-Authenticate";
 	public static final String ID_PARAM 			= "id";
-	public static final String SUBSCRIPTION_ATT		= "Subscription";
+	public static final String SUBSCRIPTION_ATTRIBUTE = "Subscription";
 	
 	public static final String SUBSCRIPTION_STATE	= "Subscription-State";
 	
 	public static final String EXPIRES				= "expires";
 	public static final String REASON				= "reason";
 	public static final String RETRY_AFTER			= "retry-after";
+	
+	public static final String NOTIFY 				= "NOTIFY";
 	
 	private Constants() { }	
 }

@@ -14,10 +14,7 @@
 
 package org.cipango.kaleo.event;
 
-import java.util.TimerTask;
-
-import org.cipango.kaleo.util.ID;
-import org.cipango.kaleo.util.Timer;
+import java.util.Random;
 
 /**
  * State information for a resource.
@@ -26,24 +23,34 @@ import org.cipango.kaleo.util.Timer;
  */
 public class State
 {
+	private static Random __random = new Random();
+	
+	public static synchronized String newETag()
+	{
+		return Integer.toString(__random.nextInt(), Character.MAX_RADIX);
+	}
+	
 	private String _etag;
 	private String _contentType;
 	private Object _content;
 	private Resource _resource;
-	private ExpirationPublishingTask _task;
 	
 	public State(Resource resource, String contentType, Object content)
 	{
 		_resource = resource;
-		_contentType = contentType;
-		_content = content;
-		_etag = ID.newETag();
+		setContent(contentType, content);
 	}
 	
-	public State resetETag()
+	public void setContent(String contentType, Object content)
 	{
-		_etag = ID.newETag();
-		return this;
+		_contentType = contentType;
+		_content = content;
+		updateETag();
+	}
+	
+	public void updateETag()
+	{
+		_etag = newETag();
 	}
 	
 	public String getETag()
@@ -61,31 +68,15 @@ public class State
 		return _contentType;
 	}
 	
-	public void closeTask() 
+	public boolean equals(Object o)
 	{
-		if(_task != null)
-			_task.cancel();
-	}
-
-	public void startTask(int expires) 
-	{
-		if(_task != null)
-			_task.cancel();
-		_task = new ExpirationPublishingTask(expires);
+		if (!(o instanceof State)) return false;
+		
+		return ((State) o).getETag().equals(_etag);
 	}
 	
-	class ExpirationPublishingTask extends TimerTask
+	public String toString()
 	{
-
-		public ExpirationPublishingTask(int expires)
-		{
-			Timer.getTimer().schedule(this, expires*1000);
-		}
-
-		@Override
-		public void run() 
-		{
-			_resource.removeState(_etag);
-		}
-	}	
+		return _resource + "/" + _etag + "= " + _content;
+	}
 }

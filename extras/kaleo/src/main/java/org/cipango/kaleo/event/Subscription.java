@@ -1,48 +1,57 @@
-package org.cipango.kaleo.event;
+// ========================================================================
+// Copyright 2008-2009 NEXCOM Systems
+// ------------------------------------------------------------------------
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at 
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ========================================================================
 
-import java.util.TimerTask;
+package org.cipango.kaleo.event;
 
 import javax.servlet.sip.SipSession;
 
-import org.cipango.kaleo.util.Timer;
-
 public class Subscription 
 {
+	public enum State
+	{
+		ACTIVE("active"), PENDING("pending"), TERMINATED("terminated");
+		
+		private String _name;
+		
+		private State(String name) { _name = name; }
+		public String getName() { return _name; }
+	}
+	
+	public enum Reason 
+	{
+		DEACTIVATED("deactivated"), PROBATION("probation"), REJECTED("rejected"),
+		TIMEOUT("timeout"), GIVEUP("giveup"), NORESOURCE("noresource");
+		
+		private String _name;
+		
+		private Reason(String name) { _name = name; }
+		public String getName() { return _name; }
+	}
+	
 	private Resource _resource;
 	private SipSession _session;
 	private State _state = State.ACTIVE;
-	private String _id;
-	private ExpirationSubscriptionTask _task;
-	
-	public enum State
-	{
-		ACTIVE("active"), 
-		PENDING("pending"), 
-		TERMINATED("terminated");
-
-		private String _name;
-
-		private State(String name)
-		{
-			_name = name;
-		}
-
-		public String getName()
-		{
-			return _name;
-		}
-	}
 	
 	public Subscription(Resource resource, SipSession session) 
 	{
 		_resource = resource;
 		_session = session;
-		_id = session.getId();
 	}
 	
 	public String getId()
 	{
-		return _id;
+		return _session.getId();
 	}
 	
 	public Resource getResource() 
@@ -63,46 +72,5 @@ public class Subscription
 	public void setState(State state) 
 	{
 		_state = state;
-	}
-	
-	public int getRemainingTime()
-	{
-		return _task.getRemainingTime();
-	}
-	
-	public void closeTask() 
-	{
-		if(_task != null)
-			_task.cancel();
-	}
-
-	public void startTask(int expires) 
-	{
-		if(_task != null)
-			_task.cancel();
-		_task = new ExpirationSubscriptionTask(expires);
-	}
-	
-	class ExpirationSubscriptionTask extends TimerTask
-	{
-		Long _startDate = System.currentTimeMillis();
-		int _expires;
-
-		public ExpirationSubscriptionTask(int expires)
-		{
-			_expires = expires;
-			Timer.getTimer().schedule(this, expires*1000);
-		}
-
-		public int getRemainingTime()
-		{
-			return (int) (_expires - (System.currentTimeMillis() - _startDate)/1000);
-		}
-
-		@Override
-		public void run() 
-		{
-			_resource.removeSubscription(_id, Reason.TIMEOUT);
-		}
 	}
 }

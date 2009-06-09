@@ -22,17 +22,20 @@ import java.util.Map;
 
 import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.EventPackage;
+import org.cipango.kaleo.event.ResourceListener;
+import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Manage Presentities and Notifications
- *
+ * Presence Event Package
  */
-public class PresenceEventPackage 
-implements EventPackage<Presentity>
+public class PresenceEventPackage implements EventPackage<Presentity>
 {
-	public static final String NAME = "presence";
+	public Logger _log = LoggerFactory.getLogger(PresenceEventPackage.class);
 	
+	public static final String NAME = "presence";
 	public static final String PIDF = "application/pidf+xml";
 
 	public int _minExpires = 60;
@@ -42,6 +45,7 @@ implements EventPackage<Presentity>
 	private Map<String, Presentity> _presentities = new HashMap<String, Presentity>();
 	
 	private PidfHandler _pidfHandler = new PidfHandler();
+	private ResourceListener<Presentity> _presenceListener = new PresentityListener();
 
 	public String getName()
 	{
@@ -76,6 +80,7 @@ implements EventPackage<Presentity>
 			if (presentity == null)
 			{
 				presentity = new Presentity(uri, this);
+				presentity.addListener(_presenceListener);
 				_presentities.put(uri, presentity);
 			}
 			return presentity;
@@ -96,5 +101,22 @@ implements EventPackage<Presentity>
 			return _pidfHandler;
 		else
 			return null;
+	}
+	
+	class PresentityListener implements ResourceListener<Presentity>
+	{
+		public void stateChanged(Presentity resource) 
+		{
+			if (_log.isDebugEnabled())
+				_log.debug("State changed for resource {}", resource);
+			//for (Subscription subcription : resource.get)
+		}
+
+		public void subscriptionAdded(Subscription subscription) 
+		{
+			if (_log.isDebugEnabled())
+				_log.debug("Subscription added {} for resource {}", subscription, subscription.getResource());
+			
+		}
 	}
 }

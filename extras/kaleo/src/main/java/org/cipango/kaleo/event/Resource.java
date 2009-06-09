@@ -14,7 +14,6 @@
 
 package org.cipango.kaleo.event;
 
-
 /**
  * A resource. Subscribers may subscribe to a resource state and 
  * publication agent may publish event state for a resource.
@@ -22,22 +21,17 @@ package org.cipango.kaleo.event;
  */
 public interface Resource 
 {
-	void addState(State state, int expires);
-
 	String getUri();
 
 	State getState(String etag);
 	
-	void removeState(String etag);
-	
-	State modifyState(State state, int expires, String contentType, Object content);
-	
-	State refreshState(State state, int expires);
-	
-	void removeSubscription(String id, Reason reason);
+	void addState(State state, int expires);
+	void removeState(String etag);	
+	void modifyState(State state, int expires, String contentType, Object content);
+	void refreshState(State state, int expires);
 	
 	void addSubscription(Subscription subscription, int expires);
-	
+	void removeSubscription(String id, Subscription.Reason reason);
 	void refreshSubscription(String id, int expires);
 
 	class Content 

@@ -16,6 +16,6 @@ package org.cipango.kaleo.event;
 
 public interface ContentHandler<E>
 {
-		E getContent(byte[] b) throws Exception;
-		byte[] getBytes(E content);
+	E getContent(byte[] b) throws Exception;
+	byte[] getBytes(E content);
 }

@@ -14,47 +14,180 @@
 
 package org.cipango.kaleo.presence;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-import org.cipango.kaleo.event.EventPackage;
-import org.cipango.kaleo.event.NotificationsManager;
-import org.cipango.kaleo.event.Reason;
 import org.cipango.kaleo.event.Resource;
+import org.cipango.kaleo.event.ResourceListener;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class Presentity 
-implements Resource
+public class Presentity implements Resource
 {
-	private String _uri; 
-
-	private Map<String, State> _states 
-	= new HashMap<String, State>();
-
-	//TODO : authorized subscriptions / pending subscriptions
-
-	private Map<String, Subscription> _subscriptions 
-	= new HashMap<String, Subscription>();
-
-	private EventPackage<?> _presence;
+	public final Logger _log = LoggerFactory.getLogger(Presentity.class);
 	
-	private NotificationsManager _notificationManager;
+	private String _uri; 
+	private PresenceEventPackage _presence;
 
-	public Presentity(String uri, EventPackage<?> presenceEventPackage)
+	private List<State> _states = new ArrayList<State>();
+	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
+	private List<ResourceListener<Presentity>> _listeners = new ArrayList<ResourceListener<Presentity>>();
+	
+	public Presentity(String uri, PresenceEventPackage presenceEventPackage)
 	{
 		_uri = uri;
 		_presence = presenceEventPackage;
-		_notificationManager = NotificationsManager.getInstance();
 	}
-
+	
 	public String getUri()
 	{
 		return _uri;
 	}
 
+	public void addState(State state, int expires)
+	{
+		if (_log.isDebugEnabled())
+			_log.debug("Added state {} to presentity {}", state, this);
+		
+		synchronized (_states)
+		{
+			_states.add(state);
+		}
+	}
+	
+	public State getState(String etag)
+	{
+		synchronized(_states)
+		{
+			for (State state : _states)
+			{
+				if (state.getETag().equals(etag))
+					return state;
+			}
+		}
+		return null;
+	}
+	
+
+	public void removeState(String etag)
+	{
+		synchronized(_states)
+		{
+			for (int i = 0; i < _states.size(); i++)
+			{
+				State state = _states.get(i);
+				if (state.getETag().equals(etag))
+					_states.remove(i);
+			}
+		}
+	}
+	
+	public void modifyState(State state, int expires, String contentType, Object content)
+	{
+		state.setContent(contentType, content);
+	}
+	
+	public void refreshState(State state, int expires)
+	{
+		state.updateETag();
+	}
+	
+	public String getContentType() 
+	{
+		return PresenceEventPackage.PIDF;
+	}
+
+	protected Content getNeutralContent() 
+	{
+		PresenceDocument document = PresenceDocument.Factory.newInstance();
+		document.addNewPresence();
+		document.getPresence().setEntity(_uri);
+		return new Content(document, PresenceEventPackage.PIDF);
+	}
+
+	protected Content getCurrentContent() 
+	{
+		// TODO: merge when several states
+		synchronized (_states) 
+		{
+			if (_states.size() == 0)
+				return null;
+			State state = _states.get(0);
+			return new Content(state.getContent(), PresenceEventPackage.PIDF);
+		}
+	}
+	
+	public Content getContent() 
+	{
+		if(_states.isEmpty())
+			return getNeutralContent();
+		else
+			return getCurrentContent();
+	}
+
+	@Override
+	public String toString()
+	{
+		String etags = "";
+		synchronized (_states) 
+		{
+			Iterator<State> it = _states.iterator();
+			while(it.hasNext())
+			{
+				State state = it.next();
+				etags = etags+"/"+state.getETag();
+			}
+		}
+		return "{"+_uri+etags+"}";
+	}
+	
+	public void addListener(ResourceListener<Presentity> listener)
+	{
+		synchronized (_listeners)
+		{
+			_listeners.add(listener);
+		}
+	}
+
+	public void addSubscription(Subscription subscription, int expires) 
+	{
+		synchronized (_subscriptions) 
+		{
+			_subscriptions.put(subscription.getId(), subscription);
+		}	
+		for (ResourceListener<Presentity> listener : _listeners)
+		{
+			listener.subscriptionAdded(subscription);
+		}
+	}
+
+	public void refreshSubscription(String id, int expires) 
+	{
+		// TODO Auto-generated method stub	
+	}
+
+	public void removeSubscription(String id, Subscription.Reason reason) 
+	{
+		// TODO Auto-generated method stub	
+	}
+	
+	/*
+	private Map<String, State> _states = new HashMap<String, State>();
+
+	//TODO : authorized subscriptions / pending subscriptions
+
+	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
+	private NotificationsManager _notificationManager;
+
+	
+
+	
 	public void addState(State state, int expires)
 	{
 		synchronized(_states)
@@ -63,14 +196,7 @@ implements Resource
 			_states.put(state.getETag(), state);
 			notifySubscribers(state);
 		}
-	}
-
-	public State getState(String etag)
-	{
-		synchronized(_states)
-		{
-			return _states.get(etag);
-		}
+		
 	}
 
 	public void removeState(String etag)
@@ -81,7 +207,9 @@ implements Resource
 			notifySubscribers(null);
 		}
 	}
+	
 
+	
 	private void removeEntryState(String etag)
 	{
 		synchronized(_states)
@@ -90,7 +218,7 @@ implements Resource
 			_states.remove(etag);
 		}
 	}
-
+	
 	public State modifyState(State oldState, int expires, String contentType,
 			Object content) 
 	{
@@ -99,7 +227,8 @@ implements Resource
 		addState(newState, expires);
 		return newState;
 	}
-
+	
+	
 
 	private void notifySubscribers(State state) 
 	{
@@ -116,7 +245,7 @@ implements Resource
 		}
 	}
 
-	public State refreshState(State oldState, int expires) 
+	public void refreshState(State state, int expires) 
 	{
 		removeEntryState(oldState.getETag());
 		State newState = oldState.resetETag();
@@ -126,8 +255,9 @@ implements Resource
 			_states.put(newState.getETag(), newState);
 		}
 		return newState;
-	}
+	} */
 
+	/*
 	public void addSubscription(Subscription subscription, int expires) 
 	{
 		synchronized (_subscriptions) 
@@ -196,41 +326,13 @@ implements Resource
 		//TODO: we suppose that we have only one state
 		synchronized (_states) 
 		{
-			State state = _states.values().iterator().next();
+			if (_states.size() == 0)
+				return null;
+			State state = _states.get(0);
 			return new Content(state.getContent(), PresenceEventPackage.PIDF);
 		}
 	}
+	*/
 
-	public String getContentType() 
-	{
-		return PresenceEventPackage.PIDF;
-	}
-
-	public Content getContent() 
-	{
-		if(_states.isEmpty())
-		{
-			return getNeutralContent();
-		}
-		else
-		{
-			return getCurrentContent();
-		}
-	}
-
-	@Override
-	public String toString()
-	{
-		String etags = "";
-		synchronized (_states) 
-		{
-			Iterator<State> it = _states.values().iterator();
-			while(it.hasNext())
-			{
-				State state = it.next();
-				etags = etags+"/"+state.getETag();
-			}
-		}
-		return "{"+_uri+etags+"}";
-	}
+	
 }

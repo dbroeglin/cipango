@@ -27,7 +27,6 @@ public interface EventPackage<T extends Resource>
 	String getName();
 
 	int getMinExpires();
-	
 	int getMaxExpires();
 
 	List<String> getSupportedContentTypes();

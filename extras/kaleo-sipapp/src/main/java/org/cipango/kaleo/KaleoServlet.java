@@ -31,5 +31,10 @@ public class KaleoServlet extends SipServlet
 	{
 		getServletContext().getNamedDispatcher("presence").forward(publish, null);
 	}
+	
+	protected void doSubscribe(SipServletRequest subscribe) throws ServletException, IOException
+	{
+		getServletContext().getNamedDispatcher("presence").forward(subscribe, null);
+	}
 }
 

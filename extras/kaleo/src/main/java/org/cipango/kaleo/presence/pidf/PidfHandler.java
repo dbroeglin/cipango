@@ -15,18 +15,37 @@
 package org.cipango.kaleo.presence.pidf;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
 
+import org.apache.xmlbeans.XmlOptions;
 import org.cipango.kaleo.event.ContentHandler;
 
 public class PidfHandler implements ContentHandler<PresenceDocument>
 {
+	private XmlOptions _xmlOptions;
+	
+	public PidfHandler()
+	{
+		HashMap<String, String> suggestedPrefixes = new HashMap<String, String>();
+		suggestedPrefixes.put("urn:ietf:params:xml:ns:pidf:data-model", "dm");
+		suggestedPrefixes.put("urn:ietf:params:xml:ns:pidf:rpid", "rpid");
+		suggestedPrefixes.put("urn:ietf:params:xml:ns:pidf:cipid", "c");
+		
+		_xmlOptions = new XmlOptions();
+		_xmlOptions.setUseDefaultNamespace();
+		_xmlOptions.setSaveSuggestedPrefixes(suggestedPrefixes);
+	}
+	
 	public PresenceDocument getContent(byte[] b) throws Exception
 	{
 		return PresenceDocument.Factory.parse(new ByteArrayInputStream(b));
 	}
 	
-	public byte[] getBytes(PresenceDocument content)
+	public byte[] getBytes(PresenceDocument content) throws Exception
 	{
-		return content.xmlText().getBytes();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		content.save(out, _xmlOptions);
+		return out.toByteArray();
 	}
 }

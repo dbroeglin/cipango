@@ -20,8 +20,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipSession;
+
+import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.EventPackage;
+import org.cipango.kaleo.event.Notifier;
+import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.ResourceListener;
 import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
@@ -45,8 +51,9 @@ public class PresenceEventPackage implements EventPackage<Presentity>
 	private Map<String, Presentity> _presentities = new HashMap<String, Presentity>();
 	
 	private PidfHandler _pidfHandler = new PidfHandler();
-	private ResourceListener<Presentity> _presenceListener = new PresentityListener();
-
+	private ResourceListener _presenceListener = new PresentityListener();
+	private Notifier<Presentity> _notifier;
+	
 	public String getName()
 	{
 		return NAME;
@@ -103,13 +110,42 @@ public class PresenceEventPackage implements EventPackage<Presentity>
 			return null;
 	}
 	
-	class PresentityListener implements ResourceListener<Presentity>
+	@SuppressWarnings("unchecked")
+	protected void notify(Subscription subscription)
 	{
-		public void stateChanged(Presentity resource) 
+		try
+		{
+			SipSession session = subscription.getSession();
+			if (session.isValid())
+			{
+				SipServletRequest notify = session.createRequest(Constants.NOTIFY);
+				notify.addHeader(Constants.EVENT, getName());
+				notify.addHeader(Constants.SUBSCRIPTION_STATE, subscription.getState().getName());
+				Resource.Content content = subscription.getResource().getContent();
+								
+				ContentHandler handler = getContentHandler(content.getType());
+				byte[] b = handler.getBytes(content.getValue());
+				notify.setContent(b, content.getType());
+				notify.send();
+			}
+		}
+		catch (Exception e) 
+		{
+			_log.warn("Exception while sending notification {}", e);
+		}
+	}
+	
+	class PresentityListener implements ResourceListener
+	{
+		public void stateChanged(Resource resource) 
 		{
 			if (_log.isDebugEnabled())
 				_log.debug("State changed for resource {}", resource);
-			//for (Subscription subcription : resource.get)
+			
+			for (Subscription subscription : resource.getSubscriptions())
+			{
+				PresenceEventPackage.this.notify(subscription);
+			}
 		}
 
 		public void subscriptionAdded(Subscription subscription) 
@@ -117,6 +153,13 @@ public class PresenceEventPackage implements EventPackage<Presentity>
 			if (_log.isDebugEnabled())
 				_log.debug("Subscription added {} for resource {}", subscription, subscription.getResource());
 			
+		}
+		
+		public void subscriptionStarted(Subscription subscription)
+		{
+			if (_log.isDebugEnabled())
+				_log.debug("Subscription {} started", subscription);
+			PresenceEventPackage.this.notify(subscription);
 		}
 	}
 }

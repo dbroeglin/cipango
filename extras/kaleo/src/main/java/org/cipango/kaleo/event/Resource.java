@@ -14,6 +14,8 @@
 
 package org.cipango.kaleo.event;
 
+import java.util.List;
+
 /**
  * A resource. Subscribers may subscribe to a resource state and 
  * publication agent may publish event state for a resource.
@@ -24,6 +26,7 @@ public interface Resource
 	String getUri();
 
 	State getState(String etag);
+	Content getContent();
 	
 	void addState(State state, int expires);
 	void removeState(String etag);	
@@ -33,14 +36,17 @@ public interface Resource
 	void addSubscription(Subscription subscription, int expires);
 	void removeSubscription(String id, Subscription.Reason reason);
 	void refreshSubscription(String id, int expires);
+	List<Subscription> getSubscriptions();
+	
+	void addListener(ResourceListener listener);
+	List<ResourceListener> getListeners();
 
 	class Content 
 	{
 		private Object _value;
-		
 		private String _type;
 
-		public Content(Object value, String type) 
+		public Content(Object value, String type)
 		{
 			_value = value;
 			_type = type;

@@ -27,7 +27,7 @@ public class State
 	
 	public static synchronized String newETag()
 	{
-		return Integer.toString(__random.nextInt(), Character.MAX_RADIX);
+		return Integer.toString(Math.abs(__random.nextInt()), Character.MAX_RADIX);
 	}
 	
 	private String _etag;

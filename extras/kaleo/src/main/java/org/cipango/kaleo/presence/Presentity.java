@@ -16,7 +16,6 @@ package org.cipango.kaleo.presence;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +23,7 @@ import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.ResourceListener;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.presence.pidf.Presence;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +33,14 @@ public class Presentity implements Resource
 	public final Logger _log = LoggerFactory.getLogger(Presentity.class);
 	
 	private String _uri; 
-	private PresenceEventPackage _presence;
-
+	
 	private List<State> _states = new ArrayList<State>();
 	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
-	private List<ResourceListener<Presentity>> _listeners = new ArrayList<ResourceListener<Presentity>>();
+	private List<ResourceListener> _listeners = new ArrayList<ResourceListener>();
 	
 	public Presentity(String uri, PresenceEventPackage presenceEventPackage)
 	{
 		_uri = uri;
-		_presence = presenceEventPackage;
 	}
 	
 	public String getUri()
@@ -59,6 +57,7 @@ public class Presentity implements Resource
 		{
 			_states.add(state);
 		}
+		fireStateChanged();
 	}
 	
 	public State getState(String etag)
@@ -73,7 +72,6 @@ public class Presentity implements Resource
 		}
 		return null;
 	}
-	
 
 	public void removeState(String etag)
 	{
@@ -86,11 +84,13 @@ public class Presentity implements Resource
 					_states.remove(i);
 			}
 		}
+		fireStateChanged();
 	}
 	
 	public void modifyState(State state, int expires, String contentType, Object content)
 	{
 		state.setContent(contentType, content);
+		fireStateChanged();
 	}
 	
 	public void refreshState(State state, int expires)
@@ -98,23 +98,26 @@ public class Presentity implements Resource
 		state.updateETag();
 	}
 	
-	public String getContentType() 
+	protected void fireStateChanged()
 	{
-		return PresenceEventPackage.PIDF;
+		for (ResourceListener listener : _listeners)
+		{
+			listener.stateChanged(this);
+		}
 	}
 
 	protected Content getNeutralContent() 
 	{
 		PresenceDocument document = PresenceDocument.Factory.newInstance();
-		document.addNewPresence();
-		document.getPresence().setEntity(_uri);
+		Presence presence = document.addNewPresence();
+		presence.setEntity(_uri);
+		//document.getPresence().addNewTuple().addNewStatus().setBasic(Basic.CLOSED);
 		return new Content(document, PresenceEventPackage.PIDF);
 	}
-
-	protected Content getCurrentContent() 
+	
+	protected Content getCurrentContent()
 	{
-		// TODO: merge when several states
-		synchronized (_states) 
+		synchronized (_states)
 		{
 			if (_states.size() == 0)
 				return null;
@@ -123,7 +126,7 @@ public class Presentity implements Resource
 		}
 	}
 	
-	public Content getContent() 
+	public Content getContent()
 	{
 		if(_states.isEmpty())
 			return getNeutralContent();
@@ -134,39 +137,45 @@ public class Presentity implements Resource
 	@Override
 	public String toString()
 	{
-		String etags = "";
-		synchronized (_states) 
-		{
-			Iterator<State> it = _states.iterator();
-			while(it.hasNext())
-			{
-				State state = it.next();
-				etags = etags+"/"+state.getETag();
-			}
-		}
-		return "{"+_uri+etags+"}";
+		return _uri;
 	}
 	
-	public void addListener(ResourceListener<Presentity> listener)
+	public void addListener(ResourceListener listener)
 	{
 		synchronized (_listeners)
 		{
 			_listeners.add(listener);
 		}
 	}
+	
+	public List<ResourceListener> getListeners()
+	{
+		synchronized (_listeners)
+		{
+			return new ArrayList<ResourceListener>(_listeners);
+		}
+	}
 
 	public void addSubscription(Subscription subscription, int expires) 
 	{
-		synchronized (_subscriptions) 
+		synchronized (_subscriptions)
 		{
 			_subscriptions.put(subscription.getId(), subscription);
 		}	
-		for (ResourceListener<Presentity> listener : _listeners)
+		for (ResourceListener listener : _listeners)
 		{
 			listener.subscriptionAdded(subscription);
 		}
 	}
 
+	public List<Subscription> getSubscriptions()
+	{
+		synchronized (_subscriptions)
+		{
+			return new ArrayList<Subscription>(_subscriptions.values());
+		}
+	}
+	
 	public void refreshSubscription(String id, int expires) 
 	{
 		// TODO Auto-generated method stub	
@@ -208,8 +217,6 @@ public class Presentity implements Resource
 		}
 	}
 	
-
-	
 	private void removeEntryState(String etag)
 	{
 		synchronized(_states)
@@ -228,8 +235,6 @@ public class Presentity implements Resource
 		return newState;
 	}
 	
-	
-
 	private void notifySubscribers(State state) 
 	{
 		synchronized (_subscriptions) 
@@ -333,6 +338,4 @@ public class Presentity implements Resource
 		}
 	}
 	*/
-
-	
 }

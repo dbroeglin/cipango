@@ -73,4 +73,17 @@ public class Subscription
 	{
 		_state = state;
 	}
+	
+	public void start()
+	{
+		for (ResourceListener listener : _resource.getListeners())
+		{
+			listener.subscriptionStarted(this);
+		}
+	}
+	
+	public String toString()
+	{
+		return _resource.getUri() + "/" + getId();
+	}
 }

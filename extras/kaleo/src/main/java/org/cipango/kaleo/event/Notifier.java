@@ -29,6 +29,7 @@ public class Notifier<T extends Resource> implements Runnable
 	
 	private EventPackage<T> _eventPackage;
 	
+	private Thread _thread;
 	private LinkedList<Notification> _notifications = new LinkedList<Notification>();
 	
 	public void notify(EventPackage<T> eventPackage, SipSession session)
@@ -40,6 +41,12 @@ public class Notifier<T extends Resource> implements Runnable
 			_notifications.addLast(notification);
 			_notifications.notifyAll();
 		}
+	}
+	
+	public void start()
+	{
+		_thread = new Thread(this);
+		_thread.start();
 	}
 	
 	public void run()
@@ -58,7 +65,14 @@ public class Notifier<T extends Resource> implements Runnable
 					}
 					notification = _notifications.removeFirst();
 				}
-				send(notification);
+				try
+				{
+					send(notification);
+				}
+				catch (Exception e)
+				{
+					_log.warn("Exception while sending notification {}", e);
+				}
 			}
 			catch (InterruptedException e)
 			{
@@ -86,7 +100,7 @@ public class Notifier<T extends Resource> implements Runnable
 		}
 		catch (Exception e) 
 		{
-			// TODO: handle exception
+			_log.warn("Exception while sending notification {}", e);
 		}
 	}
 	
@@ -98,7 +112,6 @@ public class Notifier<T extends Resource> implements Runnable
 		public SipSession getSession() { return _session; }
 		public Resource.Content getContent() { return _content; }
 	}
-	
 }
 
 /*

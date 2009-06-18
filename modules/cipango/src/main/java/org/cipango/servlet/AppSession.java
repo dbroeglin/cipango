@@ -342,11 +342,12 @@ public class AppSession implements AppSessionIf, Serializable
 		return _attributes.get(name);
 	}
 
+	@SuppressWarnings("unchecked")
 	public synchronized Iterator<String> getAttributeNames() 
 	{
 		checkValid();
 		if (_attributes == null) 
-			return null;
+			return Collections.EMPTY_LIST.iterator();
 		
 		return _attributes.keySet().iterator();
 	}

@@ -51,8 +51,11 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		
 		if (branch == null || !branch.startsWith(SipGrammar.MAGIC_COOKIE)) 
         {
-			Log.info("Not 3261 branch: {}. Dropping request", branch);
-			return;
+			if (!("0".equals(branch) && request.isAck()))
+			{
+				Log.info("Not 3261 branch: {}. Dropping request", branch);
+				return;
+			}
 		}
 		if (request.isCancel()) 
 			branch = "cancel-" + branch;

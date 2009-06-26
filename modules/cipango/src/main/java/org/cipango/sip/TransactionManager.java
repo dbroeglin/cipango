@@ -53,7 +53,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
         {
 			if (!("0".equals(branch) && request.isAck()))
 			{
-				Log.info("Not 3261 branch: {}. Dropping request", branch);
+				Log.debug("Not 3261 branch: {}. Dropping request", branch);
 				return;
 			}
 		}

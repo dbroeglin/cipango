@@ -120,7 +120,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 
 	private boolean isInitial(SipRequest request)
 	{
-		return (request.getTo().getParameter(SipParams.TAG) == null); // TODO, complete
+		return ((request.getTo().getParameter(SipParams.TAG) == null) && !request.isCancel());
 	}
 	
 	public void handle(SipServletMessage message) throws ServletException, IOException 

@@ -28,6 +28,8 @@ public abstract class IMS
 		LIA = 302,
 		MAR = 303, 
 		MAA = 303,
+		RTR = 304,
+		RTA = 304,
 		PPR = 305,
 		PPA = 305,
 		BIR = 310,

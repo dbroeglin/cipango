@@ -19,7 +19,6 @@ import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.log.AccessLog;
 import org.cipango.log.FileMessageLog;
 import org.cipango.sip.AbstractSipConnector;
-import org.cipango.sip.LocalConnector;
 import org.cipango.sip.SipConnector;
 import org.cipango.sip.TcpConnector;
 import org.cipango.sip.UdpConnector;
@@ -40,11 +39,10 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
 	
 	public SipConnector[] createDefaultSipConnectors(String host, String portnum) throws Exception
 	{
-		AbstractSipConnector[] sipConnectors = new AbstractSipConnector[3];
+		AbstractSipConnector[] sipConnectors = new AbstractSipConnector[2];
 		int port = ((portnum==null||portnum.equals(""))?DEFAULT_SIP_PORT:Integer.parseInt(portnum.trim()));
 		sipConnectors[0] = new UdpConnector();
 		sipConnectors[1] = new TcpConnector();
-		sipConnectors[2] = new LocalConnector();
 		if (host != null && !host.trim().equals(""))
 		{
 			sipConnectors[0].setHost(host);

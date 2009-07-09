@@ -18,9 +18,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.sip.URI;
 
@@ -29,7 +26,6 @@ import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.URIFactory;
-import org.cipango.URIImpl;
 import org.cipango.util.HexString;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -281,7 +277,7 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 	            //value = new View(value, startValue, startValue, end, Buffer.READONLY);
 	        }
 	        else
-	        {	
+	        {
 	        	_message.getFields().addBuffer(name, value);
 	        	//msg.getFields().addBuffer(name, new ByteArrayBuffer(value.asArray())); 
 	        }

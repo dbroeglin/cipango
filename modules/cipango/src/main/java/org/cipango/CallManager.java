@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import org.cipango.log.CallLog;
 import org.mortbay.component.AbstractLifeCycle;
 import org.mortbay.log.Log;
 
@@ -34,6 +35,8 @@ public class CallManager extends AbstractLifeCycle
     //stats 
     private long _statsStartedAt = -1;
     private int _maxCalls;
+    
+    private CallLog _callLog;
 	
     public CallManager() 
     { 
@@ -50,6 +53,17 @@ public class CallManager extends AbstractLifeCycle
     
     public void doStart() throws Exception
     {
+    	if (_callLog != null)
+    	{
+    		try
+    		{
+    			_callLog.start();
+    		}
+    		catch (Exception e)
+    		{
+    			Log.warn(e);
+    		}
+    	}
         new Thread(new Scheduler()).start();
         super.doStart();
     }
@@ -64,12 +78,39 @@ public class CallManager extends AbstractLifeCycle
     	synchronized (_calls) {	_calls.clear(); } 
     }
     
+    public void setCallLog(CallLog callLog)
+    {
+    	try
+    	{
+    		if (_callLog != null)
+    			_callLog.stop();
+    	}
+    	catch (Exception e)
+    	{
+    		Log.warn(e);
+    	}
+    	if (getServer() != null)
+    		getServer().getContainer().update(this, _callLog, callLog, "calllog", true);
+    	
+    	_callLog = callLog;
+    	
+    	try
+    	{
+    		if (isStarted() && (_callLog != null))
+    			_callLog.start();
+    	}
+    	catch (Exception e)
+    	{
+    		throw new RuntimeException(e);
+    	}
+    }
+    
     private Call newCall(String id)
     {
     	return new Call(id);
     }
     
-    public Call lock(String callId) 
+    public Call lock(String callId)
     {
     	Call call = null;
     	
@@ -81,6 +122,9 @@ public class CallManager extends AbstractLifeCycle
     			call = newCall(callId);
     			call.setServer(_server);
     			
+    			if (_callLog != null)
+    	    		call.setLogger(_callLog.getLogger(callId));
+
     			_calls.put(call.getCallId(), call);
     			
     			if (_statsStartedAt > 0 && (_calls.size() > _maxCalls))
@@ -110,6 +154,9 @@ public class CallManager extends AbstractLifeCycle
         			call.runTimers();
         			time = call.nextExecutionTime();
         		}
+        		if (call.isLogEnabled())
+        			call.log("scheduling call in {} ms", (time - System.currentTimeMillis()));
+        		
         		if (time > 0)
         		{
         			synchronized (_queue)

@@ -1117,12 +1117,9 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
     	_remoteAddr = remoteAddr;
     	_remotePort = remotePort;
     	
-    	if (_transport != SipConnectors.LOCAL_ORDINAL)
-    	{
-    		_initialTransport = transport;
-    		_initialRemoteAddr = remoteAddr;
-    		_initialRemotePort = remotePort;
-    	}
+		_initialTransport = transport;
+		_initialRemoteAddr = remoteAddr;
+		_initialRemotePort = remotePort;
     }
     
     public InetAddress remoteAddress()

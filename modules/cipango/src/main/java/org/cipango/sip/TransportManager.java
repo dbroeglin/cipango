@@ -27,6 +27,7 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
+import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import org.cipango.NameAddr;
 import org.cipango.Server;
@@ -56,7 +57,6 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     private static final int MAX_MESSAGE_SIZE = 64*1024;
     
     private Server _server;
-    private LocalConnector _localConnector;
    
     private SipConnector[] _connectors;
     private int _mtu;
@@ -90,6 +90,13 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     public SipConnector[] getConnectors()
     {
         return _connectors;
+    }
+    
+    public SipConnector getDefaultConnector()
+    {
+    	if (_connectors == null || _connectors.length == 0)
+    		return null;
+    	return _connectors[0];
     }
     
     public void setConnectors(SipConnector[] connectors)
@@ -311,24 +318,17 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         //System.out.println("Sending: " + request.getMethod() + " to " + addr);
         //System.out.println("MF: " + request.getMaxForwards());
 	    
-        if (connector.getTransportOrdinal() == SipConnectors.LOCAL_ORDINAL)
-        {
-        	((LocalConnector) connector).send(request);
-        }
-        else
-        {
-        	Buffer buffer = getBuffer(_messageSize); 
-        	_sipGenerator.generate(buffer, request);
-        	
-        	try
-        	{
-        		connector.send(buffer, address, port);
-        	}
-        	finally
-        	{
-        		returnBuffer(buffer);
-        	}
-        }
+    	Buffer buffer = getBuffer(_messageSize); 
+    	_sipGenerator.generate(buffer, request);
+    	
+    	try
+    	{
+    		connector.send(buffer, address, port);
+    	}
+    	finally
+    	{
+    		returnBuffer(buffer);
+    	}
 	        
         if (_logger != null) 
             _logger.messageSent(
@@ -353,49 +353,31 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     		
     		if (connector.isReliable())
     		{
-    			if (connector.getTransportOrdinal() == SipConnectors.LOCAL_ORDINAL)
-    			{
-    				((LocalConnector) connector).send(response);
-    				if (_logger != null) 
-    		        	_logger.messageSent(
-    		        			response, 
-    		        			connector.getTransportOrdinal(), 
-    		        			connector.getAddr().getHostAddress(), 
-    		        			connector.getPort(), 
-    		        			connector.getAddr().getHostAddress(), 
-    		        			connector.getPort());  
-    		        
-    		        messageSent();
-    				return;
-    			}
-    			else
-    			{
-    	        	Buffer buffer = getBuffer(_messageSize);
-    	        	_sipGenerator.generate(buffer, response);
-    				try
-    				{
-    					SipEndpoint endpoint = request.getEndpoint();
-    					endpoint.getConnector().send(buffer, endpoint);
-    					
-    					if (_logger != null)
-    					{
-    						EndPoint ep = (EndPoint) endpoint;
-				        	_logger.messageSent(
-				        			response, 
-				        			connector.getTransportOrdinal(), 
-				        			ep.getLocalAddr(),
-				        			ep.getLocalPort(), 
-				        			ep.getRemoteAddr(), 
-				        			ep.getRemotePort());    				        
-    					}
-    					messageSent();
-    					return;
-    				}
-    				finally
-    				{
-    					returnBuffer(buffer);
-    				}
-    			}
+	        	Buffer buffer = getBuffer(_messageSize);
+	        	_sipGenerator.generate(buffer, response);
+				try
+				{
+					SipEndpoint endpoint = request.getEndpoint();
+					endpoint.getConnector().send(buffer, endpoint);
+					
+					if (_logger != null)
+					{
+						EndPoint ep = (EndPoint) endpoint;
+			        	_logger.messageSent(
+			        			response, 
+			        			connector.getTransportOrdinal(), 
+			        			ep.getLocalAddr(),
+			        			ep.getLocalPort(), 
+			        			ep.getRemoteAddr(), 
+			        			ep.getRemotePort());    				        
+					}
+					messageSent();
+					return;
+				}
+				finally
+				{
+					returnBuffer(buffer);
+				}
     		}
     	}
 
@@ -408,49 +390,40 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     	else
     		transport = SipConnectors.getOrdinal(response.getTopVia().getTransport());
     	
-    	if (transport == SipConnectors.LOCAL_ORDINAL)
+
+        Via via = response.getTopVia();
+        
+		if (request != null)
+			address = request.remoteAddress();
+		else
+			address = InetAddress.getByName(via.getHost());
+    	
+    	if (connector == null)
+    		connector = findConnector(transport, address);
+        
+        String srport = via.getRport();
+        if (srport != null) 
+        {
+            port = Integer.parseInt(srport);
+        } 
+        else 
+        {
+            port = via.getPort();
+            if (port == -1) 
+                port = SipConnectors.getDefaultPort(transport);
+        }
+        
+        Buffer buffer = getBuffer(_messageSize); 
+    	_sipGenerator.generate(buffer, response);
+    	try
     	{
-    		connector = _localConnector;
-    		((LocalConnector) connector).send(response);
-    		
-    		address = connector.getAddr();
-    		port = connector.getPort();
+    		connector.send(buffer, address, port);
     	}
-    	else 
+    	finally 
     	{
-	        Via via = response.getTopVia();
-	        
-    		if (request != null)
-    			address = request.remoteAddress();
-    		else
-    			address = InetAddress.getByName(via.getHost());
-	    	
-	    	if (connector == null)
-	    		connector = findConnector(transport, address);
-	        
-	        String srport = via.getRport();
-	        if (srport != null) 
-	        {
-	            port = Integer.parseInt(srport);
-	        } 
-	        else 
-	        {
-	            port = via.getPort();
-	            if (port == -1) 
-	                port = SipConnectors.getDefaultPort(transport);
-	        }
-	        
-	        Buffer buffer = getBuffer(_messageSize); 
-        	_sipGenerator.generate(buffer, response);
-        	try
-        	{
-        		connector.send(buffer, address, port);
-        	}
-        	finally 
-        	{
-        		returnBuffer(buffer);
-        	}
+    		returnBuffer(buffer);
     	}
+    	
     	
         if (_logger != null) 
         	_logger.messageSent(
@@ -587,9 +560,6 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         return  _statsStartedAt != -1;
     }
 
-    
-	
-    
 	public boolean preValidateMessage(SipMessage message)
 	{
 		boolean valid = true;

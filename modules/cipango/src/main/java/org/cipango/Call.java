@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.cipango.log.CallLogger;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.Session;
 import org.cipango.sip.ClientTransaction;
@@ -42,12 +43,19 @@ public class Call
 
 	private TimerQueue _timers = new TimerQueue();
 	
-	protected ReentrantLock _lock = new ReentrantLock();
+	private ReentrantLock _lock = new ReentrantLock();
 	private Server _server;
+	
+	private CallLogger _logger;
 	
 	public Call(String id)
 	{	
 		_callId = id;
+	}
+	
+	public void setLogger(CallLogger logger)
+	{
+		_logger = logger;
 	}
 	
 	public String getCallId()
@@ -65,17 +73,41 @@ public class Call
 		return _server;
 	}
 	
+	public void log(String message)
+	{
+		if (_logger != null) _logger.log(message, null, null);
+	}
+	
+	public void log(String message, Object arg0)
+	{
+		if (_logger != null) _logger.log(message, arg0, null);
+	}
+	
+	public void log(String message, Object arg0, Object arg1)
+	{
+		if (_logger != null) _logger.log(message, arg0, arg1);
+	}
+	
+	public boolean isLogEnabled()
+	{
+		return (_logger != null);
+	}
+	
 	// lock
 	
 	public Call lock() 
 	{
 		_lock.lock();
+		if (_logger != null)
+			_logger.log("{} locked({})", Thread.currentThread(), _lock.getHoldCount());
 		return this;
 	}
 	
 	public void unlock() 
 	{
 		_lock.unlock();
+		if (_logger != null)
+			_logger.log("{} unlocked({})", Thread.currentThread(), _lock.getHoldCount());
 	}
 	
 	public int getHoldCount()
@@ -94,6 +126,8 @@ public class Call
 	public synchronized void addServerTx(ServerTransaction tx)
 	{
 		_serverTxs = LazyList.add(_serverTxs, tx);
+		if (_logger != null)
+			_logger.log("added server transaction {}", tx, null);
 	}
 	
 	public synchronized void addClientTx(ClientTransaction tx)
@@ -126,6 +160,8 @@ public class Call
 	public synchronized void removeServerTx(ServerTransaction tx) 
 	{
 		_serverTxs = LazyList.remove(_serverTxs, tx);
+		if (_logger != null)
+			_logger.log("removed server transaction {}", tx, null);
 	}
 	
 	public synchronized void removeClientTx(ClientTransaction tx) 
@@ -180,15 +216,17 @@ public class Call
 	
 	public AppSession newSession()
     {
-        AppSession session = new AppSession(this);
+        AppSession session = new AppSession(this, _server.getIdManager().newAppSessionId());
         synchronized (this)
         {
         	_sessions = LazyList.add(_sessions, session);
         }
+        if (_logger != null)
+        	_logger.log("created new app session {}", session.getAid(), null);
         return session;
     }
 	
-	public synchronized AppSession getSession(String id)
+	private synchronized AppSession getAppSession(String id)
     {
 		for (int i = LazyList.size(_sessions); i-->0;)
 		{
@@ -206,13 +244,12 @@ public class Call
 	
 	public Session findSession(SipRequest request) 
 	{
-		String encodedId = request.getEncodedId();
-		String dialogId = request.getDialogId();
+		String encodedId = request.getAid();
 		
 		if (encodedId != null) 
 		{
-			AppSession session = getSession(encodedId);
-			return session == null ? null : session.getAppSession().getSession(dialogId);
+			AppSession session = getAppSession(encodedId);
+			return session == null ? null : session.getAppSession().getSession(request);
 		} 
 		else 
 		{
@@ -222,28 +259,26 @@ public class Call
 				for (int i = LazyList.size(_sessions); i--> 0;)
 				{
 					AppSession asession = (AppSession) LazyList.get(_sessions, i);
-					Session session = asession.getAppSession().getSession(dialogId);
+					Session session = asession.getAppSession().getSession(request);
 					if (session != null && !session.isProxy())
 						return session;
 					else 
 						proxy = session; 
 				}
 			}
-			return proxy; // useful when upstream element does not set aid
+			return proxy; // useful when upstream proxy does not set aid
 		}
 	}
 	
-	public Session findSession(SipResponse response) 
+	public Session findSession(SipResponse response) // TODO check
 	{
-		String dialogId = response.getDialogId(false);
-
 		Session proxy = null;
 		synchronized (this) 
 		{
 			for (int i = LazyList.size(_sessions); i--> 0;)
 			{
 				AppSession asession = (AppSession) LazyList.get(_sessions, i);
-				Session session = asession.getAppSession().getSession(dialogId);
+				Session session = asession.getAppSession().getSession(response);
 				if (session != null && !session.isProxy()) 
 				{
 					Log.debug("Found session: " + session);
@@ -266,6 +301,9 @@ public class Call
 		
     	TimerTask timer = new TimerTask(runnable, System.currentTimeMillis() + delay);
 		_timers.addTimer(timer);
+		
+		if (_logger != null)
+			_logger.log("scheduled {} in {} ms", runnable, delay);
     	return timer;
     }
 	
@@ -277,6 +315,9 @@ public class Call
 		{
 			timer.cancel();
 			_timers.remove(timer);
+			
+			if (_logger != null)
+				_logger.log("canceling timer {}", timer.getRunnable(), null);
 		}
 	}
 	
@@ -292,7 +333,8 @@ public class Call
 			{
 				try
 				{
-					//System.out.println("Running " + timer.getRunnable());
+					if (_logger != null)
+						_logger.log("running timer {}", timer.getRunnable(), null);
 					timer.getRunnable().run();
 				}
 				catch (Throwable t)

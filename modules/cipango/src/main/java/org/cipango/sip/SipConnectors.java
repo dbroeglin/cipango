@@ -22,13 +22,10 @@ public abstract class SipConnectors
 	public static final String UDP = "UDP";
 	public static final String TCP = "TCP";
 	public static final String TLS = "TLS";
-	public static final String LOCAL = "LOCAL";
 	
-	public static final int LOCAL_ORDINAL = 0;
 	public static final int UDP_ORDINAL = 1;
 	public static final int TCP_ORDINAL = 2;
 	public static final int TLS_ORDINAL = 3;
-	
 	
 	public static String getName(int ordinal) 
 	{
@@ -40,8 +37,6 @@ public abstract class SipConnectors
 			return TCP;
 		case TLS_ORDINAL:
 			return TLS;
-		case LOCAL_ORDINAL:
-			return LOCAL;
 		default:
 			return null;
 		}
@@ -69,8 +64,6 @@ public abstract class SipConnectors
 			return TcpConnector.RELIABLE;
 		case TLS_ORDINAL:
 			return true;
-		case LOCAL_ORDINAL:
-			return LocalConnector.RELIABLE;
 		default:
 			throw new IllegalArgumentException("Unknown connector: " + ordinal);
 		}
@@ -86,8 +79,6 @@ public abstract class SipConnectors
 			return TcpConnector.DEFAULT_PORT;
 		case TLS_ORDINAL:
 			return 5061;
-		case LOCAL_ORDINAL:
-			return -1;
 		default:
 			throw new IllegalArgumentException("Unknown connector: " + ordinal);
 		}

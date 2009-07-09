@@ -28,26 +28,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpSession;
 
-import javax.servlet.sip.ServletTimer;
-import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipApplicationSessionAttributeListener;
-import javax.servlet.sip.SipApplicationSessionBindingEvent;
-import javax.servlet.sip.SipApplicationSessionBindingListener;
-import javax.servlet.sip.SipApplicationSessionEvent;
-import javax.servlet.sip.SipApplicationSessionListener;
-import javax.servlet.sip.SipErrorEvent;
-import javax.servlet.sip.SipErrorListener;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipSessionEvent;
-import javax.servlet.sip.SipSessionListener;
-import javax.servlet.sip.TimerListener;
-import javax.servlet.sip.URI;
+import javax.servlet.sip.*;
 
 import org.cipango.Call;
 import org.cipango.NameAddr;
 import org.cipango.Server;
+import org.cipango.SipMessage;
 import org.cipango.Call.TimerTask;
 import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sipapp.SipAppContext;
@@ -63,13 +49,8 @@ public class AppSession implements AppSessionIf, Serializable
 	public static final String APP_ID = "org.cipango.aid";
 	public static final String APP_ID_PREFIX = ";" + APP_ID + "=";
 	
-	public static final int VALID = 0;
-	public static final int EXPIRED = 1;
-	public static final int INVALID = 2;
-	public static final int INVALIDATING = 3;
-	
-	private static String[] __states = {"valid", "expired", "invalid", "invalidating"};
-	
+	enum State { VALID, EXPIRED, INVALIDATING, INVALID }
+		
 	protected static Method __noAck;
     protected static Method __noPrack;
     protected static Method __appSessionCreated;
@@ -103,7 +84,7 @@ public class AppSession implements AppSessionIf, Serializable
         }
     }
     
-	private int _state = VALID;
+	private State _state = State.VALID;
     
     private transient SipAppContext _context;
     private String _contextName;
@@ -126,10 +107,10 @@ public class AppSession implements AppSessionIf, Serializable
     
     private boolean _invalidateWhenReady;
 	
-    public AppSession(Call call)
+    public AppSession(Call call, String id)
     {
         _call = call;
-        _appId = ID.newSessionID();
+        _appId = id;
     }
     
     /**
@@ -162,7 +143,7 @@ public class AppSession implements AppSessionIf, Serializable
 	 */
 	public int setExpires(int deltaMinutes) 
 	{
-		if (!(_state == VALID || _state == EXPIRED))
+		if (!(_state == State.VALID || _state == State.EXPIRED))
 			throw new IllegalStateException();
 		
 		if (_expiryTimer != null)
@@ -259,37 +240,41 @@ public class AppSession implements AppSessionIf, Serializable
 		}
 		finally
 		{
-			_state = INVALID;
+			_state = State.INVALID;
 		}
 	}
 	
 	protected void expired()
 	{
-		if (_state == VALID)
+		if (_state == State.VALID)
 		{
-			_state = EXPIRED;
+			_state = State.EXPIRED;
 			
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length > 0)
 				fireEvent(listeners, __appSessionExpired, new SipApplicationSessionEvent(this));
 					
-			if (_state == EXPIRED)
+			if (_state == State.EXPIRED)
 				invalidate();
 		}
 	}
 	
-	public synchronized Session getSession(String dialogId) 
+	public synchronized Session getSession(SipMessage message)
 	{
+		String ftag = message.from().getParameter("tag");
+		String ttag = message.to().getParameter("tag");
+		
 		for (int i = LazyList.size(_sessions); i-->0;)
 		{
 			Session session = (Session) LazyList.get(_sessions, i);
-			if (dialogId.equals(session.getUpstreamId()) || dialogId.equals(session.getDownstreamId())) // TODO mv2 session
+			if (ftag.equals(session.getRemoteTag()) && ttag.equals(session.getLocalTag()))
+				return session;
+			if (ttag.equals(session.getRemoteTag()) && ftag.equals(session.getRemoteTag()))
 				return session;
 		}
 		return null;
 	}
 	
-
 	@SuppressWarnings("unchecked")
 	public synchronized Iterator<?> getSessions() 
 	{
@@ -448,7 +433,7 @@ public class AppSession implements AppSessionIf, Serializable
 	
 	public boolean isValid()
 	{
-		return (!(_state == INVALID));
+		return (!(_state == State.INVALID));
 	}
 
 	public URL encodeURL(URL url)
@@ -549,7 +534,7 @@ public class AppSession implements AppSessionIf, Serializable
 	
 	protected void checkReadyToInvalidate()
 	{
-		if (_state != INVALID && _state != INVALIDATING  && getInvalidateWhenReady()
+		if (_state != State.INVALID && _state != State.INVALIDATING  && getInvalidateWhenReady()
 				&& LazyList.size(_sessions) == 0 && LazyList.size(_httpSessions) == 0
 				&& LazyList.size(_timers) == 0)
 		{
@@ -604,7 +589,7 @@ public class AppSession implements AppSessionIf, Serializable
 	
     public Session newSession()
     {
-        Session session = new Session(this);
+        Session session = new Session(this, _call.getServer().getIdManager().newSessionId());
         addSession(session);
         return session;
     }
@@ -613,20 +598,16 @@ public class AppSession implements AppSessionIf, Serializable
     {
     	if (session.appSession() != this)
     		throw new IllegalArgumentException("!same appsession");
-    	Session clone = null;
     	
-    	try
-    	{
-    		clone = session.clone();
-    	}
-    	catch (CloneNotSupportedException _) {}
+    	Session clone = session.clone();
+    	clone.setId(_call.getServer().getIdManager().newSessionId());
     	addSession(clone);
     	return clone;
     }
     
     public Session newUacSession(String callId, NameAddr from, NameAddr to)
     {
-        Session session = new Session(this, callId, from, to);
+        Session session = new Session(this, _call.getServer().getIdManager().newSessionId(), callId, from, to);
         addSession(session);
         return session;
     }

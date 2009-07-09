@@ -12,7 +12,6 @@
 // limitations under the License.
 // ========================================================================
 
-
 package org.cipango.sip;
 
 import java.io.IOException;

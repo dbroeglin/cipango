@@ -14,38 +14,15 @@
 
 package org.cipango.util;
 
-import java.net.InetAddress;
 import java.util.Random;
 
 import org.cipango.Via;
 
 public abstract class ID 
 {
-	private static long __id = 1;
     private static Random __random = new Random();
     
-    private static String __localhost;
-    
-    private static String CALL_ID_PREFIX = "[[eid:";
-
-    static 
-    {
-    	try 
-    	{
-    		__localhost = InetAddress.getLocalHost().getHostName();
-    	} 
-    	catch (Exception _) 
-    	{
-    		__localhost = "localhost";
-    	}
-    }
-    
     public static final int MAX_CSEQ = (1 << 16);
-    
-    public static long newMessageID() 
-    {
-    	return __id++;
-    }
     
     public static int newCSeq()
     {
@@ -70,11 +47,6 @@ public abstract class ID
     	return newID(4); // RFC 3261: at least 32 bits of randomness
     }
     
-    public static String newSessionID()
-    {
-    	return newID(4);
-    }
-    
     public static String newCNonce()
     {
     	return newID(4);
@@ -83,80 +55,5 @@ public abstract class ID
     public static String newBranch() 
     {
     	return Via.MAGIC_COOKIE + newID(6);
-    }
-    
-    public static String newCallID() 
-    {
-    	return newID(4) + '@' + __localhost;
-    }
-    
-    public static String newCallId(String callId)
-    {
-        StringBuffer sb = new StringBuffer(callId.length());
-        if (callId.startsWith(CALL_ID_PREFIX))
-        	callId = getCallId(callId);
-        sb.append(CALL_ID_PREFIX);
-        for (int i = 0; i < callId.length(); i++)
-        {
-            char c = callId.charAt(i);
-            if (c == '@')
-            {
-                sb.append('%');
-            }
-            else if (c == '%')
-            {
-                sb.append("%%");
-            }
-            else 
-            {
-                sb.append(c);
-            }
-        }
-        sb.append("]]").append(newID(4) + '@' + __localhost);
-        return sb.toString();
-    }
-    
-    public static String getCallId(String callId)
-    {
-        if (callId.charAt(0) == '[')
-        {
-        	int begin = 0;
-        	while (callId.startsWith(CALL_ID_PREFIX, begin))
-        	{
-        		begin += 6;
-        	}
-            if (begin != 0)
-            {
-                int end = callId.indexOf("]]", begin);
-                if (end != -1)
-                {
-                    String s = callId.substring(begin, end);
-                    StringBuffer sb = new StringBuffer(s.length());
-                    
-                    boolean percent = false;
-                    for (int i = 0; i < s.length(); i++)
-                    {
-                        char c = s.charAt(i);
-                        if (c == '%')
-                        {
-                            if (percent)
-                                sb.append(c);
-                            percent = !percent;
-                        }
-                        else 
-                        {
-                            if (percent)
-                            {
-                                sb.append('@');
-                                percent = false;
-                            }
-                            sb.append(c);
-                        }
-                    }
-                    return sb.toString();
-                }
-            }
-        }
-        return callId;
     }
 }

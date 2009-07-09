@@ -581,7 +581,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
         {
             if (response.getStatus() < 300 && (response.isInvite() || response.isSubscribe()))
             {
-                response.session().registerProxy(response);
+                //response.session().registerProxy(response);
             }
         }
         _tx.send(response);

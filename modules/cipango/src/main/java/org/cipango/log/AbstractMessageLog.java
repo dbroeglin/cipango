@@ -108,9 +108,9 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
         _buf.append(localPort);
         
         if (direction == IN)
-        	_buf.append(" > ");
-        else
         	_buf.append(" < ");
+        else
+        	_buf.append(" > ");
         
         _buf.append(remoteAddr);
         _buf.append(':');

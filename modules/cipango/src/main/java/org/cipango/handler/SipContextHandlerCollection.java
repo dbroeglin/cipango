@@ -17,9 +17,11 @@ package org.cipango.handler;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
@@ -31,6 +33,7 @@ import org.cipango.SipParams;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.URIFactory;
+import org.cipango.ar.RouterInfoUtil;
 import org.cipango.servlet.SipSessionHandler;
 import org.cipango.sip.TransactionManager;
 import org.cipango.sipapp.SipAppContext;
@@ -81,6 +84,12 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 	{
 		_handler.setServer(server);
 		super.setServer(server);
+	}
+	
+	@Override
+	public Server getServer()
+	{
+		return (Server) super.getServer();
 	}
 	
 	public SipAppContext[] getSipContexts()
@@ -135,30 +144,42 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 	        {
 				request.setInitial(true);
 				
+				SipApplicationRouterInfo routerInfo = null;
 				SipAppContext context = null;
-				SipApplicationRouterInfo routerInfo = request.popRouterInfo();
 				
-				if (routerInfo == null)
+				try
 				{
-					try
+					Address route = request.getTopRoute();
+					if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
+					{
+						SipURI uri = (SipURI) route.getURI();
+						if ("router-info".equals(uri.getUser()))
+						{
+							request.removeTopRoute();
+							routerInfo = RouterInfoUtil.decode(uri);
+						}
+					}
+					
+					if (routerInfo == null)
 					{
 						routerInfo = ((Server) getServer()).getApplicationRouter().getNextApplication(
 							request, null, SipApplicationRoutingDirective.NEW, null, null);
 					}
-					catch (Throwable t) 
-					{
-						if (!request.isAck())
-						{
-							SipResponse response = new SipResponse(
-									request,
-									SipServletResponse.SC_SERVER_INTERNAL_ERROR,
-									"Application router error: " + t.getMessage());
-							ExceptionUtil.fillStackTrace(response, t);
-							((Server) getServer()).getTransportManager().send(response, request);
-						}
-						return;
-					}
 				}
+				catch (Throwable t) 
+				{
+					if (!request.isAck())
+					{
+						SipResponse response = new SipResponse(
+								request,
+								SipServletResponse.SC_SERVER_INTERNAL_ERROR,
+								"Application router error: " + t.getMessage());
+						ExceptionUtil.fillStackTrace(response, t);
+						((Server) getServer()).getTransportManager().send(response, request);
+					}
+					return;
+				}
+				
 				
 				if (routerInfo != null)
 				{

@@ -129,51 +129,43 @@ public class ClientTransaction extends Transaction
 			getServer().getTransportManager().send(_request, _transport, _address, _port); // TODO EP
 		}
 		else 
-		{	
-			if (_request.peekRouterInfo() != null)
-			{
-				_transport = SipConnectors.LOCAL_ORDINAL;
-				_address = LocalConnector.__localAddress;
-				_port = -1;
-			}
-			else 
-			{
-				// TODO check Maxforwards
-				URI uri = null;
-				
-				Address route = _request.getTopRoute();
-				
-				if (route != null && !_request.isNextHopStrictRouting())
-					uri = route.getURI();
-				else
-					uri = _request.getRequestURI();
-				
-				if (!uri.isSipURI()) 
-					throw new IOException("Cannot route on URI: " + uri);
-				
-				SipURI target = (SipURI) uri;
-				
-				_address = InetAddress.getByName(target.getHost()); // TODO 3263
-				_transport = SipConnectors.getOrdinal(target.getTransportParam()); // TODO opt
-				
-				if (_transport == -1) 
-					_transport = SipConnectors.UDP_ORDINAL;
-				
-				_port = target.getPort();
-				if (_port == -1) 
-					_port = SipConnectors.getDefaultPort(_transport);
-			}
-
-			Via via = new Via(SipVersions.SIP_2_0, null, null);
-			via.setBranch(getBranch());
-			_request.pushVia(via);
+		{
+			// TODO check Maxforwards
+			URI uri = null;
 			
-			getServer().getTransportManager().send(
-					_request,
-					_transport,
-					_address,
-					_port);
+			Address route = _request.getTopRoute();
+			
+			if (route != null && !_request.isNextHopStrictRouting())
+				uri = route.getURI();
+			else
+				uri = _request.getRequestURI();
+			
+			if (!uri.isSipURI()) 
+				throw new IOException("Cannot route on URI: " + uri);
+			
+			SipURI target = (SipURI) uri;
+			
+			_address = InetAddress.getByName(target.getHost()); // TODO 3263
+			_transport = SipConnectors.getOrdinal(target.getTransportParam()); // TODO opt
+			
+			if (_transport == -1) 
+				_transport = SipConnectors.UDP_ORDINAL;
+			
+			_port = target.getPort();
+			if (_port == -1) 
+				_port = SipConnectors.getDefaultPort(_transport);
 		}
+
+		Via via = new Via(SipVersions.SIP_2_0, null, null);
+		via.setBranch(getBranch());
+		_request.pushVia(via);
+		
+		getServer().getTransportManager().send(
+				_request,
+				_transport,
+				_address,
+				_port);
+	
 	}
 	
 	public void start() throws IOException 

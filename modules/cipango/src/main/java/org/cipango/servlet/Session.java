@@ -43,6 +43,7 @@ import javax.servlet.sip.SipSessionBindingEvent;
 import javax.servlet.sip.SipSessionBindingListener;
 import javax.servlet.sip.SipSessionEvent;
 import javax.servlet.sip.SipSessionListener;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
 import javax.servlet.sip.URI;
@@ -78,25 +79,16 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 {	
 	private static final long serialVersionUID = 1L;
     
-	public static final int 
-		ROLE_UNDEFINED = 0,
-		ROLE_UAC = 1,
-		ROLE_UAS = 2,
-		ROLE_PROXY = 3;
-	
-	public static final String[] ROLES = {"Undefined","UAC","UAS","Proxy"};
+	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
     private long _created = System.currentTimeMillis();
     private long _accessed = _created;
-    private String _id = ID.newSessionID();
+    private String _id;
     
-    private int _role = ROLE_UNDEFINED;
+    private Role _role = Role.UNDEFINED;
     private State _state = State.INITIAL;
     
     private boolean _valid = true;
-    
-    private String _upstreamId;
-    private String _downstreamId;
 
     private NameAddr _localParty;
     private NameAddr _remoteParty;
@@ -130,16 +122,17 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     private URI _subscriberURI;
     private SipApplicationRoutingRegion _region;
     
-	public Session(AppSession appSession)
+	public Session(AppSession appSession, String id)
     {
         _appSession = appSession;
-        _invalidateWhenReady = appSession.getContext().getSpecVersion() != SipXmlConfiguration.VERSION_10;
+        _id = id;
+        _invalidateWhenReady = appSession.getContext().getSpecVersion() != SipXmlConfiguration.VERSION_10; // TODO
 	}
 
-	public Session(AppSession appSession, String callId, NameAddr local, NameAddr remote) 
+	public Session(AppSession appSession, String id, String callId, NameAddr local, NameAddr remote) 
     {
-		this(appSession);
-        _role = ROLE_UAC;
+		this(appSession, id);
+        _role = Role.UAC;
         
         _callId = callId;
         _localParty = local;
@@ -239,18 +232,22 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     {
 		return new ReadOnlyAddress(_remoteParty); 
 	}
-    
-    public void setLocalCSeq(long cseq)
-    {
-        _localCSeq = cseq;
-    }
-
+	
 	/**
 	 * @see SipSession#getLastAccessedTime()
 	 */
 	public long getLastAccessedTime() 
     {
 		return _accessed;
+	}
+
+	/**
+	 * @see SipSession#getState()
+	 */
+	public State getState() 
+    {
+		checkValid();
+		return _state;
 	}
 
 	/**
@@ -263,24 +260,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		_appSession.removeSession(this);
 	}
 	
-	public String getUpstreamId() 
-	{
-		return _upstreamId;
-	}
-	
-	public String getDownstreamId()
-	{
-		return _downstreamId;
-	}
-	
-	private void checkValid() 
-	{
-		if (!_valid) 
-			throw new IllegalStateException("Session has been invalidated");
-	}
-	
+
 	/**
-	 * SipSession#removeAttribute(java.lang.String)
+	 * @see SipSession#removeAttribute(java.lang.String)
 	 */
 	public void removeAttribute(String name) 
     {
@@ -305,7 +287,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		}
 	}
 	
-	
+	/**
+	 * @see SipSession#setAttribute(String, Object)
+	 */
 	public void setAttribute(String name, Object value) 
     {
 		checkValid();
@@ -339,6 +323,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		}
 	}
 
+	/**
+	 * @see SipSession#setHandler(String)
+	 */
 	public void setHandler(String name) throws ServletException 
     {
 		checkValid();
@@ -350,15 +337,119 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         setHandler(handler);
 	}
 	
+	/**
+	 * @see SipSession#getRegion()
+	 */
+	public SipApplicationRoutingRegion getRegion()
+	{
+		checkValid();
+		return _region; // TODO received only
+	}
+
+	/**
+	 * @see SipSession#getServletContext()
+	 */
+	public ServletContext getServletContext()
+	{
+		return _appSession.getContext().getServletContext();
+	}
+
+	/**
+	 * @see SipSession#getSubscriberURI()
+	 */
+	public URI getSubscriberURI()
+	{
+		checkValid();
+		return _subscriberURI; // TODO received only
+	}
+	
+	/**
+	 * @see SipSession#isValid()
+	 */
+	public boolean isValid()
+	{
+		return _valid;
+	}
+
+	/**
+	 * @see SipSession#setOutboundInterface(InetAddress)
+	 */
+	public void setOutboundInterface(InetAddress address)
+	{
+		checkValid();
+		if (address == null)
+			throw new NullPointerException("Null address");
+		// TODO 
+	}
+
+	/**
+	 * @see SipSession#setOutboundInterface(InetSocketAddress)
+	 */
+	public void setOutboundInterface(InetSocketAddress address)
+	{
+		checkValid();
+		if (address == null)
+			throw new NullPointerException("Null address");
+		// TODO
+	}
+	
+	/**
+	 * @see SipSession#isReadyToInvalidate()
+	 */
+	public boolean isReadyToInvalidate()
+	{
+		return isReadyToInvalidate(true);
+	}
+	
+	/**
+	 * @see SipSession#getInvalidateWhenReady()
+	 */
+	public boolean getInvalidateWhenReady()
+	{
+		checkValid();
+		return _invalidateWhenReady;
+	}
+
+	/**
+	 * @see SipSession#setInvalidateWhenReady(boolean)
+	 */
+	public void setInvalidateWhenReady(boolean invalidateWhenReady)
+	{
+		checkValid();
+		_invalidateWhenReady = invalidateWhenReady;
+	}
+	
+    // ======================= non-API methods ============================
+	
+	public Call getCall()
+    {
+        return _appSession.getCall();
+    }
+	
+	protected void setId(String id)
+	{
+		if (_id != null) throw new IllegalStateException("id != null");
+		_id = id;
+	}
+    
+    public void setLocalCSeq(long cseq)
+    {
+        _localCSeq = cseq;
+    }
+
+	private void checkValid() 
+	{
+		if (!_valid) 
+			throw new IllegalStateException("Session has been invalidated");
+	}
+	
 	private SipServletHolder findHandler(String name)
 	{
 		SipAppContext context = _appSession.getContext();
         SipServletHolder handler = context.getSipServletHandler().getHolder(name);
         return handler;
 	}
-    
-    // ----
-	
+   
 	protected void bindValue(String name, Object value)
 	{
 		if (value != null && value instanceof SipSessionBindingListener)
@@ -370,39 +461,27 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		if (value != null && value instanceof SipSessionBindingListener)
 			((SipSessionBindingListener) value).valueUnbound(new SipSessionBindingEvent(this, name));
 	}
-    
-    public Call getCall()
-    {
-        return _appSession.getCall();
-    }
 	
     public Address getContact()
     {
         Address addr = getServer().getTransportManager().getContact(SipConnectors.TCP_ORDINAL);
         //((SipURI) addr.getURI()).setParameter("transport", "tcp");
         return addr;
-        //return getServer().getTransportHandler().getContact(SipConnectors.TCP_ORDINAL); // TODO
     }
     
-	public int getRole() 
+	public Role getRole() 
     {
 		return _role;
 	}
 	
-	public State getState() 
-    {
-		checkValid();
-		return _state;
-	}
-	
 	public boolean isProxy() 
     {
-        return _role == ROLE_PROXY;
+        return _role == Role.PROXY;
     }
 	
 	public boolean isUA() 
     {
-        return _role == ROLE_UAC || _role == ROLE_UAS;
+        return _role == Role.UAC || _role == Role.UAS;
     }
 	
 	public ClientTransaction sendRequest(SipRequest request, ClientTransactionListener listener) 
@@ -425,14 +504,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		}
     }
 	
-    public void registerProxy(SipResponse response)
-    {
-        _upstreamId = response.getDialogId(true);
-        _downstreamId = response.getDialogId(false);
-    }
-    
-	public void sendResponse(SipResponse response, ServerTransaction tx, boolean reliable) 
-	throws IOException
+	public void sendResponse(SipResponse response, ServerTransaction tx, boolean reliable) throws IOException
     {
 		if (tx.getState() >= ServerTransaction.STATE_COMPLETED && !response.isSendOutsideTx()) 
             throw new IllegalStateException("Transaction terminated " + tx);
@@ -458,8 +530,8 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
                 }
             }
             
-            if (status > 100 && _role == ROLE_UNDEFINED) // TODO virtual branches
-                _role = ROLE_UAS;
+            if (status > 100 && _role == Role.UNDEFINED) // TODO virtual branches
+                setRole(Role.UAS);
             
             if (request.isInvite() || request.isSubscribe())
             {
@@ -486,7 +558,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
                         		_routeSet = new LinkedList();
                         	_routeSet.addLast(it.next().toString());
 						}
-                        _upstreamId = response.getDialogId(true);
+                        //_upstreamId = response.getDialogId(true);
                     } 
                 }
                 else if (_state == State.EARLY)
@@ -609,12 +681,19 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         _appSession.access(_accessed);
     }
 
-	public void setRole(int newRole) 
+	public void setRole(Role newRole) 
     {
-        if (_role != ROLE_UNDEFINED) 
+        if (_role != Role.UNDEFINED) 
             throw new IllegalStateException("Role is already defined " + this);
         
         _role = newRole;
+        
+        if (_role == Role.PROXY)
+        {
+        	NameAddr tmp = _localParty;
+        	_remoteParty = _localParty;
+        	_localParty = tmp;
+        }
     }
 	
 	public void setState(State newState) 
@@ -624,11 +703,14 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		_state = newState;
 	}
 	
-	// --
-	
 	public String getRemoteTag()
 	{
 		return _remoteParty.getParameter(SipParams.TAG);
+	}
+	
+	public String getLocalTag()
+	{
+		return _localParty.getParameter(SipParams.TAG);
 	}
 
 	public SipRequest createRequest(String method, long cseq) 
@@ -661,7 +743,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		
 		return request;
     }
-    
+	
 	public void handleRequest(SipRequest request) throws SipException
     { 
 		if (request.isInitial())
@@ -672,8 +754,26 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 			_callId = request.getCallId();
 		}
 		
-        //preprocessRoute(request);
+		// preprocess route
+
+		SipURI paramUri = null;
+		
+		Address route = request.getTopRoute();
+		if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
+		{
+			request.removeTopRoute();
+			paramUri = (SipURI) route.getURI();
+			request.setPoppedRoute(route);
+		}
+		else 
+		{
+			URI uri = request.getRequestURI();
+			if (uri.isSipURI())
+				paramUri = (SipURI) uri;
+		}
+		request.setParamUri(paramUri);
             
+	
 		if (request.isInitial()) 
         {
 			if (Log.isDebugEnabled())
@@ -813,7 +913,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 
 	public void handleResponse(SipResponse response) 
     {
-        response.setSession(this); // TODO
+        response.setSession(this); 
         access();
         
         int status = response.getStatus();
@@ -846,7 +946,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
                     if (tag == null); // TODO throw
                     
                     _remoteParty.setParameter(SipParams.TAG, tag);
-                    _downstreamId = response.getDialogId(false);
+                    //_downstreamId = response.getDialogId(false);
                     
                     ListIterator it = response.getFields().getValues(SipHeaders.RECORD_ROUTE_BUFFER);          
                     while (it.hasNext())
@@ -1004,7 +1104,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
 	public String toString() 
     {
-		return _id + "/" + ROLES[_role] + "/" + _state;
+		return _id + "/" + _role + "/" + _state;
 	}
     
 	public boolean equals(Object o)
@@ -1045,6 +1145,96 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		}
 
         return list;
+	}
+	
+
+	public void setSubscriberURI(URI uri)
+	{
+		_subscriberURI = uri;
+	}
+
+	public void setRegion(SipApplicationRoutingRegion region)
+	{
+		_region = region;
+	}
+	
+	public boolean isReadyToInvalidate(boolean checkLinkedSession)
+	{
+		checkValid();
+
+		Session linkedSession = getLinkedSession();
+		if ((_state == State.TERMINATED || _mayReadyToInvalidate) 
+				&& !getCall().hasRunningTransactions(this)
+				&& (!checkLinkedSession || linkedSession == null || linkedSession.isReadyToInvalidate(false)))
+			return true;
+		
+		return false;
+	}
+
+	public void checkReadyToInvalidate()
+	{
+		if (isValid() && _invalidateWhenReady && isReadyToInvalidate() && !_invokingServlet)
+		{
+			Session linkedSession = getLinkedSession();
+			
+			SipSessionListener[] listeners = appSession().getContext().getSipSessionListeners();
+			if (listeners.length > 0)
+				appSession().fireEvent(listeners, AppSession.__sessionReadyToInvalidate, new SipSessionEvent(this));
+			
+			if (_invalidateWhenReady && isValid())
+				invalidate();
+			
+			if (linkedSession != null)
+				linkedSession.checkReadyToInvalidate();
+		}
+	}
+	
+	public void setMayReadyToInvalidate(boolean ready)
+	{
+		_mayReadyToInvalidate = ready;
+	}
+	
+	public Session getLinkedSession()
+	{
+		if (_linkedSessionId == null)
+			return null;
+		return (Session) _appSession.getSipSession(_linkedSessionId);
+	}
+
+	public void setLinkedSession(SessionIf linkedSession)
+	{
+		_linkedSessionId = linkedSession == null ? null : linkedSession.getId();
+	}
+
+	public NameAddr localParty()
+	{
+		return _localParty;
+	}
+	
+	public NameAddr remoteParty()
+	{
+		return _remoteParty;
+	}
+	
+	public Session getSession()  
+	{
+		return this;
+	}
+	
+	@Override
+	public Session clone()
+	{
+		Session clone;
+		try
+		{
+			clone = (Session) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw new RuntimeException(e);
+		}
+		clone._localParty.removeParameter(SipParams.TAG);
+		return clone;
 	}
 	
 	class ClientInvite implements Serializable
@@ -1297,141 +1487,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         }
     }
 
-	public SipApplicationRoutingRegion getRegion()
-	{
-		checkValid();
-		return _region; // TODO received only
-	}
 
-	public ServletContext getServletContext()
-	{
-		return _appSession.getContext().getServletContext();
-	}
-
-	public URI getSubscriberURI()
-	{
-		checkValid();
-		return _subscriberURI; // TODO received only
-	}
 	
-	public void setSubscriberURI(URI uri)
-	{
-		_subscriberURI = uri;
-	}
-
-	public void setRegion(SipApplicationRoutingRegion region)
-	{
-		_region = region;
-	}
-	
-	public boolean isReadyToInvalidate()
-	{
-		return isReadyToInvalidate(true);
-	}
-	
-	public boolean isReadyToInvalidate(boolean checkLinkedSession)
-	{
-		checkValid();
-
-		Session linkedSession = getLinkedSession();
-		if ((_state == State.TERMINATED || _mayReadyToInvalidate) 
-				&& !getCall().hasRunningTransactions(this)
-				&& (!checkLinkedSession || linkedSession == null || linkedSession.isReadyToInvalidate(false)))
-			return true;
-		
-		return false;
-	}
-
-	public void checkReadyToInvalidate()
-	{
-		if (isValid() && _invalidateWhenReady && isReadyToInvalidate() && !_invokingServlet)
-		{
-			Session linkedSession = getLinkedSession();
-			
-			SipSessionListener[] listeners = appSession().getContext().getSipSessionListeners();
-			if (listeners.length > 0)
-				appSession().fireEvent(listeners, AppSession.__sessionReadyToInvalidate, new SipSessionEvent(this));
-			
-			if (_invalidateWhenReady && isValid())
-				invalidate();
-			
-			if (linkedSession != null)
-				linkedSession.checkReadyToInvalidate();
-		}
-	}
-	
-	public boolean getInvalidateWhenReady()
-	{
-		checkValid();
-		return _invalidateWhenReady;
-	}
-
-	public void setInvalidateWhenReady(boolean invalidateWhenReady)
-	{
-		checkValid();
-		_invalidateWhenReady = invalidateWhenReady;
-	}
-	
-	public void setMayReadyToInvalidate(boolean ready)
-	{
-		_mayReadyToInvalidate = ready;
-	}
-	
-	public boolean isValid()
-	{
-		return _valid;
-	}
-
-	public void setOutboundInterface(InetAddress address)
-	{
-		checkValid();
-		if (address == null)
-			throw new NullPointerException("Null address");
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void setOutboundInterface(InetSocketAddress address)
-	{
-		checkValid();
-		if (address == null)
-			throw new NullPointerException("Null address");
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public Session getLinkedSession()
-	{
-		if (_linkedSessionId == null)
-			return null;
-		return (Session) _appSession.getSipSession(_linkedSessionId);
-	}
-
-	public void setLinkedSession(SessionIf linkedSession)
-	{
-		_linkedSessionId = linkedSession == null ? null : linkedSession.getId();
-	}
-
-	public NameAddr localParty()
-	{
-		return _localParty;
-	}
-	
-	public NameAddr remoteParty()
-	{
-		return _remoteParty;
-	}
-	
-	public Session getSession()  
-	{
-		return this;
-	}
-	
-	public Session clone() throws CloneNotSupportedException
-	{
-		Session clone = (Session) super.clone();
-		clone._id = ID.newSessionID();
-		clone._localParty.removeParameter(SipParams.TAG);
-		return clone;
-	}
 }

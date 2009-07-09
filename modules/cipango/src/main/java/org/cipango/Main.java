@@ -14,12 +14,16 @@
 
 package org.cipango;
 
+import java.net.InetAddress;
+
 import org.cipango.deployer.SipAppDeployer;
 import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sip.SipConnector;
 import org.cipango.sip.TcpConnector;
 import org.cipango.sip.UdpConnector;
 import org.cipango.sipapp.SipAppContext;
+import org.mortbay.jetty.Connector;
+import org.mortbay.jetty.bio.SocketConnector;
 import org.mortbay.log.Log;
 
 public class Main 
@@ -36,6 +40,7 @@ public class Main
 		try
 		{
 			Server server = new Server();
+			
 			
 			/*
 			MBeanServer mbean = MBeanServerFactory.createMBeanServer();
@@ -68,9 +73,13 @@ public class Main
 	        
 	        udp.setHost(host); tcp.setHost(host);
 	        udp.setPort(port); tcp.setPort(port);
-	       
+	        
 	        server.getTransportManager().setConnectors(new SipConnector[] {udp, tcp});
 			
+	        Connector connector=new SocketConnector();
+	        connector.setPort(8080);
+	        server.setConnectors(new Connector[]{connector});
+	        
 	        if ("-sipapp".equals(args[1])) 
 	        {
 	        	SipAppContext sipapp = new SipAppContext(args[2], "/");

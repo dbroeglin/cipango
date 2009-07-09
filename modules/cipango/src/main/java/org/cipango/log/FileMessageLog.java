@@ -78,7 +78,8 @@ public class FileMessageLog extends AbstractMessageLog implements AccessLog
 		}
 	}
 	
-	public void doLog(SipMessage message, int direction, String transport, String localAddr, int localPort, String remoteAddr, int remotePort) throws IOException {
+	public void doLog(SipMessage message, int direction, String transport, String localAddr, int localPort, String remoteAddr, int remotePort) throws IOException 
+	{
         synchronized (_lock)
 		{
         	_out.write(generateInfoLine(direction, transport, localAddr, localPort, remoteAddr, remotePort, System.currentTimeMillis()).getBytes()); 

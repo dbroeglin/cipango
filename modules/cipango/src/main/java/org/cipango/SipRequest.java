@@ -157,9 +157,9 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
     	if (!isServer()) 
     		throw new IllegalStateException("Not a received request");
     	
-    	if (_session.getRole() == Session.ROLE_UNDEFINED) 
-    		_session.setRole(Session.ROLE_PROXY);
-    	else if (_session.getRole() != Session.ROLE_PROXY) 
+    	if (_session.getRole() == Session.Role.UNDEFINED) 
+    		_session.setRole(Session.Role.PROXY);
+    	else if (_session.getRole() != Session.Role.PROXY) 
     		throw new IllegalStateException(
     				"Session is " + 
     				_session.getRole());
@@ -526,10 +526,11 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
         return isRegister();
     }
 	 
-	public String getEncodedId() 
+	public String getAid() 
     {
 		SipURI target = getTargetURI();
-		if (target != null) {
+		if (target != null) 
+		{
 			String user = target.getUser();
 			if (user != null && user.startsWith("aid!")) 
 				return user.substring(4);
@@ -541,8 +542,9 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
     {
 		if (getPoppedRoute() == null)
 			return null;
-		URI route = getPoppedRoute().getURI(); // TODO
-        if (route != null && route.isSipURI() && ((SipURI)route).getLrParam()) 
+		
+		URI route = getPoppedRoute().getURI(); 
+        if (route != null && route.isSipURI() && ((SipURI) route).getLrParam()) 
             return (SipURI) route;
         else if (_requestUri.isSipURI()) 
             return (SipURI) _requestUri;
@@ -634,7 +636,7 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
     
     public Address getPoppedRoute()
     {
-        return _poppedRoute; // TODO
+        return _poppedRoute; 
     }
     
     public void setRequestURI(Buffer buffer)

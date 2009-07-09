@@ -20,11 +20,9 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
 import org.cipango.Call;
-import org.cipango.CallManager;
 import org.cipango.Server;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
-import org.cipango.util.ID;
 import org.mortbay.jetty.handler.HandlerWrapper;
 
 /**
@@ -32,18 +30,18 @@ import org.mortbay.jetty.handler.HandlerWrapper;
  */
 public class CallHandler extends HandlerWrapper implements SipHandler 
 {
-	private CallManager _callManager;
+	private Server _server;
 	
 	@Override
 	protected void doStart() throws Exception
 	{
 		super.doStart();
-		_callManager = ((Server) getServer()).getCallManager();
+		_server = ((Server) getServer());
 	}
 	
 	public void handle(SipServletMessage message) throws IOException, ServletException
 	{
-		String cid = ID.getCallId(message.getCallId());
+		String cid = _server.getIdManager().getCallId(message.getCallId());
 		
 		Call call = null;
 		
@@ -51,7 +49,7 @@ public class CallHandler extends HandlerWrapper implements SipHandler
 		{	
 			try
 			{			
-				call = _callManager.lock(cid);
+				call = _server.getCallManager().lock(cid);
 				if (call == null)
 					Thread.sleep(500); // TODO async retry 
 			}
@@ -68,7 +66,7 @@ public class CallHandler extends HandlerWrapper implements SipHandler
 		}
 		finally
 		{
-			_callManager.unlock(call);
+			_server.getCallManager().unlock(call);
 		}
 	}
 }

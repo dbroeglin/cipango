@@ -48,6 +48,7 @@ import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TimerListener;
 import javax.servlet.sip.TimerService;
 import javax.servlet.sip.URI;
+import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import org.cipango.Call;
 import org.cipango.CallManager;
@@ -674,7 +675,7 @@ public class SipAppContext extends WebAppContext
             
             SipRequest request = (SipRequest) session.createRequest(method);
             request.setInitial(true);
-            
+            request.setRoutingDirective(SipApplicationRoutingDirective.NEW, null);
            
             return request;
         }
@@ -731,6 +732,8 @@ public class SipAppContext extends WebAppContext
                 fields.setAddress(SipHeaders.CONTACT, (NameAddr) session.getContact());
             
             request.setInitial(true);
+            request.setRoutingDirective(SipApplicationRoutingDirective.CONTINUE, srcRequest);
+            
             return request;
         }
         

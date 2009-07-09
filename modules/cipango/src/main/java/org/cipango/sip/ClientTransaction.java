@@ -154,18 +154,18 @@ public class ClientTransaction extends Transaction
 			_port = target.getPort();
 			if (_port == -1) 
 				_port = SipConnectors.getDefaultPort(_transport);
-		}
-
-		Via via = new Via(SipVersions.SIP_2_0, null, null);
-		via.setBranch(getBranch());
-		_request.pushVia(via);
 		
-		getServer().getTransportManager().send(
-				_request,
-				_transport,
-				_address,
-				_port);
-	
+
+			Via via = new Via(SipVersions.SIP_2_0, null, null);
+			via.setBranch(getBranch());
+			_request.pushVia(via);
+			
+			getServer().getTransportManager().send(
+					_request,
+					_transport,
+					_address,
+					_port);
+		}
 	}
 	
 	public void start() throws IOException 

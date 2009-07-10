@@ -180,7 +180,6 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					return;
 				}
 				
-				
 				if (routerInfo != null)
 				{
 					/*

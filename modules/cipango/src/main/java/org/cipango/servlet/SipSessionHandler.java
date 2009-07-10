@@ -19,9 +19,13 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.sip.Address;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.URI;
 
+import org.cipango.Server;
 import org.cipango.SipException;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
@@ -42,6 +46,12 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 		throw new UnsupportedOperationException("sip-only handler");
 	}
 
+	@Override
+	public Server getServer()
+	{
+		return (Server) super.getServer();
+	}
+	
 	public void handle(SipServletMessage message) throws IOException,
 			ServletException 
 	{
@@ -50,6 +60,26 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 		if (baseMessage.isRequest())
 		{
 			SipRequest request = (SipRequest) message;
+			
+			// preprocess route
+
+			SipURI paramUri = null;
+			
+			Address route = request.getTopRoute();
+			if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
+			{
+				request.removeTopRoute();
+				paramUri = (SipURI) route.getURI();
+				request.setPoppedRoute(route);
+			}
+			else 
+			{
+				URI uri = request.getRequestURI();
+				if (uri.isSipURI())
+					paramUri = (SipURI) uri;
+			}
+			request.setParamUri(paramUri);
+			
 			Session session = null;
 			
 			if (request.isInitial())

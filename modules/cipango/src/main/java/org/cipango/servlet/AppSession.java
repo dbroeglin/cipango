@@ -647,7 +647,7 @@ public class AppSession implements AppSessionIf, Serializable
 		return _call;
 	}
 	
-	public String getAid()
+	public String getAppId()
 	{
 		return _appId;
 	}

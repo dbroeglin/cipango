@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.servlet.sip.Address;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.URI;
+
 import org.cipango.log.CallLogger;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.Session;
@@ -222,7 +226,7 @@ public class Call
         	_sessions = LazyList.add(_sessions, session);
         }
         if (_logger != null)
-        	_logger.log("created new app session {}", session.getAid(), null);
+        	_logger.log("created new app session {}", session.getAppId(), null);
         return session;
     }
 	
@@ -231,7 +235,7 @@ public class Call
 		for (int i = LazyList.size(_sessions); i-->0;)
 		{
 			AppSession session = (AppSession) LazyList.get(_sessions, i);
-			if (session.getAid().equals(id))
+			if (session.getAppId().equals(id))
 				return session;
 		}
 		return null;
@@ -244,11 +248,29 @@ public class Call
 	
 	public Session findSession(SipRequest request) 
 	{
-		String encodedId = request.getAid();
+		SipURI target = null;
 		
-		if (encodedId != null) 
+		if (request.getPoppedRoute() != null)
 		{
-			AppSession session = getAppSession(encodedId);
+			URI uri = request.getPoppedRoute().getURI();
+			if (uri.isSipURI() && ((SipURI) uri).getLrParam())
+				target = (SipURI) uri;
+			else if (request.getRequestURI().isSipURI())
+				target = (SipURI) request.getRequestURI();
+		}
+		
+		String appSessionId = null;
+		
+		if (target != null)
+		{
+			String user = target.getUser();
+			if (user != null && user.startsWith("aid!"))
+				appSessionId = user.substring(4);
+		}
+		
+		if (appSessionId != null)
+		{
+			AppSession session = getAppSession(appSessionId);
 			return session == null ? null : session.getAppSession().getSession(request);
 		} 
 		else 

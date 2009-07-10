@@ -525,37 +525,11 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
     {
         return isRegister();
     }
-	 
-	public String getAid() 
-    {
-		SipURI target = getTargetURI();
-		if (target != null) 
-		{
-			String user = target.getUser();
-			if (user != null && user.startsWith("aid!")) 
-				return user.substring(4);
-		}
-		return null;
-	}
-	
-	private SipURI getTargetURI() 
-    {
-		if (getPoppedRoute() == null)
-			return null;
-		
-		URI route = getPoppedRoute().getURI(); 
-        if (route != null && route.isSipURI() && ((SipURI) route).getLrParam()) 
-            return (SipURI) route;
-        else if (_requestUri.isSipURI()) 
-            return (SipURI) _requestUri;
-        return null;
-    }
 	
 	public Address getTopRoute() 
     {
 		return _fields.getAddress(SipHeaders.ROUTE_BUFFER);
 	}
-	
 	
 	public boolean isServer() 
     {

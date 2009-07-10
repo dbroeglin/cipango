@@ -435,7 +435,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 		if (applicationId)
 		{
 			AppSession appSession = _tx.getRequest().appSession();
-			rrUri.setUser("aid!" + appSession.getAid());
+			rrUri.setUser("aid!" + appSession.getAppId());
 		}
 
 		return rrUri;

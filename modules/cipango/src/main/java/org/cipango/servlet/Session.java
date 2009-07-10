@@ -752,27 +752,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 			_remoteParty = (NameAddr) request.from().clone();
 			
 			_callId = request.getCallId();
-		}
-		
-		// preprocess route
-
-		SipURI paramUri = null;
-		
-		Address route = request.getTopRoute();
-		if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
-		{
-			request.removeTopRoute();
-			paramUri = (SipURI) route.getURI();
-			request.setPoppedRoute(route);
-		}
-		else 
-		{
-			URI uri = request.getRequestURI();
-			if (uri.isSipURI())
-				paramUri = (SipURI) uri;
-		}
-		request.setParamUri(paramUri);
-            
+		}    
 	
 		if (request.isInitial()) 
         {

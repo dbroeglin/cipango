@@ -24,8 +24,8 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
 
 import org.cipango.kaleo.Constants;
+import org.cipango.kaleo.event.AbstractEventPackage;
 import org.cipango.kaleo.event.ContentHandler;
-import org.cipango.kaleo.event.EventPackage;
 import org.cipango.kaleo.event.Notifier;
 import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.ResourceListener;
@@ -37,16 +37,12 @@ import org.slf4j.LoggerFactory;
 /**
  * Presence Event Package
  */
-public class PresenceEventPackage implements EventPackage<Presentity>
+public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 {
 	public Logger _log = LoggerFactory.getLogger(PresenceEventPackage.class);
 	
 	public static final String NAME = "presence";
 	public static final String PIDF = "application/pidf+xml";
-
-	public int _minExpires = 60;
-	public int _maxExpires = 3600;
-	public int _defaultExpires = 3600;
 
 	private Map<String, Presentity> _presentities = new HashMap<String, Presentity>();
 	
@@ -59,21 +55,11 @@ public class PresenceEventPackage implements EventPackage<Presentity>
 		return NAME;
 	}
 
-	public int getMinExpires()
+	protected Presentity newResource(String uri)
 	{
-		return _minExpires;
+		return null;
 	}
-
-	public int getMaxExpires()
-	{
-		return _maxExpires;
-	}
-
-	public int getDefaultExpires()
-	{
-		return _defaultExpires;
-	}
-
+	
 	public List<String> getSupportedContentTypes()
 	{
 		return Collections.singletonList(PIDF);

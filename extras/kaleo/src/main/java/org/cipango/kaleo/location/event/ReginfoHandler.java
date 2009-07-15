@@ -12,27 +12,34 @@
 // limitations under the License.
 // ========================================================================
 
-/**
- * Generic event package. 
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3265.html">RFC 3265</a>
- * 
- */
-package org.cipango.kaleo.event;
+package org.cipango.kaleo.location.event;
 
-import java.util.List;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
-public interface EventPackage<T extends Resource>
+import org.apache.xmlbeans.XmlOptions;
+import org.cipango.kaleo.event.ContentHandler;
+
+public class ReginfoHandler implements ContentHandler<ReginfoDocument>
 {
-	String getName();
+	private XmlOptions _xmlOptions;
+	
+	public ReginfoHandler()
+	{		
+		_xmlOptions = new XmlOptions();
+		_xmlOptions.setUseDefaultNamespace();
+		_xmlOptions.setSavePrettyPrint(); 
+	}
+	
+	public byte[] getBytes(ReginfoDocument content) throws Exception
+	{
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		content.save(out, _xmlOptions);
+		return out.toByteArray();
+	}
 
-	int getMinExpires();
-	int getMaxExpires();
-	int getDefaultExpires();
-
-	List<String> getSupportedContentTypes();
-
-	T getResource(String uri);
-
-	ContentHandler<?> getContentHandler(String contentType);
+	public ReginfoDocument getContent(byte[] b) throws Exception 
+	{
+		return ReginfoDocument.Factory.parse(new ByteArrayInputStream(b));
+	}
 }

@@ -14,4 +14,8 @@
         <xb:package>org.cipango.kaleo.policy</xb:package>
     </xb:namespace>
 
+    <xb:namespace uri="urn:ietf:params:xml:ns:reginfo">
+        <xb:package>org.cipango.kaleo.location.event</xb:package>
+    </xb:namespace>
+
  </xb:config>

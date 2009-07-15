@@ -12,27 +12,41 @@
 // limitations under the License.
 // ========================================================================
 
-/**
- * Generic event package. 
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3265.html">RFC 3265</a>
- * 
- */
-package org.cipango.kaleo.event;
+package org.cipango.kaleo.location.event;
 
+import java.util.Collections;
 import java.util.List;
 
-public interface EventPackage<T extends Resource>
+import org.cipango.kaleo.event.AbstractEventPackage;
+import org.cipango.kaleo.event.ContentHandler;
+
+public class RegEventPackage extends AbstractEventPackage<RegResource>
 {
-	String getName();
+	public static final String NAME = "reg";
+	public static final String REGINFO = "application/reginfo+xml";
+	
+	private ReginfoHandler _handler = new ReginfoHandler();
+	
+	public ContentHandler<?> getContentHandler(String contentType) 
+	{
+		if (REGINFO.equals(contentType))
+			return _handler;
+		else
+			return null;
+	}
 
-	int getMinExpires();
-	int getMaxExpires();
-	int getDefaultExpires();
+	public String getName() 
+	{
+		return NAME;
+	}
+	
+	protected RegResource newResource(String uri)
+	{
+		return new RegResource(uri);
+	}
 
-	List<String> getSupportedContentTypes();
-
-	T getResource(String uri);
-
-	ContentHandler<?> getContentHandler(String contentType);
+	public List<String> getSupportedContentTypes() 
+	{
+		return Collections.singletonList(REGINFO);
+	}
 }

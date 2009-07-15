@@ -51,7 +51,7 @@ public class Presentity implements Resource
 	public void addState(State state, int expires)
 	{
 		if (_log.isDebugEnabled())
-			_log.debug("Added state {} to presentity {}", state, this);
+			_log.debug("added state {} to presentity {}", state, this);
 		
 		synchronized (_states)
 		{

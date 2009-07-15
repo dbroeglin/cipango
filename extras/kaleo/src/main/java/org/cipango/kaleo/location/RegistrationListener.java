@@ -12,27 +12,17 @@
 // limitations under the License.
 // ========================================================================
 
-/**
- * Generic event package. 
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3265.html">RFC 3265</a>
- * 
- */
-package org.cipango.kaleo.event;
+package org.cipango.kaleo.location;
 
-import java.util.List;
+import javax.servlet.sip.URI;
 
-public interface EventPackage<T extends Resource>
+public interface RegistrationListener
 {
-	String getName();
-
-	int getMinExpires();
-	int getMaxExpires();
-	int getDefaultExpires();
-
-	List<String> getSupportedContentTypes();
-
-	T getResource(String uri);
-
-	ContentHandler<?> getContentHandler(String contentType);
+	static enum Event
+	{
+		Registered, Created, Refreshed, Shortened, Expired, Deactivated, Probation, Unregistered, Rejected;
+	}
+	
+	void bindingChanged(String aor, URI contact, Event event);
 }
+

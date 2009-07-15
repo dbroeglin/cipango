@@ -12,27 +12,24 @@
 // limitations under the License.
 // ========================================================================
 
-/**
- * Generic event package. 
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3265.html">RFC 3265</a>
- * 
- */
 package org.cipango.kaleo.event;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface EventPackage<T extends Resource>
+public abstract class AbstractResource implements Resource
 {
-	String getName();
-
-	int getMinExpires();
-	int getMaxExpires();
-	int getDefaultExpires();
-
-	List<String> getSupportedContentTypes();
-
-	T getResource(String uri);
-
-	ContentHandler<?> getContentHandler(String contentType);
+	private String _uri;
+	
+	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
+	
+	public AbstractResource(String uri)
+	{
+		_uri = uri;
+	}
+	
+	public String getUri()
+	{
+		return _uri;
+	}
 }

@@ -1,3 +1,17 @@
+// ========================================================================
+// Copyright 2008-2009 NEXCOM Systems
+// ------------------------------------------------------------------------
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at 
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ========================================================================
+
 package org.cipango.kaleo.location;
 
 import javax.servlet.sip.URI;
@@ -7,18 +21,19 @@ public class Binding
 	private String _callId;
 	private int _cseq;
 	private URI _contact;
-	private int _expires;
-	private String _aor;
+	private long _expirationTime;
 	
-	public Binding(String aor, URI contact)
+	public Binding(URI contact, String callId, int cseq, long expirationTime)
 	{
-		_aor = aor;
-		_contact = contact;
+		update(contact, callId, cseq, expirationTime);
 	}
 	
-	public String getAOR()
+	public void update(URI contact, String callId, int cseq, long expirationTime)
 	{
-		return _aor;
+		_contact = contact;
+		_callId = callId;
+		_cseq = cseq;
+		_expirationTime = expirationTime;
 	}
 	
 	public URI getContact()
@@ -26,9 +41,9 @@ public class Binding
 		return _contact;
 	}
 	
-	public int getExpires()
+	public long getExpirationTime()
 	{
-		return _expires;
+		return _expirationTime;
 	}
 	
 	public String getCallId()
@@ -39,5 +54,10 @@ public class Binding
 	public int getCSeq()
 	{
 		return _cseq;
+	}
+	
+	public String toString()
+	{
+		return _contact.toString();
 	}
 }

@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.util.StringUtil;
+import org.mortbay.util.TypeUtil;
 
 public class SipParserTest extends TestCase
 {
@@ -88,6 +89,31 @@ public class SipParserTest extends TestCase
         assertEquals(3, _h);
 	}
 	
+	public void testopid()
+	{
+		int i = 20801;
+		byte[] b = new byte[16];
+		b[15] = (byte) (i & 0xff);
+		b[14] = (byte) (i >> 8 & 0xff);
+		b[13] = (byte) (i >> 16 & 0xff);
+		b[12] = (byte) (i >> 24 & 0xff);
+		System.out.println(TypeUtil.toHexString(b));
+		
+	}
+	
+	public void testHeaderCRLF() throws Exception
+	{
+		ByteArrayBuffer buffer = new ByteArrayBuffer(
+				("INVITE sip:foo.org SIP/2.0\015\012"
+					+ "Header1: \"value1\r\nvalue2\"\r\n\r\n").getBytes(StringUtil.__UTF8));	
+		SipParser parser = new SipParser(buffer, new Handler());
+		parser.parse();
+		
+		System.out.println(_val[0]);
+		System.out.println(_hdr[1]);
+		
+	}
+	
 	public void testCached() throws Exception 
 	{
 		ByteArrayBuffer buffer = new ByteArrayBuffer(_msg.getBytes(StringUtil.__UTF8));	
@@ -95,7 +121,7 @@ public class SipParserTest extends TestCase
 		parser.parse();
 	}
 	
-	
+	/*
 	public void testPerfFraming() throws Exception
 	{
 
@@ -128,7 +154,7 @@ public class SipParserTest extends TestCase
 		}
 		System.out.println("Parsing perfs: " + (nb / ((System.currentTimeMillis() - start) / 1000f)));
 	}
-	
+	*/
 	
     String _t0;
     String _t1;

@@ -22,7 +22,7 @@ import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.io.bio.StringEndPoint;
 
-public class TcpParserTest extends TestCase
+public class StreamParserTest extends TestCase
 {
 	int seq = -1;
 	

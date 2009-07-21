@@ -26,6 +26,7 @@ import javax.servlet.sip.SipSession;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
+import org.cipango.kaleo.event.Notifier;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
 import org.slf4j.Logger;
@@ -33,16 +34,16 @@ import org.slf4j.LoggerFactory;
 
 public class PresenceServlet extends SipServlet
 {
-	private static final long serialVersionUID = -183362525207809670L;
+	private static final long serialVersionUID = 1L;
 
 	private final Logger _log = LoggerFactory.getLogger(PresenceServlet.class);
 	
 	private PresenceEventPackage _presence;
-
+	private Notifier<Presentity> _notifier;
+	
 	public void init()
 	{
-		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());
-		
+		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());	
 	}
 
 	protected void doPublish(SipServletRequest publish) throws ServletException, IOException
@@ -64,22 +65,22 @@ public class PresenceServlet extends SipServlet
 		{
 			if(expires != 0)
 			{
-				if (expires < _presence.getMinExpires())
+				if (expires < _presence.getMinStateExpires())
 				{
 					SipServletResponse response = publish.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
-					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinExpires()));
+					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinStateExpires()));
 					response.send();
 					return;
 				}
-				else if (expires > _presence.getMaxExpires())
+				else if (expires > _presence.getMaxStateExpires())
 				{
-					expires = _presence.getMaxExpires();
+					expires = _presence.getMaxStateExpires();
 				}
 			}
 		}
 		else
 		{
-			expires = _presence.getDefaultExpires();
+			expires = _presence.getDefaultStateExpires();
 		}
 
 		String contentType = publish.getContentType();
@@ -118,77 +119,79 @@ public class PresenceServlet extends SipServlet
 			}
 			catch (Exception e)
 			{
-				log("RAW Exception => BAD REQUEST", e);
-				publish.createResponse(SipServletResponse.SC_BAD_REQUEST);
-				publish.send();
+				if (_log.isDebugEnabled())
+					_log.debug("invalid content {}", e);
+				
+				publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
 				return;
 			}
 		}
 		String etag = publish.getHeader(Constants.SIP_IF_MATCH);
+		
 		Presentity presentity = _presence.getResource(uri);
-
-		if (etag == null)
+		
+		try
 		{
-			// initial publication
-			if (content == null)
+			if (etag == null)
 			{
-				publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
-				return;
-			}
-			State state = new State(presentity, contentType, content);
-			presentity.addState(state, expires);
-			SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
-			response.setExpires(expires);
-			response.setHeader(Constants.SIP_ETAG, state.getETag());
-			response.send();
-		}
-		else
-		{
-			/*
-			 * 
-	3. The ESC examines the SIP-If-Match header field of the PUBLISH
-      request for the presence of a request precondition.
-
-			 *  If the request does not contain a SIP-If-Match header field,
-         the ESC MUST generate and store a locally unique entity-tag for
-         identifying the publication.  This entity-tag is associated
-         with the event-state carried in the body of the PUBLISH
-         request.
-
-			 *  Else, if the request has a SIP-If-Match header field, the ESC
-         checks whether the header field contains a single entity-tag.
-         If not, the request is invalid, and the ESC MUST return with a
-         400 (Invalid Request) response and skip the remaining steps.
-
-			 *  Else, the ESC extracts the entity-tag contained in the SIP-If-
-         Match header field and matches that entity-tag against all
-         locally stored entity-tags for this resource and event package.
-         If no match is found, the ESC MUST reject the publication with
-         a response of 412 (Conditional Request Failed), and skip the
-         remaining steps.
-			 */
-
-			State state = presentity.getState(etag);
-			if (state == null)
-			{
-				publish.createResponse(SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED).send();
-				return;
-			}
-			if (expires == 0)
-			{
-				presentity.removeState(etag);
+				if (content == null)
+				{
+					publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
+					return;
+				}
+				SoftState state = new SoftState(contentType, content);
+				presentity.addState(state, expires);
+				
+				if (_log.isDebugEnabled())
+					_log.debug("added state {} to presentity {}", state.getETag(), presentity);
+				
+				SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
+				response.setExpires(expires);
+				response.setHeader(Constants.SIP_ETAG, state.getETag());
+				response.send();
 			}
 			else
 			{
-				if (content != null)
-					presentity.modifyState(state, expires, contentType, content);
+				SoftState state = presentity.getState(etag);
+				if (state == null)
+				{
+					publish.createResponse(SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED).send();
+					return;
+				}
+				if (expires == 0)
+				{
+					if (_log.isDebugEnabled())
+						_log.debug("removed state {} from presentity {}", state.getETag(), presentity);
+					
+					presentity.removeState(etag);
+				}
 				else
-					presentity.refreshState(state, expires);
+				{
+					if (content != null)
+					{
+						presentity.modifyState(state, expires, contentType, content);
+						
+						if (_log.isDebugEnabled())
+							_log.debug("modified state {} (new etag {}) from presentity {}", 
+									new Object[] {etag, state.getETag(), presentity});
+					}
+					else
+					{
+						presentity.refreshState(state, expires);
+						if (_log.isDebugEnabled())
+							_log.debug("refreshed state {} (new etag {}) from presentity {}", 
+									new Object[] {etag, state.getETag(), presentity});
+					}
+				}
+				SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
+				response.setExpires(expires);
+				response.setHeader(Constants.SIP_ETAG, state.getETag());
+				response.send();
 			}
-			SipServletResponse response = publish.createResponse(SipServletResponse.SC_OK);
-			response.setExpires(expires);
-			response.setHeader(Constants.SIP_ETAG, state.getETag());
-			response.send();
+		}
+		finally
+		{
+			_presence.put(presentity);
 		}
 	}
 
@@ -216,106 +219,88 @@ public class PresenceServlet extends SipServlet
 					response.send();
 					return;
 				}
-			}
-			else if (expires > _presence.getMaxExpires())
-			{
-				expires = _presence.getMaxExpires();
+				else if (expires > _presence.getMaxExpires())
+				{
+					expires = _presence.getMaxExpires();
+				
+				}
 			}
 		}
 		else 
 		{
 			expires = _presence.getDefaultExpires();
 		}
-		SipSession session = subscribe.getSession();
-		Subscription subscription = (Subscription) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
-		
-		if (subscription == null)
-		{
-			String uri = URIUtil.toCanonical(subscribe.getRequestURI());
-			Presentity presentity = _presence.getResource(uri);
-			
-			subscription = new Subscription(presentity, session);
-			presentity.addSubscription(subscription, expires);
-			
-			session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, subscription);
-			
-			if (subscription.getState() == Subscription.State.ACTIVE)
-			{
-				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
-				response.setExpires(expires);
-				response.send();
-			}
-		}
-	}
-	
-	/*
-	protected void doSubscribe(SipServletRequest subscribe) throws IOException
-	{
 		
 		SipSession session = subscribe.getSession();
-		Subscription subscription = (Subscription)session.getAttribute(Constants.SUBSCRIPTION_ATT);
-
-		if (subscription == null) 
+		String uri = null;
+		
+		if (subscribe.isInitial())
 		{
-			//New subscription
-
-			String uri = URIUtil.toCanonical(subscribe.getRequestURI());
-			Presentity presentity = _presence.getResource(uri);
-
-			subscription = new Subscription(presentity, session);
-
-			presentity.addSubscription(subscription, expires);
-			//TODO Authorization
-			if (subscription.getState().equals(Subscription.State.ACTIVE)) 
-			{
-				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
-				response.setExpires(expires);
-				response.send();
-			} 
-			//			else if (subscription.getState().getValue() == Subscription.State.PENDING) 
-			//			{
-			////				subscribe.createResponse(SipServletResponse.SC_ACCEPTED).send();
-			//				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_ACCEPTED);
-			//				response.setExpires(expires);
-			//				response.send();
-			//			}
-			session.setAttribute(Constants.SUBSCRIPTION_ATT, subscription);
-			presentity.startSubscription(subscription.getId());
+			uri = URIUtil.toCanonical(subscribe.getRequestURI());
 		}
 		else
-		{ 
-			Presentity presentity = (Presentity) subscription.getResource();
-
-			if(!presentity.isSubscribed(subscription.getId()))
+		{
+			uri = (String) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
+			if (uri == null)
 			{
-				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
-				response.setExpires(expires);
-				response.send();
+				subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
 				return;
 			}
-
-			if(expires == 0)
+		}
+		
+		Presentity presentity = _presence.getResource(uri);
+		Subscription subscription = null;
+		
+		if (expires == 0)
+		{
+			subscription = presentity.removeSubscription(session.getId());
+			
+			if (subscription == null)
 			{
-				presentity.removeSubscription(subscription.getId(), null);
+				subscription = new Subscription(presentity, session, -1);
+				subscription.setState(Subscription.State.TERMINATED);
 			}
 			else
 			{
-				presentity.refreshSubscription(subscription.getId(), expires);
-			}
-
-			if (subscription.getState().equals(Subscription.State.ACTIVE)) 
-			{
-				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_OK);
-				response.setExpires(expires);
-				response.send();
-			} 
-			//			else if (subscription.getState().getValue() == Subscription.State.PENDING) 
-			//			{
-			//				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_ACCEPTED);
-			//				response.setExpires(expires);
-			//				response.send();
-			//				return;
-			//			}
+				if (_log.isDebugEnabled())
+					_log.debug("removed presence subscription {} to presentity {}", 
+						subscription.getSession().getId(), presentity.getUri());
+			}			
 		}
-*/
+		else
+		{
+			long now = System.currentTimeMillis();
+			
+			subscription = presentity.getSubscription(session.getId());
+	
+			if (subscription == null)
+			{
+				subscription = new Subscription(presentity, session, now + expires*1000);
+				presentity.addSubscription(subscription);
+				
+				session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
+				
+				if (_log.isDebugEnabled())
+					_log.debug("added presence subscription {} to presentity {}", 
+							subscription.getSession().getId(), presentity.getUri());
+			}
+			else 
+			{
+				subscription.setExpirationTime(now + expires * 1000);
+				
+				if (_log.isDebugEnabled())
+					_log.debug("refreshed presence subscription {} to presentity {}",
+							subscription.getSession().getId(), presentity.getUri());
+			}
+		}
+		
+		int code = (subscription.getState() != Subscription.State.PENDING) ? 
+				SipServletResponse.SC_OK : SipServletResponse.SC_ACCEPTED;
+		
+		SipServletResponse response = subscribe.createResponse(code);
+		response.setExpires(expires);
+		response.send();
+			
+		_presence.notify(subscription);
+	}
 }

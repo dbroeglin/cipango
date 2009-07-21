@@ -24,6 +24,12 @@
 		<servlet-class>org.cipango.kaleo.location.RegistrarServlet</servlet-class>
 		<load-on-startup/>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>proxy</servlet-name>
+		<servlet-class>org.cipango.kaleo.location.ProxyServlet</servlet-class>
+		<load-on-startup/>
+	</servlet>
 
 	<session-config>
 		<session-timeout>30</session-timeout>

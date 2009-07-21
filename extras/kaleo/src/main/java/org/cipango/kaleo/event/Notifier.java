@@ -23,8 +23,9 @@ import org.cipango.kaleo.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Notifier<T extends Resource> implements Runnable
+public class Notifier<T extends Resource> //implements Runnable
 {
+	/*
 	private final Logger _log = LoggerFactory.getLogger(Notifier.class);
 	
 	private EventPackage<T> _eventPackage;
@@ -111,7 +112,7 @@ public class Notifier<T extends Resource> implements Runnable
 		
 		public SipSession getSession() { return _session; }
 		public Resource.Content getContent() { return _content; }
-	}
+	}*/
 }
 
 /*

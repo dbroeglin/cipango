@@ -17,11 +17,13 @@ package org.cipango.kaleo.event;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class AbstractEventPackage<T extends Resource> implements EventPackage<T> 
+import org.mortbay.component.AbstractLifeCycle;
+
+public abstract class AbstractEventPackage<T extends Resource> extends AbstractLifeCycle implements EventPackage<T> 
 {
-	public int _minExpires = 60;
-	public int _maxExpires = 3600;
-	public int _defaultExpires = 3600;
+	public int _minExpires = 10; //60;
+	public int _maxExpires = 30; //3600;
+	public int _defaultExpires = 10; //3600;
 	
 	private Map<String, T> _resources = new HashMap<String, T>();
 	

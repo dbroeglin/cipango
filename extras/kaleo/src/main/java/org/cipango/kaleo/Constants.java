@@ -32,7 +32,7 @@ public abstract class Constants
 	public static final String UNSUPPORTED 			= "Unsupported";
 	public static final String WWW_AUTHENTICATE 	= "WWW-Authenticate";
 	public static final String ID_PARAM 			= "id";
-	public static final String SUBSCRIPTION_ATTRIBUTE = "Subscription";
+	public static final String SUBSCRIPTION_ATTRIBUTE = "Subscription-Resource";
 	
 	public static final String SUBSCRIPTION_STATE	= "Subscription-State";
 	

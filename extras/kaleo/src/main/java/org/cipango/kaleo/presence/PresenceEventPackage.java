@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
@@ -29,8 +31,10 @@ import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.Notifier;
 import org.cipango.kaleo.event.Resource;
 import org.cipango.kaleo.event.ResourceListener;
+import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
+import org.cipango.util.PriorityQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,17 +48,49 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	public static final String NAME = "presence";
 	public static final String PIDF = "application/pidf+xml";
 
-	private Map<String, Presentity> _presentities = new HashMap<String, Presentity>();
+	private Map<String, PresentityHolder> _presentities = new HashMap<String, PresentityHolder>();
 	
 	private PidfHandler _pidfHandler = new PidfHandler();
 	private ResourceListener _presenceListener = new PresentityListener();
 	private Notifier<Presentity> _notifier;
+	
+	public int _minStateExpires = 60;
+	public int _maxStateExpires = 3600;
+	public int _defaultStateExpires = 3600;
+	
+	private Thread _scheduler;
+	private PriorityQueue _queue;
+	
+	public PresenceEventPackage()
+	{
+	}
+	
+	@Override
+	protected void doStart() throws Exception
+	{
+		new Thread(new Scheduler()).start();
+	}
 	
 	public String getName()
 	{
 		return NAME;
 	}
 
+	public int getMinStateExpires()
+	{
+		return _minStateExpires;
+	}
+	
+	public int getMaxStateExpires()
+	{
+		return _maxStateExpires;
+	}
+	
+	public int getDefaultStateExpires()
+	{
+		return _defaultStateExpires;
+	}
+	
 	protected Presentity newResource(String uri)
 	{
 		return null;
@@ -69,17 +105,35 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	{
 		synchronized (_presentities)
 		{
-			Presentity presentity = _presentities.get(uri);
-			if (presentity == null)
+			PresentityHolder holder = _presentities.get(uri);
+			if (holder == null)
 			{
-				presentity = new Presentity(uri, this);
+				Presentity presentity = new Presentity(uri);
 				presentity.addListener(_presenceListener);
-				_presentities.put(uri, presentity);
+				holder = new PresentityHolder(presentity);
+				
+				_presentities.put(uri, holder);
 			}
-			return presentity;
+			return holder.lock();
 		}
 	}
 
+	public void put(Presentity presentity)
+	{
+		PresentityHolder holder = null;
+		synchronized(_presentities)
+		{
+			holder = _presentities.get(presentity.getUri());
+		}
+		if (holder != null)
+			put(holder);
+	}
+	
+	protected void put(PresentityHolder holder)
+	{
+		holder.unlock();
+	}
+	
 	public Iterator<String> getResourceUris()
 	{
 		synchronized (_presentities)
@@ -106,12 +160,17 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 			{
 				SipServletRequest notify = session.createRequest(Constants.NOTIFY);
 				notify.addHeader(Constants.EVENT, getName());
-				notify.addHeader(Constants.SUBSCRIPTION_STATE, subscription.getState().getName());
-				Resource.Content content = subscription.getResource().getContent();
-								
-				ContentHandler handler = getContentHandler(content.getType());
-				byte[] b = handler.getBytes(content.getValue());
-				notify.setContent(b, content.getType());
+				
+				String s = subscription.getState().getName();
+				if (subscription.getState() == Subscription.State.ACTIVE)
+					s = s + ";expires=" + ((subscription.getExpirationTime()-System.currentTimeMillis()) / 1000);
+				notify.addHeader(Constants.SUBSCRIPTION_STATE, s);
+				
+				State state = subscription.getResource().getState();				
+				ContentHandler handler = getContentHandler(state.getContentType());
+				byte[] b = handler.getBytes(state.getContent());
+				
+				notify.setContent(b, state.getContentType());
 				notify.send();
 			}
 		}
@@ -146,6 +205,64 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 			if (_log.isDebugEnabled())
 				_log.debug("Subscription {} started", subscription);
 			PresenceEventPackage.this.notify(subscription);
+		}
+	}
+	
+	class PresentityHolder 
+	{
+		private Presentity _presentity;
+		private Lock _lock = new ReentrantLock();
+		
+		public PresentityHolder(Presentity presentity)
+		{
+			_presentity = presentity;
+		}
+		
+		public Presentity lock()
+		{
+			_lock.lock();
+			return _presentity;
+		}
+		
+		public void unlock()
+		{
+			_lock.unlock();
+		}
+	}
+	
+	class Scheduler extends Thread
+	{
+		public void run()
+		{
+			_scheduler = Thread.currentThread();
+			_scheduler.setName("presence-scheduler");
+			
+			try
+			{
+				do
+				{
+					try
+					{
+						PresentityHolder holder = null;
+						synchronized (_queue)
+						{
+							_queue.wait();
+						}
+					}
+					catch (InterruptedException e) { continue; }
+    				catch (Throwable t) { _log.warn("Exception in scheduler", t); }
+				}
+				while (isStarted());
+			}
+			finally
+			{
+				_scheduler = null;
+				String exit = "Call scheduler exited";
+    			if (isStarted())
+    				_log.warn(exit);
+    			else
+    				_log.debug(exit);
+			}
 		}
 	}
 }

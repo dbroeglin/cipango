@@ -12,38 +12,52 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.kaleo.event;
+package org.cipango.kaleo.presence;
 
 import java.util.Random;
+import org.cipango.kaleo.event.State;
 
-/**
- * State information for a resource.
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3903.html">RFC 3903</a>
- */
-public class State
+public class SoftState extends State
 {
-	private String _contentType;
-	private Object _content;
+	private static Random __random = new Random();
 	
-	public State(String contentType, Object content)
+	public static synchronized String newETag()
 	{
-		setContent(contentType, content);
+		return Integer.toString(Math.abs(__random.nextInt()), Character.MAX_RADIX);
+	}
+	
+	private String _etag;
+	
+	public SoftState(String contentType, Object content)
+	{
+		super(contentType, content);
 	}
 	
 	public void setContent(String contentType, Object content)
 	{
-		_contentType = contentType;
-		_content = content;
+		super.setContent(contentType, content);
+		updateETag();
 	}
 	
-	public Object getContent()
+	public void updateETag()
 	{
-		return _content;
+		_etag = newETag();
 	}
 	
-	public String getContentType()
+	public String getETag()
 	{
-		return _contentType;
+		return _etag;
+	}
+	
+	public boolean equals(Object o)
+	{
+		if (!(o instanceof SoftState)) return false;
+		
+		return ((SoftState) o).getETag().equals(_etag);
+	}
+	
+	public String toString()
+	{
+		return  _etag + "= " + getContent();
 	}
 }

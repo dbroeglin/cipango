@@ -25,41 +25,13 @@ public interface Resource
 {
 	String getUri();
 
-	State getState(String etag);
-	Content getContent();
+	State getState();
 	
-	void addState(State state, int expires);
-	void removeState(String etag);	
-	void modifyState(State state, int expires, String contentType, Object content);
-	void refreshState(State state, int expires);
-	
-	void addSubscription(Subscription subscription, int expires);
-	void removeSubscription(String id, Subscription.Reason reason);
-	void refreshSubscription(String id, int expires);
+	void addSubscription(Subscription subscription);
+	Subscription getSubscription(String id);
+	Subscription removeSubscription(String id);
 	List<Subscription> getSubscriptions();
 	
 	void addListener(ResourceListener listener);
 	List<ResourceListener> getListeners();
-
-	class Content 
-	{
-		private Object _value;
-		private String _type;
-
-		public Content(Object value, String type)
-		{
-			_value = value;
-			_type = type;
-		}
-
-		public Object getValue() 
-		{
-			return _value;
-		}
-
-		public String getType() 
-		{
-			return _type;
-		}
-	}
 }

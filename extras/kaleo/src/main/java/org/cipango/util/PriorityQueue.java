@@ -198,10 +198,11 @@ public class PriorityQueue
 		{
 			return _position; 
 		}
-		
+		/*
 		public String toString()
 		{
 			return Long.toString(_value);
 		}
+		*/
 	}
 }

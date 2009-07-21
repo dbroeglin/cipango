@@ -40,13 +40,26 @@ public class Subscription
 	}
 	
 	private Resource _resource;
+	
 	private SipSession _session;
 	private State _state = State.ACTIVE;
+	private long _expirationTime;
 	
-	public Subscription(Resource resource, SipSession session) 
+	public Subscription(Resource resource, SipSession session, long expirationTime) 
 	{
 		_resource = resource;
 		_session = session;
+		_expirationTime = expirationTime;
+	}
+	
+	public void setExpirationTime(long expirationTime)
+	{
+		_expirationTime = expirationTime;
+	}
+	
+	public long getExpirationTime()
+	{
+		return _expirationTime;
 	}
 	
 	public String getId()
@@ -72,14 +85,6 @@ public class Subscription
 	public void setState(State state) 
 	{
 		_state = state;
-	}
-	
-	public void start()
-	{
-		for (ResourceListener listener : _resource.getListeners())
-		{
-			listener.subscriptionStarted(this);
-		}
 	}
 	
 	public String toString()

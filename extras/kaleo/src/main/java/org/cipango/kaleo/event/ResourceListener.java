@@ -20,6 +20,4 @@ package org.cipango.kaleo.event;
 public interface ResourceListener
 {
 	void stateChanged(Resource resource);
-	void subscriptionAdded(Subscription subscription);
-	void subscriptionStarted(Subscription subscription);
 }

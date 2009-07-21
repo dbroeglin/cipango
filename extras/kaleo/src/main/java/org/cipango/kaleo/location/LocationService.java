@@ -67,25 +67,35 @@ public class LocationService extends AbstractLifeCycle
 	
 	public void put(Registration registration)
 	{
-		long time = registration.getNextExpirationTime();
-		
 		RegistrationHolder holder = null;
+		
 		synchronized (_registrations)
 		{
 			holder = _registrations.get(registration.getAor());
 		}
+		if (holder != null)
+			put(holder);
+	}
+	
+	protected void put(RegistrationHolder holder)
+	{
+		Registration registration = holder._registration;
 		
-		if (time > 0)
+		long time = registration.getNextExpirationTime();
+	
+		synchronized (_queue)
 		{
-		
-			if (time < System.currentTimeMillis())
-    			time = System.currentTimeMillis() + 100;
-			
-			synchronized (_queue)
-    		{
-    			_queue.offer(holder, time);
-    			_queue.notifyAll();
-    		}
+			if (time > 0)
+			{
+				if (time < System.currentTimeMillis())
+	    			time = System.currentTimeMillis() + 100;
+				_queue.offer(holder, time);
+			}
+			else
+			{
+				_queue.remove(holder);
+			}
+			_queue.notifyAll();
 		}
 		
 		if (registration.isEmpty())
@@ -136,12 +146,15 @@ public class LocationService extends AbstractLifeCycle
 		{
 			_lock.lock();
 			if (_log.isDebugEnabled())
-				_log.debug("locked aor {}", _registration.getAor());
+				_log.debug("{} locked aor {}", this, _registration.getAor());
 			return _registration;
 		}
 		
 		public void unlock()
 		{
+			if (_log.isDebugEnabled())
+				_log.debug("{} unlocking aor {}", this, _registration.getAor());
+			
 			_lock.unlock();
 			if (_log.isDebugEnabled())
 				_log.debug("unlocked aor {}", _registration.getAor());
@@ -166,7 +179,7 @@ public class LocationService extends AbstractLifeCycle
 			}
 			finally
 			{
-				put(_registration);
+				put(this);
 			}
 		}
 	}
@@ -200,7 +213,7 @@ public class LocationService extends AbstractLifeCycle
     						holder.run();
     				}
     				catch (InterruptedException e) { continue; }
-    				catch (Throwable t) { _log.warn("Exception in scheduler {}", t); }
+    				catch (Throwable t) { _log.warn("Exception in scheduler", t); }
     			}
     			while (isStarted());
     		}

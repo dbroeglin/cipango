@@ -46,7 +46,7 @@ public class RegResource extends AbstractResource
 		
 	}
 
-	public Content getContent() 
+	public State getState() 
 	{
 		// TODO Auto-generated method stub
 		return null;

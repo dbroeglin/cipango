@@ -15,44 +15,27 @@
 package org.cipango.kaleo.presence;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.cipango.kaleo.event.Resource;
-import org.cipango.kaleo.event.ResourceListener;
+import org.cipango.kaleo.event.AbstractResource;
 import org.cipango.kaleo.event.State;
-import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.Presence;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class Presentity implements Resource
-{
-	public final Logger _log = LoggerFactory.getLogger(Presentity.class);
+public class Presentity extends AbstractResource
+{	
+	private List<SoftState> _states = new ArrayList<SoftState>();
 	
-	private String _uri; 
+	//private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
+	//private List<ResourceListener> _listeners = new ArrayList<ResourceListener>();
 	
-	private List<State> _states = new ArrayList<State>();
-	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
-	private List<ResourceListener> _listeners = new ArrayList<ResourceListener>();
-	
-	public Presentity(String uri, PresenceEventPackage presenceEventPackage)
+	public Presentity(String uri)
 	{
-		_uri = uri;
-	}
-	
-	public String getUri()
-	{
-		return _uri;
+		super(uri);
 	}
 
-	public void addState(State state, int expires)
+	public void addState(SoftState state, int expires)
 	{
-		if (_log.isDebugEnabled())
-			_log.debug("added state {} to presentity {}", state, this);
-		
 		synchronized (_states)
 		{
 			_states.add(state);
@@ -60,11 +43,11 @@ public class Presentity implements Resource
 		fireStateChanged();
 	}
 	
-	public State getState(String etag)
+	public SoftState getState(String etag)
 	{
 		synchronized(_states)
 		{
-			for (State state : _states)
+			for (SoftState state : _states)
 			{
 				if (state.getETag().equals(etag))
 					return state;
@@ -79,7 +62,7 @@ public class Presentity implements Resource
 		{
 			for (int i = 0; i < _states.size(); i++)
 			{
-				State state = _states.get(i);
+				SoftState state = _states.get(i);
 				if (state.getETag().equals(etag))
 					_states.remove(i);
 			}
@@ -93,98 +76,49 @@ public class Presentity implements Resource
 		fireStateChanged();
 	}
 	
-	public void refreshState(State state, int expires)
+	public void refreshState(SoftState state, int expires)
 	{
 		state.updateETag();
 	}
-	
-	protected void fireStateChanged()
-	{
-		for (ResourceListener listener : _listeners)
-		{
-			listener.stateChanged(this);
-		}
-	}
 
-	protected Content getNeutralContent() 
+	protected State getNeutralState() 
 	{
 		PresenceDocument document = PresenceDocument.Factory.newInstance();
 		Presence presence = document.addNewPresence();
-		presence.setEntity(_uri);
+		presence.setEntity(getUri());
 		//document.getPresence().addNewTuple().addNewStatus().setBasic(Basic.CLOSED);
-		return new Content(document, PresenceEventPackage.PIDF);
+		return new State(PresenceEventPackage.PIDF, document);
 	}
 	
-	protected Content getCurrentContent()
+	protected State getCurrentState()
 	{
 		synchronized (_states)
 		{
 			if (_states.size() == 0)
 				return null;
-			State state = _states.get(0);
-			return new Content(state.getContent(), PresenceEventPackage.PIDF);
+			return _states.get(0);
 		}
 	}
 	
-	public Content getContent()
+	public State getState()
 	{
 		if(_states.isEmpty())
-			return getNeutralContent();
+			return getNeutralState();
 		else
-			return getCurrentContent();
+			return getCurrentState();
 	}
 
 	@Override
 	public String toString()
 	{
-		return _uri;
+		return getUri();
 	}
 	
-	public void addListener(ResourceListener listener)
-	{
-		synchronized (_listeners)
-		{
-			_listeners.add(listener);
-		}
-	}
 	
-	public List<ResourceListener> getListeners()
-	{
-		synchronized (_listeners)
-		{
-			return new ArrayList<ResourceListener>(_listeners);
-		}
-	}
 
-	public void addSubscription(Subscription subscription, int expires) 
-	{
-		synchronized (_subscriptions)
-		{
-			_subscriptions.put(subscription.getId(), subscription);
-		}	
-		for (ResourceListener listener : _listeners)
-		{
-			listener.subscriptionAdded(subscription);
-		}
-	}
-
-	public List<Subscription> getSubscriptions()
-	{
-		synchronized (_subscriptions)
-		{
-			return new ArrayList<Subscription>(_subscriptions.values());
-		}
-	}
 	
-	public void refreshSubscription(String id, int expires) 
-	{
-		// TODO Auto-generated method stub	
-	}
+	
 
-	public void removeSubscription(String id, Subscription.Reason reason) 
-	{
-		// TODO Auto-generated method stub	
-	}
 	
 	/*
 	private Map<String, State> _states = new HashMap<String, State>();

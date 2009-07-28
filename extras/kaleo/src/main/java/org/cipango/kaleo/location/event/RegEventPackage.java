@@ -17,10 +17,10 @@ package org.cipango.kaleo.location.event;
 import java.util.Collections;
 import java.util.List;
 
-import org.cipango.kaleo.event.AbstractEventPackage;
+import org.cipango.kaleo.AbstractResourceManager;
 import org.cipango.kaleo.event.ContentHandler;
 
-public class RegEventPackage extends AbstractEventPackage<RegResource>
+public class RegEventPackage extends AbstractResourceManager<RegResource>
 {
 	public static final String NAME = "reg";
 	public static final String REGINFO = "application/reginfo+xml";
@@ -48,5 +48,11 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 	public List<String> getSupportedContentTypes() 
 	{
 		return Collections.singletonList(REGINFO);
+	}
+
+	public RegResource get(String uri) 
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

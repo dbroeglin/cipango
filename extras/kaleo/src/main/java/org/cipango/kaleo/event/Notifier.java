@@ -20,6 +20,7 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
 
 import org.cipango.kaleo.Constants;
+import org.cipango.kaleo.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

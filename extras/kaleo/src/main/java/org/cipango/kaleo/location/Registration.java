@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class Registration
+import org.cipango.kaleo.Resource;
+
+public class Registration implements Resource
 {
 	private String _aor;
 	private List<Binding> _bindings = new ArrayList<Binding>();
@@ -28,7 +30,7 @@ public class Registration
 		_aor = aor;
 	}
 	
-	public String getAor()
+	public String getUri()
 	{
 		return _aor;
 	}
@@ -38,7 +40,7 @@ public class Registration
 		return _bindings;
 	}
 	
-	public boolean isEmpty()
+	public boolean isDone()
 	{
 		return _bindings.isEmpty();
 	}
@@ -59,7 +61,7 @@ public class Registration
 		}
 	}
 	
-	public long getNextExpirationTime()
+	public long nextTimeout()
 	{
 		if (_bindings.size() == 0)
 			return -1;
@@ -73,7 +75,7 @@ public class Registration
 		return time;
 	}
 	
-	public List<Binding> removeExpired(long time)
+	public void doTimeout(long time)
 	{
 		List<Binding> expired = new ArrayList<Binding>();
 		
@@ -90,6 +92,5 @@ public class Registration
 				}
 			}
 		}
-		return expired;
 	}
 }

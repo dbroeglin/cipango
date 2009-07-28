@@ -22,6 +22,8 @@ package org.cipango.kaleo.event;
 
 import java.util.List;
 
+import org.cipango.kaleo.Resource;
+
 public interface EventPackage<T extends Resource>
 {
 	String getName();
@@ -32,7 +34,7 @@ public interface EventPackage<T extends Resource>
 
 	List<String> getSupportedContentTypes();
 
-	T getResource(String uri);
+	T get(String uri);
 
 	ContentHandler<?> getContentHandler(String contentType);
 }

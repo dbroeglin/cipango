@@ -17,7 +17,8 @@ package org.cipango.kaleo.event;
 /**
  * Listener for event related to a resource. 
  */
-public interface ResourceListener
+public interface EventResourceListener
 {
-	void stateChanged(Resource resource);
+	void stateChanged(EventResource resource);
+	void subscriptionExpired(Subscription subscription);
 }

@@ -14,218 +14,29 @@
 
 package org.cipango.kaleo.location;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
-import org.cipango.util.PriorityQueue;
-import org.mortbay.component.AbstractLifeCycle;
+import java.util.Collections;
+import java.util.List;
+
+import org.cipango.kaleo.AbstractResourceManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocationService extends AbstractLifeCycle
+public class LocationService extends AbstractResourceManager<Registration>
 {
-	private Map<String, RegistrationHolder> _registrations = new HashMap<String, RegistrationHolder>();
-	
-	private Thread _scheduler;
-	private PriorityQueue _queue = new PriorityQueue();
-	
 	private Logger _log = LoggerFactory.getLogger(LocationService.class);
 	
-	@Override
-	protected void doStart() throws Exception
+	protected Registration newResource(String uri)
 	{
-		new Thread(new Scheduler()).start();
-	}
-	
-	@Override
-	protected void doStop() throws Exception
-	{
-		if (_scheduler != null)
-			_scheduler.interrupt();
-	}
-	
-	public Registration getRegistration(String uri)
-	{
-		synchronized (_registrations)
-		{
-			RegistrationHolder holder = _registrations.get(uri);
-			if (holder == null)
-			{
-				Registration registration = new Registration(uri);
-				holder = new RegistrationHolder(registration);
-				_registrations.put(uri, holder);
-			}
-			return holder.lock();
-		}
-	}
-	
-	public void put(Registration registration)
-	{
-		RegistrationHolder holder = null;
-		
-		synchronized (_registrations)
-		{
-			holder = _registrations.get(registration.getAor());
-		}
-		if (holder != null)
-			put(holder);
-	}
-	
-	protected void put(RegistrationHolder holder)
-	{
-		Registration registration = holder._registration;
-		
-		long time = registration.getNextExpirationTime();
-	
-		synchronized (_queue)
-		{
-			if (time > 0)
-			{
-				if (time < System.currentTimeMillis())
-	    			time = System.currentTimeMillis() + 100;
-				_queue.offer(holder, time);
-			}
-			else
-			{
-				_queue.remove(holder);
-			}
-			_queue.notifyAll();
-		}
-		
-		if (registration.isEmpty())
-		{
-			synchronized (_registrations) 
-			{
-				_registrations.remove(registration.getAor());
-			}
-		}
-		holder.unlock();
-	}
-	
-	public List<Registration> getRegistrations()
-	{
-		ArrayList<Registration> registrations = new ArrayList<Registration>();
-		synchronized (_registrations)
-		{
-			Iterator<RegistrationHolder> it = _registrations.values().iterator();
-			while (it.hasNext())
-				registrations.add(it.next()._registration);
-		}
-		return registrations;
+		return new Registration(uri);
 	}
 	
 	public List<Binding> getBindings(String uri)
 	{
-		synchronized (_registrations)
-		{
-			RegistrationHolder holder = _registrations.get(uri);
-			if (holder == null)
-				return Collections.emptyList();
-			return holder._registration.getBindings();
-		}
-	}
-	
-	class RegistrationHolder extends PriorityQueue.Node implements Runnable
-	{
-		private Registration _registration;
-		private Lock _lock = new ReentrantLock();
-		
-		public RegistrationHolder(Registration registration)
-		{
-			super(Long.MAX_VALUE);
-			_registration = registration;
-		}
-		
-		public Registration lock()
-		{
-			_lock.lock();
-			if (_log.isDebugEnabled())
-				_log.debug("{} locked aor {}", this, _registration.getAor());
-			return _registration;
-		}
-		
-		public void unlock()
-		{
-			if (_log.isDebugEnabled())
-				_log.debug("{} unlocking aor {}", this, _registration.getAor());
-			
-			_lock.unlock();
-			if (_log.isDebugEnabled())
-				_log.debug("unlocked aor {}", _registration.getAor());
-		}
-		
-		public void run()
-		{
-			lock();
-			
-			if (_log.isDebugEnabled())
-				_log.debug("removing expired bindings for aor {}", _registration.getAor());
-			try
-			{
-				List<Binding> expired = _registration.removeExpired(System.currentTimeMillis());
-				
-				if (_log.isDebugEnabled())
-					_log.debug("removed expired bindings {} for aor  {}", expired, _registration.getAor());
-			}
-			catch (Throwable t)
-			{
-				_log.warn("exception while running timers {}", t);
-			}
-			finally
-			{
-				put(this);
-			}
-		}
-	}
-	
-	class Scheduler extends Thread
-	{
-		public void run()
-    	{
-    		_scheduler = Thread.currentThread();
-    		_scheduler.setName("registration-scheduler");
-    		
-    		try
-    		{
-    			do
-    			{
-    				try
-    				{
-    					RegistrationHolder holder;
-    					long timeout;
-    					
-    					synchronized (_queue)
-    					{
-    						holder = (RegistrationHolder) _queue.peek();
-    						timeout = (holder != null ? holder.getValue() - System.currentTimeMillis() : Long.MAX_VALUE);
-    						if (timeout > 0)
-    							_queue.wait(timeout);
-    						else
-    							_queue.poll();
-    					}
-    					if (timeout <= 0)
-    						holder.run();
-    				}
-    				catch (InterruptedException e) { continue; }
-    				catch (Throwable t) { _log.warn("Exception in scheduler", t); }
-    			}
-    			while (isStarted());
-    		}
-    		finally
-    		{
-    			_scheduler = null;
-    			String exit = "Call scheduler exited";
-    			if (isStarted())
-    				_log.warn(exit);
-    			else
-    				_log.debug(exit);
-    		}
-    	}
+		ResourceHolder holder = getHolder(uri);
+		if (holder == null)
+			return Collections.emptyList();
+		else
+			return holder.getResource().getBindings();
 	}
 }

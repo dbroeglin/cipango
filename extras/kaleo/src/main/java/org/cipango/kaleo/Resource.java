@@ -12,26 +12,17 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.kaleo.event;
-
-import java.util.List;
+package org.cipango.kaleo;
 
 /**
- * A resource. Subscribers may subscribe to a resource state and 
- * publication agent may publish event state for a resource.
+ * A resource identified by its URI.
  * 
  */
 public interface Resource 
 {
 	String getUri();
-
-	State getState();
 	
-	void addSubscription(Subscription subscription);
-	Subscription getSubscription(String id);
-	Subscription removeSubscription(String id);
-	List<Subscription> getSubscriptions();
-	
-	void addListener(ResourceListener listener);
-	List<ResourceListener> getListeners();
+	long nextTimeout();
+	void doTimeout(long time);
+	boolean isDone();
 }

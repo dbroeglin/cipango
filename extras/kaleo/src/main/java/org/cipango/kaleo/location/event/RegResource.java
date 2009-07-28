@@ -14,36 +14,16 @@
 
 package org.cipango.kaleo.location.event;
 
-import java.util.List;
-
-import org.cipango.kaleo.event.AbstractResource;
-import org.cipango.kaleo.event.ResourceListener;
+import org.cipango.kaleo.event.AbstractEventResource;
 import org.cipango.kaleo.event.State;
-import org.cipango.kaleo.event.Subscription;
-import org.cipango.kaleo.event.Subscription.Reason;
 
-public class RegResource extends AbstractResource
+public class RegResource extends AbstractEventResource
 {
 	private ReginfoDocument _content;
 	
 	public RegResource(String uri)
 	{
 		super(uri);
-	}
-	
-	public void addListener(ResourceListener listener) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void addState(State state, int expires) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void addSubscription(Subscription subscription, int expires) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public State getState() 
@@ -52,45 +32,20 @@ public class RegResource extends AbstractResource
 		return null;
 	}
 
-	public List<ResourceListener> getListeners() {
+	public boolean isDone() 
+	{
 		// TODO Auto-generated method stub
-		return null;
+		return false;
 	}
 
-	public State getState(String etag) {
+	public long nextTimeout() 
+	{
 		// TODO Auto-generated method stub
-		return null;
+		return 0;
 	}
 
-	public List<Subscription> getSubscriptions() {
-		// TODO Auto-generated method stub
-		return null;
+	public void doTimeout(long time) 
+	{
+		// TODO Auto-generated method stub	
 	}
-
-	public void modifyState(State state, int expires, String contentType,
-			Object content) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void refreshState(State state, int expires) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void refreshSubscription(String id, int expires) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void removeState(String etag) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void removeSubscription(String id, Reason reason) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

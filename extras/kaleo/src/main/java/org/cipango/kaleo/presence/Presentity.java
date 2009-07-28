@@ -15,15 +15,24 @@
 package org.cipango.kaleo.presence;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
-import org.cipango.kaleo.event.AbstractResource;
+import org.cipango.kaleo.event.AbstractEventResource;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.presence.pidf.Presence;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
 
-public class Presentity extends AbstractResource
+public class Presentity extends AbstractEventResource
 {	
+	private static Random __random = new Random();
+	
+	public static synchronized String newETag()
+	{
+		return Integer.toString(Math.abs(__random.nextInt()), Character.MAX_RADIX);
+	}
+	
 	private List<SoftState> _states = new ArrayList<SoftState>();
 	
 	//private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
@@ -33,14 +42,55 @@ public class Presentity extends AbstractResource
 	{
 		super(uri);
 	}
-
-	public void addState(SoftState state, int expires)
+	
+	public boolean isDone()
 	{
+		return (_states.size() == 0 && !hasSubscribers());
+	}
+	
+	public void doTimeout(long time)
+	{
+		removeExpiredSubscriptions(time);
+		
+		boolean stateRemoved = false;
+	
+		Iterator<SoftState> it = _states.iterator();
+		while (it.hasNext())
+		{
+			SoftState state = it.next();
+			if (state.getExpirationTime() <= time)
+			{
+				it.remove();
+				stateRemoved = true;
+			}
+		}
+		if (stateRemoved)
+			fireStateChanged();
+	}
+	
+	public long nextTimeout()
+	{
+		long next = nextSubscriptionExpirationTime();
+		
+		for (SoftState state : _states)
+		{
+			long time = state.getExpirationTime();
+			if (time > 0 && (time < next || next < 0))
+				next = time;
+		}
+		return next;
+	}
+
+	public SoftState addState(String contentType, Object content, long expirationTime)
+	{
+		SoftState state = new SoftState(contentType, content, newETag(), expirationTime);
 		synchronized (_states)
 		{
 			_states.add(state);
 		}
 		fireStateChanged();
+		
+		return state;
 	}
 	
 	public SoftState getState(String etag)
@@ -70,15 +120,18 @@ public class Presentity extends AbstractResource
 		fireStateChanged();
 	}
 	
-	public void modifyState(State state, int expires, String contentType, Object content)
+	public void modifyState(SoftState state, String contentType, Object content, long expirationTime)
 	{
 		state.setContent(contentType, content);
+		state.setETag(newETag());
+		state.setExpirationTime(expirationTime);
 		fireStateChanged();
 	}
 	
-	public void refreshState(SoftState state, int expires)
+	public void refreshState(SoftState state, long expirationTime)
 	{
-		state.updateETag();
+		state.setETag(newETag());
+		state.setExpirationTime(expirationTime);
 	}
 
 	protected State getNeutralState() 
@@ -96,7 +149,8 @@ public class Presentity extends AbstractResource
 		{
 			if (_states.size() == 0)
 				return null;
-			return _states.get(0);
+			
+			return _states.get(0); // TODO merge states
 		}
 	}
 	

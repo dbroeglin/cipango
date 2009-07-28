@@ -16,24 +16,30 @@ package org.cipango.kaleo.event;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-public abstract class AbstractResource implements Resource
+ 
+public abstract class AbstractEventResource implements EventResource
 {
 	private String _uri;
 	
 	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
-	private List<ResourceListener> _listeners = new ArrayList<ResourceListener>();
+	private List<EventResourceListener> _listeners = new ArrayList<EventResourceListener>();
 	
-	public AbstractResource(String uri)
+	public AbstractEventResource(String uri)
 	{
 		_uri = uri;
 	}
 	
+	public String getUri()
+	{
+		return _uri;
+	}
+	
 	public abstract State getState();
 	
-	public void addListener(ResourceListener listener)
+	public void addListener(EventResourceListener listener)
 	{
 		synchronized (_listeners)
 		{
@@ -41,19 +47,27 @@ public abstract class AbstractResource implements Resource
 		}
 	}
 	
-	public List<ResourceListener> getListeners()
+	public List<EventResourceListener> getListeners()
 	{
 		synchronized (_listeners)
 		{
-			return new ArrayList<ResourceListener>(_listeners);
+			return new ArrayList<EventResourceListener>(_listeners);
 		}
 	}
 	
 	protected void fireStateChanged()
 	{
-		for (ResourceListener listener : _listeners)
+		for (EventResourceListener listener : _listeners)
 		{
 			listener.stateChanged(this);
+		}
+	}
+	
+	protected void fireSubscriptionExpired(Subscription subscription)
+	{
+		for (EventResourceListener listener : _listeners)
+		{
+			listener.subscriptionExpired(subscription);
 		}
 	}
 	
@@ -61,7 +75,6 @@ public abstract class AbstractResource implements Resource
 	{
 		synchronized (_subscriptions)
 		{
-			System.out.println(this + " **** added " + subscription.getId());
 			_subscriptions.put(subscription.getId(), subscription);
 		}	
 	}
@@ -86,19 +99,47 @@ public abstract class AbstractResource implements Resource
 	{
 		// TODO Auto-generated method stub	
 	}
-
+	
+	public boolean hasSubscribers()
+	{
+		return (_subscriptions.size() != 0);
+	}
+	
+	protected long nextSubscriptionExpirationTime()
+	{
+		long next = -1;
+		
+		for (Subscription subscription : _subscriptions.values())
+		{
+			long time = subscription.getExpirationTime();
+			
+			if (time > 0 && (time < next || next < 0))
+				next = time;
+		}
+		return next;
+	}
+	
 	public Subscription removeSubscription(String id) 
 	{
-		System.out.println(this + " **** removing " + id);
-		System.out.println(_subscriptions);
 		synchronized (_subscriptions) 
 		{
 			return _subscriptions.remove(id);
 		}
 	}
 	
-	public String getUri()
+	protected void removeExpiredSubscriptions(long time)
 	{
-		return _uri;
+		Iterator<Subscription> it = _subscriptions.values().iterator();
+		while (it.hasNext())
+		{
+			Subscription subscription = it.next();
+			if (subscription.getExpirationTime() < time)
+			{
+				it.remove();
+				fireSubscriptionExpired(subscription);
+			}
+		}
 	}
+	
+	
 }

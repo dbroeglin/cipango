@@ -14,34 +14,33 @@
 
 package org.cipango.kaleo.presence;
 
-import java.util.Random;
 import org.cipango.kaleo.event.State;
 
 public class SoftState extends State
 {
-	private static Random __random = new Random();
-	
-	public static synchronized String newETag()
-	{
-		return Integer.toString(Math.abs(__random.nextInt()), Character.MAX_RADIX);
-	}
-	
 	private String _etag;
+	private long _expirationTime;
 	
-	public SoftState(String contentType, Object content)
+	public SoftState(String contentType, Object content, String etag, long expirationTime)
 	{
 		super(contentType, content);
+		_etag = etag;
+		_expirationTime = expirationTime;
 	}
 	
-	public void setContent(String contentType, Object content)
+	public long getExpirationTime()
 	{
-		super.setContent(contentType, content);
-		updateETag();
+		return _expirationTime;
 	}
 	
-	public void updateETag()
+	public void setExpirationTime(long expirationTime)
 	{
-		_etag = newETag();
+		_expirationTime = expirationTime;
+	}
+	
+	public void setETag(String etag)
+	{
+		_etag = etag;
 	}
 	
 	public String getETag()

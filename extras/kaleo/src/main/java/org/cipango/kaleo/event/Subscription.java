@@ -39,13 +39,13 @@ public class Subscription
 		public String getName() { return _name; }
 	}
 	
-	private Resource _resource;
+	private EventResource _resource;
 	
 	private SipSession _session;
 	private State _state = State.ACTIVE;
 	private long _expirationTime;
 	
-	public Subscription(Resource resource, SipSession session, long expirationTime) 
+	public Subscription(EventResource resource, SipSession session, long expirationTime) 
 	{
 		_resource = resource;
 		_session = session;
@@ -67,7 +67,7 @@ public class Subscription
 		return _session.getId();
 	}
 	
-	public Resource getResource() 
+	public EventResource getResource() 
 	{
 		return _resource;
 	}

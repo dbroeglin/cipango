@@ -32,10 +32,14 @@ public class KaleoLoader implements ServletContextListener
 			LocationService ls = (LocationService) event.getServletContext().getAttribute(LocationService.class.getName());
 			if (ls != null)
 				ls.stop();
+
+			PresenceEventPackage presence = (PresenceEventPackage) event.getServletContext().getAttribute(PresenceEventPackage.class.getName());
+			if (presence != null)
+				presence.stop();
 		}
 		catch (Exception e)
 		{
-			_log.warn("Error while stopping Kaleo application", e);
+			_log.warn("error while stopping Kaleo application", e);
 		}
 	}
 
@@ -54,7 +58,7 @@ public class KaleoLoader implements ServletContextListener
 		}
 		catch (Exception e)
 		{
-			_log.error("Failed to start Kaleo application", e);
+			_log.error("failed to start Kaleo application", e);
 		}
 	}
 }

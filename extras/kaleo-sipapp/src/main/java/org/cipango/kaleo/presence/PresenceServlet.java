@@ -27,7 +27,6 @@ import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.Notifier;
-import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,8 +126,9 @@ public class PresenceServlet extends SipServlet
 			}
 		}
 		String etag = publish.getHeader(Constants.SIP_IF_MATCH);
-		
-		Presentity presentity = _presence.getResource(uri);
+		long now = System.currentTimeMillis();
+
+		Presentity presentity = _presence.get(uri);
 		
 		try
 		{
@@ -139,8 +139,7 @@ public class PresenceServlet extends SipServlet
 					publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
 					return;
 				}
-				SoftState state = new SoftState(contentType, content);
-				presentity.addState(state, expires);
+				SoftState state = presentity.addState(contentType, content, now + expires*1000);
 				
 				if (_log.isDebugEnabled())
 					_log.debug("added state {} to presentity {}", state.getETag(), presentity);
@@ -169,7 +168,7 @@ public class PresenceServlet extends SipServlet
 				{
 					if (content != null)
 					{
-						presentity.modifyState(state, expires, contentType, content);
+						presentity.modifyState(state, contentType, content, now + expires*1000);
 						
 						if (_log.isDebugEnabled())
 							_log.debug("modified state {} (new etag {}) from presentity {}", 
@@ -177,7 +176,7 @@ public class PresenceServlet extends SipServlet
 					}
 					else
 					{
-						presentity.refreshState(state, expires);
+						presentity.refreshState(state, now + expires*1000);
 						if (_log.isDebugEnabled())
 							_log.debug("refreshed state {} (new etag {}) from presentity {}", 
 									new Object[] {etag, state.getETag(), presentity});
@@ -222,7 +221,6 @@ public class PresenceServlet extends SipServlet
 				else if (expires > _presence.getMaxExpires())
 				{
 					expires = _presence.getMaxExpires();
-				
 				}
 			}
 		}
@@ -248,59 +246,67 @@ public class PresenceServlet extends SipServlet
 			}
 		}
 		
-		Presentity presentity = _presence.getResource(uri);
-		Subscription subscription = null;
+		Presentity presentity = _presence.get(uri);
 		
-		if (expires == 0)
+		try
 		{
-			subscription = presentity.removeSubscription(session.getId());
+			Subscription subscription = null;
 			
-			if (subscription == null)
+			if (expires == 0)
 			{
-				subscription = new Subscription(presentity, session, -1);
-				subscription.setState(Subscription.State.TERMINATED);
+				subscription = presentity.removeSubscription(session.getId());
+				
+				if (subscription == null)
+				{
+					subscription = new Subscription(presentity, session, -1);
+					subscription.setState(Subscription.State.TERMINATED);
+				}
+				else
+				{
+					if (_log.isDebugEnabled())
+						_log.debug("removed presence subscription {} to presentity {}", 
+							subscription.getSession().getId(), presentity.getUri());
+				}			
 			}
 			else
 			{
-				if (_log.isDebugEnabled())
-					_log.debug("removed presence subscription {} to presentity {}", 
-						subscription.getSession().getId(), presentity.getUri());
-			}			
+				long now = System.currentTimeMillis();
+				
+				subscription = presentity.getSubscription(session.getId());
+		
+				if (subscription == null)
+				{
+					subscription = new Subscription(presentity, session, now + expires*1000);
+					presentity.addSubscription(subscription);
+					
+					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("added presence subscription {} to presentity {}", 
+								subscription.getSession().getId(), presentity.getUri());
+				}
+				else 
+				{
+					subscription.setExpirationTime(now + expires * 1000);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("refreshed presence subscription {} to presentity {}",
+								subscription.getSession().getId(), presentity.getUri());
+				}
+			}
+			
+			int code = (subscription.getState() != Subscription.State.PENDING) ? 
+					SipServletResponse.SC_OK : SipServletResponse.SC_ACCEPTED;
+			
+			SipServletResponse response = subscribe.createResponse(code);
+			response.setExpires(expires);
+			response.send();
+				
+			_presence.notify(subscription);
 		}
-		else
+		finally
 		{
-			long now = System.currentTimeMillis();
-			
-			subscription = presentity.getSubscription(session.getId());
-	
-			if (subscription == null)
-			{
-				subscription = new Subscription(presentity, session, now + expires*1000);
-				presentity.addSubscription(subscription);
-				
-				session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
-				
-				if (_log.isDebugEnabled())
-					_log.debug("added presence subscription {} to presentity {}", 
-							subscription.getSession().getId(), presentity.getUri());
-			}
-			else 
-			{
-				subscription.setExpirationTime(now + expires * 1000);
-				
-				if (_log.isDebugEnabled())
-					_log.debug("refreshed presence subscription {} to presentity {}",
-							subscription.getSession().getId(), presentity.getUri());
-			}
+			_presence.put(presentity);
 		}
-		
-		int code = (subscription.getState() != Subscription.State.PENDING) ? 
-				SipServletResponse.SC_OK : SipServletResponse.SC_ACCEPTED;
-		
-		SipServletResponse response = subscribe.createResponse(code);
-		response.setExpires(expires);
-		response.send();
-			
-		_presence.notify(subscription);
 	}
 }

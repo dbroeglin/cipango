@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cipango.kaleo.event.Resource;
+import org.cipango.kaleo.Resource;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
@@ -44,7 +44,7 @@ public class APIServlet extends HttpServlet
 			public void toJSON(Object obj, Output out) 
 			{
 				Registration record = (Registration) obj;
-				out.add("aor", record.getAor());
+				out.add("aor", record.getUri());
 				out.add("bindings", record.getBindings());
 			}
 			public Object fromJSON(Map object)  { return null; }
@@ -75,19 +75,12 @@ public class APIServlet extends HttpServlet
 		
 		if ("registrations".equals(path[0]))
 		{
-			List<Registration> records = _locationService.getRegistrations();
+			List<Registration> records = _locationService.getResources();
 			response.getOutputStream().println(JSON.getDefault().toJSON(records));
 		}
 		else if ("presentities".equals(path[0]))
 		{
-			List<Presentity> presentities = new ArrayList<Presentity>();
-			
-			Iterator<String> it = _presence.getResourceUris();
-			while (it.hasNext())
-			{
-				presentities.add(_presence.getResource(it.next()));
-			}
-			
+			List<Presentity> presentities = _presence.getResources(); 
 			String json = JSON.getDefault().toJSON(presentities);
 			
 			response.getOutputStream().println(json);

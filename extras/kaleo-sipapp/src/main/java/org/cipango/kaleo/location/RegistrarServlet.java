@@ -68,7 +68,7 @@ public class RegistrarServlet extends SipServlet
 		long now = System.currentTimeMillis();
 		List<Binding> bindings;
 
-		Registration record = _locationService.getRegistration(aor);
+		Registration record = _locationService.get(aor);
 		
 		try
 		{

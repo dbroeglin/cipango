@@ -14,12 +14,8 @@
 
 package org.cipango.kaleo.event;
 
-import java.util.Random;
-
 /**
  * State information for a resource.
- * 
- * @see <a href="http://www.faqs.org/rfcs/rfc3903.html">RFC 3903</a>
  */
 public class State
 {

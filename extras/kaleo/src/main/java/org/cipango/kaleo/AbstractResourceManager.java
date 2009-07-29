@@ -56,7 +56,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 		{
 			Iterator<ResourceHolder> it = _resources.values().iterator();
 			while (it.hasNext())
-				resources.add(it.next()._resource);
+				resources.add(it.next().getResource());
 		}
 		return resources;
 	}
@@ -76,10 +76,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 			ResourceHolder holder = _resources.get(uri);
 			if (holder == null)
 			{
-				T resource = newResource(uri);
-				//resource.addListener(_resourceListener);
-				
-				holder = new ResourceHolder(resource);
+				holder = new ResourceHolder(newResource(uri));
 				_resources.put(uri, holder);
 			}
 			return holder.lock();
@@ -99,7 +96,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 	
 	protected void put(ResourceHolder holder)
 	{
-		T resource = holder._resource;
+		T resource = holder.getResource();
 		long time = resource.nextTimeout();
 		
 		synchronized (_queue)
@@ -159,24 +156,32 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 		public void run()
 		{
 			lock();
+			if (_log.isDebugEnabled())
+				_log.debug("running timeout for resource " + _resource);
 			try
 			{
-				// TODO _resource.removeExpired(System.currentTimeMillis());
+				_resource.doTimeout(System.currentTimeMillis());
 			}
 			finally
 			{
 				put(this);
 			}
 		}
+		
+		@Override
+		public String toString()
+		{
+			return _resource.toString();
+		}
 	}
+	
 	
 	class Scheduler implements Runnable
 	{
 		public void run()
 		{
 			_scheduler = Thread.currentThread();
-			_scheduler.setName(getClass().getName());
-			
+			_scheduler.setName(AbstractResourceManager.this.getClass().getSimpleName() + " - scheduler");
 			try
 			{
 				do
@@ -190,6 +195,10 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 						{
 							holder = (ResourceHolder) _queue.peek();
 							timeout = (holder != null) ? (holder.getValue() - System.currentTimeMillis()) : Long.MAX_VALUE;
+							
+							if (_log.isDebugEnabled())
+								_log.debug("next timeout in {} for node {}", timeout, holder);
+							
 							if (timeout > 0)
 								_queue.wait(timeout);
 							else
@@ -206,7 +215,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 			finally
 			{
 				_scheduler = null;
-				String exit = "scheduler exited";
+				String exit = Thread.currentThread().getName() + " exited";
 				if (isStarted())
 					_log.warn(exit);
 				else

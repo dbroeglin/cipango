@@ -15,7 +15,6 @@
 package org.cipango.kaleo.event;
 
 import java.util.List;
-
 import org.cipango.kaleo.Resource;
 
 public interface EventResource extends Resource

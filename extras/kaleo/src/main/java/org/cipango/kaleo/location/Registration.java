@@ -35,14 +35,17 @@ public class Registration implements Resource
 		return _aor;
 	}
 	
+	public void addBinding(Binding binding)
+	{
+		synchronized (_bindings)
+		{
+			_bindings.add(binding);
+		}
+	}
+	
 	public List<Binding> getBindings()
 	{
 		return _bindings;
-	}
-	
-	public boolean isDone()
-	{
-		return _bindings.isEmpty();
 	}
 	
 	public void removeBinding(Binding binding)
@@ -53,12 +56,9 @@ public class Registration implements Resource
 		}
 	}
 	
-	public void addBinding(Binding binding)
+	public boolean isDone()
 	{
-		synchronized (_bindings)
-		{
-			_bindings.add(binding);
-		}
+		return _bindings.isEmpty();
 	}
 	
 	public long nextTimeout()

@@ -36,9 +36,7 @@ public abstract class AbstractEventResource implements EventResource
 	{
 		return _uri;
 	}
-	
-	public abstract State getState();
-	
+		
 	public void addListener(EventResourceListener listener)
 	{
 		synchronized (_listeners)
@@ -105,7 +103,7 @@ public abstract class AbstractEventResource implements EventResource
 		return (_subscriptions.size() != 0);
 	}
 	
-	protected long nextSubscriptionExpirationTime()
+	public long nextTimeout()
 	{
 		long next = -1;
 		
@@ -127,7 +125,7 @@ public abstract class AbstractEventResource implements EventResource
 		}
 	}
 	
-	protected void removeExpiredSubscriptions(long time)
+	public void doTimeout(long time)
 	{
 		Iterator<Subscription> it = _subscriptions.values().iterator();
 		while (it.hasNext())
@@ -140,6 +138,4 @@ public abstract class AbstractEventResource implements EventResource
 			}
 		}
 	}
-	
-	
 }

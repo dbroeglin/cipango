@@ -16,6 +16,11 @@ package org.cipango.kaleo.presence;
 
 import org.cipango.kaleo.event.State;
 
+/**
+ * Soft state.
+ * 
+ * @see <a href="http://www.faqs.org/rfcs/rfc3903.html">RFC 3903</a>
+ */
 public class SoftState extends State
 {
 	private String _etag;

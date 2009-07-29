@@ -48,9 +48,10 @@ public class Presentity extends AbstractEventResource
 		return (_states.size() == 0 && !hasSubscribers());
 	}
 	
+	@Override
 	public void doTimeout(long time)
 	{
-		removeExpiredSubscriptions(time);
+		super.doTimeout(time);
 		
 		boolean stateRemoved = false;
 	
@@ -68,9 +69,10 @@ public class Presentity extends AbstractEventResource
 			fireStateChanged();
 	}
 	
+	@Override
 	public long nextTimeout()
 	{
-		long next = nextSubscriptionExpirationTime();
+		long next = super.nextTimeout();
 		
 		for (SoftState state : _states)
 		{

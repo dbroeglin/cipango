@@ -16,7 +16,7 @@ package org.cipango.kaleo.event;
 
 import org.cipango.kaleo.AbstractResourceManager;
 
-public abstract class AbstractEventPackage<T extends AbstractEventResource> extends AbstractResourceManager<T> implements EventPackage<T>
+public abstract class AbstractEventPackage<T extends EventResource> extends AbstractResourceManager<T> implements EventPackage<T>
 {
 	private int _minExpires = 60;
 	private int _maxExpires = 3600;

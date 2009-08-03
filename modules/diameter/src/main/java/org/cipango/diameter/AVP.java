@@ -15,7 +15,9 @@
 package org.cipango.diameter;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.cipango.diameter.base.Base;
 import org.cipango.diameter.io.DiameterCodec;
@@ -29,6 +31,9 @@ public class AVP
 {
 	private int _vendorId;
 	private int _code;
+	
+	private static final int TYPE_IPV4 = 1;
+	private static final int TYPE_IPV6 = 2;
 	
 	private Buffer _buffer;
 	
@@ -96,6 +101,32 @@ public class AVP
         return b.toString();
 	}
 	
+	public InetAddress getAddress()
+	{
+		int type = (_buffer.peek() & 0xff) << 8 | (_buffer.peek(_buffer.getIndex() + 1) & 0xff);
+		byte[] addr;
+		switch (type)
+		{
+		case TYPE_IPV4:
+			addr = new byte[4];
+			break;
+		case TYPE_IPV6:
+			addr = new byte[16];
+			break;
+		default:
+			return null;
+		}
+		_buffer.peek(_buffer.getIndex() + 2, addr, 0, addr.length);
+		try
+		{
+			return InetAddress.getByAddress(addr);
+		}
+		catch (UnknownHostException e)
+		{
+			return null;
+		}
+	}
+	
 	public Buffer write(Buffer buffer)
 	{
 		buffer.put((Buffer) _buffer);
@@ -109,8 +140,14 @@ public class AVP
 	
 	public static AVP ofAddress(int vendorId, int code, InetAddress address)
 	{
-		Buffer buffer = new ByteArrayBuffer(6);
-		buffer.put((byte) 0); buffer.put((byte) 1);
+		
+		Buffer buffer;
+		if (address instanceof Inet4Address)
+			buffer = new ByteArrayBuffer(6);
+		else
+			buffer = new ByteArrayBuffer(18);
+		buffer.put((byte) 0);
+		buffer.put((byte) (address instanceof Inet4Address ? TYPE_IPV4 : TYPE_IPV6));
 		buffer.put(address.getAddress());
 		
 		return new AVP(vendorId, code, buffer);

@@ -269,7 +269,7 @@ public class AppSession implements AppSessionIf, Serializable
 			Session session = (Session) LazyList.get(_sessions, i);
 			if (ftag.equals(session.getRemoteTag()) && ttag.equals(session.getLocalTag()))
 				return session;
-			if (ttag.equals(session.getRemoteTag()) && ftag.equals(session.getRemoteTag()))
+			if (ttag.equals(session.getRemoteTag()) && ftag.equals(session.getLocalTag()))
 				return session;
 		}
 		return null;

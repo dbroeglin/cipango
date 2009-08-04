@@ -690,7 +690,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         
         if (_role == Role.PROXY)
         {
-        	NameAddr tmp = _localParty;
+        	NameAddr tmp = _remoteParty;
         	_remoteParty = _localParty;
         	_localParty = tmp;
         }
@@ -1189,6 +1189,11 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public NameAddr localParty()
 	{
 		return _localParty;
+	}
+	
+	public void registerProxy(SipResponse response)
+	{
+		_remoteParty = (NameAddr) response.to().clone(); // TODO clone()?
 	}
 	
 	public NameAddr remoteParty()

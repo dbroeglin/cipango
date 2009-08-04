@@ -16,8 +16,10 @@ package org.cipango.diameter;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.cipango.diameter.base.Base;
+import org.mortbay.util.LazyList;
 
 public class AVPList extends AbstractList<AVP>
 {
@@ -55,6 +57,24 @@ public class AVPList extends AbstractList<AVP>
 				return avp;
 		}
 		return null;
+	}
+	
+	public Iterator<AVP> getAVPs(int code)
+	{
+		return getAVPs(Base.IETF_VENDOR_ID, code);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public Iterator<AVP> getAVPs(int vendorId, int code)
+	{
+		Object avps = null;
+		for (int i = 0; i < _avps.size(); i++)
+		{
+			AVP avp = _avps.get(i);
+			if (avp.getVendorId() == vendorId && avp.getCode() == code)
+				avps = LazyList.add(avps, avp);
+		}
+		return LazyList.iterator(avps);
 	}
 	
 	public void addString(int code, String value)

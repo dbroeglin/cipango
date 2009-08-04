@@ -18,12 +18,11 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
-import javax.servlet.sip.SipServletMessage;
-
-
 import org.cipango.diameter.base.Base;
+import org.mortbay.util.LazyList;
 
 public abstract class DiameterMessage
 {
@@ -177,6 +176,16 @@ public abstract class DiameterMessage
 				return avp;
 		}
 		return null;
+	}
+	
+	public Iterator<AVP> getAVPs(int code)
+	{
+		return _avps.getAVPs(code);
+	}
+	
+	public Iterator<AVP> getAVPs(int vendorId, int code)
+	{
+		return _avps.getAVPs(vendorId, code);
 	}
 	
 	public DiameterSession getSession()

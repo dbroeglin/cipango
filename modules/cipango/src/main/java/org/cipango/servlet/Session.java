@@ -1219,6 +1219,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 			throw new RuntimeException(e);
 		}
 		clone._localParty.removeParameter(SipParams.TAG);
+		clone._id = null;
 		return clone;
 	}
 	

@@ -54,7 +54,7 @@ import org.mortbay.util.TypeUtil;
 public class Server extends org.mortbay.jetty.Server implements SipHandler
 {
 	private static String __sipVersion = (Server.class.getPackage() != null && Server.class.getPackage().getImplementationVersion() != null)
-    	?Server.class.getPackage().getImplementationVersion() : "2.0.x";
+    	?Server.class.getPackage().getImplementationVersion() : "1.0.x";
     	
 	private ThreadPool _sipThreadPool;
     

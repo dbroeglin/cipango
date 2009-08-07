@@ -18,6 +18,7 @@ import java.util.EventListener;
 
 import org.cipango.diameter.DiameterFactory;
 import org.cipango.diameter.Node;
+import org.cipango.diameter.util.DiameterHolder;
 import org.mortbay.jetty.webapp.Configuration;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.log.Log;
@@ -72,7 +73,7 @@ public class DiameterConfiguration implements Configuration
 		
 		getWebAppContext().getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		
-		node.setHandler(diameterListener);
+		node.setHandler(new DiameterHolder(diameterListener, getWebAppContext().getClassLoader()));
 		System.out.println("Diameter listener is " + diameterListener);
 	}
 	

@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.cipango.SipMessage;
+import org.cipango.SipRequest;
 import org.mortbay.component.LifeCycle;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -344,6 +345,9 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 							getLocalPort(),
 							getRemoteAddress(), 
 							getRemotePort());
+					
+					if (message.isRequest())
+						((SipRequest) message).setEndpoint(this);
 					
 					process(message);
 				} 

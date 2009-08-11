@@ -365,7 +365,7 @@ public class SipServletHolder extends Holder implements Comparable
         finally
         {
             // Handle error params.
-            if (servlet_error)
+            if (servlet_error && request != null)
                 request.setAttribute("javax.servlet.error.servlet_name",getName());
         }
     }

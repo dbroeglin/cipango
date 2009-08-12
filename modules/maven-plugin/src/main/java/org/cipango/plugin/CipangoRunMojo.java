@@ -16,7 +16,9 @@
 package org.cipango.plugin;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -118,6 +120,14 @@ public class CipangoRunMojo extends Jetty6RunMojo
     protected Node diameterNode;
     
     /**
+     * A properties file containing system properties to set.
+     * Note that these properties will NOT override System properties 
+     * that have been set on the command line or by the JVM. Optional. 
+     * @parameter
+     */
+    protected File systemPropertiesFile;
+    
+    /**
      * @see org.cipango.plugin.AbstractJettyRunMojo#createServer()
      */
     public JettyPluginServer createServer()
@@ -136,6 +146,14 @@ public class CipangoRunMojo extends Jetty6RunMojo
 	@Override
 	public void finishConfigurationBeforeStart() throws Exception
 	{
+		if (systemPropertiesFile != null)
+		{
+			Properties properties = new Properties();
+			properties.load(new FileInputStream(systemPropertiesFile));
+			properties.putAll(System.getProperties());
+			System.setProperties(properties);
+		}
+		
         plugin.setSipConnectors(sipConnectors);
         SipConnector[] connectors = plugin.getSipConnectors();
 

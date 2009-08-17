@@ -158,6 +158,11 @@ public class AppSession implements AppSessionIf, Serializable
 			_expiryTimer = _call.schedule(new Expired(), delayMs);
 			_expirationTime = System.currentTimeMillis() + delayMs;
 		}
+		else
+		{
+			_expirationTime = 0;
+			return Integer.MAX_VALUE;
+		}
 
 		return deltaMinutes;
 	}
@@ -253,9 +258,14 @@ public class AppSession implements AppSessionIf, Serializable
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length > 0)
 				fireEvent(listeners, __appSessionExpired, new SipApplicationSessionEvent(this));
-					
+			
 			if (_state == State.EXPIRED)
-				invalidate();
+			{
+				if (getExpirationTime() != Long.MIN_VALUE)
+					_state = State.VALID;
+				else
+					invalidate();
+			}
 		}
 	}
 	
@@ -475,7 +485,8 @@ public class AppSession implements AppSessionIf, Serializable
 	public long getExpirationTime()
 	{
 		checkValid();
-		
+		if (_expirationTime <= System.currentTimeMillis())
+			return Long.MIN_VALUE;
 		return _expirationTime;
 	}
 

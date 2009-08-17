@@ -44,10 +44,10 @@
 #   Where cipango is installed. If not set, the script will try go
 #   guess it by first looking at the invocation path for the script,
 #   and then by looking in standard locations as $HOME/opt/cipango
-#   and /opt/cipango. The java system property "cipango.home" will be
+#   and /opt/cipango. The java system property "jetty.home" will be
 #   set to this value for use by configure.xml files, f.e.:
 #
-#    <Arg><SystemProperty name="cipango.home" default="."/>/sipapps/app.sar</Arg>
+#    <Arg><SystemProperty name="jetty.home" default="."/>/sipapps/app.sar</Arg>
 #
 # CIPANGO_CONSOLE
 #   Where cipango console output should go. Defaults to first writeable of
@@ -465,7 +465,7 @@ esac
 #####################################################
 # Add cipango properties to Java VM options.
 #####################################################
-JAVA_OPTIONS="$JAVA_OPTIONS -Dcipango.home=$CIPANGO_HOME "
+JAVA_OPTIONS="$JAVA_OPTIONS -Djetty.home=$CIPANGO_HOME "
 
 #####################################################
 # This is how the cipango server will be started
@@ -576,7 +576,7 @@ case "$ACTION" in
         
         # Test for real activity of cipango
 
-        if [ -f $CIPANGO_RUN/cipango.pid ]
+        if [ -f $CIPANGO_PID ]
         then
             CIPANGO_CURRENT_PID_VALUE=`cat $CIPANGO_PID`
             CIPANGO_RUNNING_NOW=`ps -edf | grep $CIPANGO_CURRENT_PID_VALUE | wc -l`

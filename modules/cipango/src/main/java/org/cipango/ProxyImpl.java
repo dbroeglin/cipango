@@ -396,18 +396,33 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 		if (!_parallel && _actives > 0)
 			return;
 		
-		while (LazyList.size(_targets) > 0) 
-        {
-			Branch branch = (Branch) LazyList.get(_targets, 0);
-			_targets = LazyList.remove(_targets, 0);
-            
-            if (Log.isDebugEnabled()) 
-            	Log.debug("Proxying to {} ", branch.getUri(), null);
-            
-            branch.start();
+		// Patch TMP fix for CIPANGO 8
+		Call call = _tx.getRequest().getCall();
+		CallManager cm = call.getServer().getCallManager();
+    	
+    	cm.lock(call);
+    	try
+    	{
+    	// End patch 
+    		while (LazyList.size(_targets) > 0) 
+            {
+    			Branch branch = (Branch) LazyList.get(_targets, 0);
+    			_targets = LazyList.remove(_targets, 0);
+                
+                if (Log.isDebugEnabled()) 
+                	Log.debug("Proxying to {} ", branch.getUri(), null);
+                
+                branch.start();
 
-			if (!_parallel) break;
-		}
+    			if (!_parallel) break;
+    		}
+    	// Patch TMP fix for CIPANGO 8
+    	} 
+    	finally
+    	{
+    		cm.unlock(call);
+    	}
+    	// End patch 
 	}
 	
 	// ----------------------------------------------------------------

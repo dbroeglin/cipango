@@ -146,37 +146,44 @@ public class Peer
 	
 	protected void receiveRequest(DiameterRequest request) throws IOException
 	{
-		switch (request.getCommand()) 
+		synchronized (this)
 		{
-		case Base.DWR:
-			receiveDWR(request);
-			return;
-		case Base.CER:
-			rConnCER(request);
-			return;
-		case Base.DPR:
-			_state.rcvDPR(request);
-			return;
-		default:
-			break;
+			switch (request.getCommand()) 
+			{
+			case Base.DWR:
+				receiveDWR(request);
+				return;
+			case Base.CER:
+				rConnCER(request);
+				return;
+			case Base.DPR:
+				_state.rcvDPR(request);
+				return;
+			default:
+				break;
+			}
 		}
 		getNode().handle(request);
 	}
 	
 	protected void receiveAnswer(DiameterAnswer answer) throws IOException
 	{
-		switch (answer.getCommand()) 
+		synchronized (this)
 		{
-		case Base.CEA:
-			_state.rcvCEA(answer);
-			return;
-		case Base.DWA:
-			_waitForDwa = false;
-			return;
-		case Base.DPA:
-			_state.rcvDPA(answer);
-			return;
+			switch (answer.getCommand()) 
+			{
+			case Base.CEA:
+				_state.rcvCEA(answer);
+				return;
+			case Base.DWA:
+				_waitForDwa = false;
+				return;
+			case Base.DPA:
+				_state.rcvDPA(answer);
+				return;
+			}
 		}
+
 		System.out.println("receive answer " + answer);
 		 
 		int rc = -1;
@@ -327,7 +334,7 @@ public class Peer
 	
 	// ==================== Events ====================
 	
-	public void start()
+	public synchronized void start()
 	{
 		_stopped = false;
 		if (_host == null)
@@ -338,7 +345,7 @@ public class Peer
 	 * The Diameter application has signaled that a connection should be 
 	 * terminated (e.g., on system shutdown).
 	 */
-	public void stop() {
+	public synchronized void stop() {
 		_stopped = true;
 		if (_state == OPEN)
 		{
@@ -363,12 +370,12 @@ public class Peer
 			_node.scheduleReconnect(new ReconnectTask());
 	}
 	
-	public void rConnCER(DiameterRequest cer)
+	public synchronized void rConnCER(DiameterRequest cer)
 	{
 		_state.rConnCER(cer);
 	}
 	
-	public void peerDisc(DiameterConnection connection)
+	public synchronized void peerDisc(DiameterConnection connection)
 	{
 		_state.disc(connection);
 	}
@@ -397,10 +404,13 @@ public class Peer
 				{
 					Log.debug("Failed to connect to peer " + Peer.this);
 				}
-				if (_iConnection != null)
-					_state.rcvConnAck();
-				else
-					_state.rcvConnNack();
+				synchronized (Peer.this)
+				{
+					if (_iConnection != null)
+						_state.rcvConnAck();
+					else
+						_state.rcvConnNack();
+				}
 			}
 		}).start();
 		setState(WAIT_CONN_ACK);

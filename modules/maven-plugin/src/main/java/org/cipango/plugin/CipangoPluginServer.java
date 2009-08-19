@@ -88,7 +88,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
             messageLog = log;
 		}
         
-        server.getTransportManager().setAccessLog(messageLog);      
+        server.getTransportManager().addAccessLog(messageLog);      
 	}
 	
 }

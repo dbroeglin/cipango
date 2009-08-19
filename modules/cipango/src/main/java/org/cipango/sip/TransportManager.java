@@ -27,7 +27,6 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
-import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import org.cipango.NameAddr;
 import org.cipango.Server;
@@ -63,7 +62,7 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     
     private SipGenerator _sipGenerator;
     
-    private AccessLog _logger;
+    private AccessLog[] _loggers;
     
     private transient long _statsStartedAt = -1;
     private Object _statsLock = new Object();
@@ -148,8 +147,11 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         
         _sipGenerator = new SipGenerator();
         
-        if (_logger != null && _logger instanceof LifeCycle)
-            ((LifeCycle) _logger).start();
+        for (int i = 0; _loggers != null && i < _loggers.length; i++)
+        {
+	        if (_loggers[i] instanceof LifeCycle)
+	            ((LifeCycle) _loggers[i]).start();
+        }
         
         for (int i = 0; i < _connectors.length; i++)
         {
@@ -177,9 +179,10 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
             }
         }
         
-        if (_logger != null && _logger instanceof LifeCycle)
+        for (int i = 0; _loggers != null && i < _loggers.length; i++)
         {
-        	try { ((LifeCycle)_logger).stop(); } catch (Throwable t) { Log.warn(t); }
+        	if (_loggers[i] instanceof LifeCycle)
+        		try { ((LifeCycle)_loggers[i]).stop(); } catch (Throwable t) { Log.warn(t); }
         }
         
         super.doStop();
@@ -224,8 +227,8 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     	
     	messageReceived();
     	
-        if (_logger != null)
-            _logger.messageReceived(msg);
+    	for (int i = 0; _loggers != null && i < _loggers.length; i++)
+            _loggers[i].messageReceived(msg);
         
         if (preValidateMessage((SipMessage) message))
 		{
@@ -330,8 +333,8 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     		returnBuffer(buffer);
     	}
 	        
-        if (_logger != null) 
-            _logger.messageSent(
+    	for (int i = 0; _loggers != null && i < _loggers.length; i++) 
+            _loggers[i].messageSent(
             		request, 
             		connector.getTransportOrdinal(), 
             		connector.getAddr().getHostAddress(),
@@ -360,10 +363,10 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
 					SipEndpoint endpoint = request.getEndpoint();
 					endpoint.getConnector().send(buffer, endpoint);
 					
-					if (_logger != null)
+					for (int i = 0; _loggers != null && i < _loggers.length; i++)
 					{
 						EndPoint ep = (EndPoint) endpoint;
-			        	_logger.messageSent(
+			        	_loggers[i].messageSent(
 			        			response, 
 			        			connector.getTransportOrdinal(), 
 			        			ep.getLocalAddr(),
@@ -425,8 +428,8 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     	}
     	
     	
-        if (_logger != null) 
-        	_logger.messageSent(
+    	for (int i = 0; _loggers != null && i < _loggers.length; i++)
+        	_loggers[i].messageSent(
         			response, 
         			connector.getTransportOrdinal(), 
         			connector.getAddr().getHostAddress(), 
@@ -485,27 +488,26 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         buffer.put(bytes);
     }
     
-    public void setAccessLog(AccessLog logger)
+    public void addAccessLog(AccessLog logger)
     {
-        try
-        {
-            if (_logger != null && _logger instanceof LifeCycle)
-                ((LifeCycle) _logger).stop();
-        }
-        catch (Exception e)
-        {
-            Log.warn (e);
-        }
-        
+    	setAccessLogs((AccessLog[]) LazyList.addToArray(_loggers, logger, AccessLog.class));
+    }
+    
+    public void setAccessLogs(AccessLog[] loggers)
+    {
+
         if (getServer()!=null)
-            getServer().getContainer().update(this, _logger, logger, "messagelistener", true);
+            getServer().getContainer().update(this, _loggers, loggers, "messagelistener", true);
         
-        _logger = logger;
+        _loggers = loggers;
         
         try
         {
-            if (isStarted() && (_logger != null) && _logger instanceof LifeCycle)
-                ((LifeCycle)_logger).start();
+        	for (int i = 0; _loggers != null && i < _loggers.length; i++)
+            {
+            	if (_loggers[i] instanceof LifeCycle)
+            		((LifeCycle) _loggers[i]).start();
+            }
         }
         catch (Exception e)
         {

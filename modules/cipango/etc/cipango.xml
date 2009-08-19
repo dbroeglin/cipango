@@ -76,13 +76,15 @@
         </New>
       </Arg>
     </Call>
-    <Set name="accessLog">
-     <New class="org.cipango.log.FileMessageLog">
-       <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.message.log</Set>
-       <Set name="append">true</Set>
-       <Set name="retainDays">31</Set>
-     </New>
-    </Set>
+    <Call name="addAccessLog">
+      <Arg>
+        <New class="org.cipango.log.FileMessageLog">
+          <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.message.log</Set>
+          <Set name="append">true</Set>
+          <Set name="retainDays">31</Set>
+        </New>
+      </Arg>
+    </Call>
   </Get>
 
   <!-- Set name="applicationRouter">

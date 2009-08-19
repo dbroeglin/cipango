@@ -9,6 +9,7 @@
   <url>http://maven.apache.org</url>
 
   <modules>
+    <module>modules/repository</module>
     <module>modules/cipango</module>
     <module>modules/management</module>
     <module>modules/plus</module>

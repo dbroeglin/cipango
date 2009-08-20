@@ -51,7 +51,6 @@ import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import org.cipango.Call;
-import org.cipango.CallManager;
 import org.cipango.NameAddr;
 import org.cipango.ParameterableImpl;
 import org.cipango.Server;
@@ -376,7 +375,7 @@ public class SipAppContext extends WebAppContext
 		
 		List<SipURI> outbounds = new ArrayList<SipURI>();
 
-		SipConnector[] connectors = getServer().getTransportManager().getConnectors();
+		SipConnector[] connectors = getSipServer().getTransportManager().getConnectors();
 		
 		if (connectors != null)
 		{
@@ -411,13 +410,13 @@ public class SipAppContext extends WebAppContext
     protected void doStart() throws Exception
     {
     	super.doStart();
-    	getServer().applicationDeployed(this);
+    	getSipServer().applicationDeployed(this);
     }
     
 	@Override
 	protected void doStop() throws Exception
 	{
-		getServer().applicationUndeployed(this);
+		getSipServer().applicationUndeployed(this);
 		super.doStop();
 	}
 	
@@ -606,8 +605,7 @@ public class SipAppContext extends WebAppContext
 		_specVersion = specVersion;
 	}
 	
-	@Override
-	public Server getServer()
+	public Server getSipServer()
 	{
 		return (Server) super.getServer();
 	}
@@ -668,7 +666,7 @@ public class SipAppContext extends WebAppContext
             
             AppSession appSession = ((AppSessionIf) sipAppSession).getAppSession();           
             
-            String cid = getServer().getIdManager().newCallId(appSession.getCall().getCallId());
+            String cid = getSipServer().getIdManager().newCallId(appSession.getCall().getCallId());
             
             Session session = appSession.newUacSession(cid, local, remote); 
             session.setHandler(getSipServletHandler().getDefaultServlet());
@@ -718,7 +716,7 @@ public class SipAppContext extends WebAppContext
             if (sameCallId)
                 callId = request.getCallId();
             else 
-                callId = getServer().getIdManager().newCallId(request.getCallId());
+                callId = getSipServer().getIdManager().newCallId(request.getCallId());
             
             fields.setString(SipHeaders.CALL_ID, callId);
             Session session = appsession.newUacSession(callId, from, to);
@@ -739,7 +737,7 @@ public class SipAppContext extends WebAppContext
         
         public SipApplicationSession createApplicationSession() 
         {
-        	Call call = getServer().getCallManager().lock(getServer().getIdManager().newCallId());
+        	Call call = getSipServer().getCallManager().lock(getSipServer().getIdManager().newCallId());
 	        try
 	        {
 	        	AppSession session = call.newSession();
@@ -748,7 +746,7 @@ public class SipAppContext extends WebAppContext
 	        }
 	        finally
 	        {
-	        	getServer().getCallManager().unlock(call);
+	        	getSipServer().getCallManager().unlock(call);
 	        }
         }
 

@@ -86,12 +86,6 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 		super.setServer(server);
 	}
 	
-	@Override
-	public Server getServer()
-	{
-		return (Server) super.getServer();
-	}
-	
 	public SipAppContext[] getSipContexts()
 	{
 		return _sipContexts;
@@ -150,7 +144,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 				try
 				{
 					Address route = request.getTopRoute();
-					if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
+					if (route != null && ((Server)getServer()).getTransportManager().isLocalUri(route.getURI()))
 					{
 						SipURI uri = (SipURI) route.getURI();
 						if ("router-info".equals(uri.getUser()))

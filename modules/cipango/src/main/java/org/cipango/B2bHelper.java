@@ -113,7 +113,7 @@ public class B2bHelper implements B2buaHelper
         if (!request.isRegister())
             fields.remove(SipHeaders.CONTACT_BUFFER);
         
-        Server server = appsession.getContext().getServer();
+        Server server = appsession.getContext().getSipServer();
         String callId = server.getIdManager().newCallId(request.getCallId());
         
         fields.setString(SipHeaders.CALL_ID, callId);

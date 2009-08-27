@@ -64,9 +64,13 @@
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="**/.svn/**" defaultexcludes="no"/>
                 </delete>
 
+		<condition property="eol" value="dos" > <os family="dos"/> </condition>
+                <condition property="eol" value="unix"> <os family="unix"/> </condition>
+                <condition property="eol" value="mac"> <os family="mac"/></condition>
+                 <echo message="eol=${eol}"/>
                 <echo message="Fixing the patch file for local conventions..." />
-                <fixcrlf srcdir="${basedir}/src/main/patches/" includes="**/*.patch" />
-                <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config" />
+                <fixcrlf srcdir="${basedir}/src/main/patches/" includes="**/*.patch" eol="${eol}"/>
+                <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config" eol="${eol}"/>
                 <echo message="Starting to applying patches... " />
                 <patch  dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/AbstractJettyMojo.patch" ignorewhitespace="true" strip="0" />
                 <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6MavenConfiguration.patch" ignorewhitespace="true" strip="0"/>

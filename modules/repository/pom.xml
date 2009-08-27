@@ -8,7 +8,7 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>repository</artifactId>
   <packaging>pom</packaging>
-  <name>Local Repository for Artifacts not in Maven</name>
+  <name>SIP Servlets 1.1 API dependency</name>
 
   <dependencies>
     <dependency>

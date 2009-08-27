@@ -25,14 +25,7 @@ import javax.servlet.UnavailableException;
 
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
-import org.cipango.sipapp.rules.AndRule;
-import org.cipango.sipapp.rules.ContainsRule;
-import org.cipango.sipapp.rules.EqualsRule;
-import org.cipango.sipapp.rules.ExistsRule;
-import org.cipango.sipapp.rules.MatchingRule;
-import org.cipango.sipapp.rules.NotRule;
-import org.cipango.sipapp.rules.OrRule;
-import org.cipango.sipapp.rules.SubdomainRule;
+import org.cipango.sipapp.rules.*;
 import org.mortbay.jetty.webapp.Configuration; 
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.jetty.webapp.WebXmlConfiguration;

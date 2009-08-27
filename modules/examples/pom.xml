@@ -7,8 +7,8 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.cipango.example</groupId>
-  <artifactId>cipango-examples-parent</artifactId>
-  <name>Cipango Example :: Parent</name>
+  <artifactId>cipango-examples-project</artifactId>
+  <name>Examples Project</name>
   <packaging>pom</packaging>
   <modules>
     <module>cipango-example-sipapp</module>

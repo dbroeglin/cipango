@@ -307,7 +307,4 @@ public class ProxyRegistrarServlet extends SipServlet
 			}
 		}
 	}
-
-
-
 }

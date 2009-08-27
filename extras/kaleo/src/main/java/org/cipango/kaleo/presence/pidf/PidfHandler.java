@@ -35,6 +35,10 @@ public class PidfHandler implements ContentHandler<PresenceDocument>
 		_xmlOptions = new XmlOptions();
 		_xmlOptions.setUseDefaultNamespace();
 		_xmlOptions.setSaveSuggestedPrefixes(suggestedPrefixes);
+		
+		_xmlOptions.setSaveImplicitNamespaces(suggestedPrefixes);
+		_xmlOptions.setSaveAggressiveNamespaces();
+		_xmlOptions.setSaveNamespacesFirst();
 	}
 	
 	public PresenceDocument getContent(byte[] b) throws Exception

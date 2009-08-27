@@ -5,7 +5,7 @@
   <artifactId>cipango-project</artifactId>
   <packaging>pom</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>Cipango :: Project</name>
+  <name>Cipango Project</name>
   <url>http://maven.apache.org</url>
 
   <modules>

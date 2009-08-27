@@ -86,6 +86,14 @@
       </Arg>
     </Call>
   </Get>
+  
+  <Get name="callManager">
+    <Set name="CallLog">
+	  <New class="org.cipango.log.FileCallLog">
+	    <Set name="logDir"><SystemProperty default="." name="jetty.home"/>/logs/calls</Set>
+      </New>
+	</Set>
+  </Get>
 
   <!-- Set name="applicationRouter">
     <New class="org.cipango.ar.DefaultApplicationRouter">

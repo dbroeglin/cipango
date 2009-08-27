@@ -126,7 +126,7 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	
 	class PresentityListener implements EventResourceListener
 	{
-		public void stateChanged(EventResource resource) 
+		public void stateChanged(EventResource resource)
 		{
 			if (_log.isDebugEnabled())
 				_log.debug("State changed for resource {}", resource);

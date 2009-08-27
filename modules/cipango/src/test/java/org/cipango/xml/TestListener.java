@@ -18,9 +18,7 @@ import javax.servlet.sip.ServletTimer;
 
 public class TestListener implements javax.servlet.sip.TimerListener
 {
-
 	public void timeout(ServletTimer timer)
 	{
 	}
-
 }

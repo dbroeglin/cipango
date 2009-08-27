@@ -41,6 +41,70 @@
           </archive>
         </configuration>
       </plugin>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true">
+                  <fileset dir="${jetty.home}/lib/annotations" includes="${project.build.finalName}.${project.packaging},asm*.jar"/>
+                  <fileset dir="${jetty.home}/etc" includes="cipango-annot.xml"/>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>install</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy todir="${jetty.home}/lib/annotations">
+                  <fileset dir="${project.build.directory}" file="${project.build.finalName}.${project.packaging}"/>
+                  <fileset dir="${project.build.directory}/lib/annotations"/>
+                </copy>
+                <copy todir="${jetty.home}/etc">
+                  <fileset dir="etc"/>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>asm</groupId>
+                  <artifactId>asm-commons</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>asm</groupId>
+                  <artifactId>asm</artifactId>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib/annotations</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
   
@@ -74,77 +138,4 @@
     </dependency>
   </dependencies>
   
-  <profiles>
-    <profile>
-      <id>copy-jetty</id>
-      <activation>
-        <property>
-          <name>jetty</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>clean</id>
-                <phase>clean</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <tasks>
-                    <delete includeemptydirs="true">
-                      <fileset dir="${jetty.home}/lib/annotations" includes="${project.artifactId}-${project.version}.${project.packaging},asm*.jar"/>
-                      <fileset dir="${jetty.home}/etc" includes="cipango-annot.xml"/>
-                    </delete>
-                  </tasks>
-                </configuration>
-              </execution>
-              <execution>
-                <phase>package</phase>
-                <configuration>
-                  <tasks>
-                    <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/annotations"/>
-                    <copy todir="${jetty.home}/etc">
-                      <fileset dir="etc"/>
-                    </copy>
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          
-          <plugin>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-                <configuration>
-                  <artifactItems>
-                    <artifactItem>
-                      <groupId>asm</groupId>
-                      <artifactId>asm-commons</artifactId>
-                    </artifactItem>
-                    <artifactItem>
-                      <groupId>asm</groupId>
-                      <artifactId>asm</artifactId>
-                    </artifactItem>
-                  </artifactItems>
-                  <outputDirectory>${jetty.home}/lib/annotations</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles> 
 </project>

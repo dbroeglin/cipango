@@ -32,6 +32,7 @@
            </execution>
         </executions>
       </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -40,6 +41,41 @@
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true">
+                  <fileset dir="${jetty.home}/lib/ext" includes="${project.build.finalName}.${project.packaging}"/>
+                  <fileset dir="${jetty.home}/etc" includes="dar.properties"/>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>package</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy todir="${jetty.home}/etc">
+                  <fileset dir="etc"/>
+                </copy>
+                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/ext"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -51,53 +87,4 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  
-  <profiles>
-    <profile>
-      <id>copy-jetty</id>
-      <activation>
-        <property>
-          <name>jetty</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>clean</id>
-                <phase>clean</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <tasks>
-                    <delete includeemptydirs="true">
-                      <fileset dir="${jetty.home}/lib/ext" includes="${project.artifactId}-${project.version}.${project.packaging}"/>
-                      <fileset dir="${jetty.home}/etc" includes="dar.properties"/>
-                    </delete>
-                  </tasks>
-                </configuration>
-              </execution>
-              <execution>
-                <phase>package</phase>
-                <configuration>
-                  <tasks>
-                    <copy todir="${jetty.home}/etc">
-                      <fileset dir="etc"/>
-                    </copy>
-                    <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/ext"/>
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>

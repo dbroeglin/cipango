@@ -10,6 +10,43 @@
   <packaging>jar</packaging>
   <name>cipango diameter</name>
 
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true">
+                  <fileset dir="${jetty.home}/lib" includes="${project.build.finalName}.${project.packaging}"/>
+                  <fileset dir="${jetty.home}/etc" includes="diameter.xml"/>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>install</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
+                <copy file="etc/diameter.xml" todir="${jetty.home}/etc"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
  <dependencies>
     <dependency>
       <groupId>org.mortbay.jetty</groupId>
@@ -28,52 +65,5 @@
       <artifactId>servlet-api-2.5</artifactId>
     </dependency>
   </dependencies>
- 
-  <profiles>
-    <profile>
-      <id>jetty</id>
-      <activation>
-        <property>
-          <name>jetty</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>clean</id>
-                <phase>clean</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <tasks>
-                    <delete includeemptydirs="true">
-                      <fileset dir="${jetty.home}/lib" includes="${project.artifactId}-${project.version}.${project.packaging}"/>
-                      <fileset dir="${jetty.home}/etc" includes="diameter.xml"/>
-                    </delete>
-                  </tasks>
-                </configuration>
-              </execution>
-              <execution>
-                <phase>install</phase>
-                <configuration>
-                  <tasks>
-                    <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
-                    <copy file="etc/diameter.xml" todir="${jetty.home}/etc"/>
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles> 
 
 </project>

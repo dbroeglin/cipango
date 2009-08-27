@@ -32,6 +32,7 @@
            </execution>
         </executions>
       </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -40,6 +41,65 @@
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true">
+                  <fileset dir="${jetty.home}/lib" includes="${project.build.finalName}.${project.packaging},sip-api*.jar"/>
+                  <fileset dir="${jetty.home}/etc" includes="cipango.xml,sipdefault.xml"/>
+                  <fileset dir="${jetty.home}/bin" includes="cipango.sh"/>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>install</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
+                <copy todir="${jetty.home}">
+                  <fileset dir="${basedir}" includes="etc/,bin/"/>
+                  <fileset dir="${project.build.directory}" includes="lib/"/>
+                </copy>
+                <mkdir dir="${jetty.home}/sipapps"/>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>javax.servlet</groupId>
+                  <artifactId>sip-api</artifactId>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
@@ -63,78 +123,4 @@
     </dependency>
   </dependencies>
  
-  <profiles>
-    <profile>
-      <id>copy-jetty</id>
-      <activation>
-        <property>
-          <name>jetty</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>clean</id>
-                <phase>clean</phase>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-                <configuration>
-                  <tasks>
-                    <delete includeemptydirs="true">
-                      <fileset dir="${jetty.home}/lib" includes="${project.artifactId}-${project.version}.${project.packaging}"/>
-                      <fileset dir="${jetty.home}/lib" includes="sip-api*.jar"/>
-                      <fileset dir="${jetty.home}/etc" includes="cipango.xml,sipdefault.xml"/>
-                      <fileset dir="${jetty.home}/bin" includes="cipango.sh"/>
-                    </delete>
-                  </tasks>
-                </configuration>
-              </execution>
-              <execution>
-                <phase>install</phase>
-                <configuration>
-                  <tasks>
-                    <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
-                    <copy file="bin/cipango.sh" todir="${jetty.home}/bin"/>
-                    <copy todir="${jetty.home}/etc">
-                      <fileset dir="etc"/>
-                    </copy>
-                    <mkdir dir="${jetty.home}/sipapps"/>
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-          
-          <plugin>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-                <configuration>
-                  <artifactItems>
-                    <artifactItem>
-                      <groupId>javax.servlet</groupId>
-                      <artifactId>sip-api</artifactId>
-                    </artifactItem>
-                  </artifactItems>
-                  <outputDirectory>${jetty.home}/lib</outputDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles> 
-
 </project>

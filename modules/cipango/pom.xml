@@ -61,8 +61,8 @@
                     <include name="etc/cipango.xml"/>
                     <include name="etc/sipdefault.xml"/>
                     <include name="bin/cipango.sh"/>
-                    <include name="README-Cipango.txt"/>
-                    <include name="VERSION-Cipango.txt"/>
+                    <include name="README-CIPANGO.txt"/>
+                    <include name="VERSION-CIPANGO.txt"/>
                   </fileset>
                 </delete>
               </tasks>
@@ -77,8 +77,8 @@
                   <fileset dir="${basedir}" includes="etc/,bin/"/>
                   <fileset dir="${project.build.directory}" includes="lib/"/>
                 </copy>
-                <copy file="${basedir}/../../README.txt" tofile="${jetty.home}/README-Cipango.txt"/>
-                <copy file="${basedir}/../../VERSION.txt" tofile="${jetty.home}/VERSION-Cipango.txt"/>
+                <copy file="${basedir}/../../README.txt" tofile="${jetty.home}/README-CIPANGO.txt"/>
+                <copy file="${basedir}/../../VERSION.txt" tofile="${jetty.home}/VERSION-CIPANGO.txt"/>
                 <mkdir dir="${jetty.home}/sipapps"/>
               </tasks>
             </configuration>

@@ -55,9 +55,15 @@
             <configuration>
               <tasks if="jetty.home">
                 <delete includeemptydirs="true">
-                  <fileset dir="${jetty.home}/lib" includes="${project.build.finalName}.${project.packaging},sip-api*.jar"/>
-                  <fileset dir="${jetty.home}/etc" includes="cipango.xml,sipdefault.xml"/>
-                  <fileset dir="${jetty.home}/bin" includes="cipango.sh"/>
+                  <fileset dir="${jetty.home}">
+                    <include name="lib/${project.build.finalName}.${project.packaging}"/>
+                    <include name="lib/sip-api*.jar"/>
+                    <include name="etc/cipango.xml"/>
+                    <include name="etc/sipdefault.xml"/>
+                    <include name="bin/cipango.sh"/>
+                    <include name="README-Cipango.txt"/>
+                    <include name="VERSION-Cipango.txt"/>
+                  </fileset>
                 </delete>
               </tasks>
             </configuration>
@@ -71,6 +77,8 @@
                   <fileset dir="${basedir}" includes="etc/,bin/"/>
                   <fileset dir="${project.build.directory}" includes="lib/"/>
                 </copy>
+                <copy file="${basedir}/../../README.txt" tofile="${jetty.home}/README-Cipango.txt"/>
+                <copy file="${basedir}/../../VERSION.txt" tofile="${jetty.home}/VERSION-Cipango.txt"/>
                 <mkdir dir="${jetty.home}/sipapps"/>
               </tasks>
             </configuration>

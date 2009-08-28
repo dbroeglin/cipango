@@ -1,2 +1,21 @@
-Cipango-0.1
- + First release
+cipango-1.0.0pre1 - 31 August 2009
+ + CIPANGO-2 Fixed local and remote parties in proxy mode
+ + CIPANGO-4 Subscription-State is of parameterable type
+ + CIPANGO-6 Added call logs  
+ + CIPANGO-10 Correct classloader in diameter callback
+ + CIPANGO-12 Added IPv6 support in host parsing
+ + CIPANGO-13 Switched message direction in log
+ + CIPANGO-14 getAttributesNames() returns null
+ + CIPANGO-16 Support for ACK with branch=0
+ + CIPANGO-17 Application composition uses network connectors
+ + CIPANGO-18 404 on CANCEL
+ + CIPANGO-20 Connection refused with TCP
+ + CIPANGO-21 Invalidation even when setExpires is called
+ + CIPANGO-22 Fix synchronization issues with diameter peer state
+ + CIPANGO-23 IllegalArgumentException in JMX get
+
+cipango-1.0.0pre0 - 5 March 2009
+ + First SIP Servlets 1.1 release
+
+cipango-0.1
+ + First SIP Servlets 1.0 prototype based on jetty

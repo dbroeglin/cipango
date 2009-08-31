@@ -50,6 +50,7 @@ public class SipGrammar
 		__param = new SipCharset(UNRESERVED + PARAM_UNRESERVED + '%'),
 		__header = new SipCharset(UNRESERVED + HNV_UNRESERVED + '%'),
 		__user = new SipCharset(UNRESERVED + USER_UNRESERVED + '%'), 
+		__host = new SipCharset(ALPHA + DIGITS + '.' + '-' + '[' + ']' + ':'), 
 		__passwd = new SipCharset(UNRESERVED + PASSWD_UNRESERVED + '%'),
 		__phoneDigits = new SipCharset(DIGITS + '-' + '.' + '(' + ')');
 	

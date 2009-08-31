@@ -47,6 +47,7 @@ public class SipURITest extends TestCase
 			{"sip:carol@chicago.com", "sip:carol@chicago.com?Subject=next%20meeting"},
 			{"sip:carol@chicago.com?Subject=next%20meeting", "sip:carol@chicago.com?Subject=another%20meeting"}
 	};
+	
 
 	public void testSipUser() throws Exception
 	{
@@ -59,6 +60,19 @@ public class SipURITest extends TestCase
 	{
 		SipURI uri = sipURI("sip:user:passwd@host.com");
 		assertEquals("passwd", uri.getUserPassword());
+	}
+	
+	public void testSipHost() throws Exception
+	{
+		assertEquals("192.168.1.1", sipURI("sip:user@192.168.1.1:3261").getHost());
+		assertEquals("host-1.com", sipURI("sip:user@host-1.com:3261").getHost());
+		assertEquals("[::1]", sipURI("sip:user@[::1]:5060").getHost());
+		try {sipURI("sip:user@space here:5060"); fail(); } catch (ServletParseException e) {}
+		try {sipURI("sip:user@plus+here:5060"); fail(); } catch (ServletParseException e) {}
+		SipURI uri = sipURI("sip:1234@foo.com");
+		uri.setHost("::1");
+		assertEquals("[::1]", uri.getHost());
+		assertEquals("sip:1234@[::1]", uri.toString());
 	}
 	
 	public void testParam() throws Exception
@@ -94,7 +108,7 @@ public class SipURITest extends TestCase
 		return new SipURIImpl(s);
 	}
 	
-	public void testPerf() throws Exception
+	/*public void testPerf() throws Exception
 	{
 		String[] uris = {"sip:carol@chicago.com;user=phone;lr", 
 						"sip:carol@chicago.com",
@@ -143,7 +157,7 @@ public class SipURITest extends TestCase
 			System.out.println("Increase perf: " + ((time1 - time2)*100/time1) + "%\n");
 			
 		}
-	}
+	}*/
 	
 	public void testEqual() throws Exception 
 	{

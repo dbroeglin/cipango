@@ -131,10 +131,15 @@ public class SipURIImpl extends URIImpl implements SipURI
 		if (endHost < 0) 
 			endHost = indexHeaders;
 		
+		String host;
 		if (endHost < 0) 
-			setHost(_uri.substring(indexHost));
+			host = _uri.substring(indexHost);
 		else
-			setHost(_uri.substring(indexHost, endHost));
+			host = _uri.substring(indexHost, endHost);
+		
+		if (!SipGrammar.__host.containsAll(host)) 
+			throw new ServletParseException("Invalid host [" + host + "] in URI [" + _uri + "]");
+		setHost(host);
 	
 		if (indexPort < 0) 
 		{

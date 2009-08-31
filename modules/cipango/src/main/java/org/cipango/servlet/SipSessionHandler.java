@@ -29,11 +29,13 @@ import org.cipango.Server;
 import org.cipango.SipException;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
+import org.cipango.SipParams;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.sip.ServerTransaction;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
+import org.cipango.util.ID;
 import org.mortbay.jetty.handler.AbstractHandler;
 import org.mortbay.log.Log;
 
@@ -82,6 +84,18 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 				SipAppContext context = request.getContext();
 				SipServletHolder handler = ((SipServletHandler) context.getServletHandler()).findHolder(request);
 		
+				if (handler == null)
+				{
+					Log.debug("The SIP application {} has no matching servlet for {}. Sending '404 Not found'", context.getName(), request.getMethod());
+					if (!request.isAck())
+					{						
+						SipResponse response = (SipResponse) request.createResponse(SipServletResponse.SC_NOT_FOUND);
+						response.to().setParameter(SipParams.TAG, ID.newTag());
+						((ServerTransaction) request.getTransaction()).send(response);
+					}
+					return;
+				}
+				
 				AppSession appSession;
 				/*
 				String key = context.getSipApplicationKey(request);

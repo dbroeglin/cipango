@@ -174,7 +174,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					return;
 				}
 				
-				if (routerInfo != null)
+				if (routerInfo != null && routerInfo.getNextApplicationName() != null)
 				{
 					/*
 					String[] routes = routerInfo.getRoutes();

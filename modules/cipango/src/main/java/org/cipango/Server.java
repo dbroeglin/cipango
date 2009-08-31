@@ -215,7 +215,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 	    				null,
 	    				request.getStateInfo());
 	    		
-	    		if (routerInfo != null)
+	    		if (routerInfo != null && routerInfo.getNextApplicationName() != null)
 	    		{
 	    			SipConnector defaultConnector = _transportManager.getDefaultConnector();
 	    			SipURI internalRoute = new SipURIImpl(null, defaultConnector.getHost(), defaultConnector.getPort());

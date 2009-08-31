@@ -46,11 +46,6 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 		throw new UnsupportedOperationException("sip-only handler");
 	}
 
-	@Override
-	public Server getServer()
-	{
-		return (Server) super.getServer();
-	}
 	
 	public void handle(SipServletMessage message) throws IOException,
 			ServletException 
@@ -66,7 +61,7 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 			SipURI paramUri = null;
 			
 			Address route = request.getTopRoute();
-			if (route != null && getServer().getTransportManager().isLocalUri(route.getURI()))
+			if (route != null && ((Server) getServer()).getTransportManager().isLocalUri(route.getURI()))
 			{
 				request.removeTopRoute();
 				paramUri = (SipURI) route.getURI();

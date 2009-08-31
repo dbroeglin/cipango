@@ -18,4 +18,4 @@ cipango-1.0.0pre0 - 5 March 2009
  + First SIP Servlets 1.1 release
 
 cipango-0.1
- + First SIP Servlets 1.0 prototype based on jetty
+ + First SIP Servlets 1.0 release based on jetty

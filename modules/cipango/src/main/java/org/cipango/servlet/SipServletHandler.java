@@ -237,7 +237,13 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 		return _sipServlets;
 	}
 	
-	public void addSipServlet(ServletHolder servlet) 
+	
+	public SipServletHolder newSipServletHolder(Class servlet)
+	{
+		return new SipServletHolder(servlet);
+	}
+	
+	public void addSipServlet(SipServletHolder servlet) 
 	{
 		SipServletHolder[] holders = getSipServlets();
 		

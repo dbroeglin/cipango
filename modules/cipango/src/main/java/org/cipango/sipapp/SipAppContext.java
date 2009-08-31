@@ -175,7 +175,7 @@ public class SipAppContext extends WebAppContext
     	// FIXME do more???
     }
 
-	public void addSipServlet(ServletHolder servlet)
+	public void addSipServlet(SipServletHolder servlet)
 	{
 		((SipServletHandler) _servletHandler).addSipServlet(servlet);
 	}

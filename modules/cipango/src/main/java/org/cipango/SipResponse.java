@@ -16,7 +16,6 @@ package org.cipango;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -328,7 +327,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
 	
 	public boolean needsContact() 
 	{
-		return (isInvite() || isSubscribe() || isNotify() || isRefer())
+		return (isInvite() || isSubscribe() || isNotify() || isRefer() || isUpdate())
 				&& (getStatus() < 300);
 	}
 	

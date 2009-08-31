@@ -44,7 +44,6 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.SipFields.Field;
 import org.cipango.security.AuthInfoImpl;
 import org.cipango.security.Authenticate;
 import org.cipango.security.Authorization;
@@ -538,7 +537,7 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 	
 	public boolean needsContact() 
     {
-    	return isInvite() || isSubscribe() || isNotify() || isRefer();
+    	return isInvite() || isSubscribe() || isNotify() || isRefer() || isUpdate();
     }
 	
 	public Address removeTopRoute() 

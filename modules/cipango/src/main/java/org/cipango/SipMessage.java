@@ -1000,6 +1000,11 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		return SipMethods.OPTIONS.equalsIgnoreCase(getMethod());
 	}
 	
+	public boolean isUpdate() 
+	{
+		return SipMethods.UPDATE.equalsIgnoreCase(getMethod());
+	}
+	
 	protected boolean isSystemHeader(String name) 
 	{
 		CachedBuffer buffer = SipHeaders.CACHE.get(name);

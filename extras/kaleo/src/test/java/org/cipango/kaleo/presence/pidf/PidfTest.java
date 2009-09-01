@@ -16,6 +16,7 @@ public class PidfTest extends TestCase
 		assertEquals("t7412", tuples[0].getId());
 	}
 	
+	/*
 	public void testCompose() throws Exception
 	{
 		PresenceDocument alice = PresenceDocument.Factory.parse(getClass().getResourceAsStream("/pidf-alice.xml"));
@@ -51,4 +52,5 @@ public class PidfTest extends TestCase
 		System.out.println(alice3.xmlText());
 		System.out.println(new String(new PidfHandler().getBytes(alice3)));
 	}
+	*/
 }

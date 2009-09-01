@@ -58,10 +58,11 @@ import org.mortbay.util.LazyList;
  *
  * Act on the annotations discovered in the webapp.
  */
+@SuppressWarnings("unchecked")
 public class AnnotationProcessor
 {
     private AnnotationFinder _finder;
-    private ClassLoader _loader;
+    //private ClassLoader _loader;
     private RunAsCollection _runAs;
     private InjectionCollection _injections;
     private LifeCycleCallbackCollection _callbacks;
@@ -124,8 +125,6 @@ public class AnnotationProcessor
 			throw new IllegalStateException("Missing SipApplication annotation or app-name in sip.xml");
     }
     
-    
-    @SuppressWarnings("unchecked")
 	public void processSipServlets()
     throws Exception
     {
@@ -166,10 +165,7 @@ public class AnnotationProcessor
     	return null;
     }
     
-    
-    @SuppressWarnings("unchecked")
-	public void processListeners ()
-    throws Exception
+    public void processListeners () throws Exception
     {
         //@SipListener(applicationName=String, description=String)
         for (Class clazz:_finder.getClassesForAnnotation(SipListener.class))
@@ -192,14 +188,12 @@ public class AnnotationProcessor
 	}
 
 
-	@SuppressWarnings("unchecked")
 	protected Object newListenerInstance(Class clazz) 
 	throws InstantiationException, IllegalAccessException 
 	{	
 		return clazz.newInstance();
 	}
-    
-    @SuppressWarnings("unchecked")
+
 	private void checkAppName(String appName, Class clazz)
     {
     	if (appName != null && !appName.trim().equals("")) 
@@ -234,8 +228,7 @@ public class AnnotationProcessor
     {
     	return _sipApplicationKeyMethod;
     }
-    
-    @SuppressWarnings("unchecked")
+
 	public void processRunAsAnnotations ()
     throws Exception
     {
@@ -352,9 +345,9 @@ public class AnnotationProcessor
             {
                 String name = resArray[j].name();
                 String mappedName = resArray[j].mappedName();
-                Resource.AuthenticationType auth = resArray[j].authenticationType();
-                Class type = resArray[j].type();
-                boolean shareable = resArray[j].shareable();
+                //Resource.AuthenticationType auth = resArray[j].authenticationType();
+                //Class type = resArray[j].type();
+                //boolean shareable = resArray[j].shareable();
 
                 if (name==null || name.trim().equals(""))
                     throw new IllegalStateException ("Class level Resource annotations must contain a name (Common Annotations Spec Section 2.3)");
@@ -388,7 +381,7 @@ public class AnnotationProcessor
      *  environment that will be looked up at runtime. They do
      *  not specify an injection.
      */
-    public void processClassResourceAnnotations ()
+	public void processClassResourceAnnotations ()
     throws Exception
     {
         List<Class<?>> classes = _finder.getClassesForAnnotation(Resource.class);
@@ -405,9 +398,9 @@ public class AnnotationProcessor
             {
                String name = resource.name();
                String mappedName = resource.mappedName();
-               Resource.AuthenticationType auth = resource.authenticationType();
-               Class type = resource.type();
-               boolean shareable = resource.shareable();
+               //Resource.AuthenticationType auth = resource.authenticationType();
+               //Class type = resource.type();
+               // boolean shareable = resource.shareable();
                
                if (name==null || name.trim().equals(""))
                    throw new IllegalStateException ("Class level Resource annotations must contain a name (Common Annotations Spec Section 2.3)");
@@ -497,8 +490,8 @@ public class AnnotationProcessor
             String mappedName = (resource.mappedName()!=null && !resource.mappedName().trim().equals("")?resource.mappedName():null);
          
             //get other parts that can be specified in @Resource
-            Resource.AuthenticationType auth = resource.authenticationType();
-            boolean shareable = resource.shareable();
+            //Resource.AuthenticationType auth = resource.authenticationType();
+            //boolean shareable = resource.shareable();
 
             //if @Resource specifies a type, check it is compatible with setter param
             if ((resource.type() != null) 
@@ -614,7 +607,6 @@ public class AnnotationProcessor
         _sipApplicationKeyMethod = m;
     }
 
-    @SuppressWarnings("unchecked")
 	private String getSipResourceJndiName(Class clazz)
     {
     	if (clazz.isAssignableFrom(SipFactory.class))
@@ -699,8 +691,8 @@ public class AnnotationProcessor
             	mappedName = resource.mappedName();
             
             //get other parts that can be specified in @Resource
-            Resource.AuthenticationType auth = resource.authenticationType();
-            boolean shareable = resource.shareable();
+            // Resource.AuthenticationType auth = resource.authenticationType();
+            // boolean shareable = resource.shareable();
             //check if an injection has already been setup for this target by web.xml
             Injection webXmlInjection = _injections.getInjection(f.getDeclaringClass(), f);
             if (webXmlInjection == null)

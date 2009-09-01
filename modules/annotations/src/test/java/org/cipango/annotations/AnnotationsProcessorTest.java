@@ -8,6 +8,8 @@ import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.sip.SipErrorListener;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletContextEvent;
+import javax.servlet.sip.SipServletListener;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.TimerListener;
@@ -108,6 +110,10 @@ public class AnnotationsProcessorTest extends TestCase
 	{
 		try { getProcessor(BadRessource.class, null, true); fail(); } catch (IllegalStateException e) {}
 		try { getProcessor(BadRessource2.class, null, true); fail(); } catch (IllegalStateException e) {}
+		AnnotationProcessor processor = getProcessor(ListenerRessource.class, null, true); 
+		List<Injection> injections = processor.getInjections().getFieldInjections(ListenerRessource.class);
+		assertEquals(1, injections.size());
+		assertEquals("sip/org.cipango.kaleo/SipFactory", injections.get(0).getJndiName());
 	}
 	
 	protected AnnotationProcessor getProcessor(Class clazz, String appName, boolean includePackageInfo) throws Exception
@@ -181,4 +187,14 @@ class BadRessource2 extends javax.servlet.sip.SipServlet
 {
 	@Resource
 	protected final SipFactory sipFactory = null;
+}
+
+class ListenerRessource implements SipServletListener
+{
+	@Resource
+	protected SipFactory sipFactory ;
+
+	public void servletInitialized(SipServletContextEvent arg0)
+	{
+	}
 }

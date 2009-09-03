@@ -136,7 +136,7 @@ public class SipURIImpl extends URIImpl implements SipURI
 			host = _uri.substring(indexHost);
 		else
 			host = _uri.substring(indexHost, endHost);
-		
+		host = host.trim();
 		if (!SipGrammar.__host.containsAll(host)) 
 			throw new ServletParseException("Invalid host [" + host + "] in URI [" + _uri + "]");
 		setHost(host);

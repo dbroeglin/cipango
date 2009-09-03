@@ -65,6 +65,7 @@ public class SipURITest extends TestCase
 	public void testSipHost() throws Exception
 	{
 		assertEquals("192.168.1.1", sipURI("sip:user@192.168.1.1:3261").getHost());
+		
 		assertEquals("host-1.com", sipURI("sip:user@host-1.com:3261").getHost());
 		assertEquals("[::1]", sipURI("sip:user@[::1]:5060").getHost());
 		try {sipURI("sip:user@space here:5060"); fail(); } catch (ServletParseException e) {}
@@ -73,6 +74,10 @@ public class SipURITest extends TestCase
 		uri.setHost("::1");
 		assertEquals("[::1]", uri.getHost());
 		assertEquals("sip:1234@[::1]", uri.toString());
+		
+		uri = sipURI("sip:vivekg@chair-dnrc.example.com ; transport = TCP");
+		assertEquals("chair-dnrc.example.com", uri.getHost());
+		assertEquals("TCP", uri.getParameter("transport"));
 	}
 	
 	public void testParam() throws Exception

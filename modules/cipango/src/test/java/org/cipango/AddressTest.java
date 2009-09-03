@@ -14,6 +14,7 @@
 package org.cipango;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
 
 import junit.framework.TestCase;
@@ -52,5 +53,12 @@ public class AddressTest extends TestCase
 		a1.setValue("Bob <sip:bob@nexcom.fr;transport=TCP>");
 		a1.setValue("<sip:carol@nexcom.fr>");
 		assertNull(a1.getDisplayName());
+	}
+	
+	public void testTourtuous() throws ServletParseException
+	{
+		Address a1 = new NameAddr("sip:vivekg@chair-dnrc.example.com ; tag = 19923n");
+		assertEquals("19923n", a1.getParameter("tag"));
+		assertEquals("chair-dnrc.example.com", ((SipURI) a1.getURI()).getHost());
 	}
 }

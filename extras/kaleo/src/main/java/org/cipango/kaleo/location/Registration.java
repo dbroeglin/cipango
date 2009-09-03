@@ -56,6 +56,14 @@ public class Registration implements Resource
 		}
 	}
 	
+	public void removeAllBindings()
+	{
+		synchronized (_bindings)
+		{
+			_bindings.clear();
+		}
+	}
+	
 	public boolean isDone()
 	{
 		return _bindings.isEmpty();

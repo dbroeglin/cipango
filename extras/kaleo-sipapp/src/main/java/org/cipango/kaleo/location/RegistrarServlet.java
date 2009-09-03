@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -65,6 +66,17 @@ public class RegistrarServlet extends SipServlet
 	protected void doRegister(SipServletRequest register) throws IOException, ServletException
 	{
 		String aor = URIUtil.toCanonical(register.getTo().getURI());
+		
+		ListIterator<String> it2 = register.getHeaders(Constants.REQUIRE);
+		if (it2.hasNext())
+		{
+			SipServletResponse response = register.createResponse(SipServletResponse.SC_BAD_EXTENSION);
+			while (it2.hasNext())
+				response.addHeader(Constants.UNSUPPORTED, it2.next());
+			response.send();
+			return;
+		}
+		
 		long now = System.currentTimeMillis();
 		List<Binding> bindings;
 
@@ -112,18 +124,18 @@ public class RegistrarServlet extends SipServlet
 				
 				if (wildcard)
 				{
-					if (_log.isDebugEnabled())
-						_log.debug("removing all bindings for aor " + aor);
-					
 					for (Binding binding : bindings)
 					{
 						if (callId.equals(binding.getCallId()) && cseq < binding.getCSeq())
 						{
-							register.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
+							_log.debug("Got lower CSeq for aor {} and call-ID {}", aor, binding.getCallId());
+							register.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Lower CSeq").send();
 							return;
 						}
-						record.removeBinding(binding);
 					}
+					if (_log.isDebugEnabled())
+						_log.debug("removing all bindings for aor " + aor);
+					record.removeAllBindings();
 				}
 				else
 				{				
@@ -160,7 +172,8 @@ public class RegistrarServlet extends SipServlet
 						{
 							if (callId.equals(binding.getCallId()) && cseq < binding.getCSeq())
 							{
-								register.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
+								_log.debug("Got lower CSeq for aor {} and call-ID {}", aor, binding.getCallId());
+								register.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Lower CSeq").send();
 								return;
 							}
 							if (expires == 0)
@@ -208,4 +221,5 @@ public class RegistrarServlet extends SipServlet
 		}
 		ok.send();
 	}
+	
 }

@@ -21,8 +21,10 @@ import java.util.Random;
 
 import org.cipango.kaleo.event.AbstractEventResource;
 import org.cipango.kaleo.event.State;
+import org.cipango.kaleo.presence.pidf.Basic;
 import org.cipango.kaleo.presence.pidf.Presence;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
+import org.cipango.kaleo.presence.pidf.Tuple;
 
 public class Presentity extends AbstractEventResource
 {	
@@ -141,7 +143,9 @@ public class Presentity extends AbstractEventResource
 		PresenceDocument document = PresenceDocument.Factory.newInstance();
 		Presence presence = document.addNewPresence();
 		presence.setEntity(getUri());
-		//document.getPresence().addNewTuple().addNewStatus().setBasic(Basic.CLOSED);
+		Tuple tuple = document.getPresence().addNewTuple();
+		tuple.setId("123");
+		tuple.addNewStatus().setBasic(Basic.CLOSED);
 		return new State(PresenceEventPackage.PIDF, document);
 	}
 	

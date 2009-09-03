@@ -259,14 +259,15 @@ public class PresenceServlet extends SipServlet
 				if (subscription == null)
 				{
 					subscription = new Subscription(presentity, session, -1);
-					subscription.setState(Subscription.State.TERMINATED);
 				}
 				else
 				{
+					subscription.setExpirationTime(System.currentTimeMillis());
 					if (_log.isDebugEnabled())
 						_log.debug("removed presence subscription {} to presentity {}", 
 							subscription.getSession().getId(), presentity.getUri());
-				}			
+				}	
+				subscription.setState(Subscription.State.TERMINATED);
 			}
 			else
 			{

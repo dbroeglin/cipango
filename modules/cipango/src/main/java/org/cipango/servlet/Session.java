@@ -1040,8 +1040,8 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     { 
 		try 
         {
-			_appSession.getContext().handle(request);
 			_invokingServlet = true;
+			_appSession.getContext().handle(request);
 			//getServer().handle(request);
 		} 
         catch (TooManyHopsException e) 

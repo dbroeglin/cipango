@@ -22,6 +22,7 @@ import java.util.ListIterator;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.ExpiresHeader;
+import javax.sip.header.MinExpiresHeader;
 import javax.sip.header.UnsupportedHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -137,7 +138,9 @@ public class RegisterTest extends UaTestCase {
 	public void testMinExpires() throws Exception {	
 		RegisterSession session =  new RegisterSession(getAlicePhone());
 		Request request = session.createRegister(null, 2);
-		session.sendRegistrationMessage(request, Response.INTERVAL_TOO_BRIEF);
+		Response response = session.sendRegistrationMessage(request, Response.INTERVAL_TOO_BRIEF);
+		MinExpiresHeader minExpiresHeader = (MinExpiresHeader) response.getHeader(MinExpiresHeader.NAME);
+        assertNotNull(minExpiresHeader);
 	}
 	
 

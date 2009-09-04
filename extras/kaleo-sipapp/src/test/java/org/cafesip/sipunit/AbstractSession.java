@@ -31,10 +31,11 @@ import javax.sip.message.Response;
 
 import org.cafesip.sipunit.SipPhone;
 
-public abstract class AbstractSession
+public class AbstractSession
 {
 
 	protected SipPhone _sipPhone;
+	private static int __timeout = 5000;
 
 	public AbstractSession(SipPhone phone)
 	{
@@ -143,6 +144,9 @@ public abstract class AbstractSession
 		return response;
 	}
 
-	public abstract int getTimeout();
+	public int getTimeout()
+	{
+		return __timeout;
+	}
 
 }

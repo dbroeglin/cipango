@@ -15,6 +15,7 @@
 package org.cipango.kaleo.presence;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -47,91 +48,87 @@ public class PresenceServlet extends SipServlet
 
 	protected void doPublish(SipServletRequest publish) throws ServletException, IOException
 	{
-		String event = publish.getHeader(Constants.EVENT);
-
-		if (event == null || !event.equals(_presence.getName()))
+		Presentity presentity = null;
+		try
 		{
-			SipServletResponse response = publish.createResponse(SipServletResponse.SC_BAD_EVENT);
-			response.addHeader(Constants.ALLOW_EVENTS, _presence.getName());
-			response.send();
-			return;
-		}
-
-		String uri = URIUtil.toCanonical(publish.getRequestURI());
-
-		int expires = publish.getExpires();
-		if (expires != -1)
-		{
-			if(expires != 0)
+			String event = publish.getHeader(Constants.EVENT);
+	
+			if (event == null || !event.equals(_presence.getName()))
 			{
-				if (expires < _presence.getMinStateExpires())
-				{
-					SipServletResponse response = publish.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
-					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinStateExpires()));
-					response.send();
-					return;
-				}
-				else if (expires > _presence.getMaxStateExpires())
-				{
-					expires = _presence.getMaxStateExpires();
-				}
-			}
-		}
-		else
-		{
-			expires = _presence.getDefaultStateExpires();
-		}
-
-		String contentType = publish.getContentType();
-
-		List<String> supported = _presence.getSupportedContentTypes();
-		if (contentType != null && !(supported.contains(contentType)))
-		{
-			SipServletResponse response = publish.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-			for (String s : supported)
-			{
-				response.addHeader(Constants.ACCEPT, s);
-			}
-			response.send();
-			return;
-		}
-
-		byte[] raw = publish.getRawContent();
-		Object content = null;
-
-		if (raw != null)
-		{
-			if (contentType == null)
-			{
-				SipServletResponse response = publish.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-				for (String s : supported)
-				{
-					response.addHeader(Constants.ACCEPT, s);
-				}
+				SipServletResponse response = publish.createResponse(SipServletResponse.SC_BAD_EVENT);
+				response.addHeader(Constants.ALLOW_EVENTS, _presence.getName());
 				response.send();
 				return;
 			}
-			ContentHandler<?> handler = _presence.getContentHandler(contentType);		
-			try
+	
+			String uri = URIUtil.toCanonical(publish.getRequestURI());
+	
+			int expires = publish.getExpires();
+			if (expires != -1)
 			{
-				content = handler.getContent(raw);
+				if(expires != 0)
+				{
+					if (expires < _presence.getMinStateExpires())
+					{
+						SipServletResponse response = publish.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
+						response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinStateExpires()));
+						response.send();
+						return;
+					}
+					else if (expires > _presence.getMaxStateExpires())
+						expires = _presence.getMaxStateExpires();
+				}
 			}
-			catch (Exception e)
+			else
 			{
-				if (_log.isDebugEnabled())
-					_log.debug("invalid content {}", e);
-				
-				publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
+				expires = _presence.getDefaultStateExpires();
+			}
+	
+			String contentType = publish.getContentType();
+	
+			List<String> supported = _presence.getSupportedContentTypes();
+			if (contentType != null && !(supported.contains(contentType)))
+			{
+				SipServletResponse response = publish.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+				for (String s : supported)
+					response.addHeader(Constants.ACCEPT, s);
+				response.send();
 				return;
 			}
-		}
-		String etag = publish.getHeader(Constants.SIP_IF_MATCH);
-		long now = System.currentTimeMillis();
-
-		Presentity presentity = _presence.get(uri);
+	
+			byte[] raw = publish.getRawContent();
+			Object content = null;
+	
+			if (raw != null)
+			{
+				if (contentType == null)
+				{
+					SipServletResponse response = publish.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+					for (String s : supported)
+						response.addHeader(Constants.ACCEPT, s);
+					response.send();
+					return;
+				}
+				ContentHandler<?> handler = _presence.getContentHandler(contentType);		
+				try
+				{
+					content = handler.getContent(raw);
+				}
+				catch (Exception e)
+				{
+					if (_log.isDebugEnabled())
+						_log.debug("invalid content {}", e);
+					
+					publish.createResponse(SipServletResponse.SC_BAD_REQUEST).send();
+					return;
+				}
+			}
+			String etag = publish.getHeader(Constants.SIP_IF_MATCH);
+			long now = System.currentTimeMillis();
+	
+			presentity = _presence.get(uri);
 		
-		try
-		{
+
 			if (etag == null)
 			{
 				if (content == null)
@@ -190,7 +187,9 @@ public class PresenceServlet extends SipServlet
 		}
 		finally
 		{
-			_presence.put(presentity);
+			if (presentity != null)
+				_presence.put(presentity);
+			publish.getApplicationSession().invalidate();
 		}
 	}
 
@@ -203,9 +202,13 @@ public class PresenceServlet extends SipServlet
 			SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_BAD_EVENT);
 			response.addHeader(Constants.ALLOW_EVENTS, _presence.getName());
 			response.send();
+			response.getApplicationSession().invalidate();
 			return;
 		}
 		
+		if(!checkAcceptHeader(subscribe))
+			return;
+				
 		int expires = subscribe.getExpires();
 		if (expires != -1)
 		{
@@ -216,6 +219,7 @@ public class PresenceServlet extends SipServlet
 					SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
 					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinExpires()));
 					response.send();
+					response.getApplicationSession().invalidate();
 					return;
 				}
 				else if (expires > _presence.getMaxExpires())
@@ -241,7 +245,8 @@ public class PresenceServlet extends SipServlet
 			uri = (String) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
 			if (uri == null)
 			{
-				subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
+				subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE).send();
+				subscribe.getApplicationSession().invalidate();
 				return;
 			}
 		}
@@ -309,5 +314,26 @@ public class PresenceServlet extends SipServlet
 		{
 			_presence.put(presentity);
 		}
+	}
+	
+	private boolean checkAcceptHeader(SipServletRequest subscribe) throws IOException
+	{
+		List<String> supported = _presence.getSupportedContentTypes();
+		Iterator<String> it = subscribe.getHeaders(Constants.ACCEPT);
+		if (!it.hasNext())
+			return true;
+		while (it.hasNext())
+		{
+			String contentType = it.next();
+			if (contentType.equals("") ||  supported.contains(contentType))
+				return true;
+		}
+		SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+		for (String s : supported)
+			response.addHeader(Constants.ACCEPT, s);
+
+		response.send();
+		response.getApplicationSession().invalidate();
+		return false;
 	}
 }

@@ -20,9 +20,7 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.message.Request;
 
 public class PublishSession extends AbstractSession
-{
-	private static final int __timeout = 5000;
-	
+{	
 	public PublishSession(SipPhone phone)
 	{
 		super(phone);
@@ -55,10 +53,4 @@ public class PublishSession extends AbstractSession
 		}
 	}
 	
-	@Override
-	public int getTimeout()
-	{
-		return __timeout;
-	}
-
 }

@@ -4,7 +4,7 @@
 	version="2.5">
 
 	<listener>
-		<listener-class>org.cipango.kaleo.KaleoLoader</listener-class>
+		<listener-class>org.cipango.kaleo.sip.KaleoLoader</listener-class>
 	</listener>
 
 	<servlet>

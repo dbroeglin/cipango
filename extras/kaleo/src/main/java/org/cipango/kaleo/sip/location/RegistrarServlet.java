@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.kaleo.location;
+package org.cipango.kaleo.sip.location;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -35,6 +35,9 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
+import org.cipango.kaleo.location.Binding;
+import org.cipango.kaleo.location.LocationService;
+import org.cipango.kaleo.location.Registration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

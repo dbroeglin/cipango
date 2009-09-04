@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.kaleo;
+package org.cipango.kaleo.sip;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;

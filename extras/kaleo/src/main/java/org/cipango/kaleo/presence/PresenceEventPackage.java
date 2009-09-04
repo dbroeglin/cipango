@@ -95,7 +95,7 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void notify(Subscription subscription)
+	public void notify(Subscription subscription)
 	{
 		try
 		{

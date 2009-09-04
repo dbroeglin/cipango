@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.kaleo.presence;
+package org.cipango.kaleo.sip.presence;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -29,6 +29,9 @@ import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
 import org.cipango.kaleo.event.Notifier;
 import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.presence.PresenceEventPackage;
+import org.cipango.kaleo.presence.Presentity;
+import org.cipango.kaleo.presence.SoftState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

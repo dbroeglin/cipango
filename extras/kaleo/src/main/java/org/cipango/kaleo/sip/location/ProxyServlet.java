@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.kaleo.location;
+package org.cipango.kaleo.sip.location;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +22,8 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.kaleo.URIUtil;
+import org.cipango.kaleo.location.Binding;
+import org.cipango.kaleo.location.LocationService;
 
 public class ProxyServlet extends SipServlet
 {

@@ -15,20 +15,30 @@
 package org.cipango.kaleo.presence;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.apache.xmlbeans.XmlCursor;
+import org.apache.xmlbeans.XmlObject;
 import org.cipango.kaleo.event.AbstractEventResource;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.presence.pidf.Basic;
 import org.cipango.kaleo.presence.pidf.Presence;
 import org.cipango.kaleo.presence.pidf.PresenceDocument;
 import org.cipango.kaleo.presence.pidf.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class Presentity extends AbstractEventResource
 {	
 	private static Random __random = new Random();
+	private static Logger __log = LoggerFactory.getLogger(Presentity.class);
 	
 	public static synchronized String newETag()
 	{
@@ -155,9 +165,69 @@ public class Presentity extends AbstractEventResource
 		{
 			if (_states.size() == 0)
 				return null;
+			if (_states.size() == 1)
+				return _states.get(0);
 			
-			return _states.get(0); // TODO merge states
+			XmlCursor cursor = null;
+			String contentType = null;
+			Map<String, String> namespaces = new HashMap<String, String>();
+			for (State state : _states)
+			{
+				XmlObject o = (XmlObject) state.getContent();
+				if (cursor == null)
+				{
+					cursor = o.copy().newCursor();
+					cursor.push();
+					cursor.toFirstChild();
+					cursor.toEndToken();
+					contentType = state.getContentType();
+				}
+				else
+				{
+					XmlCursor cursor2 = o.newCursor();
+					cursor2.toFirstChild(); // Presence
+					cursor2.toFirstChild(); // tuple
+					cursor2.getAllNamespaces(namespaces);
+					do 
+					{
+						add(cursor2, cursor);
+					} 
+					while (cursor2.toNextSibling());
+					cursor2.dispose();
+				}
+			}
+			cursor.toParent();
+			cursor.toLastAttribute();
+			for (String name : namespaces.keySet())
+			{
+				cursor.insertNamespace(name, namespaces.get(name));
+			}
+			cursor.pop();
+			XmlObject o = cursor.getObject();
+			cursor.dispose();
+			return new State(contentType, o);
 		}
+	}
+	
+	private void add(XmlCursor source, XmlCursor destination)
+	{
+		NodeList nodeList = destination.getDomNode().getChildNodes();
+		Attr idNode = (Attr) source.getDomNode().getAttributes().getNamedItem("id");
+		if (idNode != null)
+		{
+			for (int i = 0; i < nodeList.getLength(); i++)
+			{
+				Node node2 = nodeList.item(i);
+				Attr idNode2 = (Attr) (node2.getAttributes() != null ? node2.getAttributes().getNamedItem("id") : null);
+				if (node2.getNodeName().equals(source.getDomNode().getNodeName())
+						&& idNode2 != null && idNode.getValue().equals(idNode2.getValue()))
+				{
+					__log.warn("Got two nodes with same id: {}. Ignore second node.", idNode.getValue());
+					return;
+				}
+			}
+		}
+		source.copyXml(destination);
 	}
 	
 	public State getState()

@@ -88,7 +88,7 @@ public class PresenceTest extends UaTestCase
         Thread.sleep(200);
         
         PublishSession publishSession = new PublishSession(getBobPhone());
-        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.txt"), 20);
+        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
         publishSession.sendRequest(publish, null, null, SipResponse.OK);
 
         // get the NOTIFY
@@ -176,21 +176,21 @@ public class PresenceTest extends UaTestCase
     public void testEtags() throws Exception
     {       
     	 PublishSession publishSession = new PublishSession(getBobPhone());
-         Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.txt"), 20);
+         Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
          Response response = publishSession.sendRequest(publish, null, null, SipResponse.OK);
          
          SIPETagHeader etagHeader = (SIPETagHeader) response.getHeader(SIPETagHeader.NAME);
          assertNotNull(etagHeader);
          String etag = etagHeader.getETag();
          
-         publish = publishSession.newPublish(getClass().getResourceAsStream("publish2.txt"), 20);
+         publish = publishSession.newPublish(getClass().getResourceAsStream("publish2.xml"), 20);
          HeaderFactory hf = publishSession.getHeaderFactory();
          publish.setHeader(hf.createSIPIfMatchHeader(etag));
          response = publishSession.sendRequest(publish, null, null, SipResponse.OK);
          etagHeader = (SIPETagHeader) response.getHeader(SIPETagHeader.NAME);
          assertNotNull(etagHeader);
          
-         publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.txt"), 20);
+         publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
          publish.setHeader(hf.createSIPIfMatchHeader(etag)); //Use old etag
          response = publishSession.sendRequest(publish, null, null, SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED);
     }

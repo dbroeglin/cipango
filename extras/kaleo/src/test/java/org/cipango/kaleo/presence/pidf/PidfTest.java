@@ -1,8 +1,5 @@
 package org.cipango.kaleo.presence.pidf;
 
-import java.util.HashMap;
-
-import org.apache.xmlbeans.XmlOptions;
 import junit.framework.TestCase;
 
 public class PidfTest extends TestCase
@@ -16,13 +13,13 @@ public class PidfTest extends TestCase
 		assertEquals("t7412", tuples[0].getId());
 	}
 	
-	/*
-	public void testCompose() throws Exception
+	
+/*	public void testCompose() throws Exception
 	{
-		PresenceDocument alice = PresenceDocument.Factory.parse(getClass().getResourceAsStream("/pidf-alice.xml"));
+		PresenceDocument alice = PresenceDocument.Factory.parse(getClass().getResourceAsStream("/pidf1.xml"));
 		Tuple tuple1 = alice.getPresence().getTupleArray(0);
 		
-		PresenceDocument alice2 = PresenceDocument.Factory.parse(getClass().getResourceAsStream("/pidf-alice2.xml"));
+		PresenceDocument alice2 = PresenceDocument.Factory.parse(getClass().getResourceAsStream("/org/cipango/kaleo/sipunit/publish1.xml"));
 		Tuple tuple2 = alice2.getPresence().getTupleArray(0);
 	
 		HashMap<String, String> suggestedPrefixes = new HashMap<String, String>();
@@ -38,19 +35,19 @@ public class PidfTest extends TestCase
 		_xmlOptions.setSaveAggressiveNamespaces();
 		_xmlOptions.setSaveNamespacesFirst();
 		
-		PresenceDocument alice3 = PresenceDocument.Factory.newInstance(_xmlOptions);
-		//alice3.getPresence().addNewTuple().newCursor().copyXml(tuple1.newCursor());
-		
+		//PresenceDocument alice3 = PresenceDocument.Factory.newInstance(_xmlOptions);
+		boolean s = tuple1.newCursor().copyXml(alice2.getPresence().addNewTuple().newCursor());
+		System.out.println("Success: " + s);
 		//alice3.getPresence().getDomNode().appendChild(tuple1.getDomNode().cloneNode(true));
-		alice3.addNewPresence();
-		Tuple[] tuples = new Tuple[] { tuple1, tuple2 };
+		//alice3.addNewPresence();
+		//Tuple[] tuples = new Tuple[] { tuple1, tuple2 };
 		
-		alice3.getPresence().setTupleArray(tuples);
+		//alice3.getPresence().setTupleArray(tuples);
 		//alice3.getPresence().setTupleArray(0, (Tuple) tuple1.copy());
 		//alice3.getPresence().setTupleArray(1, tuple2);
 		
-		System.out.println(alice3.xmlText());
-		System.out.println(new String(new PidfHandler().getBytes(alice3)));
-	}
-	*/
+		System.out.println(alice2.xmlText());
+		//System.out.println(new String(new PidfHandler().getBytes(alice3)));
+	}*/
+	
 }

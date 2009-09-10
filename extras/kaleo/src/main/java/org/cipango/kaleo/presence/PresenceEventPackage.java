@@ -93,37 +93,7 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 		else
 			return null;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public void notify(Subscription subscription)
-	{
-		try
-		{
-			SipSession session = subscription.getSession();
-			if (session.isValid())
-			{
-				SipServletRequest notify = session.createRequest(Constants.NOTIFY);
-				notify.addHeader(Constants.EVENT, getName());
-				
-				String s = subscription.getState().getName();
-				if (subscription.getState() == Subscription.State.ACTIVE)
-					s = s + ";expires=" + ((subscription.getExpirationTime()-System.currentTimeMillis()) / 1000);
-				notify.addHeader(Constants.SUBSCRIPTION_STATE, s);
-				
-				State state = subscription.getResource().getState();				
-				ContentHandler handler = getContentHandler(state.getContentType());
-				byte[] b = handler.getBytes(state.getContent());
-				
-				notify.setContent(b, state.getContentType());
-				notify.send();
-			}
-		}
-		catch (Exception e) 
-		{
-			_log.warn("Exception while sending notification {}", e);
-		}
-	}
-	
+		
 	class PresentityListener implements EventResourceListener
 	{
 		public void stateChanged(EventResource resource)

@@ -14,7 +14,11 @@
 
 package org.cipango.kaleo.event;
 
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipSession;
+
 import org.cipango.kaleo.AbstractResourceManager;
+import org.cipango.kaleo.Constants;
 
 public abstract class AbstractEventPackage<T extends EventResource> extends AbstractResourceManager<T> implements EventPackage<T>
 {
@@ -51,4 +55,39 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 	{
 		_defaultExpires = defaultExpires;
 	}	
+	
+	@SuppressWarnings("unchecked")
+	public void notify(Subscription subscription)
+	{
+		try
+		{
+			SipSession session = subscription.getSession();
+			if (session.isValid())
+			{
+				SipServletRequest notify = session.createRequest(Constants.NOTIFY);
+				notify.addHeader(Constants.EVENT, getName());
+				
+				String s = subscription.getState().getName();
+				if (subscription.getState() == Subscription.State.ACTIVE)
+					s = s + ";expires=" + ((subscription.getExpirationTime()-System.currentTimeMillis()) / 1000);
+				notify.addHeader(Constants.SUBSCRIPTION_STATE, s);
+				
+				State state = subscription.getResource().getState();
+				preprocessState(session, state);
+				ContentHandler handler = getContentHandler(state.getContentType());
+				byte[] b = handler.getBytes(state.getContent());
+				
+				notify.setContent(b, state.getContentType());
+				notify.send();
+			}
+		}
+		catch (Exception e) 
+		{
+			_log.warn("Exception while sending notification {}", e);
+		}
+	}
+	
+	protected void preprocessState(SipSession session, State state)
+	{	
+	}
 }

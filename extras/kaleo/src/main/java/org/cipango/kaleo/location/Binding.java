@@ -18,6 +18,8 @@ import javax.servlet.sip.URI;
 
 public class Binding 
 {
+	private static long __id = 0;
+	private long _id = __id++;
 	private String _callId;
 	private int _cseq;
 	private URI _contact;
@@ -28,7 +30,7 @@ public class Binding
 		update(contact, callId, cseq, expirationTime);
 	}
 	
-	public void update(URI contact, String callId, int cseq, long expirationTime)
+	protected void update(URI contact, String callId, int cseq, long expirationTime)
 	{
 		_contact = contact;
 		_callId = callId;
@@ -46,6 +48,14 @@ public class Binding
 		return _expirationTime;
 	}
 	
+	public int getExpires()
+	{
+		int expires = (int) ((_expirationTime - System.currentTimeMillis()) / 1000);
+		if (expires < 0)
+			return 0;
+		return expires;
+	}
+	
 	public String getCallId()
 	{
 		return _callId;
@@ -54,6 +64,11 @@ public class Binding
 	public int getCSeq()
 	{
 		return _cseq;
+	}
+	
+	public long getId()
+	{
+		return _id;
 	}
 	
 	public String toString()

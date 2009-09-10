@@ -20,6 +20,9 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 
+import org.cipango.kaleo.Constants;
+import org.cipango.kaleo.location.event.RegEventPackage;
+
 public class KaleoServlet extends SipServlet
 {
 	private static final long serialVersionUID = 1L;
@@ -48,7 +51,11 @@ public class KaleoServlet extends SipServlet
 	
 	protected void doSubscribe(SipServletRequest subscribe) throws ServletException, IOException
 	{
-		getServletContext().getNamedDispatcher("presence").forward(subscribe, null);
+		String event = subscribe.getHeader(Constants.EVENT);
+		if (RegEventPackage.NAME.equals(event))
+			getServletContext().getNamedDispatcher("registrar").forward(subscribe, null);
+		else
+			getServletContext().getNamedDispatcher("presence").forward(subscribe, null);
 	}
 	
 	protected void doInvite(SipServletRequest invite) throws ServletException, IOException

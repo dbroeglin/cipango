@@ -18,12 +18,18 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.sip.URI;
+
 import org.cipango.kaleo.Resource;
+import org.cipango.kaleo.location.event.ContactDocument.Contact.Event;
+import org.cipango.kaleo.location.event.RegistrationDocument.Registration.State;
+import org.mortbay.util.LazyList;
 
 public class Registration implements Resource
 {
 	private String _aor;
 	private List<Binding> _bindings = new ArrayList<Binding>();
+	private Object _listeners; //LazyList<RegistrationListener>
 	
 	public Registration(String aor)
 	{
@@ -41,6 +47,18 @@ public class Registration implements Resource
 		{
 			_bindings.add(binding);
 		}
+		fireBindingChanged(binding, Event.REGISTERED);
+	}
+	
+	public void updateBinding(Binding binding, URI contact, String callId, int cseq, long expirationTime)
+	{
+		Event.Enum event;
+		if (binding.getExpirationTime() < expirationTime)
+			event = Event.REFRESHED;
+		else
+			event = Event.SHORTENED;
+		binding.update(contact, callId, cseq, expirationTime);
+		fireBindingChanged(binding, event);
 	}
 	
 	public List<Binding> getBindings()
@@ -52,8 +70,10 @@ public class Registration implements Resource
 	{
 		synchronized (_bindings)
 		{
+			binding.update(binding.getContact(), binding.getCallId(), binding.getCSeq(), System.currentTimeMillis());
 			_bindings.remove(binding);
 		}
+		fireBindingChanged(binding, Event.UNREGISTERED);
 	}
 	
 	public void removeAllBindings()
@@ -62,6 +82,9 @@ public class Registration implements Resource
 		{
 			_bindings.clear();
 		}
+		for (int i = 0; i < LazyList.size(_listeners); i++)
+			((RegistrationListener) LazyList.get(_listeners, i)).allBindingsRemoved(_aor);
+
 	}
 	
 	public boolean isDone()
@@ -83,6 +106,18 @@ public class Registration implements Resource
 		return time;
 	}
 	
+	
+	private void fireBindingChanged(Binding binding, Event.Enum event)
+	{
+		State.Enum state;
+		if (_bindings.isEmpty())
+			state = State.TERMINATED;
+		else
+			state = State.ACTIVE;
+		for (int i = 0; i < LazyList.size(_listeners); i++)
+			((RegistrationListener) LazyList.get(_listeners, i)).bindingChanged(_aor, binding, event, state);
+	}
+	
 	public void doTimeout(long time)
 	{
 		List<Binding> expired = new ArrayList<Binding>();
@@ -100,5 +135,16 @@ public class Registration implements Resource
 				}
 			}
 		}
+	}
+	
+	public void addListener(RegistrationListener l)
+	{
+		if (!LazyList.contains(_listeners, l) && l != null)
+			_listeners = LazyList.add(_listeners, l);	
+	}
+	
+	public void removeListener(RegistrationListener l)
+	{
+		_listeners = LazyList.remove(_listeners, l);	
 	}
 }

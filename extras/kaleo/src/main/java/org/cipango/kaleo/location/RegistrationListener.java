@@ -14,15 +14,13 @@
 
 package org.cipango.kaleo.location;
 
-import javax.servlet.sip.URI;
+import org.cipango.kaleo.location.event.ContactDocument.Contact.Event;
+import org.cipango.kaleo.location.event.RegistrationDocument.Registration.State;
 
 public interface RegistrationListener
 {
-	static enum Event
-	{
-		Registered, Created, Refreshed, Shortened, Expired, Deactivated, Probation, Unregistered, Rejected;
-	}
-	
-	void bindingChanged(String aor, URI contact, Event event);
+
+	void allBindingsRemoved(String aor);
+	void bindingChanged(String aor, Binding binding, Event.Enum event, State.Enum state);
 }
 

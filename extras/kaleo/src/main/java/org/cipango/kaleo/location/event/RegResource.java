@@ -14,38 +14,103 @@
 
 package org.cipango.kaleo.location.event;
 
+import java.math.BigInteger;
+
 import org.cipango.kaleo.event.AbstractEventResource;
 import org.cipango.kaleo.event.State;
+import org.cipango.kaleo.location.Binding;
+import org.cipango.kaleo.location.RegistrationListener;
+import org.cipango.kaleo.location.event.ContactDocument.Contact;
+import org.cipango.kaleo.location.event.ContactDocument.Contact.Event;
+import org.cipango.kaleo.location.event.ReginfoDocument.Reginfo;
+import org.cipango.kaleo.location.event.RegistrationDocument.Registration;
 
-public class RegResource extends AbstractEventResource
+public class RegResource extends AbstractEventResource implements RegistrationListener
 {
 	private ReginfoDocument _content;
+	private State _state;
 	
 	public RegResource(String uri)
 	{
 		super(uri);
+		_content = ReginfoDocument.Factory.newInstance();
+		Reginfo reginfo = _content.addNewReginfo();
+		reginfo.setVersion(BigInteger.ZERO);
+		reginfo.setState(org.cipango.kaleo.location.event.ReginfoDocument.Reginfo.State.FULL);
+		Registration registration = reginfo.addNewRegistration();
+		registration.setAor(uri);
+		registration.setId("123");
+		registration.setState(org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.INIT);
+		
+		_state = new State(RegEventPackage.REGINFO, _content);
 	}
 
 	public State getState() 
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return _state;
 	}
 
 	public boolean isDone() 
 	{
-		// TODO Auto-generated method stub
-		return false;
+		return (_content.getReginfo().getRegistrationArray(0).getContactArray().length == 0
+				&& !hasSubscribers());
 	}
 
-	public long nextTimeout() 
+	public void bindingChanged(String aor, Binding binding, Event.Enum event, 
+			org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.Enum state)
 	{
-		// TODO Auto-generated method stub
-		return 0;
+		
+		Contact contactModified = null;
+		Registration registration = _content.getReginfo().getRegistrationArray(0);
+		registration.setState(state);
+		for (Contact contact : registration.getContactArray())
+		{
+			if (contact.getId().equals(String.valueOf(binding.getId())))
+			{
+				contactModified = contact;
+			}
+		}
+		if (contactModified == null)
+		{
+			contactModified = registration.addNewContact();
+		}
+		contactModified.setUri(binding.getContact().toString());
+		contactModified.setEvent(event);
+		contactModified.setId(String.valueOf(binding.getId()));
+		contactModified.setCallid(binding.getCallId());
+		contactModified.setCseq(BigInteger.valueOf(binding.getCSeq()));
+		contactModified.setExpires(BigInteger.valueOf(binding.getExpires()));
+
+		fireStateChanged();
+		
+		
+		if (event == Event.DEACTIVATED || event == Event.EXPIRED
+				|| event == Event.UNREGISTERED || event == Event.REJECTED)
+		{
+			for (int i = 0; i < registration.getContactArray().length; i++)
+			{
+				if (registration.getContactArray(i) == contactModified)
+				{
+					registration.removeContact(i);
+					break;
+				}
+			}
+		}
 	}
 
-	public void doTimeout(long time) 
+	public void allBindingsRemoved(String aor)
 	{
-		// TODO Auto-generated method stub	
+		Registration registration = _content.getReginfo().getRegistrationArray(0);
+		registration.setState(org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.TERMINATED);
+		for (Contact contact : registration.getContactArray())
+		{
+			contact.setEvent(Event.UNREGISTERED);
+		}
+		fireStateChanged();
+		 _content.getReginfo().setVersion(_content.getReginfo().getVersion().add(BigInteger.ONE));
+		while(registration.getContactArray().length != 0)
+		{
+			registration.removeContact(0);
+		}
 	}
 }

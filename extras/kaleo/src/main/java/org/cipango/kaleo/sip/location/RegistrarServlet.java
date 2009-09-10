@@ -32,12 +32,18 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipSession;
 
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
+import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
+import org.cipango.kaleo.location.RegistrationListener;
+import org.cipango.kaleo.location.event.RegEventPackage;
+import org.cipango.kaleo.location.event.RegResource;
+import org.cipango.kaleo.presence.Presentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +52,7 @@ public class RegistrarServlet extends SipServlet
 	private static final long serialVersionUID = 1L;
 
 	private LocationService _locationService;
+	private RegEventPackage _regEventPackage;
 	
 	private int _minExpires = 5; // 60;
 	private int _maxExpires = 3600;
@@ -64,6 +71,7 @@ public class RegistrarServlet extends SipServlet
 		_sipFactory = (SipFactory) getServletContext().getAttribute(SIP_FACTORY);
 		
 		_locationService = (LocationService) getServletContext().getAttribute(LocationService.class.getName());
+		_regEventPackage = (RegEventPackage) getServletContext().getAttribute(RegEventPackage.class.getName());
 	}
 	
 	protected void doRegister(SipServletRequest register) throws IOException, ServletException
@@ -84,6 +92,13 @@ public class RegistrarServlet extends SipServlet
 		List<Binding> bindings;
 
 		Registration record = _locationService.get(aor);
+		
+		RegResource listener = _regEventPackage.get(aor);
+		if (listener != null)
+		{
+			record.addListener(listener);
+			_regEventPackage.put(listener);
+		}
 		
 		try
 		{
@@ -189,7 +204,7 @@ public class RegistrarServlet extends SipServlet
 							{
 								if (_log.isDebugEnabled())
 									_log.debug("updating binding {} for aor {}", binding, aor);
-								binding.update(contact.getURI(), callId, cseq, now + expires*1000);
+								record.updateBinding(binding, contact.getURI(), callId, cseq, now + expires*1000);
 							}
 						}
 						
@@ -223,6 +238,152 @@ public class RegistrarServlet extends SipServlet
 			}
 		}
 		ok.send();
+	}
+
+	@Override
+	protected void doSubscribe(SipServletRequest subscribe) throws ServletException,
+			IOException
+	{
+		String event = subscribe.getHeader(Constants.EVENT);
+		
+		if (event == null || !(event.equals(_regEventPackage.getName())))
+		{
+			SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_BAD_EVENT);
+			response.addHeader(Constants.ALLOW_EVENTS, _regEventPackage.getName());
+			response.send();
+			response.getApplicationSession().invalidate();
+			return;
+		}
+		
+		if(!checkAcceptHeader(subscribe))
+			return;
+				
+		int expires = subscribe.getExpires();
+		if (expires != -1)
+		{
+			if (expires != 0)
+			{
+				if (expires < _regEventPackage.getMinExpires())
+				{
+					SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
+					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_regEventPackage.getMinExpires()));
+					response.send();
+					response.getApplicationSession().invalidate();
+					return;
+				}
+				else if (expires > _regEventPackage.getMaxExpires())
+				{
+					expires = _regEventPackage.getMaxExpires();
+				}
+			}
+		}
+		else 
+		{
+			expires = _regEventPackage.getDefaultExpires();
+		}
+		
+		SipSession session = subscribe.getSession();
+		String uri = null;
+		
+		if (subscribe.isInitial())
+		{
+			uri = URIUtil.toCanonical(subscribe.getRequestURI());
+		}
+		else
+		{
+			uri = (String) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
+			if (uri == null)
+			{
+				subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE).send();
+				subscribe.getApplicationSession().invalidate();
+				return;
+			}
+		}
+		
+		RegResource regResource = _regEventPackage.get(uri);
+		
+		try
+		{
+			Subscription subscription = null;
+			
+			if (expires == 0)
+			{
+				subscription = regResource.removeSubscription(session.getId());
+				
+				if (subscription == null)
+				{
+					subscription = new Subscription(regResource, session, -1);
+				}
+				else
+				{
+					subscription.setExpirationTime(System.currentTimeMillis());
+					if (_log.isDebugEnabled())
+						_log.debug("removed presence subscription {} to presentity {}", 
+							subscription.getSession().getId(), regResource.getUri());
+				}	
+				subscription.setState(Subscription.State.TERMINATED);
+			}
+			else
+			{
+				long now = System.currentTimeMillis();
+				
+				subscription = regResource.getSubscription(session.getId());
+		
+				if (subscription == null)
+				{
+					subscription = new Subscription(regResource, session, now + expires*1000);
+					regResource.addSubscription(subscription);
+					
+					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("added presence subscription {} to presentity {}", 
+								subscription.getSession().getId(), regResource.getUri());
+				}
+				else 
+				{
+					subscription.setExpirationTime(now + expires * 1000);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("refreshed presence subscription {} to presentity {}",
+								subscription.getSession().getId(), regResource.getUri());
+				}
+			}
+			
+			int code = (subscription.getState() != Subscription.State.PENDING) ? 
+					SipServletResponse.SC_OK : SipServletResponse.SC_ACCEPTED;
+			
+			SipServletResponse response = subscribe.createResponse(code);
+			response.setExpires(expires);
+			response.send();
+				
+			_regEventPackage.notify(subscription);
+		}
+		finally
+		{
+			_regEventPackage.put(regResource);
+		}
+	}
+	
+	private boolean checkAcceptHeader(SipServletRequest subscribe) throws IOException
+	{
+		List<String> supported = _regEventPackage.getSupportedContentTypes();
+		Iterator<String> it = subscribe.getHeaders(Constants.ACCEPT);
+		if (!it.hasNext())
+			return true;
+		while (it.hasNext())
+		{
+			String contentType = it.next();
+			if (contentType.equals("") ||  supported.contains(contentType))
+				return true;
+		}
+		SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+		for (String s : supported)
+			response.addHeader(Constants.ACCEPT, s);
+
+		response.send();
+		response.getApplicationSession().invalidate();
+		return false;
 	}
 	
 }

@@ -39,5 +39,6 @@ public class ReginfoTest extends TestCase
 		
 		assertEquals("sip:127.0.0.1", doc2.getReginfo().getRegistrationArray(0).getContactArray(0).getUri());
 	}
+
 }
 

@@ -35,6 +35,7 @@ import org.cafesip.sipunit.PresenceDeviceInfo;
 import org.cafesip.sipunit.PresenceSubscriber;
 import org.cafesip.sipunit.PublishSession;
 import org.cafesip.sipunit.SipResponse;
+import org.cafesip.sipunit.SubscribeSession;
 
 public class PresenceTest extends UaTestCase
 {
@@ -135,12 +136,8 @@ public class PresenceTest extends UaTestCase
 
     public void testMinExpires() throws Exception
     {       
-        AbstractSession session = new AbstractSession(getAlicePhone());
-        HeaderFactory hf = session.getHeaderFactory();
-        Request request = session.newRequest(Request.SUBSCRIBE, 1, getBobUri());
-        request.setHeader(hf.createExpiresHeader(1));
-        request.setHeader(hf.createEventHeader("presence"));
-        request.setHeader(getAlicePhone().getContactInfo().getContactHeader());
+        SubscribeSession session = new SubscribeSession(getAlicePhone(), "presence");
+        Request request = session.newInitialSubscribe(1, getAliceUri());
         Response response = session.sendRequest(request, null, null, SipResponse.INTERVAL_TOO_BRIEF);
         MinExpiresHeader minExpiresHeader = (MinExpiresHeader) response.getHeader(MinExpiresHeader.NAME);
         assertNotNull(minExpiresHeader);
@@ -148,12 +145,8 @@ public class PresenceTest extends UaTestCase
     
     public void testBadEvent() throws Exception
     {       
-        AbstractSession session = new AbstractSession(getAlicePhone());
-        HeaderFactory hf = session.getHeaderFactory();
-        Request request = session.newRequest(Request.SUBSCRIBE, 1, getBobUri());
-        request.setHeader(hf.createExpiresHeader(60));
-        request.setHeader(hf.createEventHeader("unknown"));
-        request.setHeader(getAlicePhone().getContactInfo().getContactHeader());
+        SubscribeSession session = new SubscribeSession(getAlicePhone(), "unknown");
+        Request request = session.newInitialSubscribe(100, getAliceUri());
         Response response = session.sendRequest(request, null, null, SipResponse.BAD_EVENT);
         AllowEventsHeader allowEvents = (AllowEventsHeader) response.getHeader(AllowEventsHeader.NAME);
         assertNotNull(allowEvents);

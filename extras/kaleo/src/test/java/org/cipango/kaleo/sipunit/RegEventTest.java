@@ -16,12 +16,17 @@ package org.cipango.kaleo.sipunit;
 import java.io.ByteArrayInputStream;
 
 import javax.sip.ServerTransaction;
+import javax.sip.header.AllowEventsHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.EventHeader;
+import javax.sip.header.HeaderFactory;
+import javax.sip.header.MinExpiresHeader;
 import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.cafesip.sipunit.AbstractSession;
+import org.cafesip.sipunit.SipResponse;
 import org.cafesip.sipunit.SubscribeSession;
 import org.cipango.kaleo.location.event.ReginfoDocument;
 import org.cipango.kaleo.location.event.ContactDocument.Contact;
@@ -156,5 +161,23 @@ public class RegEventTest extends UaTestCase
 			throw new RuntimeException(e);
 		}
 	}
-
+	
+    public void testMinExpires() throws Exception
+    {       
+        SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
+        Request request = session.newInitialSubscribe(1, getAliceUri());
+        Response response = session.sendRequest(request, null, null, SipResponse.INTERVAL_TOO_BRIEF);
+        MinExpiresHeader minExpiresHeader = (MinExpiresHeader) response.getHeader(MinExpiresHeader.NAME);
+        assertNotNull(minExpiresHeader);
+    }
+    
+    public void testBadEvent() throws Exception
+    {       
+        SubscribeSession session = new SubscribeSession(getAlicePhone(), "unknown");
+        Request request = session.newInitialSubscribe(100, getAliceUri());
+        Response response = session.sendRequest(request, null, null, SipResponse.BAD_EVENT);
+        AllowEventsHeader allowEvents = (AllowEventsHeader) response.getHeader(AllowEventsHeader.NAME);
+        assertNotNull(allowEvents);
+        assertEquals("presence", allowEvents.getEventType());
+    }
 }

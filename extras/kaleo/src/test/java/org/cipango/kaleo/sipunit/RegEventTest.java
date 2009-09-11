@@ -80,6 +80,10 @@ public class RegEventTest extends UaTestCase
 	 */
 	public void testSubscription()
 	{
+		// Ensure Alice is not registered
+		getAlicePhone().unregister(null, 2000);
+		assertLastOperationSuccess(getAlicePhone());
+		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
 		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
 		Response response = session.sendRequest(subscribe, null, null, Response.OK);

@@ -26,6 +26,11 @@ import org.cipango.kaleo.event.EventResource;
 import org.cipango.kaleo.event.EventResourceListener;
 import org.cipango.kaleo.event.State;
 import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.location.Binding;
+import org.cipango.kaleo.location.LocationService;
+import org.cipango.kaleo.location.Registration;
+import org.cipango.kaleo.location.RegistrationListener;
+import org.cipango.kaleo.location.event.ContactDocument.Contact.Event.Enum;
 import org.cipango.kaleo.location.event.ReginfoDocument.Reginfo;
 
 public class RegEventPackage extends AbstractEventPackage<RegResource>
@@ -36,6 +41,14 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 	
 	private ReginfoHandler _handler = new ReginfoHandler();
 	private EventResourceListener _listener = new RegEventListener();
+	private RegistrationListener _registrationListener = new RegListener();
+
+	private LocationService _locationService;
+	
+	public RegEventPackage(LocationService locationService)
+	{
+		_locationService = locationService;
+	}
 	
 	public ContentHandler<?> getContentHandler(String contentType) 
 	{
@@ -52,9 +65,17 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 	
 	protected RegResource newResource(String uri)
 	{
-		RegResource regResource = new RegResource(uri);
-		regResource.addListener(_listener);
-		return regResource;
+		Registration registration = _locationService.get(uri);
+		try
+		{
+			RegResource regResource = new RegResource(uri, registration);
+			regResource.addListener(_listener);
+			return regResource;
+		}
+		finally
+		{
+			_locationService.put(registration);
+		}
 	}
 
 	public List<String> getSupportedContentTypes() 
@@ -62,6 +83,10 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 		return Collections.singletonList(REGINFO);
 	}
 	
+	public RegistrationListener getRegistrationListener()
+	{
+		return _registrationListener;
+	}
 	
 	class RegEventListener implements EventResourceListener
 	{
@@ -81,6 +106,41 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 		{
 			subscription.setState(Subscription.State.TERMINATED);
 			RegEventPackage.this.notify(subscription);
+		}
+		
+	}
+	
+	class RegListener implements RegistrationListener
+	{
+
+		public void allBindingsRemoved(String aor)
+		{
+			RegResource resource = get(aor);
+			try
+			{
+				resource.allBindingsRemoved(aor);
+			}
+			finally
+			{
+				put(resource);
+			}
+		}
+
+		public void bindingChanged(
+				String aor,
+				Binding binding,
+				Enum event,
+				org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.Enum state)
+		{
+			RegResource resource = get(aor);
+			try
+			{
+				resource.bindingChanged(aor, binding, event, state);
+			}
+			finally
+			{
+				put(resource);
+			}
 		}
 		
 	}

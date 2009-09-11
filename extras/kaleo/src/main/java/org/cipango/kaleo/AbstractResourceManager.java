@@ -83,6 +83,14 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 		}
 	}
 	
+	public boolean contains(String uri)
+	{
+		synchronized (_resources)
+		{
+			return _resources.containsKey(uri);
+		}
+	}
+	
 	public void put(T resource)
 	{
 		ResourceHolder holder = null;

@@ -30,17 +30,32 @@ public class RegResource extends AbstractEventResource implements RegistrationLi
 	private ReginfoDocument _content;
 	private State _state;
 	
-	public RegResource(String uri)
+	public RegResource(String uri, org.cipango.kaleo.location.Registration registration)
 	{
 		super(uri);
 		_content = ReginfoDocument.Factory.newInstance();
 		Reginfo reginfo = _content.addNewReginfo();
 		reginfo.setVersion(BigInteger.ZERO);
 		reginfo.setState(org.cipango.kaleo.location.event.ReginfoDocument.Reginfo.State.FULL);
-		Registration registration = reginfo.addNewRegistration();
-		registration.setAor(uri);
-		registration.setId("123");
-		registration.setState(org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.INIT);
+		Registration reg = reginfo.addNewRegistration();
+		reg.setAor(uri);
+		reg.setId("123");
+		if (registration != null && !registration.getBindings().isEmpty())
+		{
+			reg.setState(org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.ACTIVE);
+			for (Binding binding : registration.getBindings())
+			{
+				Contact contact = reg.addNewContact();
+				contact.setUri(binding.getContact().toString());
+				contact.setEvent(Event.REGISTERED);
+				contact.setId(String.valueOf(binding.getId()));
+				contact.setCallid(binding.getCallId());
+				contact.setCseq(BigInteger.valueOf(binding.getCSeq()));
+				contact.setExpires(BigInteger.valueOf(binding.getExpires()));
+			}
+		}
+		else
+			reg.setState(org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.INIT);
 		
 		_state = new State(RegEventPackage.REGINFO, _content);
 	}

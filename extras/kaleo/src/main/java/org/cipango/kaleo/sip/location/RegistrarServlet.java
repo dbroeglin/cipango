@@ -40,10 +40,8 @@ import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
-import org.cipango.kaleo.location.RegistrationListener;
 import org.cipango.kaleo.location.event.RegEventPackage;
 import org.cipango.kaleo.location.event.RegResource;
-import org.cipango.kaleo.presence.Presentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,12 +91,7 @@ public class RegistrarServlet extends SipServlet
 
 		Registration record = _locationService.get(aor);
 		
-		RegResource listener = _regEventPackage.get(aor);
-		if (listener != null)
-		{
-			record.addListener(listener);
-			_regEventPackage.put(listener);
-		}
+		record.addListener(_regEventPackage.getRegistrationListener());
 		
 		try
 		{
@@ -318,7 +311,7 @@ public class RegistrarServlet extends SipServlet
 				{
 					subscription.setExpirationTime(System.currentTimeMillis());
 					if (_log.isDebugEnabled())
-						_log.debug("removed presence subscription {} to presentity {}", 
+						_log.debug("removed reg subscription {} to registration resource {}", 
 							subscription.getSession().getId(), regResource.getUri());
 				}	
 				subscription.setState(Subscription.State.TERMINATED);
@@ -337,7 +330,7 @@ public class RegistrarServlet extends SipServlet
 					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
 					
 					if (_log.isDebugEnabled())
-						_log.debug("added presence subscription {} to presentity {}", 
+						_log.debug("added reg subscription {} to registration resource {}", 
 								subscription.getSession().getId(), regResource.getUri());
 				}
 				else 
@@ -345,7 +338,7 @@ public class RegistrarServlet extends SipServlet
 					subscription.setExpirationTime(now + expires * 1000);
 					
 					if (_log.isDebugEnabled())
-						_log.debug("refreshed presence subscription {} to presentity {}",
+						_log.debug("refreshed reg subscription {} to registration resource {}",
 								subscription.getSession().getId(), regResource.getUri());
 				}
 			}

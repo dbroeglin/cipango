@@ -19,13 +19,11 @@ import javax.sip.ServerTransaction;
 import javax.sip.header.AllowEventsHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.EventHeader;
-import javax.sip.header.HeaderFactory;
 import javax.sip.header.MinExpiresHeader;
 import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.cafesip.sipunit.AbstractSession;
 import org.cafesip.sipunit.SipResponse;
 import org.cafesip.sipunit.SubscribeSession;
 import org.cipango.kaleo.location.event.ReginfoDocument;
@@ -86,7 +84,7 @@ public class RegEventTest extends UaTestCase
 		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
 		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
-		Response response = session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, null, null, Response.OK);
 		
 		ServerTransaction tx = session.waitForNotify(2000);
 		Request notify = tx.getRequest();
@@ -135,7 +133,7 @@ public class RegEventTest extends UaTestCase
 		assertEquals(Event.UNREGISTERED, contact.getEvent());
 		
 		subscribe = session.newSubsequentSubscribe(0);
-		response  = session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, null, null, Response.OK);
 		
 		tx = session.waitForNotify(2000);
 		notify = tx.getRequest();
@@ -149,6 +147,100 @@ public class RegEventTest extends UaTestCase
 		assertEquals(State.TERMINATED, registration.getState());
 		assertEquals(0, registration.getContactArray().length);
 		assertEquals(version + 3, regInfo.getVersion().intValue());
+	}
+	
+	/**
+	 * <pre>
+	 *  Alice               Kaleo              SipUnit
+
+          |(1) REGISTER       |                   |
+          |Expires: 1800      |                   |
+          |------------------>|                   |
+          |(2) 200 OK         |                   |
+          |<------------------|                   |
+          |                   |(3) SUBSCRIBE      |
+          |                   |Event:reg          |
+          |                   |<------------------|
+          |                   |(4) 200 OK         |
+          |                   |------------------>|
+          |                   |(5) NOTIFY         |
+          |                   |------------------>|
+          |                   |(6) 200 OK         |
+          |                   |<------------------|
+          |(9) REGISTER       |                   |
+          |Expires: 0         |                   |
+          |------------------>|                   |
+          |(10) 200 OK        |                   |
+          |<------------------|                   |
+          |                   |(11) NOTIFY        |
+          |                   |------------------>|
+          |                   |(12) 200 OK        |
+          |                   |<------------------|
+          |                   |(13) SUBSCRIBE     |
+          |                   |Expires: 0         |
+          |                   |<------------------|
+          |                   |(14) 200 OK        |
+          |                   |------------------>|
+          |                   |(15) NOTIFY        |
+          |                   |------------------>|
+          |                   |(16) 200 OK        |
+          |                   |<------------------|
+     * </pre>
+	 */
+	public void testSubscription2()
+	{
+		getAlicePhone().register(null, 1500);
+		assertLastOperationSuccess(getAlicePhone());
+		
+		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
+		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
+		session.sendRequest(subscribe, null, null, Response.OK);
+		
+		ServerTransaction tx = session.waitForNotify(2000);
+		Request notify = tx.getRequest();
+		System.out.println(notify);
+		session.sendResponse(Response.OK, tx);
+		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
+		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
+		assertBetween(95, 100, subState.getExpires());
+		assertEquals("reg", ((EventHeader) notify.getHeader(EventHeader.NAME)).getEventType());
+		Reginfo regInfo = getRegInfo(notify);
+		Registration registration = regInfo.getRegistrationArray(0);
+		assertEquals(0, regInfo.getVersion().intValue());
+		assertEquals(State.ACTIVE, registration.getState());
+		assertEquals(getAliceUri(), registration.getAor());
+		assertEquals(1, registration.getContactArray().length);
+		
+		
+		getAlicePhone().unregister(null, 2000);
+		assertLastOperationSuccess(getAlicePhone());
+		tx = session.waitForNotify(2000);
+		notify = tx.getRequest();
+		session.sendResponse(Response.OK, tx);
+		regInfo = getRegInfo(notify);
+		registration = regInfo.getRegistrationArray(0);
+		assertEquals(1, registration.getContactArray().length);
+		assertEquals(1, regInfo.getVersion().intValue());
+		assertEquals(State.TERMINATED, registration.getState());
+		Contact contact = registration.getContactArray(0);
+		assertEquals(0, contact.getExpires().intValue());
+		assertEquals(Event.UNREGISTERED, contact.getEvent());
+				
+		subscribe = session.newSubsequentSubscribe(0);
+		session.sendRequest(subscribe, null, null, Response.OK);
+		
+		tx = session.waitForNotify(2000);
+		notify = tx.getRequest();
+		System.out.println(notify);
+		session.sendResponse(Response.OK, tx);
+		subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
+		assertEquals(SubscriptionStateHeader.TERMINATED.toLowerCase(), 
+				subState.getState());
+		regInfo = getRegInfo(notify);
+		registration = regInfo.getRegistrationArray(0);
+		assertEquals(State.TERMINATED, registration.getState());
+		assertEquals(0, registration.getContactArray().length);
+		assertEquals(2, regInfo.getVersion().intValue());
 	}
 	
 	private Reginfo getRegInfo(Request request)

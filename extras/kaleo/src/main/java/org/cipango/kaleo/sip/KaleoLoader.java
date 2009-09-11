@@ -54,7 +54,7 @@ public class KaleoLoader implements ServletContextListener
 		{
 			PresenceEventPackage presence = new PresenceEventPackage();
 			LocationService locationService = new LocationService();
-			RegEventPackage regEventPackage = new RegEventPackage();
+			RegEventPackage regEventPackage = new RegEventPackage(locationService);
 			
 			locationService.start();
 			presence.start();

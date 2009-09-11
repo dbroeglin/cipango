@@ -33,7 +33,7 @@ public class RegResourceTest extends TestCase
 	{
 		long now = System.currentTimeMillis();
 		String aor = "sip:alice@cipango.org";
-		RegResource regResource = new RegResource(aor);
+		RegResource regResource = new RegResource(aor, null);
 		System.out.println(regResource.getState().getContent());
 		Reginfo reginfo = ((ReginfoDocument) regResource.getState().getContent()).getReginfo();
 		assertEquals(aor, reginfo.getRegistrationArray(0).getAor());

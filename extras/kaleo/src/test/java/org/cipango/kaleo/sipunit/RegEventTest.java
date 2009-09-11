@@ -24,6 +24,7 @@ import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.cafesip.sipunit.RegisterSession;
 import org.cafesip.sipunit.SipResponse;
 import org.cafesip.sipunit.SubscribeSession;
 import org.cipango.kaleo.location.event.ReginfoDocument;
@@ -79,8 +80,8 @@ public class RegEventTest extends UaTestCase
 	public void testSubscription()
 	{
 		// Ensure Alice is not registered
-		getAlicePhone().unregister(null, 2000);
-		assertLastOperationSuccess(getAlicePhone());
+		RegisterSession registerSession = new RegisterSession(getAlicePhone());
+		registerSession.register(null, 0);
 		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
 		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
@@ -101,8 +102,7 @@ public class RegEventTest extends UaTestCase
 		assertEquals(getAliceUri(), registration.getAor());
 		assertEquals(0, registration.getContactArray().length);
 		
-		getAlicePhone().register(null, 1800);
-		assertLastOperationSuccess(getAlicePhone());
+		registerSession.register(null, 1800);
 		
 		tx = session.waitForNotify(2000);
 		notify = tx.getRequest();
@@ -117,8 +117,7 @@ public class RegEventTest extends UaTestCase
 		assertBetween(1795, 1800, contact.getExpires().intValue());
 		assertEquals(Event.REGISTERED, contact.getEvent());
 		
-		getAlicePhone().unregister(null, 2000);
-		assertLastOperationSuccess(getAlicePhone());
+		registerSession.register(null, 0);
 		tx = session.waitForNotify(2000);
 		notify = tx.getRequest();
 		System.out.println(notify);

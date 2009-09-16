@@ -10,39 +10,16 @@
       <param name="ConversionPattern" value="%d %-5p %-15c{1} [%t]\t: %m%n"/>
     </layout>
   </appender>
-<!--
-  <appender name="littleims" class="org.apache.log4j.RollingFileAppender">
-    <param name="File" value="${jetty.home}/logs/littleims.log" />
-    <param name="Append" value="false" />
-    <param name="MaxFileSize" value="3000KB" />
-    <param name="MaxBackupIndex" value="10000" />
-    <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%d %-5p %-15c{1} [%t]\t: %m%n"/>
-    </layout>
-  </appender>
-
-  <appender name="cipango" class="org.apache.log4j.RollingFileAppender">
-    <param name="File" value="${jetty.home}/logs/cipango.log" />
-    <param name="Append" value="false" />
-    <param name="MaxFileSize" value="3000KB" />
-    <param name="MaxBackupIndex" value="10000" />
-    <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%d %-5p %-15c{1} [%t]\t: %m%n"/>
-    </layout>
-  </appender>
- --> 
+  
   <!-- categories -->
 
-
   <category name="org.cipango.kaleo">
-    <param name="additivity" value="false"/>
-    <priority value="debug"/>
-    <appender-ref ref="console"/>
+      <priority value="debug"/>
   </category>
-  
+
   <root>
-    <priority value="debug"/>
+    <priority value="warn" />
     <appender-ref ref="console"/>
   </root>
-
 </log4j:configuration>
+

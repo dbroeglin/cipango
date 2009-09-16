@@ -12,10 +12,21 @@
 		<servlet-class>org.cipango.kaleo.web.APIServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>XcapServlet</servlet-name>
+		<servlet-class>org.cipango.kaleo.web.XcapServlet</servlet-class>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
 
 	<servlet-mapping>
 		<servlet-name>api</servlet-name>
 		<url-pattern>/api/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>XcapServlet</servlet-name>
+		<url-pattern>/xcap/*</url-pattern>
 	</servlet-mapping>
 
 </web-app>

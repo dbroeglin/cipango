@@ -38,6 +38,14 @@ public class BasicXcapServletTest extends AbstractXcapServletTest {
 		assertEquals(XcapServiceTest.EXPECTED_RESULT, response.getOutputStreamContent());
 		assertEquals("application/xcap-el+xml", response.getContentType());
 	}
+	
+	public void testGetNotAFile() throws Exception {
+		request.setRequestURI("xcap-caps/global");
+		doGet();
+		assertEquals(404, response.getStatusCode());
+	}
+	
+	
 	/* FIXME
 	public void testGetNamespace() throws Exception {		
 		request.setRequestURI(XcapServiceTest.GET_NAMESPACE_BINDINGS);

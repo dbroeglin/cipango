@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.OutputKeys;
@@ -31,11 +32,14 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.xerces.parsers.DOMParser;
 import org.cipango.kaleo.xcap.XcapException;
 import org.cipango.kaleo.xcap.XcapResource;
+import org.cipango.kaleo.xcap.XcapResourceProcessor;
 import org.cipango.kaleo.xcap.XcapService;
 import org.cipango.kaleo.xcap.XcapUri;
 import org.cipango.kaleo.xcap.XcapResourceImpl.NodeType;
 import org.jaxen.JaxenException;
 import org.jaxen.dom.DOMXPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -44,10 +48,13 @@ import org.xml.sax.InputSource;
 
 public class FileXcapDao implements XcapDao
 {
+	private Logger _log = LoggerFactory.getLogger(FileXcapDao.class);
+	
 	private File _baseDir;
+	private boolean _createUser = true;
 	private static TransformerFactory _transformerfactory = TransformerFactory.newInstance(); 
 	
-	public void init() throws Exception
+	public void init(Collection<XcapResourceProcessor> processors) throws Exception
 	{
 		if (_baseDir == null)
 			throw new IllegalAccessException("Base dirctory is not set");
@@ -56,7 +63,13 @@ public class FileXcapDao implements XcapDao
 			throw new IllegalAccessException("Base dirctory is not a directory");
 		if (!_baseDir.canWrite())
 			throw new IllegalAccessException("Base dirctory is not writable");
-		new File(_baseDir, "xcap-caps/global").mkdirs();
+		for (XcapResourceProcessor processor : processors)
+		{
+			File file = new File(_baseDir, processor.getAuid());
+			file.mkdir();
+			new File(file, XcapUri.GLOBAL).mkdir();
+			new File(file, XcapUri.USERS).mkdir();
+		}
 		
 	}
 	
@@ -80,9 +93,19 @@ public class FileXcapDao implements XcapDao
 	public XmlResource getDocument(XcapUri uri, boolean create)
 			throws XcapException
 	{
-		File file = new File(_baseDir, uri.getDocumentSelector());
+		File file = getFile(uri);
 		if (!file.exists())
+		{
+			if (!uri.isGlobal() && _createUser && !file.getParentFile().exists()
+					&& file.getParentFile().getName().equals(getEscapePath(uri.getUser())))
+				file.getParentFile().mkdir();
 			return null;
+		}
+		if (file.isDirectory())
+		{
+			_log.debug("Find resource with document selector {}, but is a directory", uri.getDocumentSelector());
+			return null;
+		}
 		return new FileXmlResource(file);
 	}
 
@@ -176,7 +199,7 @@ public class FileXcapDao implements XcapDao
 			if (resource.isAllDocument())
 			{
 				resource.setDocument(new FileXmlResource(
-						new File(_baseDir, resource.getXcapUri().getDocumentSelector()),
+						getFile(resource.getXcapUri()),
 						document));
 			}
 			else
@@ -196,6 +219,16 @@ public class FileXcapDao implements XcapDao
 				}
 			}
 		}
+	}
+	
+	private File getFile(XcapUri uri)
+	{
+		return new File(_baseDir, getEscapePath(uri.getDocumentSelector()));
+	}
+	
+	private String getEscapePath(String path)
+	{
+		return path.replace(":", "%3A").replace("@", "%40");
 	}
 	
 	public File getBaseDir()
@@ -223,13 +256,13 @@ public class FileXcapDao implements XcapDao
 		}
 		catch (TransformerException e)
 		{
-			throw new RuntimeException(e);
+			throw XcapException.newInternalError(e);
 		}
 	}
 	
 	public String getFirstExistAncestor(XcapUri uri)
 	{
-		File file = new File(_baseDir, uri.getDocumentSelector());
+		File file = getFile(uri);
 		while (!file.exists() && !file.equals(_baseDir))
 			file = file.getParentFile();
 		if (file.equals(_baseDir))
@@ -305,7 +338,7 @@ public class FileXcapDao implements XcapDao
 				}
 				catch (IOException e)
 				{
-					throw new RuntimeException(e);
+					throw XcapException.newInternalError(e);
 				}
 			}
 		}
@@ -317,12 +350,12 @@ public class FileXcapDao implements XcapDao
 				try
 				{
 					DOMParser parser = new DOMParser();
-					parser.parse(_file.getAbsolutePath());
+					parser.parse(new InputSource(new FileInputStream(_file)));
 					_document = parser.getDocument();
 				}
 				catch (Exception e)
 				{
-					throw new RuntimeException(e);
+					throw XcapException.newInternalError(e);
 				}
 			}
 			return _document;

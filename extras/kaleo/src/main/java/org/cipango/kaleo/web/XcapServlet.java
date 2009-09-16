@@ -22,12 +22,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.cipango.kaleo.xcap.XcapException;
 import org.cipango.kaleo.xcap.XcapService;
+import org.cipango.kaleo.xcap.dao.FileXcapDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
 public class XcapServlet extends HttpServlet
 {
-
+	private Logger _log = LoggerFactory.getLogger(XcapServlet.class);
 	private XcapService _xcapService;
 	
 	public XcapServlet()
@@ -48,8 +51,7 @@ public class XcapServlet extends HttpServlet
 				_xcapService.setRootName( contextPath + "/xcap/");
 		} catch (Exception e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			_log.warn("Failed to init XCAP servlet", e);
 			throw new ServletException(e);
 		}
 	}
@@ -72,8 +74,7 @@ public class XcapServlet extends HttpServlet
 		} 
 		catch (Exception e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			_log.warn("Failed to handle XCAP request", e);
 		}
 	}
 	

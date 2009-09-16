@@ -14,15 +14,17 @@
 package org.cipango.kaleo.xcap.dao;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.cipango.kaleo.xcap.XcapException;
 import org.cipango.kaleo.xcap.XcapResource;
+import org.cipango.kaleo.xcap.XcapResourceProcessor;
 import org.cipango.kaleo.xcap.XcapUri;
 
 public interface XcapDao
 {
 
-	public void init() throws Exception;
+	public void init(Collection<XcapResourceProcessor> processors) throws Exception;
 
 	public XmlResource getDocument(XcapUri uri, boolean create)
 			throws XcapException;

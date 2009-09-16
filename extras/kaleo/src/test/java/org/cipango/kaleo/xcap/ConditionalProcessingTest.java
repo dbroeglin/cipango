@@ -1,6 +1,6 @@
 package org.cipango.kaleo.xcap;
 
-import org.cipango.kaleo.xcap.util.XcapConstant;
+import org.cipango.kaleo.Constants;
 
 
 public class ConditionalProcessingTest extends AbstractXcapServletTest {
@@ -18,10 +18,10 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		
 		assertEquals(200, response.getStatusCode());
 		assertEquals("application/auth-policy+xml", response.getContentType());
-		String etag = response.getHeader(XcapConstant.ETAG_HEADER);
+		String etag = response.getHeader(Constants.ETAG);
 		
 		// PUT
-		request.setHeader(XcapConstant.IF_MATCH_HEADER, etag);
+		request.setHeader(Constants.IF_MATCH, etag);
 		request.setContentType("application/auth-policy+xml");
 		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/allDocument.xml");
 		request.setBodyContent(content);
@@ -29,17 +29,17 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		doPut();
 		
 		assertEquals(200, response.getStatusCode());
-		String etag2 = response.getHeader(XcapConstant.ETAG_HEADER);
+		String etag2 = response.getHeader(Constants.ETAG);
 		assertNotSame(etag, etag2);
 		
 //		 GET
 		request.setRequestURI(PutTest.PUT_DOCUMENT_URI);
-		request.setHeader(XcapConstant.IF_MATCH_HEADER, etag2);
+		request.setHeader(Constants.IF_MATCH, etag2);
 		doGet();
 		
 		assertEquals(200, response.getStatusCode());
 		assertEquals("application/auth-policy+xml", response.getContentType());
-		String etag3 = response.getHeader(XcapConstant.ETAG_HEADER);
+		String etag3 = response.getHeader(Constants.ETAG);
 		assertEquals(etag2, etag3);
 	}	
 	
@@ -47,7 +47,7 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		setContent(PutTest.PUT_DOCUMENT_URI);
 		// PUT
 		request.setRequestURI(PutTest.PUT_DOCUMENT_URI);
-		request.setHeader(XcapConstant.IF_MATCH_HEADER, "badEtag");
+		request.setHeader(Constants.IF_MATCH, "badEtag");
 		request.setContentType("application/auth-policy+xml");
 		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/allDocument.xml");
 		request.setBodyContent(content);
@@ -65,9 +65,9 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 
 		assertEquals(200, response.getStatusCode());
 		assertEquals("application/auth-policy+xml", response.getContentType());
-		String etag = response.getHeader(XcapConstant.ETAG_HEADER);
+		String etag = response.getHeader(Constants.ETAG);
 		
-		request.setHeader(XcapConstant.IF_NONE_MATCH_HEADER, etag);
+		request.setHeader(Constants.IF_NONE_MATCH, etag);
 		doGet();
 		
 		assertEquals(304, response.getStatusCode());	
@@ -81,10 +81,10 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		
 		assertEquals(200, response.getStatusCode());
 		assertEquals("application/auth-policy+xml", response.getContentType());
-		String etag = response.getHeader(XcapConstant.ETAG_HEADER);
+		String etag = response.getHeader(Constants.ETAG);
 		
-		request.addHeader(XcapConstant.IF_NONE_MATCH_HEADER, "oneEtag");
-		request.addHeader(XcapConstant.IF_NONE_MATCH_HEADER, etag + " , anotherEtag");
+		request.addHeader(Constants.IF_NONE_MATCH, "oneEtag");
+		request.addHeader(Constants.IF_NONE_MATCH, etag + " , anotherEtag");
 		doGet();
 		
 		assertEquals(304, response.getStatusCode());	
@@ -96,7 +96,7 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		doDelete();
 
 		// PUT
-		request.setHeader(XcapConstant.IF_NONE_MATCH_HEADER, "*");
+		request.setHeader(Constants.IF_NONE_MATCH, "*");
 		request.setContentType("application/auth-policy+xml");
 		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/allDocument.xml");
 		request.setBodyContent(content);
@@ -104,10 +104,10 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		doPut();
 		
 		assertEquals(200, response.getStatusCode());
-		String etag = response.getHeader(XcapConstant.ETAG_HEADER);	
+		String etag = response.getHeader(Constants.ETAG);	
 		
 //		 PUT
-		request.setHeader(XcapConstant.IF_NONE_MATCH_HEADER, etag);
+		request.setHeader(Constants.IF_NONE_MATCH, etag);
 		request.setBodyContent(content);
 		request.setContentLength(content.length);
 		doPut();
@@ -115,7 +115,7 @@ public class ConditionalProcessingTest extends AbstractXcapServletTest {
 		assertEquals(412, response.getStatusCode());
 		
 //		 PUT
-		request.setHeader(XcapConstant.IF_MATCH_HEADER, "*");
+		request.setHeader(Constants.IF_MATCH, "*");
 		request.setBodyContent(content);
 		request.setContentLength(content.length);
 		doPut();

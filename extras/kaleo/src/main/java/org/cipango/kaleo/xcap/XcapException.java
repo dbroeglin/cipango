@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Level;
 
-public class XcapException extends Exception
+public class XcapException extends RuntimeException
 {
 	/**
 	 * Logger for this class

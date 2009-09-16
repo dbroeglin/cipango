@@ -3,10 +3,13 @@ package org.cipango.kaleo.xcap;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cipango.kaleo.xcap.util.RequestUtil;
-import org.cipango.kaleo.xcap.util.XcapConstant;
 
 public class XcapUri
 {
+	public static final String NODE_SELECTOR_SEPARATOR = "/~~";
+	public static final String USERS = "users";
+	public static final String GLOBAL = "global";
+	
 	private String _nodeSelector;
 	private String _documentSelector;
 	private String _auid;
@@ -18,14 +21,14 @@ public class XcapUri
 	{
 		requestUri = getRequestUriWithoutRootName(RequestUtil.URLDecode(requestUri), rootName);
 
-		int separator = requestUri.indexOf(XcapConstant.NODE_SELECTOR_SEPARATOR);
+		int separator = requestUri.indexOf(NODE_SELECTOR_SEPARATOR);
 
 		if (separator == -1)
 			_documentSelector = requestUri;
 		else
 		{
 			_documentSelector = requestUri.substring(0, separator);
-			_nodeSelector = requestUri.substring(separator + XcapConstant.NODE_SELECTOR_SEPARATOR.length());
+			_nodeSelector = requestUri.substring(separator + NODE_SELECTOR_SEPARATOR.length());
 		}
 		
 		if (_documentSelector.indexOf('/') == -1)
@@ -39,9 +42,9 @@ public class XcapUri
 		_auid = docParts[0];
 		_resourceId = _documentSelector.substring(_auid.length() + 1).replaceAll(":", "%3A").replaceAll("/", "%2F");
 
-		if ("global".equals(docParts[1]))
+		if (GLOBAL.equals(docParts[1]))
 			_global = true;
-		else if ("users".equals(docParts[1]))
+		else if (USERS.equals(docParts[1]))
 		{
 			if (docParts.length >= 3)
 			{
@@ -133,7 +136,7 @@ public class XcapUri
 		StringBuilder sb = new StringBuilder();
 		sb.append(_documentSelector);
 		if (hasNodeSeparator())
-			sb.append(XcapConstant.NODE_SELECTOR_SEPARATOR).append(_nodeSelector);
+			sb.append(NODE_SELECTOR_SEPARATOR).append(_nodeSelector);
 		
 		return sb.toString();
 	}

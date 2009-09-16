@@ -15,7 +15,6 @@ package org.cipango.kaleo.xcap;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -28,13 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Level;
+import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.xcap.XcapResourceImpl.NodeType;
 import org.cipango.kaleo.xcap.dao.FileXcapDao;
 import org.cipango.kaleo.xcap.dao.XcapDao;
 import org.cipango.kaleo.xcap.dao.XmlResource;
 import org.cipango.kaleo.xcap.util.HexString;
 import org.cipango.kaleo.xcap.util.RequestUtil;
-import org.cipango.kaleo.xcap.util.XcapConstant;
 import org.cipango.kaleo.xcap.util.XcapUtil;
 import org.iso_relax.verifier.VerifierConfigurationException;
 import org.jaxen.JaxenException;
@@ -55,9 +54,9 @@ public class XcapService
 	private static final String XPOINTER_PREFIX = "xmlns(";
 	private static final String XPOINTER_PREFIX_REGEX = "xmlns\\(";
 
-	private final Logger __log = LoggerFactory.getLogger(XcapService.class);
+	private final Logger _log = LoggerFactory.getLogger(XcapService.class);
 
-	private HashMap<String, XcapResourceProcessor> _processors;
+	private Map<String, XcapResourceProcessor> _processors;
 	private XcapDao _dao;
 
 	private boolean _validate;
@@ -66,7 +65,6 @@ public class XcapService
 
 	public XcapService()
 	{
-		//_dao = new ExistXcapDao();
 		FileXcapDao dao = new FileXcapDao();
 		dao.setBaseDir(new File(System.getProperty("jetty.home", ".") + "/data"));
 		_dao = dao;
@@ -74,16 +72,17 @@ public class XcapService
 	
 	public void init() throws Exception
 	{
-		_dao.init();
 		setRootName("xcap");
 		_validate = _validateOnGet = false;
-		createProcessors();
+		_processors = new HashMap<String, XcapResourceProcessor>();
+		createIetfProcessors();
+		createOmaProcessors();
+		_dao.init(_processors.values());
 		initXcapCaps();
 	}
 	
-	public void createProcessors()
+	public void createIetfProcessors()
 	{
-		_processors = new HashMap<String, XcapResourceProcessor>();
 		XcapProcessorImpl processor = new XcapProcessorImpl();
 		processor.setAuid("resource-lists");
 		processor.setDefaultNamespacePrefix("rl");
@@ -101,10 +100,72 @@ public class XcapService
 		namespaceContext.put("pr", "urn:ietf:params:xml:ns:pres-rules");
 		namespaceContext.put("cr", "urn:ietf:params:xml:ns:common-policy");
 		processor.setNamespaceContext(namespaceContext);
+		processor.setXsdSchemaPath("/schema/common-policy.xsd");
 		processor.setName("Presence-rules processor");
 		addProcessor(processor);
-		
+			
 		addProcessor(new XcapCapsProcessor());
+	}
+	
+	public void createOmaProcessors()
+	{
+		XcapProcessorImpl processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.access-rules");
+		processor.setDefaultNamespacePrefix("cr");
+		processor.setMimeType("application/auth-policy+xml");
+		Map<String, String> namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("pr", "urn:ietf:params:xml:ns:pres-rules");
+		namespaceContext.put("cr", "urn:ietf:params:xml:ns:common-policy");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA shared policy processor");
+		processor.setXsdSchemaPath("/schema/common-policy.xsd");
+		addProcessor(processor);
+		
+		processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.group-usage-list");
+		processor.setDefaultNamespacePrefix("rl");
+		processor.setMimeType("application/vnd.oma.group-usage-list+xml");
+		namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("rl", "urn:ietf:params:xml:ns:resource-lists");
+		namespaceContext.put("oru", "urn:oma:xml:xdm:resource-list:oma-uriusage");
+		namespaceContext.put("oxe", "urn:oma:xml:xdm:extensions");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA group usage list processor");
+		processor.setXsdSchemaPath("/schema/OMA-SUP-XSD_xdm_extensions-V1_0-20080916-C.xsd");
+		addProcessor(processor);
+		
+		processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.user-profile");
+		processor.setDefaultNamespacePrefix("ur");
+		processor.setMimeType("application/vnd.oma.user-profile+xml");
+		namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("ur", "urn:oma:xml:xdm:user-profile");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA shared profile XDM processor");
+		processor.setXsdSchemaPath("/schema/OMA-SUP-XSD_xdm_userProfile-V1_0-20070724-C.xsd");
+		addProcessor(processor);
+		
+		processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.locked-user-profile");
+		processor.setDefaultNamespacePrefix("ur");
+		processor.setMimeType("application/vnd.oma.user-profile+xml");
+		namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("ur", "urn:oma:xml:xdm:user-profile");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA locked user profile processor");
+		processor.setXsdSchemaPath("/schema/OMA-SUP-XSD_xdm_userProfile-V1_0-20070724-C.xsd");
+		addProcessor(processor);
+		
+		processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.groups");
+		processor.setDefaultNamespacePrefix("ls");
+		processor.setMimeType("application/vnd.oma.poc.groups+xml");
+		namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("ls", "urn:oma:xml:poc:list-service");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA shared group XDM processor");
+		// TODO set schema
+		addProcessor(processor);
 	}
 	
 	private void initXcapCaps() throws XcapException, IOException
@@ -195,7 +256,7 @@ public class XcapService
 			}
 			catch (XcapException e)
 			{
-				__log.warn("Unable to validated document:" + e.getMessage(), e);
+				_log.warn("Unable to validated document:" + e.getMessage(), e);
 			}
 		}
 
@@ -206,8 +267,8 @@ public class XcapService
 		String nodeSelector = XcapUtil.insertDefaultNamespace(xcapUri
 				.getNodeSelector(), processor.getDefaultNamespacePrefix());
 
-		if (__log.isDebugEnabled())
-			__log.debug("select node " + nodeSelector + " in "
+		if (_log.isDebugEnabled())
+			_log.debug("select node " + nodeSelector + " in "
 					+ xcapUri.getDocumentSelector());
 
 		if (requestNamespaceContext == null)
@@ -313,7 +374,7 @@ public class XcapService
 			String url = requestUrlHead + _rootName + documentSelector;
 			if (firstExistAncestor != null)
 			{
-				url += XcapConstant.NODE_SELECTOR_SEPARATOR
+				url += XcapUri.NODE_SELECTOR_SEPARATOR
 						+ firstExistAncestor;
 			}
 			sb.append(RequestUtil.filter(url));
@@ -334,9 +395,7 @@ public class XcapService
 	{
 		XmlResource xmlResource = _dao.getNode(resource, nodeSelector);
 		if (xmlResource != null)
-		{
 			return nodeSelector;
-		}
 		else
 		{
 			int index = nodeSelector.lastIndexOf('/');
@@ -346,9 +405,7 @@ public class XcapService
 				return getFirstExistNodeAncestor(resource, parent);
 			}
 			else
-			{
 				return null;
-			}
 		}
 	}
 
@@ -400,22 +457,18 @@ public class XcapService
 
 			String newEtag = getEtag(resource);
 			resource.setNewEtag(newEtag);
-			response.setHeader(XcapConstant.ETAG_HEADER, newEtag);
+			response.setHeader(Constants.ETAG, newEtag);
 			response.setStatus(HttpServletResponse.SC_OK);
-			if (__log.isDebugEnabled())
-				__log.debug(method + " " + requestUri + " sucessful");
+			if (_log.isDebugEnabled())
+				_log.debug(method + " " + requestUri + " sucessful");
 		}
 		catch (XcapException e)
 		{
 			if (e.shouldShowStackTrace())
-			{
-				__log.info("Unable to process " + method + " " + requestUri, e);
-			}
+				_log.info("Unable to process " + method + " " + requestUri, e);
 			else
-			{
-				__log.info("Unable to process " + method + " " + requestUri
+				_log.info("Unable to process " + method + " " + requestUri
 						+ ": " + e.getMessage());
-			}
 			e.sendResponse(response);
 		}
 	}
@@ -506,7 +559,7 @@ public class XcapService
 	private void ifMatchConditionalProcessing(HttpServletRequest request,
 			XcapResourceImpl resource) throws XcapException
 	{
-		Enumeration ifMatchEnum = request.getHeaders(XcapConstant.IF_MATCH_HEADER);
+		Enumeration ifMatchEnum = request.getHeaders(Constants.IF_MATCH);
 		String currentEtag = getEtag(resource);
 		resource.setPreviousEtag(currentEtag);
 
@@ -520,7 +573,7 @@ public class XcapService
 
 				for (int i = 0; i < matchEtags.length; i++)
 				{
-					if (XcapConstant.WILCARD.equals(matchEtags[i].trim()))
+					if (Constants.WILCARD.equals(matchEtags[i].trim()))
 					{
 						if (resource.isAllDocument() && resource.isCreation())
 						{
@@ -529,13 +582,13 @@ public class XcapService
 											+ "If-match: * and new document creation",
 									HttpServletResponse.SC_PRECONDITION_FAILED);
 						}
-						else if (__log.isDebugEnabled())
-							__log.debug("wilcard entity tags has matched");
+						else if (_log.isDebugEnabled())
+							_log.debug("wilcard entity tags has matched");
 					}
 					else if (currentEtag.equals(matchEtags[i].trim()))
 					{
-						if (__log.isDebugEnabled())
-							__log.debug("entity tag has matched");
+						if (_log.isDebugEnabled())
+							_log.debug("entity tag has matched");
 						return;
 					}
 				}
@@ -551,7 +604,7 @@ public class XcapService
 			XcapResourceImpl resource) throws XcapException
 	{
 		Enumeration ifNoneMatchEnum = request
-				.getHeaders(XcapConstant.IF_NONE_MATCH_HEADER);
+				.getHeaders(Constants.IF_NONE_MATCH);
 
 		if (ifNoneMatchEnum != null && ifNoneMatchEnum.hasMoreElements())
 		{
@@ -563,12 +616,12 @@ public class XcapService
 
 				for (int i = 0; i < noneMatchEtags.length; i++)
 				{
-					if (XcapConstant.WILCARD.equals(noneMatchEtags[i].trim()))
+					if (Constants.WILCARD.equals(noneMatchEtags[i].trim()))
 					{
 						if (resource.isAllDocument() && resource.isCreation())
 						{
-							if (__log.isDebugEnabled())
-								__log.debug("wilcard entity tag has matched");
+							if (_log.isDebugEnabled())
+								_log.debug("wilcard entity tag has matched");
 						}
 						else
 						{
@@ -613,7 +666,7 @@ public class XcapService
 			// an Allow header field including the GET method.
 			XcapException e = new XcapException(
 					HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			e.addHeader(XcapConstant.ALLOW_HEADER, GET);
+			e.addHeader(Constants.ALLOW, GET);
 			throw e;
 		}
 	}
@@ -628,10 +681,10 @@ public class XcapService
             md.update(resource.getDocument().getBytes());
             return HexString.bufferToHex(md.digest());
         } catch (NoSuchAlgorithmException e) {
-           __log.error("Unable to initialize Message Digest (for etags).", e);
+           _log.error("Unable to initialize Message Digest (for etags).", e);
            return "defaultEtag";
         } catch (Throwable e) {
-            __log.error("Unable to to create etags", e);
+            _log.error("Unable to to create etags", e);
             return "defaultEtag";
          }
 	}

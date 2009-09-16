@@ -17,12 +17,16 @@ package org.cipango.kaleo;
 public abstract class Constants
 {
 	public static final String ACCEPT 				= "Accept";
+	public static final String ALLOW 				= "Allow";
 	public static final String ALLOW_EVENTS 		= "Allow-Events";
 	public static final String AUTHORIZATION 		= "Authorization";
 	public static final String CONTACT 				= "Contact";
 	public static final String CSEQ 				= "CSeq";
 	public static final String DATE 				= "Date";
+	public static final String ETAG 				= "Etag";
 	public static final String EVENT 				= "Event";
+	public static final String IF_MATCH				= "If-Match";
+	public static final String IF_NONE_MATCH		= "If-None-Match";
 	public static final String MIN_EXPIRES 			= "Min-Expires";
 	public static final String REQUIRE				= "Require";
 	public static final String PROXY_AUTHORIZATION 	= "Proxy-Authorization";
@@ -39,6 +43,8 @@ public abstract class Constants
 	public static final String EXPIRES				= "expires";
 	public static final String REASON				= "reason";
 	public static final String RETRY_AFTER			= "retry-after";
+
+	public static final String WILCARD = "*";
 	
 	public static final String NOTIFY 				= "NOTIFY";
 	

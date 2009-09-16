@@ -6,6 +6,7 @@ public class PutTest extends AbstractXcapServletTest
 
 	public void testNoParent() throws Exception
 	{
+		setContent("/pres-rules/users/put/index");
 		request.setRequestURI("/pres-rules/users/put/notExist/~~/cr:ruleset/");
 		doPut();
 
@@ -16,6 +17,7 @@ public class PutTest extends AbstractXcapServletTest
 	
 	public void testNoParent2() throws Exception
 	{
+		setContent("/pres-rules/users/put/index");
 		request.setRequestURI("/pres-rules/users/notExist/index");
 		doPut();
 
@@ -26,8 +28,7 @@ public class PutTest extends AbstractXcapServletTest
 
 	public void testNoParentNode() throws Exception
 	{
-		request
-				.setRequestURI("/pres-rules/users/put/index/~~/cr:ruleset/cr:unknown/cr:bad");
+		request.setRequestURI("/pres-rules/users/put/index/~~/cr:ruleset/cr:unknown/cr:bad");
 		request.setContentType("application/xcap-el+xml");
 		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/element.xml");
 		request.setBodyContent(content);
@@ -41,6 +42,7 @@ public class PutTest extends AbstractXcapServletTest
 
 	public void testBadContentType() throws Exception
 	{
+		setContent(PUT_DOCUMENT_URI);
 		request.setRequestURI(PUT_DOCUMENT_URI);
 		request.setContentType("badContentType");
 		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/allDocument.xml");

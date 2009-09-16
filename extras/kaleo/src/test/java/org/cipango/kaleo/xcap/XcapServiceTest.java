@@ -195,12 +195,13 @@ public class XcapServiceTest extends TestCase {
 	public static final String NEW_PRES_RULES_DOC =
 		"/pres-rules/users/put/newDocument2";
 
+	private static final String OS_SEPARATOR = System.getProperty("line.separator");
 	
 	public static final String EXPECTED_RESULT =
-		"<cr:conditions xmlns:cr=\"urn:ietf:params:xml:ns:common-policy\">\r\n"
-		+ "    <cr:identity>\r\n"
-		+ "     <cr:one id=\"sip:user@cipango.org\"/>\r\n"
-		+ "    </cr:identity>\r\n"
+		"<cr:conditions xmlns:cr=\"urn:ietf:params:xml:ns:common-policy\">" + OS_SEPARATOR
+		+ "    <cr:identity>" + OS_SEPARATOR
+		+ "     <cr:one id=\"sip:user@cipango.org\"/>" + OS_SEPARATOR
+		+ "    </cr:identity>" + OS_SEPARATOR
 		+ "   </cr:conditions>";
 	
 	public static final String PRES_RULES_PROCESSOR_CLASS =

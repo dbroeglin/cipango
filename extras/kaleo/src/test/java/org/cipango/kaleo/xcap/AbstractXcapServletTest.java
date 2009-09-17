@@ -51,7 +51,7 @@ public abstract class AbstractXcapServletTest extends BasicServletTestCaseAdapte
 		{
 			File sourceFile = new File("target/test-classes/xcap-root", uri.getDocumentSelector());
 			InputStream is = new FileInputStream(sourceFile);
-			File outputFile = new File(_xcapRoot, uri.getDocumentSelector());
+			File outputFile = new File(_xcapRoot, uri.getDocumentSelector().replace("@", "%40"));
 			outputFile.getParentFile().mkdirs();
 			FileOutputStream os = new FileOutputStream(outputFile);
 			int read;

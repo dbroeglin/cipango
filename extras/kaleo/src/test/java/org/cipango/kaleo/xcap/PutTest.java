@@ -18,7 +18,7 @@ public class PutTest extends AbstractXcapServletTest
 	public void testNoParent2() throws Exception
 	{
 		setContent("/pres-rules/users/put/index");
-		request.setRequestURI("/pres-rules/users/notExist/index");
+		request.setRequestURI("/pres-rules/users/put/notExist/index");
 		doPut();
 
 		assertEquals(409, response.getStatusCode());
@@ -274,7 +274,7 @@ public class PutTest extends AbstractXcapServletTest
 	
 	private static final String NO_PARENT_2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		+ "<xcap-error xmlns=\"urn:ietf:params:xml:ns:xcap-error\">\n"
-		+ "<no-parent><ancestor>http://aloha:8080/pres-rules/users</ancestor></no-parent>\n"
+		+ "<no-parent><ancestor>http://aloha:8080/pres-rules/users/put</ancestor></no-parent>\n"
 		+ "</xcap-error>";
 
 	private static final String NO_PARENT_NODE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

@@ -18,7 +18,10 @@
  */
 package org.cipango.kaleo.sipunit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.sip.SipServletResponse;
 import javax.sip.RequestEvent;
@@ -90,7 +93,7 @@ public class PresenceTest extends UaTestCase
         
         PublishSession publishSession = new PublishSession(getBobPhone());
         Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
-        publishSession.sendRequest(publish, null, null, SipResponse.OK);
+        publishSession.sendRequest(publish, SipResponse.OK);
 
         // get the NOTIFY
         reqevent = s.waitNotify(10000);
@@ -138,19 +141,28 @@ public class PresenceTest extends UaTestCase
     {       
         SubscribeSession session = new SubscribeSession(getAlicePhone(), "presence");
         Request request = session.newInitialSubscribe(1, getAliceUri());
-        Response response = session.sendRequest(request, null, null, SipResponse.INTERVAL_TOO_BRIEF);
+        Response response = session.sendRequest(request, SipResponse.INTERVAL_TOO_BRIEF);
         MinExpiresHeader minExpiresHeader = (MinExpiresHeader) response.getHeader(MinExpiresHeader.NAME);
         assertNotNull(minExpiresHeader);
     }
     
-    public void testBadEvent() throws Exception
+    @SuppressWarnings("unchecked")
+	public void testBadEvent() throws Exception
     {       
         SubscribeSession session = new SubscribeSession(getAlicePhone(), "unknown");
         Request request = session.newInitialSubscribe(100, getAliceUri());
-        Response response = session.sendRequest(request, null, null, SipResponse.BAD_EVENT);
-        AllowEventsHeader allowEvents = (AllowEventsHeader) response.getHeader(AllowEventsHeader.NAME);
-        assertNotNull(allowEvents);
-        assertEquals("presence", allowEvents.getEventType());
+        Response response = session.sendRequest(request, SipResponse.BAD_EVENT);
+        Iterator it = response.getHeaders(AllowEventsHeader.NAME);
+        List<String> l = new ArrayList<String>();
+        while (it.hasNext())
+		{
+			AllowEventsHeader allowEventsHeader = (AllowEventsHeader) it.next();
+			l.add(allowEventsHeader.getEventType());
+		}
+        assertEquals(3, l.size());
+        assertTrue(l.contains("presence"));
+        assertTrue(l.contains("presence.winfo"));
+        assertTrue(l.contains("reg"));
     }
     
     public void testBadAcceptHeader() throws Exception
@@ -162,7 +174,7 @@ public class PresenceTest extends UaTestCase
         request.setHeader(hf.createEventHeader("presence"));
         request.setHeader(getAlicePhone().getContactInfo().getContactHeader());
         request.setHeader(hf.createAcceptHeader("application", "unknown"));
-        session.sendRequest(request, null, null, SipResponse.UNSUPPORTED_MEDIA_TYPE);
+        session.sendRequest(request, SipResponse.UNSUPPORTED_MEDIA_TYPE);
     }
     
     
@@ -170,7 +182,7 @@ public class PresenceTest extends UaTestCase
     {       
     	 PublishSession publishSession = new PublishSession(getBobPhone());
          Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
-         Response response = publishSession.sendRequest(publish, null, null, SipResponse.OK);
+         Response response = publishSession.sendRequest(publish, SipResponse.OK);
          
          SIPETagHeader etagHeader = (SIPETagHeader) response.getHeader(SIPETagHeader.NAME);
          assertNotNull(etagHeader);
@@ -179,13 +191,13 @@ public class PresenceTest extends UaTestCase
          publish = publishSession.newPublish(getClass().getResourceAsStream("publish2.xml"), 20);
          HeaderFactory hf = publishSession.getHeaderFactory();
          publish.setHeader(hf.createSIPIfMatchHeader(etag));
-         response = publishSession.sendRequest(publish, null, null, SipResponse.OK);
+         response = publishSession.sendRequest(publish, SipResponse.OK);
          etagHeader = (SIPETagHeader) response.getHeader(SIPETagHeader.NAME);
          assertNotNull(etagHeader);
          
          publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
          publish.setHeader(hf.createSIPIfMatchHeader(etag)); //Use old etag
-         response = publishSession.sendRequest(publish, null, null, SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED);
+         response = publishSession.sendRequest(publish, SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED);
     }
 
 }

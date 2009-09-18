@@ -19,13 +19,19 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.location.event.RegEventPackage;
+import org.cipango.kaleo.presence.PresenceEventPackage;
+import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KaleoServlet extends SipServlet
 {
 	private static final long serialVersionUID = 1L;
+	private final Logger _log = LoggerFactory.getLogger(KaleoServlet.class);
 
 	protected void doRequest(SipServletRequest request) // throws ServletException, IOException
 	{
@@ -35,7 +41,7 @@ public class KaleoServlet extends SipServlet
 		} 
 		catch (Exception e)
 		{
-			e.printStackTrace();
+			_log.warn("Failed to handle request: \n" + request, e);
 		}
 	}
 	
@@ -54,8 +60,18 @@ public class KaleoServlet extends SipServlet
 		String event = subscribe.getHeader(Constants.EVENT);
 		if (RegEventPackage.NAME.equals(event))
 			getServletContext().getNamedDispatcher("registrar").forward(subscribe, null);
-		else
+		else if (PresenceEventPackage.NAME.equals(event)
+				|| WatcherInfoEventPackage.NAME.equals(event))
 			getServletContext().getNamedDispatcher("presence").forward(subscribe, null);
+		else
+		{
+			SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_BAD_EVENT);
+			response.addHeader(Constants.ALLOW_EVENTS, RegEventPackage.NAME);
+			response.addHeader(Constants.ALLOW_EVENTS, PresenceEventPackage.NAME);
+			response.addHeader(Constants.ALLOW_EVENTS, WatcherInfoEventPackage.NAME);
+			response.send();
+			response.getApplicationSession().invalidate();
+		}
 	}
 	
 	protected void doInvite(SipServletRequest invite) throws ServletException, IOException

@@ -85,11 +85,11 @@ public class RegEventTest extends UaTestCase
 		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
 		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
-		session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, Response.OK);
 		
-		ServerTransaction tx = session.waitForNotify(2000);
+		ServerTransaction tx = session.waitForNotify();
 		Request notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
@@ -104,9 +104,9 @@ public class RegEventTest extends UaTestCase
 		
 		registerSession.register(null, 1800);
 		
-		tx = session.waitForNotify(2000);
+		tx = session.waitForNotify();
 		notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		regInfo = getRegInfo(notify);
 		registration = regInfo.getRegistrationArray(0);
@@ -118,9 +118,9 @@ public class RegEventTest extends UaTestCase
 		assertEquals(Event.REGISTERED, contact.getEvent());
 		
 		registerSession.register(null, 0);
-		tx = session.waitForNotify(2000);
+		tx = session.waitForNotify();
 		notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		regInfo = getRegInfo(notify);
 		registration = regInfo.getRegistrationArray(0);
@@ -132,11 +132,11 @@ public class RegEventTest extends UaTestCase
 		assertEquals(Event.UNREGISTERED, contact.getEvent());
 		
 		subscribe = session.newSubsequentSubscribe(0);
-		session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, Response.OK);
 		
-		tx = session.waitForNotify(2000);
+		tx = session.waitForNotify();
 		notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.TERMINATED.toLowerCase(), 
@@ -193,11 +193,11 @@ public class RegEventTest extends UaTestCase
 		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
 		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
-		session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, Response.OK);
 		
-		ServerTransaction tx = session.waitForNotify(2000);
+		ServerTransaction tx = session.waitForNotify();
 		Request notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
@@ -213,7 +213,7 @@ public class RegEventTest extends UaTestCase
 		
 		getAlicePhone().unregister(null, 2000);
 		assertLastOperationSuccess(getAlicePhone());
-		tx = session.waitForNotify(2000);
+		tx = session.waitForNotify();
 		notify = tx.getRequest();
 		session.sendResponse(Response.OK, tx);
 		regInfo = getRegInfo(notify);
@@ -226,11 +226,11 @@ public class RegEventTest extends UaTestCase
 		assertEquals(Event.UNREGISTERED, contact.getEvent());
 				
 		subscribe = session.newSubsequentSubscribe(0);
-		session.sendRequest(subscribe, null, null, Response.OK);
+		session.sendRequest(subscribe, Response.OK);
 		
-		tx = session.waitForNotify(2000);
+		tx = session.waitForNotify();
 		notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		session.sendResponse(Response.OK, tx);
 		subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.TERMINATED.toLowerCase(), 
@@ -261,18 +261,8 @@ public class RegEventTest extends UaTestCase
     {       
         SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
         Request request = session.newInitialSubscribe(1, getAliceUri());
-        Response response = session.sendRequest(request, null, null, SipResponse.INTERVAL_TOO_BRIEF);
+        Response response = session.sendRequest(request,SipResponse.INTERVAL_TOO_BRIEF);
         MinExpiresHeader minExpiresHeader = (MinExpiresHeader) response.getHeader(MinExpiresHeader.NAME);
         assertNotNull(minExpiresHeader);
-    }
-    
-    public void testBadEvent() throws Exception
-    {       
-        SubscribeSession session = new SubscribeSession(getAlicePhone(), "unknown");
-        Request request = session.newInitialSubscribe(100, getAliceUri());
-        Response response = session.sendRequest(request, null, null, SipResponse.BAD_EVENT);
-        AllowEventsHeader allowEvents = (AllowEventsHeader) response.getHeader(AllowEventsHeader.NAME);
-        assertNotNull(allowEvents);
-        assertEquals("presence", allowEvents.getEventType());
     }
 }

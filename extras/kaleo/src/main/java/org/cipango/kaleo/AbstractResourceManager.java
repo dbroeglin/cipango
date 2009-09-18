@@ -127,6 +127,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 			synchronized (_resources)
 			{
 				_resources.remove(resource.getUri());
+				_log.debug("Remove {} resource {}", resource.getClass().getSimpleName(), resource);
 			}
 		}
 		holder.unlock();

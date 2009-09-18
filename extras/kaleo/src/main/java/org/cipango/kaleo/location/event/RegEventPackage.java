@@ -20,12 +20,10 @@ import java.util.List;
 
 import javax.servlet.sip.SipSession;
 
+import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.event.AbstractEventPackage;
 import org.cipango.kaleo.event.ContentHandler;
-import org.cipango.kaleo.event.EventResource;
-import org.cipango.kaleo.event.EventResourceListener;
 import org.cipango.kaleo.event.State;
-import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
@@ -37,10 +35,8 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 {
 	public static final String NAME = "reg";
 	public static final String REGINFO = "application/reginfo+xml";
-	private static final String VERSION = "version";
 	
 	private ReginfoHandler _handler = new ReginfoHandler();
-	private EventResourceListener _listener = new RegEventListener();
 	private RegistrationListener _registrationListener = new RegListener();
 
 	private LocationService _locationService;
@@ -69,7 +65,7 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 		try
 		{
 			RegResource regResource = new RegResource(uri, registration);
-			regResource.addListener(_listener);
+			regResource.addListener(getEventNotifier());
 			return regResource;
 		}
 		finally
@@ -88,26 +84,18 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 		return _registrationListener;
 	}
 	
-	class RegEventListener implements EventResourceListener
+	@Override
+	protected void preprocessState(SipSession session, State state)
 	{
-
-		public void stateChanged(EventResource resource)
-		{
-			if (_log.isDebugEnabled())
-				_log.debug("State changed for resource {}", resource);
-			
-			for (Subscription subscription : resource.getSubscriptions())
-			{
-				RegEventPackage.this.notify(subscription);
-			}
-		}
+		BigInteger version = (BigInteger) session.getAttribute(Constants.VERSION_ATTRIBUTE);
+		if (version == null)
+			version = BigInteger.ZERO;
+		else
+			version = version.add(BigInteger.ONE);
+		Reginfo reginfo = ((ReginfoDocument) state.getContent()).getReginfo();
 		
-		public void subscriptionExpired(Subscription subscription)
-		{
-			subscription.setState(Subscription.State.TERMINATED);
-			RegEventPackage.this.notify(subscription);
-		}
-		
+		reginfo.setVersion(version);
+		session.setAttribute(Constants.VERSION_ATTRIBUTE, version);
 	}
 	
 	class RegListener implements RegistrationListener
@@ -143,18 +131,5 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 			}
 		}
 		
-	}
-	
-	protected void preprocessState(SipSession session, State state)
-	{
-		BigInteger version = (BigInteger) session.getAttribute(VERSION);
-		if (version == null)
-			version = BigInteger.ZERO;
-		else
-			version = version.add(BigInteger.ONE);
-		Reginfo reginfo = ((ReginfoDocument) state.getContent()).getReginfo();
-		
-		reginfo.setVersion(version);
-		session.setAttribute(VERSION, version);
 	}
 }

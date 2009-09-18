@@ -97,6 +97,11 @@ public class AbstractSession
 		return ((ResponseEvent) event).getResponse();
 	}
 
+	public Response sendRequest(Request request, int expectedResponseCode)
+	{
+		return sendRequest(request, null, null, expectedResponseCode);
+	}
+	
 	public Response sendRequest(Request request, String user, String password,
 			int expectedResponseCode)
 	{

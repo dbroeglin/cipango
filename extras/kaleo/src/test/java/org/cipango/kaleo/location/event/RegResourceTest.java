@@ -34,7 +34,7 @@ public class RegResourceTest extends TestCase
 		long now = System.currentTimeMillis();
 		String aor = "sip:alice@cipango.org";
 		RegResource regResource = new RegResource(aor, null);
-		System.out.println(regResource.getState().getContent());
+		//System.out.println(regResource.getState().getContent());
 		Reginfo reginfo = ((ReginfoDocument) regResource.getState().getContent()).getReginfo();
 		assertEquals(aor, reginfo.getRegistrationArray(0).getAor());
 		assertEquals(State.INIT, reginfo.getRegistrationArray(0).getState());
@@ -45,7 +45,7 @@ public class RegResourceTest extends TestCase
 		Binding binding1 = new Binding(new UriImpl("sip:alice@localhost"), "123@localhost", 1, now + 100000);
 		registration.addBinding(binding1);
 		
-		System.out.println(regResource.getState().getContent());
+		//System.out.println(regResource.getState().getContent());
 		assertEquals(1, reginfo.getRegistrationArray(0).getContactArray().length);
 		assertEquals(State.ACTIVE, reginfo.getRegistrationArray(0).getState());
 		Contact contact = reginfo.getRegistrationArray(0).getContactArray(0);

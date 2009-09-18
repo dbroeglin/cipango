@@ -37,6 +37,8 @@ import javax.servlet.sip.SipSession;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.event.Subscription.Reason;
+import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
@@ -314,7 +316,7 @@ public class RegistrarServlet extends SipServlet
 						_log.debug("removed reg subscription {} to registration resource {}", 
 							subscription.getSession().getId(), regResource.getUri());
 				}	
-				subscription.setState(Subscription.State.TERMINATED);
+				subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
 			}
 			else
 			{
@@ -325,6 +327,7 @@ public class RegistrarServlet extends SipServlet
 				if (subscription == null)
 				{
 					subscription = new Subscription(regResource, session, now + expires*1000);
+					subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
 					regResource.addSubscription(subscription);
 					
 					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);

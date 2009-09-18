@@ -25,24 +25,27 @@ public abstract class Constants
 	public static final String DATE 				= "Date";
 	public static final String ETAG 				= "Etag";
 	public static final String EVENT 				= "Event";
+	public static final String EXPIRES				= "expires";
 	public static final String IF_MATCH				= "If-Match";
 	public static final String IF_NONE_MATCH		= "If-None-Match";
 	public static final String MIN_EXPIRES 			= "Min-Expires";
+	public static final String P_ASSERTED_IDENTITY	= "P-Asserted-Identity";
+	public static final String REASON				= "reason";
+	public static final String RETRY_AFTER			= "retry-after";
 	public static final String REQUIRE				= "Require";
 	public static final String PROXY_AUTHORIZATION 	= "Proxy-Authorization";
 	public static final String PROXY_AUTHENTICATE 	= "Proxy-Authenticate";
 	public static final String SIP_IF_MATCH 		= "SIP-If-Match";
 	public static final String SIP_ETAG 			= "SIP-ETag";
+	public static final String SUBSCRIPTION_STATE	= "Subscription-State";
 	public static final String UNSUPPORTED 			= "Unsupported";
 	public static final String WWW_AUTHENTICATE 	= "WWW-Authenticate";
+	
 	public static final String ID_PARAM 			= "id";
 	public static final String SUBSCRIPTION_ATTRIBUTE = "Subscription-Resource";
+	public static final String VERSION_ATTRIBUTE = "version";
 	
-	public static final String SUBSCRIPTION_STATE	= "Subscription-State";
 	
-	public static final String EXPIRES				= "expires";
-	public static final String REASON				= "reason";
-	public static final String RETRY_AFTER			= "retry-after";
 
 	public static final String WILCARD = "*";
 	

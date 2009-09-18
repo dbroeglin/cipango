@@ -19,12 +19,15 @@ import javax.servlet.sip.SipSession;
 
 import org.cipango.kaleo.AbstractResourceManager;
 import org.cipango.kaleo.Constants;
+import org.cipango.kaleo.event.Subscription.Reason;
 
 public abstract class AbstractEventPackage<T extends EventResource> extends AbstractResourceManager<T> implements EventPackage<T>
 {
 	private int _minExpires = 60;
 	private int _maxExpires = 3600;
 	private int _defaultExpires = 3600;
+	
+	private EventNotifier _eventNotifier = new EventNotifier();
 	
 	public int getMinExpires()
 	{
@@ -56,6 +59,11 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 		_defaultExpires = defaultExpires;
 	}	
 	
+	protected EventResourceListener getEventNotifier()
+	{
+		return _eventNotifier;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void notify(Subscription subscription)
 	{
@@ -80,6 +88,9 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 				notify.setContent(b, state.getContentType());
 				notify.send();
 			}
+			else
+				_log.warn("Could not send notification to {} for event {} as sip session is invalidated", 
+						subscription, getName());
 		}
 		catch (Exception e) 
 		{
@@ -89,5 +100,27 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 	
 	protected void preprocessState(SipSession session, State state)
 	{	
+	}
+	
+	class EventNotifier implements EventResourceListener
+	{
+
+		public void stateChanged(EventResource resource)
+		{
+			if (_log.isDebugEnabled())
+				_log.debug("State changed for {} resource {} ", getName(), resource);
+			
+			for (Subscription subscription : resource.getSubscriptions())
+			{
+				AbstractEventPackage.this.notify(subscription);
+			}
+		}
+		
+		public void subscriptionExpired(Subscription subscription)
+		{
+			subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
+			AbstractEventPackage.this.notify(subscription);
+		}
+		
 	}
 }

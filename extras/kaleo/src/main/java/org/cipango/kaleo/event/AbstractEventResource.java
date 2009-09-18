@@ -19,9 +19,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
  
 public abstract class AbstractEventResource implements EventResource
 {
+	private static final Logger __log = LoggerFactory.getLogger(AbstractEventResource.class);
+	
 	private String _uri;
 	
 	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
@@ -68,13 +73,14 @@ public abstract class AbstractEventResource implements EventResource
 			listener.subscriptionExpired(subscription);
 		}
 	}
-	
+		
 	public void addSubscription(Subscription subscription) 
 	{
 		synchronized (_subscriptions)
 		{
 			_subscriptions.put(subscription.getId(), subscription);
-		}	
+		}
+		__log.debug("Add subscription {} to resource {}", subscription, this);
 	}
 	
 	public List<Subscription> getSubscriptions()
@@ -119,10 +125,13 @@ public abstract class AbstractEventResource implements EventResource
 	
 	public Subscription removeSubscription(String id) 
 	{
+		Subscription subscription = null;
 		synchronized (_subscriptions) 
 		{
-			return _subscriptions.remove(id);
+			subscription = _subscriptions.remove(id);
 		}
+		__log.debug("Remove subscription {} to resource {}", subscription, this);
+		return subscription;
 	}
 	
 	public void doTimeout(long time)

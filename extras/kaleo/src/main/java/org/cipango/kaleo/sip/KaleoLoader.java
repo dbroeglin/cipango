@@ -20,6 +20,7 @@ import javax.servlet.ServletContextListener;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.event.RegEventPackage;
 import org.cipango.kaleo.presence.PresenceEventPackage;
+import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.slf4j.Logger;
 
 public class KaleoLoader implements ServletContextListener
@@ -41,6 +42,10 @@ public class KaleoLoader implements ServletContextListener
 			RegEventPackage regEventPackage = (RegEventPackage) event.getServletContext().getAttribute(RegEventPackage.class.getName());
 			if (regEventPackage != null)
 				regEventPackage.stop();
+			
+			WatcherInfoEventPackage watcherInfo = (WatcherInfoEventPackage) event.getServletContext().getAttribute(WatcherInfoEventPackage.class.getName());
+			if (watcherInfo != null)
+				watcherInfo.stop();	
 		}
 		catch (Exception e)
 		{
@@ -55,14 +60,17 @@ public class KaleoLoader implements ServletContextListener
 			PresenceEventPackage presence = new PresenceEventPackage();
 			LocationService locationService = new LocationService();
 			RegEventPackage regEventPackage = new RegEventPackage(locationService);
+			WatcherInfoEventPackage watcherInfo = new WatcherInfoEventPackage(presence);
 			
 			locationService.start();
 			presence.start();
 			regEventPackage.start();
+			watcherInfo.start();
 			
 			event.getServletContext().setAttribute(PresenceEventPackage.class.getName(), presence);
 			event.getServletContext().setAttribute(LocationService.class.getName(), locationService);
 			event.getServletContext().setAttribute(RegEventPackage.class.getName(), regEventPackage);
+			event.getServletContext().setAttribute(WatcherInfoEventPackage.class.getName(), watcherInfo);
 		}
 		catch (Exception e)
 		{

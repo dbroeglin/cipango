@@ -17,18 +17,8 @@ package org.cipango.kaleo.presence;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipSession;
-
-import org.cipango.kaleo.AbstractResourceManager;
-import org.cipango.kaleo.Constants;
-import org.cipango.kaleo.Resource;
 import org.cipango.kaleo.event.AbstractEventPackage;
 import org.cipango.kaleo.event.ContentHandler;
-import org.cipango.kaleo.event.EventResource;
-import org.cipango.kaleo.event.EventResourceListener;
-import org.cipango.kaleo.event.State;
-import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +34,6 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	public static final String PIDF = "application/pidf+xml";
 	
 	private PidfHandler _pidfHandler = new PidfHandler();
-	private EventResourceListener _presenceListener = new PresentityListener();
 	
 	public int _minStateExpires = 1;
 	public int _maxStateExpires = 3600;
@@ -77,7 +66,7 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	protected Presentity newResource(String uri)
 	{
 		Presentity presentity = new Presentity(uri);
-		presentity.addListener(_presenceListener);
+		presentity.addListener(getEventNotifier());
 		return presentity;
 	}
 	
@@ -92,25 +81,5 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 			return _pidfHandler;
 		else
 			return null;
-	}
-		
-	class PresentityListener implements EventResourceListener
-	{
-		public void stateChanged(EventResource resource)
-		{
-			if (_log.isDebugEnabled())
-				_log.debug("State changed for resource {}", resource);
-			
-			for (Subscription subscription : resource.getSubscriptions())
-			{
-				PresenceEventPackage.this.notify(subscription);
-			}
-		}
-		
-		public void subscriptionExpired(Subscription subscription)
-		{
-			subscription.setState(Subscription.State.TERMINATED);
-			PresenceEventPackage.this.notify(subscription);
-		}
 	}
 }

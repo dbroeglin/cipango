@@ -244,12 +244,6 @@ public class Presentity extends AbstractEventResource
 		return getUri();
 	}
 	
-	
-
-	
-	
-
-	
 	/*
 	private Map<String, State> _states = new HashMap<String, State>();
 

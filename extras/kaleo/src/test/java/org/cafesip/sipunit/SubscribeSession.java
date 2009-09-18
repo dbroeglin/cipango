@@ -36,6 +36,8 @@ public class SubscribeSession extends AbstractSession implements RequestListener
 	private int _indexLastReadRequest = 0;
 	private Dialog _dialog;
 	
+	private static int __requestTimeout = 5000;
+	
 	public SubscribeSession(SipPhone phone, String event)
 	{
 		super(phone);
@@ -53,7 +55,7 @@ public class SubscribeSession extends AbstractSession implements RequestListener
 			HeaderFactory hf = getHeaderFactory();
 			subscribe.addHeader(hf.createEventHeader(_event));
 			subscribe.addHeader(hf.createExpiresHeader(expires));
-			subscribe.addHeader(_sipPhone.getContactInfo().getContactHeader());
+			subscribe.setHeader(_sipPhone.getContactInfo().getContactHeader());
 			return subscribe;
 		}
 		catch (Exception e)
@@ -74,7 +76,7 @@ public class SubscribeSession extends AbstractSession implements RequestListener
 			HeaderFactory hf = getHeaderFactory();
 			subscribe.addHeader(hf.createEventHeader(_event));
 			subscribe.addHeader(hf.createExpiresHeader(expires));
-			subscribe.addHeader(_sipPhone.getContactInfo().getContactHeader());
+			subscribe.setHeader(_sipPhone.getContactInfo().getContactHeader());
 			return subscribe;
 		}
 		catch (Exception e)
@@ -88,14 +90,18 @@ public class SubscribeSession extends AbstractSession implements RequestListener
 	{
 		if (event instanceof RequestEvent)
         {
-            _receivedRequests.add((RequestEvent) event);
-            notifyAll();
+			RequestEvent requestEvent = (RequestEvent) event;
+			if (requestEvent.getDialog() == _dialog || _dialog == null)
+			{
+	            _receivedRequests.add(requestEvent);
+	            notifyAll();
+			}
         }
 	}
 	
-	public ServerTransaction waitForNotify(long timeout)
+	public ServerTransaction waitForNotify()
 	{
-		return waitForRequest(Request.NOTIFY, true, timeout);
+		return waitForRequest(Request.NOTIFY, true, __requestTimeout);
 	}
 	
     /**
@@ -114,6 +120,8 @@ public class SubscribeSession extends AbstractSession implements RequestListener
     		try { wait(timeout); } catch (Exception e) {}
     	}
     	RequestEvent event = getLastRequest();
+    	if (event == null)
+    		fail("No event received");
     	Request request = event.getRequest();
 
     	if (!isLastRequestUncommited())

@@ -16,11 +16,13 @@ package org.cipango.kaleo.event;
 
 import javax.servlet.sip.SipSession;
 
+import org.mortbay.util.LazyList;
+
 public class Subscription 
 {
 	public enum State
 	{
-		ACTIVE("active"), PENDING("pending"), TERMINATED("terminated");
+		INIT("init"), ACTIVE("active"), PENDING("pending"), WAITING("waiting"), TERMINATED("terminated");
 		
 		private String _name;
 		
@@ -31,7 +33,8 @@ public class Subscription
 	public enum Reason 
 	{
 		DEACTIVATED("deactivated"), PROBATION("probation"), REJECTED("rejected"),
-		TIMEOUT("timeout"), GIVEUP("giveup"), NORESOURCE("noresource");
+		TIMEOUT("timeout"), GIVEUP("giveup"), NORESOURCE("noresource"),
+		SUBSCRIBE("subscribe"), APPROVED("approved");
 		
 		private String _name;
 		
@@ -42,14 +45,25 @@ public class Subscription
 	private EventResource _resource;
 	
 	private SipSession _session;
-	private State _state = State.ACTIVE;
+	private State _state = State.INIT;
+	private Reason _reason;
 	private long _expirationTime;
+	private String _subscriberUri;
+	private Object _listeners; //LazyList<SubscriptionListener>
 	
 	public Subscription(EventResource resource, SipSession session, long expirationTime) 
 	{
 		_resource = resource;
 		_session = session;
 		_expirationTime = expirationTime;
+	}
+	
+	public Subscription(EventResource resource, SipSession session, long expirationTime, String subscriberUri) 
+	{
+		_resource = resource;
+		_session = session;
+		_expirationTime = expirationTime;
+		_subscriberUri = subscriberUri;
 	}
 	
 	public void setExpirationTime(long expirationTime)
@@ -64,6 +78,8 @@ public class Subscription
 	
 	public String getId()
 	{
+		if (_session == null)
+			return String.valueOf(hashCode());
 		return _session.getId();
 	}
 	
@@ -82,13 +98,39 @@ public class Subscription
 		return _state;
 	}
 	
-	public void setState(State state) 
+	public void setState(State state, Reason reason) 
 	{
+		State previousState = _state;
 		_state = state;
+		_reason = reason;
+		if (previousState != state)
+			for (int i = 0; i < LazyList.size(_listeners); i++)
+				((SubscriptionListener) LazyList.get(_listeners, i)).subscriptionStateChanged(this, previousState, state);
+
 	}
 	
+	public Reason getReason()
+	{
+		return _reason;
+	}
+	
+	public String getUri()
+	{
+		return _subscriberUri;
+	}
+		
 	public String toString()
 	{
 		return _resource.getUri() + "/" + getId();
+	}
+	public void addListener(SubscriptionListener l)
+	{
+		if (!LazyList.contains(_listeners, l) && l != null)
+			_listeners = LazyList.add(_listeners, l);	
+	}
+	
+	public void removeListener(SubscriptionListener l)
+	{
+		_listeners = LazyList.remove(_listeners, l);	
 	}
 }

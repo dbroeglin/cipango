@@ -27,11 +27,14 @@ import javax.servlet.sip.SipSession;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.URIUtil;
 import org.cipango.kaleo.event.ContentHandler;
-import org.cipango.kaleo.event.Notifier;
 import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.event.Subscription.Reason;
+import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.PresenceEventPackage;
 import org.cipango.kaleo.presence.Presentity;
 import org.cipango.kaleo.presence.SoftState;
+import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
+import org.cipango.kaleo.presence.watcherinfo.WatcherResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,13 +45,15 @@ public class PresenceServlet extends SipServlet
 	private final Logger _log = LoggerFactory.getLogger(PresenceServlet.class);
 	
 	private PresenceEventPackage _presence;
-	private Notifier<Presentity> _notifier;
+	private WatcherInfoEventPackage _watcherInfo;
+	//private Notifier<Presentity> _notifier;
 	
 	public void init()
 	{
-		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());	
+		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());
+		_watcherInfo = (WatcherInfoEventPackage) getServletContext().getAttribute(WatcherInfoEventPackage.class.getName());
 	}
-
+	
 	protected void doPublish(SipServletRequest publish) throws ServletException, IOException
 	{
 		Presentity presentity = null;
@@ -200,16 +205,23 @@ public class PresenceServlet extends SipServlet
 	{
 		String event = subscribe.getHeader(Constants.EVENT);
 		
-		if (event == null || !(event.equals(_presence.getName())))
+		if (_presence.getName().equals(event))
+			doPresenceSubscribe(subscribe);
+		else if (_watcherInfo.getName().equals(event))
+			doWatcherInfoSubscribe(subscribe);
+		else
 		{
 			SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_BAD_EVENT);
 			response.addHeader(Constants.ALLOW_EVENTS, _presence.getName());
 			response.send();
 			response.getApplicationSession().invalidate();
 			return;
-		}
-		
-		if(!checkAcceptHeader(subscribe))
+		}		
+	}
+	
+	protected void doPresenceSubscribe(SipServletRequest subscribe) throws ServletException, IOException
+	{	
+		if(!checkAcceptHeader(subscribe, false))
 			return;
 				
 		int expires = subscribe.getExpires();
@@ -253,8 +265,14 @@ public class PresenceServlet extends SipServlet
 				return;
 			}
 		}
-		
+				
 		Presentity presentity = _presence.get(uri);
+		
+		String subscriberUri = null;
+		if (subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY) != null)
+			subscriberUri = URIUtil.toCanonical(subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY).getURI());
+		else
+			subscriberUri = URIUtil.toCanonical(subscribe.getFrom().getURI());
 		
 		try
 		{
@@ -266,7 +284,8 @@ public class PresenceServlet extends SipServlet
 				
 				if (subscription == null)
 				{
-					subscription = new Subscription(presentity, session, -1);
+					subscription = new Subscription(presentity, session, -1, subscriberUri);
+					subscription.addListener(_watcherInfo.getSubscriptionListener());
 				}
 				else
 				{
@@ -275,7 +294,7 @@ public class PresenceServlet extends SipServlet
 						_log.debug("removed presence subscription {} to presentity {}", 
 							subscription.getSession().getId(), presentity.getUri());
 				}	
-				subscription.setState(Subscription.State.TERMINATED);
+				subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
 			}
 			else
 			{
@@ -285,14 +304,16 @@ public class PresenceServlet extends SipServlet
 		
 				if (subscription == null)
 				{
-					subscription = new Subscription(presentity, session, now + expires*1000);
+					subscription = new Subscription(presentity, session, now + expires*1000, subscriberUri);
+					subscription.addListener(_watcherInfo.getSubscriptionListener());
 					presentity.addSubscription(subscription);
+					subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
 					
 					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
 					
 					if (_log.isDebugEnabled())
 						_log.debug("added presence subscription {} to presentity {}", 
-								subscription.getSession().getId(), presentity.getUri());
+								subscription.getId(), presentity.getUri());
 				}
 				else 
 				{
@@ -319,9 +340,132 @@ public class PresenceServlet extends SipServlet
 		}
 	}
 	
-	private boolean checkAcceptHeader(SipServletRequest subscribe) throws IOException
+	protected void doWatcherInfoSubscribe(SipServletRequest subscribe) throws ServletException, IOException
+	{	
+		if(!checkAcceptHeader(subscribe, true))
+			return;
+				
+		int expires = subscribe.getExpires();
+		if (expires != -1)
+		{
+			if (expires != 0)
+			{
+				if (expires < _watcherInfo.getMinExpires())
+				{
+					SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_INTERVAL_TOO_BRIEF);
+					response.addHeader(Constants.MIN_EXPIRES, Integer.toString(_presence.getMinExpires()));
+					response.send();
+					response.getApplicationSession().invalidate();
+					return;
+				}
+				else if (expires > _watcherInfo.getMaxExpires())
+				{
+					expires = _watcherInfo.getMaxExpires();
+				}
+			}
+		}
+		else 
+		{
+			expires = _watcherInfo.getDefaultExpires();
+		}
+		
+		SipSession session = subscribe.getSession();
+		String uri = null;
+		
+		if (subscribe.isInitial())
+		{
+			uri = URIUtil.toCanonical(subscribe.getRequestURI());
+		}
+		else
+		{
+			uri = (String) session.getAttribute(Constants.SUBSCRIPTION_ATTRIBUTE);
+			if (uri == null)
+			{
+				subscribe.createResponse(SipServletResponse.SC_CALL_LEG_DONE).send();
+				subscribe.getApplicationSession().invalidate();
+				return;
+			}
+		}
+				
+		WatcherResource resource = _watcherInfo.get(uri);
+		
+		String subscriberUri = null;
+		if (subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY) != null)
+			subscriberUri = URIUtil.toCanonical(subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY).getURI());
+		else
+			subscriberUri = URIUtil.toCanonical(subscribe.getFrom().getURI());
+		
+		try
+		{
+			Subscription subscription = null;
+			
+			if (expires == 0)
+			{
+				subscription = resource.removeSubscription(session.getId());
+				
+				if (subscription == null)
+					subscription = new Subscription(resource, session, -1, subscriberUri);
+				else
+				{
+					subscription.setExpirationTime(System.currentTimeMillis());
+					if (_log.isDebugEnabled())
+						_log.debug("removed presence.winfo subscription {} to resource {}", 
+							subscription.getSession().getId(), resource.getUri());
+				}	
+				subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
+			}
+			else
+			{
+				long now = System.currentTimeMillis();
+				
+				subscription = resource.getSubscription(session.getId());
+		
+				if (subscription == null)
+				{
+					subscription = new Subscription(resource, session, now + expires*1000, subscriberUri);
+					subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
+					resource.addSubscription(subscription);
+					
+					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("added presence.winfo subscription {} to resource {}", 
+								subscription.getSession().getId(), resource.getUri());
+				}
+				else 
+				{
+					subscription.setExpirationTime(now + expires * 1000);
+					
+					if (_log.isDebugEnabled())
+						_log.debug("refreshed presence.winfo subscription {} to resource {}",
+								subscription.getSession().getId(), resource.getUri());
+				}
+			}
+			
+			int code = (subscription.getState() != Subscription.State.PENDING) ? 
+					SipServletResponse.SC_OK : SipServletResponse.SC_ACCEPTED;
+			
+			SipServletResponse response = subscribe.createResponse(code);
+			response.setExpires(expires);
+			response.send();
+				
+			_watcherInfo.notify(subscription);
+		}
+		finally
+		{
+			_watcherInfo.put(resource);
+		}
+	}
+	
+	private boolean checkAcceptHeader(SipServletRequest subscribe, boolean winfo) throws IOException
 	{
-		List<String> supported = _presence.getSupportedContentTypes();
+		
+		List<String> supported;
+		if (winfo)
+			supported = _watcherInfo.getSupportedContentTypes();
+		else
+			supported = _presence.getSupportedContentTypes();
+		
 		Iterator<String> it = subscribe.getHeaders(Constants.ACCEPT);
 		if (!it.hasNext())
 			return true;

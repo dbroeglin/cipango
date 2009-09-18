@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.cipango.kaleo.xcap.XcapException;
 import org.cipango.kaleo.xcap.XcapService;
-import org.cipango.kaleo.xcap.dao.FileXcapDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

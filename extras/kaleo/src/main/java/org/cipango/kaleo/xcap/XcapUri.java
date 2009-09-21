@@ -121,16 +121,11 @@ public class XcapUri
 	{
 		_user = user;
 	}
-
 	public String getResourceId()
 	{
 		return _resourceId;
 	}
 
-	public void setResourceId(String resourceId)
-	{
-		_resourceId = resourceId;
-	}
 	public String toString()
 	{
 		StringBuilder sb = new StringBuilder();

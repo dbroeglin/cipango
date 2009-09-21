@@ -143,14 +143,19 @@ public class XcapUtil
 		int indexSlash = sb.indexOf("/");
 		int nextSlash;
 		int nsSepIndex;
+		int indexQuoteMark;
 		while (indexSlash != -1)
 		{
 			nextSlash = sb.indexOf("/", indexSlash + 1);
 			nsSepIndex = sb.indexOf(":", indexSlash);
-			boolean isAttribute = indexSlash != sb.length() && sb.charAt(indexSlash + 1) == '@';
+			indexQuoteMark = sb.indexOf("\"", indexSlash);
+			if (indexQuoteMark != -1 && indexQuoteMark < nsSepIndex)
+				nsSepIndex = -1;
+			boolean slashLastChar = indexSlash + 1 == sb.length();
+			boolean isAttribute = !slashLastChar && sb.charAt(indexSlash + 1) == '@';
 			boolean hasNamespacePrefix = nsSepIndex != -1
 					&& (nsSepIndex < nextSlash || nextSlash == -1);
-			if (!isAttribute && !hasNamespacePrefix)
+			if (!isAttribute && !hasNamespacePrefix && !slashLastChar)
 			{
 				sb.insert(indexSlash + 1, defaultNamespace + ":");
 			}

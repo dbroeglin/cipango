@@ -304,7 +304,7 @@ public class XcapService
 			else
 			{
 				XcapException e = new XcapException("Resource: "
-						+ requestUri + " not found (no node selected)",
+						+ xcapUri + " not found (no node selected)",
 						HttpServletResponse.SC_NOT_FOUND);
 				e.setLevel(Level.INFO);
 				throw e;

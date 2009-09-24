@@ -34,7 +34,11 @@ public class XcapServlet extends HttpServlet
 	
 	public XcapServlet()
 	{
-		_xcapService = new XcapService();
+	}
+	
+	public void setXcapService(XcapService service)
+	{
+		_xcapService = service;
 	}
 
 	@Override
@@ -42,7 +46,7 @@ public class XcapServlet extends HttpServlet
 	{
 		try
 		{
-			_xcapService.init();
+			_xcapService = (XcapService) getServletContext().getAttribute(XcapService.class.getName());
 			String contextPath = getServletContext().getContextPath();
 			if (contextPath == null || contextPath.equals("/"))
 				_xcapService.setRootName("/");

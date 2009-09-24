@@ -148,7 +148,7 @@ public class Presentity extends AbstractEventResource
 		state.setExpirationTime(expirationTime);
 	}
 
-	protected State getNeutralState() 
+	public State getNeutralState() 
 	{
 		PresenceDocument document = PresenceDocument.Factory.newInstance();
 		Presence presence = document.addNewPresence();

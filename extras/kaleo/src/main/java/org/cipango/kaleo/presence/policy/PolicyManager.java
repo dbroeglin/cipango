@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2009 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,22 +11,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
+package org.cipango.kaleo.presence.policy;
 
-package org.cipango.kaleo.event;
-
-import java.util.List;
 import org.cipango.kaleo.Resource;
+import org.cipango.kaleo.event.Subscription;
 
-public interface EventResource extends Resource
+public interface PolicyManager
 {
-	State getState();
-	State getNeutralState();
+	public enum SubHandling
+	{
+		BLOCK("block", 0),
+		CONFIRM("confirm", 10),
+		POLITE_BLOCK("polite-block", 20),
+		ALLOW("allow", 30);
+		
+		private String _name;
+		private int _value;
+		
+		private SubHandling(String name, int value)
+		{
+			_name = name;
+			_value = value;
+		}
+
+		public String getName()
+		{
+			return _name;
+		}
+
+		public int getValue()
+		{
+			return _value;
+		}
+	}
 	
-	void addSubscription(Subscription subscription);
-	Subscription getSubscription(String id);
-	Subscription removeSubscription(String id);
-	List<Subscription> getSubscriptions();
+	public SubHandling getPolicy(Subscription subscription);
 	
-	void addListener(EventResourceListener listener);
-	List<EventResourceListener> getListeners();
+	public SubHandling getPolicy(String subscriberUri, Resource resource);
 }

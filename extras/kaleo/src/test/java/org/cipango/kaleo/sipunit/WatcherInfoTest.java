@@ -36,6 +36,14 @@ import org.cipango.kaleo.presence.watcherinfo.WatcherinfoDocument.Watcherinfo;
 
 public class WatcherInfoTest extends UaTestCase
 {
+	
+	public void setUp() throws Exception
+	{
+		super.setUp();
+		setContent("/org.openmobilealliance.pres-rules/users/" + getAliceUri() + "/pres-rules");
+		setContent("/org.openmobilealliance.pres-rules/users/" + getBobUri() + "/pres-rules");
+	}
+	
 	/**
 	 * <pre>
 	 *  Alice               Kaleo              SipUnit
@@ -115,7 +123,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 7
 		notify = tx.getRequest();
-		//System.out.println(notify);
+		System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 8
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(1, watcherinfo.getVersion().intValue());
@@ -136,7 +144,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 13
 		notify = tx.getRequest();
-		//System.out.println(notify);
+		System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 14
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(2, watcherinfo.getVersion().intValue());
@@ -155,7 +163,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 19
 		notify = tx.getRequest();
-		//System.out.println(notify);
+		System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 20
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(3, watcherinfo.getVersion().intValue());

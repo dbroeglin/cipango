@@ -128,4 +128,10 @@ public class RegResource extends AbstractEventResource implements RegistrationLi
 			registration.removeContact(0);
 		}
 	}
+
+	public State getNeutralState()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

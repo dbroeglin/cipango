@@ -14,45 +14,28 @@
 
 package org.cipango.kaleo.sip;
 
+import java.io.File;
+import java.util.Enumeration;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.event.RegEventPackage;
 import org.cipango.kaleo.presence.PresenceEventPackage;
+import org.cipango.kaleo.presence.policy.PolicyManager;
+import org.cipango.kaleo.presence.policy.XcapPolicyManager;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
+import org.cipango.kaleo.xcap.XcapService;
+import org.cipango.kaleo.xcap.dao.FileXcapDao;
+import org.mortbay.component.LifeCycle;
 import org.slf4j.Logger;
 
 public class KaleoLoader implements ServletContextListener
 {
 	private Logger _log = org.slf4j.LoggerFactory.getLogger(KaleoLoader.class);
+	private static final String XCAP_BASE_DIR_PROPERTY = "org.cipango.kaleo.xcap.base.dir";
 	
-	public void contextDestroyed(ServletContextEvent event)
-	{
-		try
-		{
-			LocationService ls = (LocationService) event.getServletContext().getAttribute(LocationService.class.getName());
-			if (ls != null)
-				ls.stop();
-
-			PresenceEventPackage presence = (PresenceEventPackage) event.getServletContext().getAttribute(PresenceEventPackage.class.getName());
-			if (presence != null)
-				presence.stop();
-			
-			RegEventPackage regEventPackage = (RegEventPackage) event.getServletContext().getAttribute(RegEventPackage.class.getName());
-			if (regEventPackage != null)
-				regEventPackage.stop();
-			
-			WatcherInfoEventPackage watcherInfo = (WatcherInfoEventPackage) event.getServletContext().getAttribute(WatcherInfoEventPackage.class.getName());
-			if (watcherInfo != null)
-				watcherInfo.stop();	
-		}
-		catch (Exception e)
-		{
-			_log.warn("error while stopping Kaleo application", e);
-		}
-	}
-
 	public void contextInitialized(ServletContextEvent event) 
 	{
 		try
@@ -61,20 +44,53 @@ public class KaleoLoader implements ServletContextListener
 			LocationService locationService = new LocationService();
 			RegEventPackage regEventPackage = new RegEventPackage(locationService);
 			WatcherInfoEventPackage watcherInfo = new WatcherInfoEventPackage(presence);
+			XcapService xcapService = new XcapService();
+			XcapPolicyManager policyManager = new XcapPolicyManager(xcapService);
+			
+			FileXcapDao xcapDao = new FileXcapDao();
+			String baseDir = System.getProperty(XCAP_BASE_DIR_PROPERTY);
+			if (baseDir != null)
+				xcapDao.setBaseDir(new File(baseDir));
+			else
+				xcapDao.setBaseDir(new File(System.getProperty("jetty.home", ".") + "/data"));
+			xcapService.setDao(xcapDao);
 			
 			locationService.start();
 			presence.start();
 			regEventPackage.start();
 			watcherInfo.start();
+			xcapService.start();
 			
 			event.getServletContext().setAttribute(PresenceEventPackage.class.getName(), presence);
 			event.getServletContext().setAttribute(LocationService.class.getName(), locationService);
 			event.getServletContext().setAttribute(RegEventPackage.class.getName(), regEventPackage);
 			event.getServletContext().setAttribute(WatcherInfoEventPackage.class.getName(), watcherInfo);
+			event.getServletContext().setAttribute(XcapService.class.getName(), xcapService);
+			event.getServletContext().setAttribute(PolicyManager.class.getName(), policyManager);
 		}
 		catch (Exception e)
 		{
 			_log.error("failed to start Kaleo application", e);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void contextDestroyed(ServletContextEvent event)
+	{
+		try
+		{		
+			Enumeration enumeration = event.getServletContext().getAttributeNames();
+			while (enumeration.hasMoreElements())
+			{
+				String key = (String) enumeration.nextElement();
+				Object o = event.getServletContext().getAttribute(key);
+				if (o instanceof LifeCycle)
+					((LifeCycle) o).stop();
+			}
+		}
+		catch (Exception e)
+		{
+			_log.warn("error while stopping Kaleo application", e);
 		}
 	}
 }

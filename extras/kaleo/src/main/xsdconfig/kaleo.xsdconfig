@@ -13,6 +13,14 @@
     <xb:namespace uri="urn:ietf:params:xml:ns:common-policy">
         <xb:package>org.cipango.kaleo.policy</xb:package>
     </xb:namespace>
+    
+    <xb:namespace uri="urn:oma:xml:xdm:common-policy">
+        <xb:package>org.cipango.kaleo.policy.oma</xb:package>
+    </xb:namespace>
+    
+    <xb:namespace uri="urn:ietf:params:xml:ns:pres-rules">
+        <xb:package>org.cipango.kaleo.policy.presence</xb:package>
+    </xb:namespace>
 
     <xb:namespace uri="urn:ietf:params:xml:ns:reginfo">
         <xb:package>org.cipango.kaleo.location.event</xb:package>

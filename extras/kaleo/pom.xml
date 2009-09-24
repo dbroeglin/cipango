@@ -226,6 +226,11 @@
 											<name>log4j.configuration</name>
 											<value>file:${basedir}/resources/log4j.xml</value>
 										</systemProperty>
+										<systemProperty>
+											<name>org.cipango.kaleo.xcap.base.dir</name>
+											<value>${basedir}/target/test-data</value>
+										</systemProperty>
+										
 									</systemProperties>
 									<scanIntervalSeconds>0</scanIntervalSeconds>
 									<annotationsEnabled>false</annotationsEnabled>
@@ -253,7 +258,7 @@
 										</goals>
 										<configuration>
 												<excludes>
-														<exclude>none</exclude>
+														<exclude>**.java</exclude>
 												</excludes>
 												<includes>
 														<include>**/sipunit/**.java</include>

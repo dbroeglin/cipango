@@ -1,9 +1,7 @@
 package org.cipango.kaleo.web;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cipango.kaleo.Resource;
+import org.cipango.kaleo.event.EventResource;
+import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
@@ -39,6 +39,28 @@ public class APIServlet extends HttpServlet
 			}
 			public Object fromJSON(Map object)  { return null; }
 		});
+		JSON.getDefault().addConvertor(EventResource.class, new Convertor()
+		{
+			public void toJSON(Object obj, Output out) 
+			{
+				EventResource resource = (EventResource) obj;
+				out.add("uri", resource.getUri());
+				out.add("subscriptions", resource.getSubscriptions());
+			}
+			public Object fromJSON(Map object)  { return null; }
+		});
+		JSON.getDefault().addConvertor(Subscription.class, new Convertor()
+		{
+			public void toJSON(Object obj, Output out) 
+			{
+				Subscription subscription = (Subscription) obj;
+				out.add("uri", subscription.getUri());
+				out.add("state", subscription.getState().toString());
+				out.add("authorized", subscription.isAuthorized());
+			}
+			public Object fromJSON(Map object)  { return null; }
+		});
+		
 		JSON.getDefault().addConvertor(Registration.class, new Convertor()
 		{
 			public void toJSON(Object obj, Output out) 

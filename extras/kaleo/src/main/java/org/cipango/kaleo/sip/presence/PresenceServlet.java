@@ -33,6 +33,8 @@ import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.PresenceEventPackage;
 import org.cipango.kaleo.presence.Presentity;
 import org.cipango.kaleo.presence.SoftState;
+import org.cipango.kaleo.presence.policy.PolicyManager;
+import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.cipango.kaleo.presence.watcherinfo.WatcherResource;
 import org.slf4j.Logger;
@@ -46,12 +48,14 @@ public class PresenceServlet extends SipServlet
 	
 	private PresenceEventPackage _presence;
 	private WatcherInfoEventPackage _watcherInfo;
+	private PolicyManager _policyManager;
 	//private Notifier<Presentity> _notifier;
 	
 	public void init()
 	{
 		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());
 		_watcherInfo = (WatcherInfoEventPackage) getServletContext().getAttribute(WatcherInfoEventPackage.class.getName());
+		_policyManager = (PolicyManager) getServletContext().getAttribute(PolicyManager.class.getName());
 	}
 	
 	protected void doPublish(SipServletRequest publish) throws ServletException, IOException
@@ -276,6 +280,15 @@ public class PresenceServlet extends SipServlet
 		
 		try
 		{
+			SubHandling policy = _policyManager.getPolicy(subscriberUri, presentity);
+			if (policy == SubHandling.BLOCK)
+			{
+				_log.debug("Reject presence subscription from {} to {} due to policy", subscriberUri, presentity.getUri());
+				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_FORBIDDEN);
+				response.send();
+				return;
+			}
+			
 			Subscription subscription = null;
 			
 			if (expires == 0)
@@ -307,7 +320,24 @@ public class PresenceServlet extends SipServlet
 					subscription = new Subscription(presentity, session, now + expires*1000, subscriberUri);
 					subscription.addListener(_watcherInfo.getSubscriptionListener());
 					presentity.addSubscription(subscription);
-					subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
+					
+					switch (policy)
+					{
+					case ALLOW:
+						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
+						subscription.setAuthorized(true);
+						break;
+					case CONFIRM:
+						subscription.setState(State.PENDING, Reason.SUBSCRIBE);
+						subscription.setAuthorized(false);
+						break;
+					case POLITE_BLOCK:
+						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
+						subscription.setAuthorized(false);
+						break;
+					default:
+						break;
+					}
 					
 					session.setAttribute(Constants.SUBSCRIPTION_ATTRIBUTE, uri);
 					

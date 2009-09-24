@@ -50,6 +50,7 @@ public class Subscription
 	private long _expirationTime;
 	private String _subscriberUri;
 	private Object _listeners; //LazyList<SubscriptionListener>
+	private boolean _authorized = true;
 	
 	public Subscription(EventResource resource, SipSession session, long expirationTime) 
 	{
@@ -132,5 +133,15 @@ public class Subscription
 	public void removeListener(SubscriptionListener l)
 	{
 		_listeners = LazyList.remove(_listeners, l);	
+	}
+
+	public boolean isAuthorized()
+	{
+		return _authorized;
+	}
+
+	public void setAuthorized(boolean authorized)
+	{
+		_authorized = authorized;
 	}
 }

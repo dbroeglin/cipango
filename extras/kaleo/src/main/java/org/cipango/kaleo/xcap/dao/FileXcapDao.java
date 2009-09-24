@@ -60,9 +60,9 @@ public class FileXcapDao implements XcapDao
 			throw new IllegalAccessException("Base dirctory is not set");
 		_baseDir.mkdirs();
 		if (!_baseDir.isDirectory())
-			throw new IllegalAccessException("Base dirctory is not a directory");
+			throw new IllegalAccessException("Base directory " + _baseDir + " is not a directory");
 		if (!_baseDir.canWrite())
-			throw new IllegalAccessException("Base dirctory is not writable");
+			throw new IllegalAccessException("Base directory " + _baseDir + " is not writable");
 		for (XcapResourceProcessor processor : processors)
 		{
 			File file = new File(_baseDir, processor.getAuid());
@@ -70,7 +70,8 @@ public class FileXcapDao implements XcapDao
 			new File(file, XcapUri.GLOBAL).mkdir();
 			new File(file, XcapUri.USERS).mkdir();
 		}
-		
+
+		_log.debug("File XCAP DAO is started with base directory: {}", _baseDir);
 	}
 	
 	public void delete(XcapResource resource) throws XcapException

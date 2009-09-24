@@ -157,4 +157,10 @@ public class WatcherResource extends AbstractEventResource implements Subscripti
 		}
 	}
 
+	public State getNeutralState()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

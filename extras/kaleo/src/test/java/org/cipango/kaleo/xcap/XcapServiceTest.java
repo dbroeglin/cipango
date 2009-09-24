@@ -26,15 +26,14 @@ public class XcapServiceTest extends TestCase {
 	public XcapServiceTest() throws Exception
 	{
 		_xcapService = new XcapService();
-		if (_xcapService.getDao() instanceof FileXcapDao)
-		{
-			FileXcapDao dao = (FileXcapDao) _xcapService.getDao();
-			_xcapRoot = new File("target/test-data");
-			_xcapRoot.mkdirs();
-			dao.setBaseDir(_xcapRoot);
-		}
+
+		FileXcapDao dao = new FileXcapDao();
+		_xcapRoot = new File("target/test-data");
+		_xcapRoot.mkdirs();
+		dao.setBaseDir(_xcapRoot);
+		_xcapService.setDao(dao);
 		
-		_xcapService.init();
+		_xcapService.start();
 		_xcapService.setRootName("/");
 		
 		setContent(VALID_PRES_RULES_URI_2);
@@ -42,22 +41,25 @@ public class XcapServiceTest extends TestCase {
 		
 		
 	}
-		
-	public void setUp() throws Exception 
+	
+	public void setContent(String xcapUri) throws Exception
 	{
-		
+		setContent(_xcapService, _xcapRoot, xcapUri);
 	}
 	
-	private void setContent(String xcapUri) throws Exception
+	public static void setContent(XcapService xcapService, File xcapRoot, String xcapUri) throws Exception
 	{
 		
-		XcapDao dao = _xcapService.getDao();
-		XcapUri uri = new XcapUri(xcapUri, _xcapService.getRootName());
+		XcapDao dao = xcapService.getDao();
+		XcapUri uri = new XcapUri(xcapUri, xcapService.getRootName());
 		if (dao instanceof FileXcapDao)
 		{
-			File sourceFile = new File("target/test-classes/xcap-root", uri.getDocumentSelector());
+			String doc = uri.getDocumentSelector().replace(":", "%3A");
+			File sourceFile = new File("target/test-classes/xcap-root", doc);
+			if (!sourceFile.exists())
+				sourceFile = new File("target/test-classes/xcap-root", doc.replace("@", "%40"));
 			InputStream is = new FileInputStream(sourceFile);
-			File outputFile = new File(_xcapRoot, uri.getDocumentSelector().replace("@", "%40"));
+			File outputFile = new File(xcapRoot, doc.replace("@", "%40"));
 			outputFile.getParentFile().mkdirs();
 			FileOutputStream os = new FileOutputStream(outputFile);
 			int read;
@@ -83,7 +85,7 @@ public class XcapServiceTest extends TestCase {
 	}
 	
 	public void testValid() throws Exception {
-		XcapResourceImpl resource = _xcapService.getResource(VALID_PRES_RULES_URI, false, HEAD, null);
+		XcapResourceImpl resource = _xcapService.getResource(new XcapUri(VALID_PRES_RULES_URI, "/"), false, HEAD, null);
 		XmlResource xmlResource = resource.getSelectedResource();
 
 		log.info("Selected node:\n" + new String(xmlResource.getBytes()));
@@ -92,14 +94,14 @@ public class XcapServiceTest extends TestCase {
 	}
 	
 	public void testValid2() throws Exception {
-		XcapResourceImpl resource = _xcapService.getResource(VALID_PRES_RULES_URI_3, false, HEAD, null);
+		XcapResourceImpl resource = _xcapService.getResource(new XcapUri(VALID_PRES_RULES_URI_3, "/"), false, HEAD, null);
 		XmlResource xmlResource = resource.getSelectedResource();
 		log.info("Selected node:\n" + new String(xmlResource.getBytes()));
 		assertEquals("allow",  xmlResource.getDom().getFirstChild().getNodeValue());
 	}
 	
 	public void testGetAttribute() throws Exception {
-		XcapResourceImpl resource = _xcapService.getResource(GET_ATTRIBUTE, false, HEAD, null);
+		XcapResourceImpl resource = _xcapService.getResource(new XcapUri(GET_ATTRIBUTE, "/"), false, HEAD, null);
 		XmlResource xmlResource = resource.getSelectedResource();
 		//log.info("Selected attribute:\n" + xmlResource.getContent());
 		assertEquals("a", ((Attr) xmlResource.getDom()).getNodeValue());
@@ -119,7 +121,7 @@ public class XcapServiceTest extends TestCase {
 	
 	public void testMissingFirstSlash() throws Exception {
 		try {
-			_xcapService.getResource(VALID_PRES_RULES_URI.substring(1), false, HEAD, null);
+			_xcapService.getResource(new XcapUri(VALID_PRES_RULES_URI.substring(1), "/"), false, HEAD, null);
 			fail();
 		} catch (XcapException e) {
 			assertEquals(404, e.getStatusCode());
@@ -129,7 +131,7 @@ public class XcapServiceTest extends TestCase {
 	
 	public void testBadAuid() throws Exception {
 		try {
-			_xcapService.getResource("/unknown/users/nicolas@nexcom.fr/index/~~/conditions", false, HEAD, null);
+			_xcapService.getResource(new XcapUri("/unknown/users/nicolas@nexcom.fr/index/~~/conditions", "/"), false, HEAD, null);
 			fail();
 		} catch (XcapException e) {
 			assertEquals(404, e.getStatusCode());
@@ -139,7 +141,7 @@ public class XcapServiceTest extends TestCase {
 	
 	public void testUnknownUser() throws Exception {
 		try {
-			_xcapService.getResource("/pres-rules/users/unknown@nexcom.fr/index/~~/conditions", false, HEAD, null);
+			_xcapService.getResource(new XcapUri("/pres-rules/users/unknown@nexcom.fr/index/~~/conditions", "/"), false, HEAD, null);
 			fail();
 		} catch (XcapException e) {
 			assertEquals(404, e.getStatusCode());

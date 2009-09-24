@@ -13,6 +13,12 @@
 // ========================================================================
 package org.cipango.kaleo.sipunit;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ListIterator;
 import java.util.Properties;
 
@@ -24,6 +30,7 @@ import javax.sip.message.Message;
 import org.cafesip.sipunit.SipPhone;
 import org.cafesip.sipunit.SipStack;
 import org.cafesip.sipunit.SipTestCase;
+import org.cipango.kaleo.xcap.XcapUri;
 
 public abstract class UaTestCase extends SipTestCase
 {
@@ -48,6 +55,26 @@ public abstract class UaTestCase extends SipTestCase
 		{
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public void setContent(String xcapUri) throws IOException
+	{
+		XcapUri uri = new XcapUri(xcapUri, "/");
+		String doc = uri.getDocumentSelector().replace(":", "%3A");
+		File sourceFile = new File("target/test-classes/xcap-root", doc);
+		if (!sourceFile.exists())
+			sourceFile = new File("target/test-classes/xcap-root", doc.replace("@", "%40"));
+		InputStream is = new FileInputStream(sourceFile);
+		File outputFile = new File("target/test-data", doc.replace("@", "%40"));
+		outputFile.getParentFile().mkdirs();
+		FileOutputStream os = new FileOutputStream(outputFile);
+		int read;
+		byte[] buffer = new byte[1024];
+		while ((read = is.read(buffer)) != -1) {
+			os.write(buffer, 0, read);
+		}
+		os.close();
+		is.close();
 	}
 
 	public String getProtocol()

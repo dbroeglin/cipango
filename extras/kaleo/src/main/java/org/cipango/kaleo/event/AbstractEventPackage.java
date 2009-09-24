@@ -76,11 +76,16 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 				notify.addHeader(Constants.EVENT, getName());
 				
 				String s = subscription.getState().getName();
-				if (subscription.getState() == Subscription.State.ACTIVE)
+				if (subscription.getState() == Subscription.State.ACTIVE 
+						|| subscription.getState() == Subscription.State.PENDING)
 					s = s + ";expires=" + ((subscription.getExpirationTime()-System.currentTimeMillis()) / 1000);
 				notify.addHeader(Constants.SUBSCRIPTION_STATE, s);
 				
-				State state = subscription.getResource().getState();
+				State state;
+				if (subscription.isAuthorized())
+					state = subscription.getResource().getState();
+				else
+					state = subscription.getResource().getNeutralState();
 				preprocessState(session, state);
 				ContentHandler handler = getContentHandler(state.getContentType());
 				byte[] b = handler.getBytes(state.getContent());
@@ -112,7 +117,8 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 			
 			for (Subscription subscription : resource.getSubscriptions())
 			{
-				AbstractEventPackage.this.notify(subscription);
+				if (subscription.isAuthorized())
+					AbstractEventPackage.this.notify(subscription);
 			}
 		}
 		

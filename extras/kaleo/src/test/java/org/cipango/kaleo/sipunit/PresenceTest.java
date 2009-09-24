@@ -43,6 +43,13 @@ import org.cafesip.sipunit.SubscribeSession;
 public class PresenceTest extends UaTestCase
 {
 
+	public void setUp() throws Exception
+	{
+		super.setUp();
+		setContent("/org.openmobilealliance.pres-rules/users/" + getAliceUri() + "/pres-rules");
+		setContent("/org.openmobilealliance.pres-rules/users/" + getBobUri() + "/pres-rules");
+	}
+	
     public void testBasicSubscription() throws Exception
     {
         // add the buddy to the buddy list - sends SUBSCRIBE, gets response

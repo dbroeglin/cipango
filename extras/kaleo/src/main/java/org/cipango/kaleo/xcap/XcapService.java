@@ -14,7 +14,6 @@
 package org.cipango.kaleo.xcap;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -29,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Level;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.xcap.XcapResourceImpl.NodeType;
-import org.cipango.kaleo.xcap.dao.FileXcapDao;
 import org.cipango.kaleo.xcap.dao.XcapDao;
 import org.cipango.kaleo.xcap.dao.XmlResource;
 import org.cipango.kaleo.xcap.util.HexString;
@@ -37,6 +35,7 @@ import org.cipango.kaleo.xcap.util.RequestUtil;
 import org.cipango.kaleo.xcap.util.XcapUtil;
 import org.iso_relax.verifier.VerifierConfigurationException;
 import org.jaxen.JaxenException;
+import org.mortbay.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
@@ -44,7 +43,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-public class XcapService
+public class XcapService extends AbstractLifeCycle
 {
 	public static final String POST = "POST";
 	public static final String PUT = "PUT";
@@ -62,15 +61,9 @@ public class XcapService
 	private boolean _validate;
 	private boolean _validateOnGet;
 	private String _rootName;
-
-	public XcapService()
-	{
-		FileXcapDao dao = new FileXcapDao();
-		dao.setBaseDir(new File(System.getProperty("jetty.home", ".") + "/data"));
-		_dao = dao;
-	}
 	
-	public void init() throws Exception
+	@Override
+	protected void doStart() throws Exception
 	{
 		setRootName("xcap");
 		_validate = _validateOnGet = false;
@@ -116,8 +109,22 @@ public class XcapService
 		Map<String, String> namespaceContext = new HashMap<String, String>();
 		namespaceContext.put("pr", "urn:ietf:params:xml:ns:pres-rules");
 		namespaceContext.put("cr", "urn:ietf:params:xml:ns:common-policy");
+		namespaceContext.put("cp", "urn:oma:xml:xdm:common-policy");
 		processor.setNamespaceContext(namespaceContext);
 		processor.setName("OMA shared policy processor");
+		processor.setXsdSchemaPath("/schema/common-policy.xsd");
+		addProcessor(processor);
+		
+		processor = new XcapProcessorImpl();
+		processor.setAuid("org.openmobilealliance.pres-rules");
+		processor.setDefaultNamespacePrefix("cr");
+		processor.setMimeType("application/auth-policy+xml");
+		namespaceContext = new HashMap<String, String>();
+		namespaceContext.put("pr", "urn:ietf:params:xml:ns:pres-rules");
+		namespaceContext.put("cr", "urn:ietf:params:xml:ns:common-policy");
+		namespaceContext.put("cp", "urn:oma:xml:xdm:common-policy");
+		processor.setNamespaceContext(namespaceContext);
+		processor.setName("OMA presence rules processor");
 		processor.setXsdSchemaPath("/schema/common-policy.xsd");
 		addProcessor(processor);
 		
@@ -188,7 +195,7 @@ public class XcapService
 		sb.append("</namespaces>\n");
 		sb.append("</xcap-caps>");
 		XcapResourceImpl resource = getResource(
-				_rootName + "xcap-caps/global/index", 
+				new XcapUri("xcap-caps/global/index", ""), 
 				true, "", null);
 		_dao.update(resource, sb.toString());
 		_dao.save(resource);
@@ -204,24 +211,21 @@ public class XcapService
 		return _processors.containsKey(auid);
 	}
 
-	public XcapResourceImpl getResource(String requestUri, boolean isPut,
+	public XcapResourceImpl getResource(XcapUri xcapUri, boolean isPut,
 			String requestUrlHead, Map<String, String> requestNamespaceContext)
 			throws XcapException
 	{
-		Document document = null;
-		XcapResourceImpl resource = new XcapResourceImpl();
-
-		XcapUri xcapUri = new XcapUri(requestUri, _rootName);
-		resource.setXcapUri(xcapUri);
-
 		XcapResourceProcessor processor = _processors.get(xcapUri.getAuid());
 
 		if (processor == null)
-		{
 			throw new XcapException("Not supported auid: " + xcapUri.getAuid()
-					+ " in URI: " + requestUri,
+					+ " in URI: " + xcapUri,
 					HttpServletResponse.SC_NOT_FOUND);
-		}
+
+		Document document = null;
+		XcapResourceImpl resource = new XcapResourceImpl();
+
+		resource.setXcapUri(xcapUri);
 		resource.setProcessor(processor);
 
 		XmlResource xmlResource = _dao.getDocument(xcapUri, isPut && !xcapUri.hasNodeSeparator());
@@ -427,7 +431,8 @@ public class XcapService
 
 			Map<String, String> context = getXpointer(request);
 			
-			XcapResourceImpl resource = getResource(requestUri, PUT
+			XcapUri xcapUri = new XcapUri(requestUri, _rootName);
+			XcapResourceImpl resource = getResource(xcapUri, PUT
 					.equals(method), head, context);
 			
 			ifMatchConditionalProcessing(request, resource);

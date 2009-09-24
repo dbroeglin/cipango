@@ -17,6 +17,15 @@ public class XcapUri
 	private String _user;
 	private String _resourceId;
 	
+	public XcapUri(String auid, String user, String document, String nodeSelector) throws XcapException
+	{
+		_auid = auid;
+		_user = user;
+		_documentSelector = _auid + '/' + USERS + '/' + user + '/' + document;
+		_nodeSelector = nodeSelector;
+		_global = false;
+	}
+	
 	public XcapUri(String requestUri, String rootName) throws XcapException
 	{
 		requestUri = getRequestUriWithoutRootName(RequestUtil.URLDecode(requestUri), rootName);

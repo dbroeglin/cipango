@@ -985,7 +985,20 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	        	return;
         	}
         }
-        else if (!response.isReliable1xx())
+        else if (response.isReliable1xx())
+        {
+        	int rseq = response.getRSeq();
+        	if (_rseq == -1)
+        		_rseq = rseq;
+        	else if (_rseq + 1 != rseq)
+        	{
+        		Log.debug("Ignore reliable provisional response: RSeq is {} when expect {}", rseq , _rseq + 1);
+        		return;
+        	}
+        	else
+        		_rseq = rseq;
+        }
+        else
         	response.setCommitted(true);
         
         if (response.isBye())

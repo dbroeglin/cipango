@@ -27,6 +27,9 @@ import org.mortbay.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Manage resources, which may be registrations of event resources. 
+ */
 public abstract class AbstractResourceManager<T extends Resource> extends AbstractLifeCycle
 {	
 	private Thread _scheduler;

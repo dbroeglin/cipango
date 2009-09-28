@@ -17,16 +17,16 @@ package org.cipango.kaleo;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-public abstract class URIUtil 
+public abstract class URIUtil
 {
-    public static String toCanonical(URI uri) 
+    public static String toCanonical(URI uri)
     {
-    	if (uri.isSipURI()) 
+    	if (uri.isSipURI())
     	{
     		SipURI sipUri = (SipURI) uri;
     		return ("sip:" + sipUri.getUser() + "@" + sipUri.getHost()).toLowerCase();
-    	} 
-    	else 
+    	}
+    	else
     	{
     		return uri.toString();
     	}

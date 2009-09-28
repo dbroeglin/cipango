@@ -19,7 +19,6 @@ import org.cipango.kaleo.location.event.RegistrationDocument.Registration.State;
 
 public interface RegistrationListener
 {
-
 	void allBindingsRemoved(String aor);
 	void bindingChanged(String aor, Binding binding, Event.Enum event, State.Enum state);
 }

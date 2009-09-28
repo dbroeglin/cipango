@@ -74,7 +74,7 @@ public class Call
 	
 	public Server getServer() 
 	{
-		return _server;
+		return _server; 
 	}
 	
 	public void log(String message)
@@ -92,7 +92,7 @@ public class Call
 		if (_logger != null) _logger.log(message, arg0, arg1);
 	}
 	
-	public boolean isLogEnabled()
+	public boolean isLogEnabled() 
 	{
 		return (_logger != null);
 	}
@@ -119,7 +119,7 @@ public class Call
 		return _lock.getHoldCount();
 	}
 	
-	public void checkOwner()
+	public void checkOwner() 
 	{
 		if (!_lock.isHeldByCurrentThread())
 			throw new IllegalStateException("!owner");

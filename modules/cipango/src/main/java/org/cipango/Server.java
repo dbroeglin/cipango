@@ -148,7 +148,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
     		_callManager.stop();
 		} 
         catch (Throwable e) { mex.add(e); }
-        
+
         try 
         {
 			super.doStop();

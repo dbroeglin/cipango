@@ -768,12 +768,26 @@ public class SipAppContext extends WebAppContext
 
     class SessionUtil implements SipSessionsUtil
     {
-
+ 
 		public SipApplicationSession getApplicationSessionById(String applicationSessionId)
 		{
 			if (applicationSessionId == null)
 				throw new NullPointerException("applicationSessionId is null");
-			return null;
+			int i = applicationSessionId.indexOf(';'); // TODO helper class
+			if (i < 0) 
+				return null;
+			
+			String callId = applicationSessionId.substring(0, i);
+			
+			Call call = ((Server) getServer()).getCallManager().get(callId);
+			if (call == null)
+				return null;
+			
+			AppSession appSession = call.getAppSession(applicationSessionId.substring(i+1));
+			if (appSession == null)
+				return null;
+			else
+				return new AppSessionLockProxy(appSession);
 		}
 
 		public SipApplicationSession getApplicationSessionByKey(String key, boolean create)

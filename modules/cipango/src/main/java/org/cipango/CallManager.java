@@ -110,6 +110,14 @@ public class CallManager extends AbstractLifeCycle
     	return new Call(id);
     }
     
+    public Call get(String callId)
+    {
+    	synchronized (_calls) 
+    	{
+			return (Call) _calls.get(callId);
+		}
+    }
+    
     public Call lock(String callId)
     {
     	Call call = null;

@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
@@ -56,7 +55,7 @@ public class Call
 	{	
 		_callId = id;
 	}
-	
+
 	public void setLogger(CallLogger logger)
 	{
 		_logger = logger;
@@ -230,7 +229,7 @@ public class Call
         return session;
     }
 	
-	private synchronized AppSession getAppSession(String id)
+	public synchronized AppSession getAppSession(String id)
     {
 		for (int i = LazyList.size(_sessions); i-->0;)
 		{

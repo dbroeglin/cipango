@@ -398,5 +398,16 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		{
 			return TcpConnector.this;
 		}
+		
+		@Override
+		public String toString()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.append("TCP Connection ");
+			sb.append(getLocalAddr()).append(":").append(getLocalPort());
+			sb.append(" - ");
+			sb.append(getRemoteAddr()).append(":").append(getRemotePort());
+			return sb.toString();
+		}
 	}
 }

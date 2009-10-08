@@ -17,4 +17,6 @@ package org.cipango.sip;
 public interface SipEndpoint 
 {
 	SipConnector getConnector();
+	
+	boolean isOpen();
 }

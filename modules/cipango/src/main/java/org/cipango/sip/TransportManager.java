@@ -352,15 +352,15 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
     	
     	if (request != null && request.getEndpoint() != null)
     	{
-    		connector = request.getEndpoint().getConnector();
+			SipEndpoint endpoint = request.getEndpoint();
+    		connector = endpoint.getConnector();
     		
-    		if (connector.isReliable())
+    		if (connector.isReliable() && endpoint.isOpen())
     		{
 	        	Buffer buffer = getBuffer(_messageSize);
 	        	_sipGenerator.generate(buffer, response);
 				try
 				{
-					SipEndpoint endpoint = request.getEndpoint();
 					endpoint.getConnector().send(buffer, endpoint);
 					
 					for (int i = 0; _loggers != null && i < _loggers.length; i++)

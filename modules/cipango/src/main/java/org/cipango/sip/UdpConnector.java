@@ -69,6 +69,12 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 		_localAddr = _datagramSocket.getLocalAddress();
 	}
 	
+
+	public boolean isOpen()
+	{
+		return _datagramSocket != null && !_datagramSocket.isClosed();
+	}
+	
 	public int getLocalPort()
 	{
 		if (_datagramSocket==null || _datagramSocket.isClosed())
@@ -290,4 +296,5 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 				_message.setRawContent(buffer.asArray()); // TODO buffer
 		}
 	}
+
 }

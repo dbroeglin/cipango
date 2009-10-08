@@ -78,7 +78,7 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 			
 			return new SipApplicationRouterInfo(_applicationNames.first(), 
 					SipApplicationRoutingRegion.NEUTRAL_REGION, 
-					initialRequest.getFrom().toString(), 
+					initialRequest.getFrom().getURI().toString(), 
 					null,
 					SipRouteModifier.NO_ROUTE, 
 					1);
@@ -100,7 +100,16 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 			
 			String identity = info.getIdentity();
 			if (identity.startsWith("DAR:"))
-				identity = initialRequest.getHeader(identity.substring("DAR:".length()));
+			{
+				try
+				{
+					identity = initialRequest.getAddressHeader(identity.substring("DAR:".length())).getURI().toString();
+				}
+				catch (Exception e)
+				{
+					Log.debug("Failed to parse router info identity: " + info.getIdentity(), e);
+				}
+			}
 			
 			return new SipApplicationRouterInfo(info.getName(), info.getRegion(), identity, null,
 					SipRouteModifier.NO_ROUTE, index + 1);

@@ -145,6 +145,7 @@ public class SipXmlConfiguration implements Configuration
 		initialize(config);
 	}
 	
+	@SuppressWarnings("unchecked")
 	protected void initialize(XmlParser.Node config) throws ClassNotFoundException, UnavailableException 
 	{
 		SipServletHandler servletHandler = (SipServletHandler) getWebAppContext().getServletHandler();
@@ -235,8 +236,13 @@ public class SipXmlConfiguration implements Configuration
             initProxyConfig(node);
         else if("session-config".equals(name))
             initSessionConfig(node);
+        else if ("servlet-selection".equals(name))
+        	initMainServlet(node.get("main-servlet"));
         else if("main-servlet".equals(name))
+        {
         	initMainServlet(node);
+        	Log.warn("main-servlet node should be place into servlet-selection node");
+        }
 	}
 	
     protected void initSessionConfig(XmlParser.Node node)

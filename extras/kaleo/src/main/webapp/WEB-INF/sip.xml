@@ -4,7 +4,10 @@
 	version="1.1">
 	<app-name>org.cipango.kaleo</app-name>
 
-	<main-servlet>kaleo</main-servlet>
+	<servlet-selection>
+		<main-servlet>kaleo</main-servlet>
+	</servlet-selection>
+	
 	<display-name>Kaleo</display-name>
 
 	<servlet>

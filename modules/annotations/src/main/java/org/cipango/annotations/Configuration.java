@@ -131,8 +131,7 @@ public class Configuration extends org.cipango.plus.sipapp.Configuration
                     }
                 });
         
-        
-        AnnotationProcessor processor = new AnnotationProcessor(getSipAppContext(), getSipAppContext().getName(),
+        AnnotationProcessor processor = new AnnotationProcessor(getSipAppContext(), _appName,
         		finder, _runAsCollection, _injections, _callbacks, 
                 LazyList.getList(_servlets), _listenerClasses);
         processor.process();

@@ -41,8 +41,8 @@ public class SipXmlConfiguration implements Configuration
 	private WebAppContext _context;
 	private XmlParser _xmlParser;
 	
-	protected int _version;
-	private String _appName;
+	protected int _version = -1;
+	protected String _appName;
 	
 	protected Object _listeners;
 	protected Object _servlets;
@@ -208,10 +208,10 @@ public class SipXmlConfiguration implements Configuration
 		if (_mainServlet != null)
 			servletHandler.setMainServletName(_mainServlet);
 		
-		if (_appName == null)
-			_appName = getWebAppContext().getContextPath();
-		
-		((SipAppContext) getWebAppContext()).setName(_appName);
+		if (_appName != null)
+			getSipAppContext().setName(_appName);
+		else
+			getSipAppContext().setName(getWebAppContext().getContextPath());
 		
 		getWebAppContext().setEventListeners((EventListener[]) LazyList.toArray(_listeners, EventListener.class));
 	}

@@ -115,7 +115,8 @@ public class AnnotationProcessor
     	{
     		_sipApplication = (SipApplication) classes.get(0).getAnnotation(SipApplication.class);
     		if (_appName != null && !_appName.equals(_sipApplication.name()))
-    			throw new IllegalStateException("App-name in sip.xml does not match with SipApplication annotation");
+    			throw new IllegalStateException("App-name in sip.xml: " + _appName 
+    					+ " does not match with SipApplication annotation: " + _sipApplication.name());
     		else if (_appName == null)
     			_appName = _sipApplication.name();
     	}

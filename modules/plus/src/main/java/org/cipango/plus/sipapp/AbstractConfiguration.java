@@ -101,6 +101,12 @@ public abstract class AbstractConfiguration extends SipXmlConfiguration
     throws Exception
     {
         super.configureWebApp();
+        if (findSipXml() == null)
+        {
+        	Log.info("No sip.xml found, assume SIP Servlet 1.1 application and parse annotations");
+        	_version = VERSION_11;
+        }
+        
         if (_version != VERSION_10)
         {
 	        if (Log.isDebugEnabled()) 

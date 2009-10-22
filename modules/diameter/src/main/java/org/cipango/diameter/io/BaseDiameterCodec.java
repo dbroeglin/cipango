@@ -44,7 +44,7 @@ import org.mortbay.io.View;
  * +-+-+-+-+-+-+-+-+-+-+-+-+-
  * </pre>
  */
-public class DiameterCodec 
+public class BaseDiameterCodec 
 {
 	private static final int DIAMETER_VERSION_1 = 1;
 	public static final int REQUEST_FLAG = 0x80;

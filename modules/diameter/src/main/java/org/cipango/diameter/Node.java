@@ -38,20 +38,25 @@ import org.mortbay.util.MultiException;
  * A Diameter node is a host process that implements the Diameter protocol, 
  * and acts either as a Client, Agent or Server.
  * Can be used standalone or linked to a {@link Server}.
- *
  */
 public class Node extends AbstractLifeCycle implements DiameterHandler
 {
 	//public static String[] __dictionaryClasses = {"org.cipango.diameter.base.Base"};
+	
+	public static final String DEFAULT_REALM = "cipango.org";
+	public static final String DEFAULT_PRODUCT_NAME = "cipango";
+	public static final int NEXCOM_OID = 26588;
+	
 	public static final long DEFAULT_TW = 30000;
 	public static final long DEFAULT_TC = 30000;
 	
 	private Server _server;
 	
-	private String _realm = "cipango.org";
+	private String _realm = DEFAULT_REALM;
 	private String _identity;
-	private int _vendorId = 26588;
-	private String _productName = "cipango";
+	private int _vendorId = NEXCOM_OID;
+	private String _productName = DEFAULT_PRODUCT_NAME;
+	
 	private long _tw = DEFAULT_TW;
 	private long _tc = DEFAULT_TC;
 	
@@ -180,7 +185,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 				while (peers.hasNext()) 
 				{
 					Peer peer = peers.next();
-					if (!peer.isClose())
+					if (!peer.isClosed())
 					{
 						allClosed = false;
 						Log.info("Wait 50ms for " + peer + " closing");

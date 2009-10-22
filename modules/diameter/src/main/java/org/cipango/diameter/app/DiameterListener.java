@@ -18,6 +18,9 @@ import java.util.EventListener;
 
 import org.cipango.diameter.DiameterHandler;
 
+/**
+ * Callback for diameter messages. 
+ */
 public interface DiameterListener extends EventListener, DiameterHandler
 {
 

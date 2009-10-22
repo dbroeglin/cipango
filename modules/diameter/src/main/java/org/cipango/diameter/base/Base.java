@@ -79,5 +79,4 @@ public abstract class Base
 		public static final int BUSY = 1;
 		public static final int DO_NOT_WANT_TO_TALK_TO_YOU = 2;
 	}
-	
 }

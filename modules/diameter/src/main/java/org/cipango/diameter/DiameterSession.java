@@ -16,6 +16,9 @@ package org.cipango.diameter;
 
 import org.cipango.diameter.base.Base;
 
+/**
+ * Point-to-point Diameter relationship. 
+ */
 public class DiameterSession 
 {
 	private Node _node;

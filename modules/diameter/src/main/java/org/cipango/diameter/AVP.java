@@ -20,7 +20,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.cipango.diameter.base.Base;
-import org.cipango.diameter.io.DiameterCodec;
+import org.cipango.diameter.io.BaseDiameterCodec;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.io.View;
@@ -62,7 +62,7 @@ public class AVP
 			AVPList list = new AVPList();
 			while (grouped.hasContent())
 			{
-				AVP avp = DiameterCodec.parseAVP(grouped);
+				AVP avp = BaseDiameterCodec.parseAVP(grouped);
 				list.add(avp);
 			}
 			return list;
@@ -210,7 +210,7 @@ public class AVP
 		Buffer buffer = new ByteArrayBuffer(256); // TODO
 		for (AVP avp : avps)
 		{
-			buffer = DiameterCodec.writeAVP(avp, buffer);
+			buffer = BaseDiameterCodec.writeAVP(avp, buffer);
 		}
 		return new AVP(vendorId, code, buffer);
 	}

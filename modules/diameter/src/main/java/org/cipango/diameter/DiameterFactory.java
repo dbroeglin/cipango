@@ -14,6 +14,11 @@
 
 package org.cipango.diameter;
 
+/**
+ * Factory interface for Diameter abstractions. 
+ * An instance this class is available to applications through the <code>org.cipango.diameter.DiameterFactory</code>
+ * attribute of {@link javax.servlet.ServletContext}
+ */
 public class DiameterFactory 
 {
 	private Node _node;

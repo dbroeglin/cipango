@@ -43,7 +43,6 @@ public class DiameterConfiguration implements Configuration
 
 	public void configureDefaults() throws Exception 
 	{
-		// TODO Auto-generated method stub		
 	}
 
 	public void configureWebApp() throws Exception 
@@ -62,10 +61,11 @@ public class DiameterConfiguration implements Configuration
 		for (int i = 0; i < listeners.length; i++)
 		{
 			EventListener listener = listeners[i];
-			System.out.println("checking: " + listener);
 			if (listener instanceof DiameterListener)
 				diameterListener = (DiameterListener) listener;
 		}
+		
+		Log.debug("Using " + diameterListener + " as diameter listener");
 		
 		DiameterFactory factory = new DiameterFactory();
 		Node node = (Node) getWebAppContext().getServer().getAttribute(Node.class.getName());
@@ -74,7 +74,6 @@ public class DiameterConfiguration implements Configuration
 		getWebAppContext().getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		
 		node.setHandler(new DiameterHolder(diameterListener, getWebAppContext().getClassLoader()));
-		System.out.println("Diameter listener is " + diameterListener);
 	}
 	
 	public void deconfigureWebApp() throws Exception 

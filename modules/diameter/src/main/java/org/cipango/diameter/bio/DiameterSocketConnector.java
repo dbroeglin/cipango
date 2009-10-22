@@ -23,7 +23,7 @@ import org.cipango.diameter.AbstractDiameterConnector;
 import org.cipango.diameter.DiameterConnection;
 import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.Peer;
-import org.cipango.diameter.io.DiameterCodec;
+import org.cipango.diameter.io.BaseDiameterCodec;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.io.bio.SocketEndPoint;
@@ -133,7 +133,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		{
 			Buffer buffer = getBuffer(getMessageBufferSize());
 			
-			DiameterCodec.write(message, buffer);
+			BaseDiameterCodec.write(message, buffer);
 			
 			flush(buffer);
 			returnBuffer(buffer);
@@ -169,7 +169,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					if (read == -1)
 						throw new EofException();
 					
-					DiameterMessage message = DiameterCodec.parse(b);
+					DiameterMessage message = BaseDiameterCodec.parse(b);
 					message.setConnection(this);
 					message.setNode(getNode());
 					

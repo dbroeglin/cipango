@@ -25,11 +25,10 @@ import org.cipango.diameter.base.Base.DisconnectCause;
 import org.mortbay.log.Log;
 
 /**
- *  A Diameter Peer is a Diameter Node to which a given Diameter Node 
+ *  A Diameter Peer is a Diameter Node to which a given Diameter Node
  *  has a direct transport connection.
- *
  */
-public class Peer
+public class Peer 
 {
 	private Node _node;
 	
@@ -44,11 +43,11 @@ public class Peer
 	
 	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
 	
-	private long _lastMsgDate;
-	
+	private long _lastReceivedTime;
 	private boolean _waitForDwa = false;
 	
-	private boolean _stopped = true;
+	// indicate whether the peer has been explicitly stopped
+	private boolean _stopped;
 	
 	public Peer()
 	{
@@ -57,20 +56,20 @@ public class Peer
 	
 	public Peer(String host)
 	{
-		_host = host;
-		_state = CLOSED;
-	}
-	
-	public void setHost(String host)
-	{
-		if (_host != null)
-			throw new IllegalArgumentException("Host already set");
+		this();
 		_host = host;
 	}
 	
 	public String getHost()
 	{
 		return _host;
+	}
+	
+	public void setHost(String host)
+	{
+		if (_host != null)
+			throw new IllegalArgumentException("host already set");
+		_host = host;
 	}
 	
 	public int getPort()
@@ -83,14 +82,14 @@ public class Peer
 		_port = port;
 	}
 	
-	public void setAddress(InetAddress address)
-	{
-		_address = address;
-	}
-	
 	public InetAddress getAddress()
 	{
 		return _address;
+	}
+	
+	public void setAddress(InetAddress address)
+	{
+		_address = address;
 	}
 	
 	public Node getNode()
@@ -108,7 +107,7 @@ public class Peer
 		return _state == OPEN;
 	}
 	
-	public boolean isClose()
+	public boolean isClosed()
 	{
 		return _state == CLOSED;
 	}
@@ -137,7 +136,8 @@ public class Peer
 	
 	public void receive(DiameterMessage message) throws IOException
 	{
-		_lastMsgDate = System.currentTimeMillis();
+		_lastReceivedTime = System.currentTimeMillis();
+		
 		if (message.isRequest())
 			receiveRequest((DiameterRequest) message);
 		else
@@ -222,6 +222,7 @@ public class Peer
 			Log.ignore(e);
 		}
 	}
+	
 	// --
 	
 	protected void setState(State state)
@@ -230,77 +231,11 @@ public class Peer
 		_state = state;
 	}
 	
-    protected boolean elect()
-    {
-        String other = getHost();
-        String local = _node.getIdentity();
-        
-        boolean won = (local.compareTo(other) > 0);
-        if (won)
-            Log.debug("Won election (" + local + ">" + other + ")");
-        return won;      
-    }
     
-    protected void sendCER()
-    {
-    	DiameterRequest cer = new DiameterRequest(getNode(), Base.CER, 0, null);
-		getNode().addCapabilities(cer);
-		
-		try
-		{
-			getConnection().write(cer);
-		}
-		catch (IOException e)
-		{
-			Log.debug(e);
-		}
-    }
-    
-    protected void iDisc()
-    {
-        if (_iConnection != null) {
-            try
-			{
-				_iConnection.close();
-			} catch (IOException e)
-			{
-				Log.debug("Failed to disconnect " + _iConnection + " on peer " + this + ": " + e);
-			}
-            _iConnection = null;
-        }
-    }
-    
-    protected void rDisc()
-    {
-        if (_rConnection != null) {
-        	 try
- 			{
- 				_rConnection.close();
- 			} catch (IOException e)
- 			{
- 				Log.debug("Failed to disconnect " + _rConnection + " on peer " + this + ": " + e);
- 			}
-        	_rConnection = null;
-        }
-    }
-    
-    protected void sendCEA(DiameterRequest cer)
-    {
-    	DiameterAnswer cea = cer.createAnswer(Base.DIAMETER_SUCCESS);
-		try
-		{
-			cea.send();
-		}
-		catch (IOException e)
-		{
-			Log.debug(e);
-		}
-    	
-    }
     
     public void sendDWRIfNeeded(long tw)
     {
-    	if (isOpen() && _lastMsgDate + tw  <= System.currentTimeMillis())
+    	if (isOpen() && _lastReceivedTime + tw  <= System.currentTimeMillis())
     	{
 	    	if (_waitForDwa)
 			{
@@ -334,28 +269,55 @@ public class Peer
 	
 	// ==================== Events ====================
 	
+	/**
+	 * Starts the peers
+	 */
 	public synchronized void start()
 	{
-		_stopped = false;
 		if (_host == null)
-			throw new IllegalArgumentException("host not set");
+			throw new IllegalStateException("host not set");
 		_state.start();
 	}
+	
+	/**
+	 * Handles an incoming connection request (CER)
+	 * 
+	 * @param cer	the incoming CER
+	 */
+	public synchronized void rConnCER(DiameterRequest cer)
+	{
+		_state.rConnCER(cer);
+	}
+	
+	/**
+	 * The transport connection has been closed
+	 * 
+	 * @param connection the closed connection
+	 */
+	public synchronized void peerDisc(DiameterConnection connection)
+	{
+		_state.disc(connection);
+	}
+	
 	/**
 	 * The Diameter application has signaled that a connection should be 
 	 * terminated (e.g., on system shutdown).
 	 */
-	public synchronized void stop() {
+	public synchronized void stop() 
+	{
 		_stopped = true;
 		if (_state == OPEN)
 		{
-			try {
+			try 
+			{
 				setState(CLOSING);
 				
 				DiameterRequest dpr = new DiameterRequest(_node, Base.DPR, 0, null);
 				dpr.add(AVP.ofInt(Base.DISCONNECT_CAUSE, DisconnectCause.REBOOTING));
 				getConnection().write(dpr);	
-			} catch (IOException e) {
+			} 
+			catch (IOException e) 
+			{
 				Log.warn("Unable to send DPR on shutdown", e);
 			}
 		} 
@@ -363,21 +325,12 @@ public class Peer
 			setState(CLOSED);
 	}
 	
-	protected void close() {
+	protected void close() 
+	{
 		_rConnection = _iConnection = null;
 		setState(CLOSED);
 		if (!_stopped)
 			_node.scheduleReconnect(new ReconnectTask());
-	}
-	
-	public synchronized void rConnCER(DiameterRequest cer)
-	{
-		_state.rConnCER(cer);
-	}
-	
-	public synchronized void peerDisc(DiameterConnection connection)
-	{
-		_state.disc(connection);
 	}
 	
 	/**
@@ -392,6 +345,7 @@ public class Peer
 
 	protected void iSndConnReq()
 	{
+		// cnx request is blocking so start in a new thread
 		new Thread(new Runnable() 
 		{
 			public void run() 
@@ -416,8 +370,69 @@ public class Peer
 		setState(WAIT_CONN_ACK);
 	}
 	
-	// FIXME: synchronization potential pb: the second event could run on the previous state.
-	abstract class State
+	protected boolean elect()
+    {
+        String other = getHost();
+        String local = _node.getIdentity();
+        
+        boolean won = (local.compareTo(other) > 0);
+        if (won)
+            Log.debug("Won election (" + local + ">" + other + ")");
+        return won;      
+    }
+    
+    protected void sendCER()
+    {
+    	DiameterRequest cer = new DiameterRequest(getNode(), Base.CER, 0, null);
+		getNode().addCapabilities(cer);
+		
+		try
+		{
+			getConnection().write(cer);
+		}
+		catch (IOException e)
+		{
+			Log.debug(e);
+		}
+    }
+    
+    protected void iDisc()
+    {
+        if (_iConnection != null) 
+        {
+            try { _iConnection.close(); } 
+            catch (IOException e) { Log.debug("Failed to disconnect " + _iConnection + " on peer " + this + ": " + e); }
+            _iConnection = null;
+        }
+    }
+    
+    protected void rDisc()
+    {
+        if (_rConnection != null) 
+        {
+        	try { _rConnection.close(); } 
+        	catch (IOException e) { Log.debug("Failed to disconnect " + _rConnection + " on peer " + this + ": " + e); }
+        	_rConnection = null;
+        }
+    }
+    
+    protected void sendCEA(DiameterRequest cer)
+    {
+    	DiameterAnswer cea = cer.createAnswer(Base.DIAMETER_SUCCESS);
+		try
+		{
+			cea.send();
+		}
+		catch (IOException e)
+		{
+			Log.debug(e);
+		}
+    	
+    }
+	
+    // peer states 
+    
+	private abstract class State
 	{
 		private String _name;
 		
@@ -702,7 +717,6 @@ public class Peer
 	 */
 	State CLOSING = new State("Closing")
 	{
-
 		@Override
 		public void disc(DiameterConnection connection)
 		{
@@ -721,7 +735,7 @@ public class Peer
 	{
         public ReconnectTask()
         {
-            Log.debug("Create new reconnect Task for " + Peer.this );
+            Log.debug("Create new reconnect Task for " + Peer.this);
         }
         
         public void run()
@@ -741,4 +755,5 @@ public class Peer
             }
         }
     }
+
 }

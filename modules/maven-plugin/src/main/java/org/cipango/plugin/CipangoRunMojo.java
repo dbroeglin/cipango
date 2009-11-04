@@ -172,10 +172,8 @@ public class CipangoRunMojo extends Jetty6RunMojo
         {
         	Server sipServer = plugin.getServer();
         	diameterNode.setServer(sipServer);
-        	sipServer.setAttribute("org.cipango.diameter.Node", diameterNode);
-        	Configuration[] c = 
-        		(Configuration[]) LazyList.addToArray(webAppConfig.getConfigurations(), new DiameterConfiguration(), Configuration.class);
-        	webAppConfig.setConfigurations(c);
+        	sipServer.setAttribute(Node.class.getName(), diameterNode);
+           	webAppConfig.addConfiguration(new DiameterConfiguration());
         	PluginLog.getLog().info("Diameter port = " + diameterNode.getConnectors()[0].getPort());
         	sipServer.addLifeCycle(diameterNode);
         }

@@ -10,11 +10,12 @@ import org.mortbay.jetty.webapp.JettyWebXmlConfiguration;
 import org.mortbay.jetty.webapp.TagLibConfiguration;
 import org.mortbay.jetty.webapp.WebInfConfiguration;
 import org.mortbay.jetty.webapp.WebXmlConfiguration;
+import org.mortbay.util.LazyList;
 
 public class CipangoPluginSipAppContext extends SipAppContext
 {
 
-    private List classpathFiles;
+    private List<File> classpathFiles;
     private File jettyEnvXmlFile;
     private File webXmlFile;
     private boolean annotationsEnabled = true;
@@ -36,12 +37,21 @@ public class CipangoPluginSipAppContext extends SipAppContext
         setConfigurations(configs);
     }
     
-    public void setClassPathFiles(List classpathFiles)
+    public void addConfiguration(Configuration configuration)
+    {
+    	 if (isRunning())
+             throw new IllegalStateException("Running");
+    	 configs = (Configuration[]) LazyList.addToArray(configs, configuration, Configuration.class);
+    	 setConfigurations(configs);
+    }
+
+    
+    public void setClassPathFiles(List<File> classpathFiles)
     {
         this.classpathFiles = classpathFiles;
     }
 
-    public List getClassPathFiles()
+    public List<File> getClassPathFiles()
     {
         return this.classpathFiles;
     }
@@ -66,7 +76,8 @@ public class CipangoPluginSipAppContext extends SipAppContext
         return this.jettyEnvXmlFile;
     }
     
-    public void configure ()
+    @SuppressWarnings("deprecation")
+	public void configure ()
     {        
         setConfigurations(configs);
         mvnConfig.setClassPathConfiguration (classpathFiles);

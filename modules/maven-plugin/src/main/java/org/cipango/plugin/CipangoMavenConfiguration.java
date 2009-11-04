@@ -27,7 +27,7 @@ import org.mortbay.util.LazyList;
 
 public class CipangoMavenConfiguration extends Configuration 
 {
-    private List classPathFiles;
+    private List<File> classPathFiles;
     private boolean annotationsEnabled;
    
     public CipangoMavenConfiguration()
@@ -35,7 +35,7 @@ public class CipangoMavenConfiguration extends Configuration
         super();
     }
 
-    public void setClassPathConfiguration(List classPathFiles)
+    public void setClassPathConfiguration(List<File> classPathFiles)
     {
         this.classPathFiles = classPathFiles;
     }
@@ -51,9 +51,9 @@ public class CipangoMavenConfiguration extends Configuration
             Log.debug("Setting up classpath ...");
 
             //put the classes dir and all dependencies into the classpath
-            Iterator itor = classPathFiles.iterator();
+            Iterator<File> itor = classPathFiles.iterator();
             while (itor.hasNext())
-                ((WebAppClassLoader)getWebAppContext().getClassLoader()).addClassPath(((File)itor.next()).getCanonicalPath());
+                ((WebAppClassLoader)getWebAppContext().getClassLoader()).addClassPath((itor.next()).getCanonicalPath());
 
             if (Log.isDebugEnabled())
                 Log.debug("Classpath = "+LazyList.array2List(((URLClassLoader)getWebAppContext().getClassLoader()).getURLs()));

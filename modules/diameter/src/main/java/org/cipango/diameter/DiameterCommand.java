@@ -20,11 +20,19 @@ public class DiameterCommand
 	private int _code;
 	private String _name;
 	
-	public DiameterCommand(boolean request, int code, String name)
+	private boolean _proxiable;
+	
+	public DiameterCommand(boolean request, int code, String name, boolean proxiable)
 	{
 		_request = request;
 		_code = code;
 		_name = name;
+		_proxiable = proxiable;
+	}
+	
+	public DiameterCommand(boolean request, int code, String name)
+	{
+		this(request, code, name, true);
 	}
 
 	public boolean isRequest()
@@ -35,6 +43,11 @@ public class DiameterCommand
 	public Integer getCode() 
 	{
 		return _code;
+	}
+	
+	public boolean isProxiable()
+	{
+		return _proxiable;
 	}
 	
 	public String toString()

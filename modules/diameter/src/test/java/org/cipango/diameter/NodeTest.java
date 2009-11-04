@@ -1,14 +1,41 @@
 package org.cipango.diameter;
 
+import java.net.InetAddress;
+
 import junit.framework.TestCase;
 
 public class NodeTest extends TestCase
 {
-	public void testNull()
+	public void testiConnect() throws Exception
 	{
-		Object o = null;
-		System.out.println(o instanceof String);
+		//Log.getLog().setDebugEnabled(true);
+		
+		Node client = new Node(3868);
+		client.setIdentity("client");
+		
+		Peer peer = new Peer("server");
+		peer.setAddress(InetAddress.getLocalHost());
+		peer.setPort(3869);
+		
+		client.addPeer(peer);
+		
+		Node server = new Node(3869);
+		server.setIdentity("server");
+		server.start();
+		
+		client.start();
+		
+		Thread.sleep(1000);
+		assertTrue(peer.isOpen());
+		
+		peer.stop();
+		Thread.sleep(1000);
+		assertTrue(peer.isClosed());
+		
+		server.stop();
+		client.stop();
 	}
+	
 	/*
 	public void testCnx() throws Exception
 	{

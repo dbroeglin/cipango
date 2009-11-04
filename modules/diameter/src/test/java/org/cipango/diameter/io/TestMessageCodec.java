@@ -4,63 +4,63 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.net.URL;
 
-import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
-import org.cipango.diameter.Client;
 import org.cipango.diameter.DiameterMessage;
+import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.base.Base;
+import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
+import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 
 import junit.framework.TestCase;
 
 public class TestMessageCodec extends TestCase
 {
-	protected byte[] load(String name) throws Exception
+	protected void setUp()
 	{
-		URL url = Client.class.getClassLoader().getResource(name);
+		Dictionary.getInstance().load(Base.class);
+		Dictionary.getInstance().load(IMS.class);
+		Dictionary.getInstance().load(Cx.class);
+		Dictionary.getInstance().load(IMS.class);
+	}
+	
+	protected Buffer load(String name) throws Exception
+	{
+		URL url = getClass().getClassLoader().getResource(name);
 		File file = new File(url.toURI());
 		FileInputStream fin = new FileInputStream(file);
 		byte[] b = new byte[(int) file.length()];
 		fin.read(b);
 		
-		return b;
+		return new ByteArrayBuffer(b);
 	}
 	
 	public void testDecode() throws Exception
 	{
-		DiameterMessage message = DiameterCodec.parse(new ByteArrayBuffer(load("sar.dat")));
-		//assertEquals(Base.SAR, message.getCommand());
-		AVP avp = message.getAVP(Base.VENDOR_SPECIFIC_APPLICATION_ID);
-		AVPList list = avp.getGrouped();
-		System.out.println(list.getAVP(Base.AUTH_APPLICATION_ID).getInt());
-		System.out.println(list.getAVP(Base.VENDOR_ID).getInt());
+		DiameterMessage message = Codecs.__message.decode(load("sar.dat"));
+
+		assertEquals(Cx.SAR, message.getCommand());
+		assertEquals("scscf1.home1.net", message.get(Base.ORIGIN_HOST));
+		assertEquals("home1.net", message.get(Base.ORIGIN_REALM));
 		
-		System.out.println(message.getAVP(Base.ORIGIN_HOST).getString());
-		System.out.println(message.getAVP(Base.ORIGIN_REALM));	
-		
-		ByteArrayBuffer out = new ByteArrayBuffer(1000);
-		ByteArrayBuffer out3 = new ByteArrayBuffer(1000);
-		
-		DiameterCodec.write(message, out);
-		DiameterCodec.write(message, out3);
-		
-		System.out.println(out.length());
-		
-		message = DiameterCodec.parse(out);
-		System.out.println(message.getAVP(Base.ORIGIN_HOST).getString());
-		System.out.println(message.getAVP(Base.ORIGIN_REALM));	
-		
-		ByteArrayBuffer out2 = new ByteArrayBuffer(1000);
-		DiameterCodec.write(message, out2);
-		
-		assertEquals(out3, out2);
-		
-		AVP app = AVP.ofAVPs(Base.VENDOR_SPECIFIC_APPLICATION_ID, 
-				AVP.ofInt(Base.VENDOR_ID, IMS.IMS_VENDOR_ID),
-				AVP.ofInt(Base.AUTH_APPLICATION_ID, IMS.CX_APPLICATION_ID));
-		list = app.getGrouped();
-		System.out.println(list.getAVP(Base.AUTH_APPLICATION_ID).getInt());
+		AVPList vsai = message.get(Base.VENDOR_SPECIFIC_APPLICATION_ID);
+		assertEquals(IMS.IMS_VENDOR_ID, (int) vsai.getValue(Base.VENDOR_ID));
+		assertEquals(Cx.CX_APPLICATION_ID, (int) vsai.getValue(Base.AUTH_APPLICATION_ID));	
 	}
 	
+	public void testPerf() throws Exception
+	{
+		Buffer buffer = load("sar.dat");
+		
+		long nb = 100000;
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < nb; i++)
+		{
+			buffer.mark(buffer.getIndex());
+			Codecs.__message.decode(buffer);
+			buffer.reset();
+		}
+		System.out.println((nb * 1000 / (System.currentTimeMillis() - start)) + " msg / s");
+	}
 }

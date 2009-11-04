@@ -102,6 +102,11 @@ public class Peer
 		_node = node;
 	}
 	
+	public State getState()
+	{
+		return _state;
+	}
+	
 	public boolean isOpen()
 	{
 		return _state == OPEN;
@@ -148,15 +153,15 @@ public class Peer
 	{
 		synchronized (this)
 		{
-			switch (request.getCommand()) 
+			switch (request.getCommand().getCode()) 
 			{
-			case Base.DWR:
+			case Base.DWR_ORDINAL:
 				receiveDWR(request);
 				return;
-			case Base.CER:
+			case Base.CER_ORDINAL:
 				rConnCER(request);
 				return;
-			case Base.DPR:
+			case Base.DPR_ORDINAL:
 				_state.rcvDPR(request);
 				return;
 			default:
@@ -170,41 +175,26 @@ public class Peer
 	{
 		synchronized (this)
 		{
-			switch (answer.getCommand()) 
+			switch (answer.getCommand().getCode()) 
 			{
-			case Base.CEA:
+			case Base.CEA_ORDINAL:
 				_state.rcvCEA(answer);
 				return;
-			case Base.DWA:
+			case Base.DWA_ORDINAL:
 				_waitForDwa = false;
 				return;
-			case Base.DPA:
+			case Base.DPA_ORDINAL:
 				_state.rcvDPA(answer);
 				return;
 			}
 		}
-
-		System.out.println("receive answer " + answer);
 		 
-		int rc = -1;
-		AVP avp = answer.getAVP(Base.RESULT_CODE);
-		if (avp == null)
-		{
-			
-			avp = answer.getAVP(Base.EXPERIMENTAL_RESULT);
-			if (avp != null )
-				rc = avp.getGrouped().getAVP(Base.EXPERIMENTAL_RESULT_CODE).getInt();
-			
-		}
-		else
-		{
-			rc = avp.getInt();
-		}
 		DiameterRequest request;
 		synchronized (_pendingRequests)
 		{
 			request = _pendingRequests.remove(answer.getHopByHopId());
 		}
+		
 		answer.setRequest(request);
 		
 		getNode().handle(answer);
@@ -313,7 +303,7 @@ public class Peer
 				setState(CLOSING);
 				
 				DiameterRequest dpr = new DiameterRequest(_node, Base.DPR, 0, null);
-				dpr.add(AVP.ofInt(Base.DISCONNECT_CAUSE, DisconnectCause.REBOOTING));
+				dpr.add(Base.DISCONNECT_CAUSE, DisconnectCause.REBOOTING);
 				getConnection().write(dpr);	
 			} 
 			catch (IOException e) 
@@ -698,8 +688,7 @@ public class Peer
 			_rConnection = _iConnection = null;
 			
 			// Start reconnect task if Disconnect cause is rebooting
-			AVP avp = dpr.getAVP(Base.DISCONNECT_CAUSE);
-			if (avp.getInt() == DisconnectCause.REBOOTING)
+			if (dpr.get(Base.DISCONNECT_CAUSE) == DisconnectCause.REBOOTING)
 			{
 				_node.scheduleReconnect(new ReconnectTask());
 			}

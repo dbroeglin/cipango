@@ -16,6 +16,7 @@ package org.cipango.diameter.bio;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -23,7 +24,7 @@ import org.cipango.diameter.AbstractDiameterConnector;
 import org.cipango.diameter.DiameterConnection;
 import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.Peer;
-import org.cipango.diameter.io.BaseDiameterCodec;
+import org.cipango.diameter.io.Codecs;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.io.bio.SocketEndPoint;
@@ -59,7 +60,8 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	
 	protected ServerSocket newServerSocket(int port) throws IOException
 	{
-		ServerSocket ss = new ServerSocket(port);
+		ServerSocket ss = new ServerSocket();
+		ss.bind(new InetSocketAddress(getHost(), getPort()));
 		return ss;
 	}
 	
@@ -132,8 +134,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		public void write(DiameterMessage message) throws IOException
 		{
 			Buffer buffer = getBuffer(getMessageBufferSize());
-			
-			BaseDiameterCodec.write(message, buffer);
+			buffer = Codecs.__message.encode(buffer, message);
 			
 			flush(buffer);
 			returnBuffer(buffer);
@@ -169,7 +170,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					if (read == -1)
 						throw new EofException();
 					
-					DiameterMessage message = BaseDiameterCodec.parse(b);
+					DiameterMessage message = Codecs.__message.decode(b);
 					message.setConnection(this);
 					message.setNode(getNode());
 					

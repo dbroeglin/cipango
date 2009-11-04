@@ -18,17 +18,17 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.cipango.diameter.base.Base;
-import org.mortbay.util.LazyList;
 
 public abstract class DiameterMessage
 {
-	protected int _command;
-	protected AVPList _avps = new AVPList();
-
+	protected DiameterCommand _command;
+	
+	//protected int _command;
+	protected AVPList _avps;
+	
 	protected int _applicationId;
 	protected int _hopByHopId;
 	protected int _endToEndId;
@@ -40,21 +40,34 @@ public abstract class DiameterMessage
 	
 	private Map<String, Object> _attributes;
 	
+	public <T> T get(Type<T> type)
+	{
+		return _avps.getValue(type);
+	}
+	
+	public <T> void add(Type<T> type, T value)
+	{
+		_avps.add(type, value);
+	}
+	
 	public DiameterMessage()
 	{
 	}
 	
-	public DiameterMessage(Node node, int appId, int command, int endToEndId, int hopByHopId, String sessionId)
+	public DiameterMessage(Node node, int appId, DiameterCommand command, int endToEndId, int hopByHopId, String sessionId)
 	{
 		_node = node;
 		_applicationId = appId;
 		_command = command;
 		_hopByHopId = hopByHopId;
 		_endToEndId = endToEndId;
+	
+		_avps = new AVPList();
+		
 		if (sessionId != null)
-			_avps.add(AVP.ofString(Base.SESSION_ID, sessionId));
-		_avps.add(AVP.ofString(Base.ORIGIN_HOST, node.getIdentity()));
-		_avps.add(AVP.ofString(Base.ORIGIN_REALM, node.getRealm()));
+			_avps.add(Base.SESSION_ID, sessionId);
+		_avps.add(Base.ORIGIN_HOST, node.getIdentity());
+		_avps.add(Base.ORIGIN_REALM, node.getRealm());
 	}
 	
 	public DiameterMessage(DiameterMessage message)
@@ -117,34 +130,29 @@ public abstract class DiameterMessage
 		_endToEndId = endToEndId;
 	}
 	
-	public void setCommand(int command)
+	public void setCommand(DiameterCommand command)
 	{
 		_command = command;
 	}
 	
-	public int getCommand()
+	public DiameterCommand getCommand()
 	{
 		return _command;
 	}
 	
-	public AVP get(int index)
-	{
-		return _avps.get(index);
-	}
-	
 	public String getOriginHost()
 	{
-		return _avps.getString(Base.ORIGIN_HOST);
+		return get(Base.ORIGIN_HOST);
 	}
 	
 	public String getOriginRealm()
 	{
-		return _avps.getString(Base.ORIGIN_REALM);
+		return get(Base.ORIGIN_REALM);
 	}
 	
 	public String getSessionId()
 	{
-		return _avps.getString(Base.SESSION_ID);
+		return get(Base.SESSION_ID);
 	}
 	
 	public int size()
@@ -157,35 +165,9 @@ public abstract class DiameterMessage
 		return _avps;
 	}
 	
-	public void add(AVP avp)
+	public void setAVPList(AVPList avps)
 	{
-		_avps.add(avp);
-	}
-	
-	public AVP getAVP(int code)
-	{
-		return getAVP(Base.IETF_VENDOR_ID, code);
-	}
-	
-	public AVP getAVP(int vendorId, int code)
-	{
-		for (int i = 0; i < _avps.size(); i++)
-		{
-			AVP avp = _avps.get(i);
-			if (avp.getVendorId() == vendorId && avp.getCode() == code)
-				return avp;
-		}
-		return null;
-	}
-	
-	public Iterator<AVP> getAVPs(int code)
-	{
-		return _avps.getAVPs(code);
-	}
-	
-	public Iterator<AVP> getAVPs(int vendorId, int code)
-	{
-		return _avps.getAVPs(vendorId, code);
+		_avps = avps;
 	}
 	
 	public DiameterSession getSession()
@@ -203,7 +185,7 @@ public abstract class DiameterMessage
 	
 	public String toString()
 	{
-		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command;
+		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command + " : " + _avps;
 	}
 	
 	public Object getAttribute(String name) 

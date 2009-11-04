@@ -25,6 +25,7 @@ import java.util.TimerTask;
 
 import org.cipango.diameter.base.Base;
 import org.cipango.diameter.bio.DiameterSocketConnector;
+import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
 import org.cipango.diameter.log.BasicMessageLog;
 import org.mortbay.component.AbstractLifeCycle;
@@ -32,7 +33,9 @@ import org.mortbay.component.LifeCycle;
 import org.mortbay.jetty.Server;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
+import org.mortbay.util.Loader;
 import org.mortbay.util.MultiException;
+
 
 /**
  * A Diameter node is a host process that implements the Diameter protocol, 
@@ -41,7 +44,8 @@ import org.mortbay.util.MultiException;
  */
 public class Node extends AbstractLifeCycle implements DiameterHandler
 {
-	//public static String[] __dictionaryClasses = {"org.cipango.diameter.base.Base"};
+	public static String[] __dictionaryClasses = {
+		"org.cipango.diameter.base.Base", "org.cipango.diameter.ims.IMS", "org.cipango.diameter.ims.Cx", "org.cipango.diameter.ims.Sh"};
 	
 	public static final String DEFAULT_REALM = "cipango.org";
 	public static final String DEFAULT_PRODUCT_NAME = "cipango";
@@ -114,11 +118,10 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	@Override
 	protected void doStart() throws Exception 
 	{
-		/*for (int i = 0; i < __dictionaryClasses.length; i++)
+		for (int i = 0; i < __dictionaryClasses.length; i++)
 		{
-			__dictionary.load(Loader.loadClass(getClass(), __dictionaryClasses[i]));
+			Dictionary.getInstance().load(Loader.loadClass(getClass(), __dictionaryClasses[i]));
 		}
-		*/
 			
 		if (_identity == null) 
 			_identity = InetAddress.getLocalHost().getHostName();
@@ -300,16 +303,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			}
 			if (message.getCommand() == Base.CER)
 			{
-				AVP avp = message.getAVP(Base.ORIGIN_HOST);
+				String originHost = message.getOriginHost();
 				
-				if (avp == null)
+				if (originHost == null)
 				{
 					Log.debug("No Origin-Host in CER");
 					message.getConnection().stop();
 					return;
 				}
-				
-				String originHost = avp.getString();
 				
 				peer = _peers.get(originHost);
 				
@@ -337,6 +338,29 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	public void handle(DiameterMessage message) throws IOException
 	{
+		if (!message.isRequest())
+		{
+			int code;
+			int vendorId = Base.IETF_VENDOR_ID;
+			
+			AVP<Integer> avp = message.getAVPs().get(Base.RESULT_CODE);
+			if (avp != null)
+			{
+				code = avp.getValue();
+			}
+			else
+			{
+				AVPList expRc = message.get(Base.EXPERIMENTAL_RESULT);
+				code = expRc.getValue(Base.EXPERIMENTAL_RESULT_CODE);
+				vendorId = expRc.getValue(Base.VENDOR_ID);
+			}
+			
+			ResultCode rc = Dictionary.getInstance().getResultCode(vendorId, code);
+			if (rc == null)
+				rc = Factory.newResultCode(vendorId, code, "Unknown");
+			
+			((DiameterAnswer) message).setResultCode(rc);
+		}
 		/*
 		System.out.println("Got message: " + message);
 		String sessionId = message.getSessionId();
@@ -364,20 +388,27 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		System.out.println(message.getSession());
 		*/
-		_handler.handle(message);
+		if (_handler != null)
+			_handler.handle(message);
+		//System.out.println("Got message: " + message.getAVPs());
 	}
 	
 	public void addCapabilities(DiameterMessage message)
 	{	
-		for (int i = 0; i < _connectors.length; i++)
-			message.add(AVP.ofAddress(Base.HOST_IP_ADDRESS, _connectors[i].getLocalAddress()));
+		for (DiameterConnector connector : _connectors)
+		{
+			message.add(Base.HOST_IP_ADDRESS, connector.getLocalAddress());
+			System.out.println(connector.getLocalAddress());
+		}
 		
-		message.add(AVP.ofInt(Base.VENDOR_ID, getVendorId()));
-		message.add(AVP.ofString(Base.PRODUCT_NAME, getProductName()));
+		message.add(Base.VENDOR_ID, getVendorId());
+		message.add(Base.PRODUCT_NAME, getProductName());
 		
-		message.add(AVP.ofAVPs(Base.VENDOR_SPECIFIC_APPLICATION_ID,
-				AVP.ofInt(Base.VENDOR_ID, IMS.IMS_VENDOR_ID),
-				AVP.ofInt(Base.AUTH_APPLICATION_ID, IMS.CX_APPLICATION_ID)));
+		AVPList vsai = new AVPList();
+		vsai.add(Base.VENDOR_ID, IMS.IMS_VENDOR_ID);
+		vsai.add(Base.AUTH_APPLICATION_ID, Cx.CX_APPLICATION_ID);
+		
+		message.add(Base.VENDOR_SPECIFIC_APPLICATION_ID, vsai);
 	}
 	
 	public String toString()

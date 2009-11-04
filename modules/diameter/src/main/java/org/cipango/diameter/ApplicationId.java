@@ -14,7 +14,6 @@
 
 package org.cipango.diameter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,27 +59,28 @@ public class ApplicationId implements Convertible
 		return (_type == Type.Acct);
 	}
 	
-	public AVP getAVP()
+	public AVP<?> getAVP()
 	{
-		AVP avp = null;
+		AVP<Integer> appId;
 		if (_type == Type.Auth)
-			avp = AVP.ofInt(Base.AUTH_APPLICATION_ID, _id);
-		else
-			avp = AVP.ofInt(Base.AUTH_APPLICATION_ID, _id);
+			appId = new AVP<Integer>(Base.AUTH_APPLICATION_ID, _id);
+		else 
+			appId = new AVP<Integer>(Base.ACCT_APPLICATION_ID, _id);
 		
 		if (_vendors != null && _vendors.size() > 0)
 		{
-			AVP[] avps = new AVP[_vendors.size() + 1];
-			for (int i = 0; i < _vendors.size(); i++)
+			AVP<AVPList> vsai = new AVP<AVPList>(Base.VENDOR_SPECIFIC_APPLICATION_ID, new AVPList());
+			for (Integer vendorId : _vendors)
 			{
-				avps[i] = AVP.ofInt(Base.VENDOR_ID, _vendors.get(i));
+				vsai.getValue().add(Base.VENDOR_ID, vendorId);
 			}
-			avps[_vendors.size()] = avp;
-			avp = AVP.ofAVPs(Base.VENDOR_SPECIFIC_APPLICATION_ID, avps);
+			vsai.getValue().add(appId);
+			return vsai;
 		}
-		return avp;
+		else
+			return appId;
 	}
-	
+	/*
 	public static ApplicationId ofAVP(DiameterMessage message)
 	{
 		List<AVP> list = message.getAVPs();
@@ -126,4 +126,5 @@ public class ApplicationId implements Convertible
 		}
 		return null;
 	}
+	*/
 }

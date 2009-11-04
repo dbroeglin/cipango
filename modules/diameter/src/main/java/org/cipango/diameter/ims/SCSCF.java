@@ -13,17 +13,18 @@ import org.cipango.diameter.base.Base;
 
 public class SCSCF 
 {
+	/*
 	public static void main(String[] args) throws Exception
 	{
 		Node node = new Node(3869);
 		node.setIdentity("thomas.nexcom.voip");
 		node.setRealm("cipango.org");
 	
-		/*
+		
 		Peer peer = new Peer("hss.open-ims.test");
 		peer.setAddress(InetAddress.getByName("192.168.1.205"));
 		peer.setNode(node);	
-		*/
+		
 		Peer peer = new Peer("cipango");
 		peer.setAddress(InetAddress.getLocalHost());
 		peer.setNode(node);	
@@ -97,7 +98,7 @@ public class SCSCF
 		
 		mar.send();
 		
-		*/
 		
-	}
+		
+	}*/
 }

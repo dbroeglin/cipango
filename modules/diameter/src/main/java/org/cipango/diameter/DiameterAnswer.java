@@ -16,36 +16,22 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 
-import org.cipango.diameter.base.Base;
-
 public class DiameterAnswer extends DiameterMessage
 {
 	private DiameterRequest _request;
-	private int _resultCode = -1;
-	private int _vendorId;
+	private ResultCode _resultCode;
 	
 	public DiameterAnswer()
 	{	
 	}
 	
-	public DiameterAnswer(DiameterRequest request, int vendorId, int resultCode)
+	public DiameterAnswer(DiameterRequest request, ResultCode resultCode)
 	{
 		super(request);
 		_request = request;
-		_vendorId = vendorId;
 		_resultCode = resultCode;
 		
-		if (_vendorId == Base.IETF_VENDOR_ID)
-		{
-			_avps.addInt(Base.RESULT_CODE, resultCode);
-		}
-		else
-		{
-			AVP expRc = AVP.ofAVPs(Base.EXPERIMENTAL_RESULT,
-					AVP.ofInt(Base.VENDOR_ID, _vendorId),
-					AVP.ofInt(Base.EXPERIMENTAL_RESULT_CODE, _resultCode));
-			_avps.add(expRc);
-		}
+		_avps.add(_resultCode.getAVP());
 	}
 	
 	public void setRequest(DiameterRequest request)
@@ -63,32 +49,14 @@ public class DiameterAnswer extends DiameterMessage
 		return false;
 	}
 	
-	public int getResultCode()
+	public ResultCode getResultCode()
 	{
-		if (_resultCode == -1)
-		{
-			AVP avp = _avps.getAVP(Base.RESULT_CODE);
-			if (avp != null)
-			{
-				_resultCode = avp.getInt();
-			}
-			else 
-			{
-				avp = _avps.getAVP(Base.EXPERIMENTAL_RESULT);
-				_resultCode = avp.getGrouped().getInt(Base.EXPERIMENTAL_RESULT_CODE);
-			}
-		}
 		return _resultCode;
 	}
 	
-	public void setResultCode(int resultCode)
+	public void setResultCode(ResultCode resultCode)
 	{
 		_resultCode = resultCode;
-	}
-	
-	public int getVendorId()
-	{
-		return _vendorId;
 	}
 	
 	public void send() throws IOException

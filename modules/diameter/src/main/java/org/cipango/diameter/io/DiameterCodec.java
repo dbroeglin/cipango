@@ -12,29 +12,14 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.io;
 
-/**
- * Factory interface for Diameter abstractions. 
- * An instance this class is available to applications through the <code>org.cipango.diameter.DiameterFactory</code>
- * attribute of {@link javax.servlet.ServletContext}
- */
-public class DiameterFactory 
+import java.io.IOException;
+
+import org.mortbay.io.Buffer;
+
+public interface DiameterCodec<T> 
 {
-	private Node _node;
-	
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
-	{
-		DiameterSession session = _node.getSessionManager().newSession();
-		session.setNode(_node);
-		session.setApplicationId(id);
-		session.setDestinationRealm(destinationRealm);
-		session.setDestinationHost(destinationHost);
-		return session.createRequest(command, false);
-	}
-	
-	public void setNode(Node node)
-	{
-		_node = node;
-	}
+	T decode(Buffer buffer) throws IOException;
+	Buffer encode(Buffer buffer, T value) throws IOException;
 }

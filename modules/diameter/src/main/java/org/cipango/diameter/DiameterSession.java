@@ -15,6 +15,7 @@
 package org.cipango.diameter;
 
 import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Base.AuthSessionState;
 
 /**
  * Point-to-point Diameter relationship. 
@@ -44,16 +45,17 @@ public class DiameterSession
 		_destinationRealm = destinationRealm;
 	}
 	
-	public DiameterRequest createRequest(int command, boolean maintained)
+	public DiameterRequest createRequest(DiameterCommand command, boolean maintained)
 	{
 		DiameterRequest request = new DiameterRequest(_node, command, _appId.getId(), _sessionId);
-		request.getAVPs().addString(Base.DESTINATION_REALM, _destinationRealm);
+		request.getAVPs().add(Base.DESTINATION_REALM, _destinationRealm);
 		if (_destinationHost != null)
-			request.getAVPs().addString(Base.DESTINATION_HOST, _destinationHost);
+			request.getAVPs().add(Base.DESTINATION_HOST, _destinationHost);
+		
 		request.getAVPs().add(_appId.getAVP());
 		
-		if (!maintained)
-			request.getAVPs().addInt(Base.AUTH_SESSION_STATE, 1);
+		if (maintained)
+			request.getAVPs().add(Base.AUTH_SESSION_STATE, AuthSessionState.STATE_MAINTAINED);
 		
 		return request;
 	}

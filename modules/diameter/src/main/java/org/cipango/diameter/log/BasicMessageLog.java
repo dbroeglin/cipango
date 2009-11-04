@@ -21,24 +21,31 @@ import org.mortbay.log.Log;
 
 public class BasicMessageLog implements DiameterMessageListener
 {
-	public void messageReceived(DiameterMessage message, DiameterConnection connection) 
+	enum Direction { IN, OUT }
+	
+	protected void doLog(Direction direction, DiameterMessage message, DiameterConnection connection)
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append(connection.getLocalAddr());
 		sb.append(':');
 		sb.append(connection.getLocalPort());
-		sb.append(" < ");
+		sb.append((direction == Direction.IN ? " < " : " > "));
 		sb.append(connection.getRemoteAddr());
 		sb.append(':');
 		sb.append(connection.getRemotePort());
 		sb.append(' ');
 		sb.append(message);
 		
-		Log.debug(sb.toString());
+		Log.info(sb.toString());
+	}
+	
+	public void messageReceived(DiameterMessage message, DiameterConnection connection) 
+	{
+		doLog(Direction.IN, message, connection);
 	}
 
 	public void messageSent(DiameterMessage message, DiameterConnection connection) 
 	{
-
+		doLog(Direction.OUT, message, connection);
 	}
 }

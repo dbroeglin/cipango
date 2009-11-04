@@ -14,47 +14,64 @@
 
 package org.cipango.diameter;
 
-import java.io.IOException;
-
 import org.cipango.diameter.base.Base;
 
-public class DiameterRequest extends DiameterMessage
+public class ResultCode 
 {
-	private static int __hopId;
-	private static int __endId;
+	private int _vendorId;
+	private int _code;
+	private String _name;
 	
-	private static synchronized int nextHopId() { return __hopId++; }
-	private static synchronized int nextEndId() { return __endId++; }
-
-	public DiameterRequest() {}
-	
-	public DiameterRequest(Node node, DiameterCommand command, int appId, String sessionId)
-	{	
-		super(node, appId, command, nextEndId(), nextHopId(), sessionId);
+	public ResultCode(int vendorId, int code, String name)
+	{
+		_code = code;
+		_name = name;
 	}
 	
-	public boolean isRequest()
+	public int getCode()
 	{
-		return true;
+		return _code;
 	}
 	
-	public String getDestinationRealm()
+	public String getName()
 	{
-		return get(Base.DESTINATION_REALM);
+		return _name;
 	}
 	
-	public String getDestinationHost()
+	public boolean isInformational()
 	{
-		return get(Base.DESTINATION_HOST);
+		return (_code / 1000) == 1;
 	}
 	
-	public DiameterAnswer createAnswer(ResultCode resultCode)
+	public boolean isSuccess()
 	{
-		return new DiameterAnswer(this, resultCode);
+		return (_code / 1000) == 2;
 	}
 	
-	public void send() throws IOException
+	public boolean isProtocolError()
 	{
-		getNode().send(this);
+		return (_code / 1000) == 3;
+	}
+	
+	public boolean isTransientFailure()
+	{
+		return (_code / 1000) == 4;
+	}
+	
+	public boolean isPermanentFailure()
+	{
+		return (_code / 1000) == 5;
+	}
+	
+	public AVP<?> getAVP()
+	{
+		if (_vendorId == Base.IETF_VENDOR_ID)
+			return new AVP<Integer>(Base.RESULT_CODE, _code);
+		else
+		{
+			AVPList expRc = new AVPList();
+			expRc.add(Base.EXPERIMENTAL_RESULT_CODE, _code);
+			return new AVP<AVPList>(Base.EXPERIMENTAL_RESULT, expRc);
+		}
 	}
 }

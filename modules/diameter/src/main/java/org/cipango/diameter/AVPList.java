@@ -16,49 +16,60 @@ package org.cipango.diameter;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
-import java.util.Iterator;
 
-import org.cipango.diameter.base.Base;
-import org.mortbay.util.LazyList;
-
-public class AVPList extends AbstractList<AVP>
+/**
+ * A list of AVPs. Used for diameter messages and AVP of Grouped type.
+ *
+ */
+public class AVPList extends AbstractList<AVP<?>>
 {
-	private ArrayList<AVP> _avps = new ArrayList<AVP>();
+	private ArrayList<AVP<?>> _avps = new ArrayList<AVP<?>>();
 
+	@SuppressWarnings("unchecked")
+	public <T> AVP<T> get(Type<T> type)
+	{
+		for (AVP<?> avp : _avps)
+		{
+			if (avp.getType() == type)
+				return (AVP<T>) avp;
+		}
+		return null;
+	}
+	
+	public <T> T getValue(Type<T> type)
+	{
+		AVP<T> avp = get(type);
+		if (avp == null)
+			return null;
+		return avp.getValue();
+	}
+	
 	@Override
-	public void add(int index, AVP avp)
+	public void add(int index, AVP<?> avp)
 	{
 		_avps.add(index, avp);
 	}
 	
-	@Override
-	public AVP get(int index)
+	public <T> void add(Type<T> type, T value)
+	{
+		AVP<T> avp = new AVP<T>(type);
+		avp.setValue(value);
+		add(avp);
+	}
+	
+	public AVP<?> get(int index)
 	{
 		return _avps.get(index);
 	}
 
-	@Override
 	public int size()
 	{
 		return _avps.size();
 	}	
 	
-	public AVP getAVP(int code)
-	{
-		return getAVP(Base.IETF_VENDOR_ID, code);
-	}
+	// -- old
 	
-	public AVP getAVP(int vendorId, int code)
-	{
-		for (int i = 0; i < _avps.size(); i++)
-		{
-			AVP avp = _avps.get(i);
-			if (avp.getVendorId() == vendorId && avp.getCode() == code)
-				return avp;
-		}
-		return null;
-	}
-	
+	/*
 	public Iterator<AVP> getAVPs(int code)
 	{
 		return getAVPs(Base.IETF_VENDOR_ID, code);
@@ -75,51 +86,6 @@ public class AVPList extends AbstractList<AVP>
 				avps = LazyList.add(avps, avp);
 		}
 		return LazyList.iterator(avps);
-	}
-	
-	public void addString(int code, String value)
-	{
-		addString(Base.IETF_VENDOR_ID, code, value);
-	}
-	
-	public void addInt(int code, int value)
-	{
-		addInt(Base.IETF_VENDOR_ID, code, value);
-	}
-	
-	public void addInt(int vendorId, int code, int value)
-	{
-		add(AVP.ofInt(vendorId, code, value));
-	}
-	
-	public void addString(int vendorId, int code, String value)
-	{
-		add(AVP.ofString(vendorId, code, value));
-	}
-		
-	public int getInt(int code)
-	{
-		return getInt(Base.IETF_VENDOR_ID, code);
-	}
-	
-	public int getInt(int vendorId, int code)
-	{
-		AVP avp = getAVP(vendorId, code);
-		if (avp != null)
-			return avp.getInt();
-		return -1;
-	}
-	
-	public String getString(int code)
-	{
-		return getString(Base.IETF_VENDOR_ID, code);
-	}
-	
-	public String getString(int vendorId, int code)
-	{
-		AVP avp = getAVP(vendorId, code);
-		if (avp != null)
-			return avp.getString();
-		return null;
-	}
+	}	
+	*/
 }

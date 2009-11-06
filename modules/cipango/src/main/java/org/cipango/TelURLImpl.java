@@ -14,6 +14,7 @@
 
 package org.cipango;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -22,7 +23,7 @@ import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.TelURL;
 
 // TODO extends from URIImpl
-public class TelURLImpl implements TelURL 
+public class TelURLImpl implements TelURL, Serializable 
 {	
 	private String _uri;
 	private String _scheme;

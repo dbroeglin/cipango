@@ -109,7 +109,8 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
                 connector.setServer(_server);
             }
         }
-        _server.getContainer().update(this, _connectors, connectors, "connectors");
+        if (_server != null)
+        	_server.getContainer().update(this, _connectors, connectors, "connectors");
         _connectors = connectors;
     }
     
@@ -275,22 +276,37 @@ public class TransportManager extends AbstractLifeCycle implements SipHandler, B
         String host = sipUri.getHost();
         for (int i = 0; i < _connectors.length; i++)
         {
-            SipConnector connector = _connectors[i];
-            boolean samePort = connector.getPort() == sipUri.getPort() 
-						|| (sipUri.getPort() == -1 && connector.getPort() == connector.getDefaultPort());
+        	SipConnector connector = _connectors[i];
+        	
+        	
+        	
+            boolean samePort = connector.getPort() == sipUri.getPort() || sipUri.getPort() == -1;
             if (samePort)
             {
             	
-	            if ((connector.getHost().equals(host) || connector.getAddr().getHostAddress().equals(host))) 
-	                return true;
+	            if ((connector.getHost().equals(host) || connector.getAddr().getHostAddress().equals(host)))
+	            {
+	            	if (sipUri.getPort() != -1)
+	            		return true;
+	            	
+	            	// match on host address and port is not set ==> NAPTR case
+	            	if (connector.getAddr().getHostAddress().equals(host)
+	            			&& connector.getPort() != connector.getDefaultPort())
+	            	{
+	            		return false;
+	            	}
+	            	return true;
+	            }
 	            if (host.indexOf("[") != -1) // IPv6
 	            {
 	            	try
 					{
 						InetAddress addr = InetAddress.getByName(host);
-						if (connector.getAddr().equals(addr))
-							return true;
-					} catch (UnknownHostException e)
+						if (connector.getAddr().equals(addr)
+								&& (sipUri.getPort() != -1 || connector.getPort() == connector.getDefaultPort()))
+			            	return true;
+					} 
+	            	catch (UnknownHostException e)
 					{
 						Log.ignore(e);
 					}

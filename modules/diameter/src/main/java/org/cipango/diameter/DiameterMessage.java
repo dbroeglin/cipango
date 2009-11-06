@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cipango.diameter.base.Base;
+import org.cipango.diameter.util.CommandUtil;
 
 public abstract class DiameterMessage
 {
@@ -74,7 +75,7 @@ public abstract class DiameterMessage
 	{
 		this(message._node, 
 				message._applicationId, 
-				message._command, 
+				CommandUtil.getAnswer(message._command), 
 				message._endToEndId, 
 				message._hopByHopId, 
 				message.getSessionId());

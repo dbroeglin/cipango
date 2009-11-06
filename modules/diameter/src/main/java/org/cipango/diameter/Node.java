@@ -77,9 +77,10 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 	}
 	
-	public Node(int port)
+	public Node(int port) throws IOException
 	{
 		DiameterSocketConnector connector = new DiameterSocketConnector();
+		connector.setHost(InetAddress.getLocalHost().getHostAddress());
 		connector.setMessageListener(new BasicMessageLog());
 		connector.setPort(port);
 		setConnectors(new DiameterConnector[] {connector});

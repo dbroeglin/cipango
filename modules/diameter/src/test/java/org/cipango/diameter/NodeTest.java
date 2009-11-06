@@ -2,11 +2,13 @@ package org.cipango.diameter;
 
 import java.net.InetAddress;
 
+import org.mortbay.log.Log;
+
 import junit.framework.TestCase;
 
 public class NodeTest extends TestCase
 {
-	public void testiConnect() throws Exception
+	public void testConnect() throws Exception
 	{
 		//Log.getLog().setDebugEnabled(true);
 		

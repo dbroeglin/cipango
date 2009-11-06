@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.net.URL;
 
 import org.cipango.diameter.AVPList;
+import org.cipango.diameter.DiameterAnswer;
 import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.base.Base;
@@ -36,10 +37,11 @@ public class TestMessageCodec extends TestCase
 		return new ByteArrayBuffer(b);
 	}
 	
-	public void testDecode() throws Exception
+	public void testDecodeSAR() throws Exception
 	{
 		DiameterMessage message = Codecs.__message.decode(load("sar.dat"));
 
+		assertTrue(message.isRequest());
 		assertEquals(Cx.SAR, message.getCommand());
 		assertEquals("scscf1.home1.net", message.get(Base.ORIGIN_HOST));
 		assertEquals("home1.net", message.get(Base.ORIGIN_REALM));
@@ -49,6 +51,26 @@ public class TestMessageCodec extends TestCase
 		assertEquals(Cx.CX_APPLICATION_ID, (int) vsai.getValue(Base.AUTH_APPLICATION_ID));	
 	}
 	
+	public void testDecodeLIA() throws Exception
+	{
+		DiameterMessage message = Codecs.__message.decode(load("lia.dat"));
+		assertFalse(message.isRequest());
+	}
+	
+	public void testEncodeCEA() throws Exception
+	{
+		DiameterAnswer answer = new DiameterAnswer();
+		answer.setCommand(Base.CEA);
+		answer.setAVPList(new AVPList());
+		answer.setResultCode(Base.DIAMETER_SUCCESS);
+		
+		Buffer buffer = new ByteArrayBuffer(512);
+		DiameterMessage message = Codecs.__message.decode(Codecs.__message.encode(buffer, answer));
+		assertFalse(message.isRequest());
+		assertEquals(Base.CEA, message.getCommand());
+	}
+	
+	/*
 	public void testPerf() throws Exception
 	{
 		Buffer buffer = load("sar.dat");
@@ -62,5 +84,5 @@ public class TestMessageCodec extends TestCase
 			buffer.reset();
 		}
 		System.out.println((nb * 1000 / (System.currentTimeMillis() - start)) + " msg / s");
-	}
+	*/
 }

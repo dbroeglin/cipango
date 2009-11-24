@@ -407,7 +407,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		AVPList vsai = new AVPList();
 		vsai.add(Base.VENDOR_ID, IMS.IMS_VENDOR_ID);
-		vsai.add(Base.AUTH_APPLICATION_ID, Cx.CX_APPLICATION_ID);
+		vsai.add(Base.AUTH_APPLICATION_ID, Cx.CX_APPLICATION);
 		
 		message.add(Base.VENDOR_SPECIFIC_APPLICATION_ID, vsai);
 	}

@@ -10,12 +10,17 @@ import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.Type;
 import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Base.EnumDataFormat;
 
 /**
  * Sh is defined in 
- *  - 3GPP TS 23329: Sh Interface based on the Diameter protocol; Protocol details
- *  - 3GPP TS 23228: IP Multimedia (IM) Subsystem Sh interface; Signalling flows and message contents
- *
+ * <ul>
+ *  <li>3GPP TS 23329: Sh Interface based on the Diameter protocol; Protocol details</li>
+ *  <li>3GPP TS 23228: IP Multimedia (IM) Subsystem Sh interface; Signalling flows and message contents</li>
+ * </ul>
+ * 
+ * @see http://www.3gpp.org/ftp/Specs/html-info/29328.htm
+ * @see http://www.3gpp.org/ftp/Specs/html-info/29329.htm
  */
 public class Sh 
 {
@@ -25,6 +30,10 @@ public class Sh
 			org.cipango.diameter.ApplicationId.Type.Auth, 
 			SH_APPLICATION, 
 			IMS.IMS_VENDOR_ID);
+	
+	//-------------------------------------------------------------------------
+	//                         Diameter commands
+	//-------------------------------------------------------------------------
 	
 	public static final int 
 		UDR_ORDINAL = 306, 
@@ -42,22 +51,22 @@ public class Sh
 	 * <p>
 	 * <pre> {@code
 	 * < User-Data -Request> ::= < Diameter Header: 306, REQ, PXY, 16777217 > 
-	 * 		< Session-Id >
-	 * 		{ Vendor-Specific-Application-Id } 
-	 * 		{ Auth-Session-State } 
-	 * 		{ Origin-Host } 
-	 * 		{ Origin-Realm }
-	 * 		[ Destination-Host ] 
-	 * 		{ Destination-Realm } 
+	 * 		 < Session-Id >
+	 * 		 { Vendor-Specific-Application-Id } 
+	 * 		 { Auth-Session-State } 
+	 * 		 { Origin-Host } 
+	 * 		 { Origin-Realm }
+	 * 		 [ Destination-Host ] 
+	 * 		 { Destination-Realm } 
 	 * 		*[ Supported-Features ] 
-	 * 		{ User-Identity } 
-	 * 		[ Wildcarded-PSI ] 
-	 * 		[ Server-Name ] 
+	 * 		 { User-Identity } 
+	 * 		 [ Wildcarded-PSI ] 
+	 * 		 [ Server-Name ] 
 	 * 		*[ Service-Indication ] 
 	 * 		*{ Data-Reference } 
 	 * 		*[ Identity-Set ] 
-	 * 		[ Requested-Domain ] 
-	 * 		[ Current-Location ] 
+	 * 		 [ Requested-Domain ] 
+	 * 		 [ Current-Location ] 
 	 * 		*[ AVP ] 
 	 * 		*[ Proxy-Info ] 
 	 * 		*[ Route-Record ]
@@ -73,16 +82,16 @@ public class Sh
 	 * 
 	 * <pre> {@code
 	 * < User-Data-Answer > ::= < Diameter Header: 306, PXY, 16777217 > 
-	 * 		< Session-Id > 
-	 * 		{ Vendor-Specific-Application-Id } 
-	 * 		[ Result-Code ]
-	 * 		[ Experimental-Result ] 
-	 * 		{ Auth-Session-State } 
-	 * 		{ Origin-Host } 
-	 * 		{ Origin-Realm }
+	 * 		 < Session-Id > 
+	 * 		 { Vendor-Specific-Application-Id } 
+	 * 		 [ Result-Code ]
+	 * 		 [ Experimental-Result ] 
+	 * 		 { Auth-Session-State } 
+	 * 		 { Origin-Host } 
+	 * 		 { Origin-Realm }
 	 * 		*[ Supported-Features ] 
-	 * 		[ Wildcarded-PSI ]
-	 * 		[ User-Data ]
+	 * 		 [ Wildcarded-PSI ]
+	 * 		 [ User-Data ]
 	 * 		*[ AVP ] 
 	 * 		*[ Failed-AVP ] 
 	 * 		*[ Proxy-Info ] 
@@ -257,6 +266,10 @@ public class Sh
 	public static final DiameterCommand PNA = newAnswer(PNA_ORDINAL, "Push-Notifications-Answer");
 	
 	
+	//-------------------------------------------------------------------------
+	//                                AVPs
+	//-------------------------------------------------------------------------
+	
 	public static final int 
 		USER_IDENTITY_ORDINAL = 700,
 		MSISDN_ORDINAL = 701, 
@@ -343,16 +356,12 @@ public class Sh
 	public static final Type<byte[]> SERVICE_INDICATION = IMS.newIMSType("Service-Indication",
 			SERVICE_INDICATION_ORDINAL, Base.__octetString);
 	
-	public static enum IdentitySet implements Base.CustomEnumValues
+	public static enum IdentitySet
 	{
-		ALL_IDENTITIES(0), 
-		REGISTERED_IDENTITIES(1),
-		IMPLICIT_IDENTITIES(2),
-		ALIAS_IDENTITIES(3);
-		
-		private int _value;
-		IdentitySet(int value) { _value = value; }
-		public int getValue() { return _value; }
+		ALL_IDENTITIES, 
+		REGISTERED_IDENTITIES,
+		IMPLICIT_IDENTITIES,
+		ALIAS_IDENTITIES;
 	}
 	
 	/**
@@ -360,17 +369,12 @@ public class Sh
 	 * Identities.
 	 */
 	public static Type<IdentitySet> IDENTITY_SET = IMS.newIMSType("Identity-Set", 
-			IDENTITY_SET_ORDINAL, new Base.CustomEnumDataFormat<IdentitySet>(IdentitySet.class));
+			IDENTITY_SET_ORDINAL, new EnumDataFormat<IdentitySet>(IdentitySet.class));
 
-	public static enum RequestedDomain implements Base.CustomEnumValues
+	public static enum RequestedDomain
 	{
-		CS_Domain(0), 
-		PS_Domain(1);
-		
-		private int _value;
-		RequestedDomain(int value) { _value = value; }
-		public int getValue() { return _value; }
-		public String toString() { return  super.toString().replace("_", "-");}	
+		CS_Domain, 
+		PS_Domain;
 	}
 	
 	/**
@@ -378,16 +382,12 @@ public class Sh
 	 * certain data (e.g. user state) are requested.
 	 */
 	public static Type<RequestedDomain> REQUESTED_DOMAIN = IMS.newIMSType("Requested-Domain", 
-			REQUESTED_DOMAIN_ORDINAL, new Base.CustomEnumDataFormat<RequestedDomain>(RequestedDomain.class));
+			REQUESTED_DOMAIN_ORDINAL, new EnumDataFormat<RequestedDomain>(RequestedDomain.class));
 
-	public static enum SubsReqType implements Base.CustomEnumValues
+	public static enum SubsReqType
 	{
-		Subscribe(0), 
-		Unsubscribe(1);
-		
-		private int _value;
-		SubsReqType(int value) { _value = value; }
-		public int getValue() { return _value; }
+		Subscribe, 
+		Unsubscribe;
 	}
 	
 	/**
@@ -395,28 +395,25 @@ public class Sh
 	 * subscription-to-notifications request.
 	 */
 	public static Type<SubsReqType> SUBS_REQ_TYPE = IMS.newIMSType("Subs-Req-Type", 
-			SUBS_REQ_TYPE_ORDINAL, new Base.CustomEnumDataFormat<SubsReqType>(SubsReqType.class));
+			SUBS_REQ_TYPE_ORDINAL, new EnumDataFormat<SubsReqType>(SubsReqType.class));
 
-	public static enum CurrentLocation implements Base.CustomEnumValues
+	public static enum CurrentLocation
 	{
-		DoNotNeedInitiateActiveLocationRetrieval(0), 
-		InitiateActiveLocationRetrieval(1);
-		
-		private int _value;
-		CurrentLocation(int value) { _value = value; }
-		public int getValue() { return _value; }
+		/**
+		 * retrieval has to be initiated or not:
+		 */
+		DoNotNeedInitiateActiveLocationRetrieval, 
+		/**
+		 * It is requested that an active location retrieval is initiated.
+		 */
+		InitiateActiveLocationRetrieval;
 	}
 	
 	/**
 	 * The Current-Location AVP is of type Enumerated, and indicates whether an active location 
-	 * retrieval has to be initiated or not:
-	 * DoNotNeedInitiateActiveLocationRetrieval (0)	
-	 * The request indicates that the initiation of an active location retrieval is not required.
-	 * InitiateActiveLocationRetrieval (1)
-	 * It is requested that an active location retrieval is initiated.
 	 */
 	public static Type<CurrentLocation> CURRENT_LOCATION = IMS.newIMSType("Current-Location", 
-			CURRENT_LOCATION_ORDINAL, new Base.CustomEnumDataFormat<CurrentLocation>(CurrentLocation.class));
+			CURRENT_LOCATION_ORDINAL, new EnumDataFormat<CurrentLocation>(CurrentLocation.class));
 
 	/**
 	 * The Expiry-Time AVP is of type Time.  This AVP contains the expiry time of subscriptions to 
@@ -425,14 +422,10 @@ public class Sh
 	public static final Type<Date> EXPIRY_TIME = IMS.newIMSType("Expiry-Time", 
 			EXPIRY_TIME_ORDINAL, Base.__date);
 	
-	public static enum SendDataIndication implements Base.CustomEnumValues
+	public static enum SendDataIndication
 	{
-		USER_DATA_NOT_REQUESTED(0), 
-		USER_DATA_REQUESTED(1);
-		
-		private int _value;
-		SendDataIndication(int value) { _value = value; }
-		public int getValue() { return _value; }
+		USER_DATA_NOT_REQUESTED, 
+		USER_DATA_REQUESTED;
 	}
 	
 	/**
@@ -440,7 +433,7 @@ public class Sh
 	 * requests the User-Data.
 	 */
 	public static Type<SendDataIndication> SEND_DATA_INDICATION = IMS.newIMSType("Send-Data-Indication", 
-			SEND_DATA_INDICATION_ORDINAL, new Base.CustomEnumDataFormat<SendDataIndication>(SendDataIndication.class));
+			SEND_DATA_INDICATION_ORDINAL, new EnumDataFormat<SendDataIndication>(SendDataIndication.class));
 
 	/**
 	 * The DSAI-Tag AVP is of type OctetString. This AVP contains the DSAI-Tag identifying the 

@@ -39,6 +39,8 @@ public class Cx
 	public static final DiameterCommand SAR = IMS.newRequest(SAR_ORDINAL, "Server-Assignment-Request");
 	
 	public static final int 
+		PUBLIC_IDENTITY_ORDINAL = 601,
+		SERVER_NAME_ORDINAL = 602,
 		SUPPORTED_FEATURES_ORDINAL = 628;
 	
 	/**
@@ -68,10 +70,7 @@ public class Cx
 	 */
 	public static final Type<AVPList> SUPPORTED_FEATURES = IMS.newIMSType("Supported-Features", 
 			SUPPORTED_FEATURES_ORDINAL, Base.__grouped);
-	
-	public static final int
-		PUBLIC_IDENTITY_ORDINAL = 601;
-	
+		
 	/**
 	 * The Public-Identity AVP is of type UTF8String. This AVP contains the public identity of a user in the IMS. 
 	 * The syntax of this AVP corresponds either to a SIP URL (with the format defined in IETF RFC 3261 [3] and 
@@ -79,5 +78,12 @@ public class Cx
 	 */
 	public static final Type<String> PUBLIC_IDENTITY = IMS.newIMSType("Public-Identity", 
 			PUBLIC_IDENTITY_ORDINAL, Base.__utf8String);
+	
+	/**
+	 * The Server-Name AVP is of type UTF8String. This AVP contains a SIP-URL (as defined in IETF 
+	 * RFC 3261 [3] and IETF RFC 2396 [4]), used to identify a SIP server (e.g. S-CSCF name).
+	 */
+	public static final Type<String> SERVER_NAME = IMS.newIMSType("Server-Name", 
+			SERVER_NAME_ORDINAL, Base.__utf8String);
 	
 }

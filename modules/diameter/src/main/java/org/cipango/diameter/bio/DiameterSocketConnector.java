@@ -61,7 +61,10 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	protected ServerSocket newServerSocket(int port) throws IOException
 	{
 		ServerSocket ss = new ServerSocket();
-		ss.bind(new InetSocketAddress(getHost(), getPort()));
+		if (getHost() == null)
+			ss.bind(new InetSocketAddress(getPort()));
+		else
+			ss.bind(new InetSocketAddress(getHost(), getPort()));
 		return ss;
 	}
 	

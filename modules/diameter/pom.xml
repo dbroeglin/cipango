@@ -40,7 +40,7 @@
             <configuration>
               <tasks if="jetty.home">
                 <delete includeemptydirs="true">
-                  <fileset dir="${jetty.home}/lib" includes="${project.build.finalName}.${project.packaging}"/>
+                  <fileset dir="${jetty.home}/lib/ext" includes="xmlbeans*.jar,stax-api*.jar,${project.build.finalName}.${project.packaging}"/>
                   <fileset dir="${jetty.home}/etc" includes="diameter.xml"/>
                 </delete>
               </tasks>
@@ -50,8 +50,11 @@
             <phase>install</phase>
             <configuration>
               <tasks if="jetty.home">
-                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
-                <copy file="etc/diameter.xml" todir="${jetty.home}/etc"/>
+                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/ext"/>
+                <copy todir="${jetty.home}">
+                  <fileset dir="${basedir}" includes="etc/"/>
+                  <fileset dir="${project.build.directory}" includes="lib/"/>
+                </copy>
               </tasks>
             </configuration>
             <goals>
@@ -60,6 +63,33 @@
           </execution>
         </executions>
       </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.xmlbeans</groupId>
+                  <artifactId>xmlbeans</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>stax</groupId>
+                  <artifactId>stax-api</artifactId>
+                  <version>1.0.1</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib/ext</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
   

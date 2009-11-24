@@ -14,6 +14,7 @@
 package org.cipango.diameter.io;
 
 import java.net.InetAddress;
+import java.util.Date;
 
 import org.cipango.diameter.base.Base;
 import org.mortbay.io.Buffer;
@@ -41,7 +42,7 @@ public class DataFormatTest extends TestCase
 	
 	public void testUtf8String() throws Exception
 	{
-		String s = "۝fjRPsl0��";
+		String s = "Û�fjRPsl0ˆ¤";
 		Base.__utf8String.encode(_buffer, s);
 		
 		assertEquals(s, Base.__utf8String.decode(_buffer));
@@ -63,5 +64,12 @@ public class DataFormatTest extends TestCase
 		address = InetAddress.getByName("[::1]");
 		Base.__address.encode(_buffer, address);
 		assertEquals(address, Base.__address.decode(_buffer));
+	}
+	
+	public void testDate() throws Exception
+	{
+		Date date = new Date();
+		Base.__date.encode(_buffer, date);
+		assertEquals(date.getTime() /1000, Base.__date.decode(_buffer).getTime() / 1000);
 	}
 }

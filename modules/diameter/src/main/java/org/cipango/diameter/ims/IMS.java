@@ -50,10 +50,12 @@ public abstract class IMS extends Factory
 	
 	
 	public static final int 
+		GBA_USER_SEC_SETTINGS = 400,
 		TRANSACTION_IDENTIFIER = 401,
 		NAF_ID = 402,
 		KEY_EXPIRY_TIME = 404,
 		ME_KEY_MATERIAL = 405,
+		GUSS_TIMESTAMP = 409,
 		
 		PUBLIC_IDENTITY_ORDINAL = 601,
 		SERVER_NAME_ORDINAL = 602,

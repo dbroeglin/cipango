@@ -26,6 +26,7 @@ public class ResultCode
 	{
 		_code = code;
 		_name = name;
+		_vendorId = vendorId;
 	}
 	
 	public int getCode()
@@ -61,6 +62,32 @@ public class ResultCode
 	public boolean isPermanentFailure()
 	{
 		return (_code / 1000) == 5;
+	}
+	
+	public int getVendorId()
+	{
+		return _vendorId;
+	}
+	
+	/**
+	 * Returns <code>true</code> if the AVP is an {@link Base#EXPERIMENTAL_RESULT_CODE}.
+	 */
+	public boolean isExperimentalResultCode()
+	{
+		return _vendorId != Base.IETF_VENDOR_ID;
+	}
+	
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		
+		if (_name != null)
+			sb.append(_name).append(": ");
+		sb.append(_code);
+		if (_vendorId != Base.IETF_VENDOR_ID)
+			sb.append("; vendor ID: ").append(_vendorId);
+		return sb.toString();
 	}
 	
 	public AVP<?> getAVP()

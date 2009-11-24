@@ -18,10 +18,12 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.net.ntp.TimeStamp;
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
 import org.cipango.diameter.DataFormat;
@@ -144,6 +146,33 @@ public abstract class Base// extends Factory
 		}
 	};
 	
+	public static final DataFormat<Date> __date = new DataFormat<Date>("time")
+	{
+		public Date decode(Buffer buffer) throws IOException
+		{
+			long seconds = 0;
+			
+			for (int i = 0; i < 4; i++)
+			{
+				seconds |= (buffer.get() & 0xFF) << ((3 - i) * 8);
+			}
+			return new Date(TimeStamp.getTime(seconds << 32));
+		}
+		
+		public Buffer encode(Buffer buffer, Date date) throws IOException
+		{
+			byte[] data = new byte[4];
+			long nptDate = TimeStamp.getNtpTime(date.getTime()).ntpValue();
+
+			for(int i = 0, shift = 56; i < 4; i++, shift -= 8)
+			{
+				data[i] = (byte)(0xFF & (nptDate >> shift));
+			}
+			buffer.put(data);
+			return buffer;
+		}
+	};
+	
 	public static final DataFormat<Integer> __unsigned32 = new DataFormat<Integer>("unsigned32")
 	{
 		public Integer decode(Buffer buffer) throws IOException
@@ -235,6 +264,11 @@ public abstract class Base// extends Factory
 	public static Type<InetAddress> newAddressType(String name, int code)
 	{
 		return newType(name, code, __address);
+	}
+	
+	public static Type<Date> newDateType(String name, int code)
+	{
+		return newType(name, code, __date);
 	}
 	
 	public static <T extends Enum<T>> Type<T> newEnumType(String name,

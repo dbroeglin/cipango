@@ -37,4 +37,9 @@ public class DiameterFactory
 	{
 		_node = node;
 	}
+	
+	protected Node getNode()
+	{
+		return _node;
+	}
 }

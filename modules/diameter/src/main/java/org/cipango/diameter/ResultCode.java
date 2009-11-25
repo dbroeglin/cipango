@@ -83,10 +83,8 @@ public class ResultCode
 		StringBuilder sb = new StringBuilder();
 		
 		if (_name != null)
-			sb.append(_name).append(": ");
-		sb.append(_code);
-		if (_vendorId != Base.IETF_VENDOR_ID)
-			sb.append("; vendor ID: ").append(_vendorId);
+			sb.append(_name).append(' ');
+		sb.append("(").append(_vendorId).append('/').append(_code).append(")");
 		return sb.toString();
 	}
 	

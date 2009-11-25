@@ -23,7 +23,7 @@ public class Dictionary
 	private Map<Long, Type<?>> _types = new HashMap<Long, Type<?>>();
 	private Map<Integer, DiameterCommand> _requests = new HashMap<Integer, DiameterCommand>();
 	private Map<Integer, DiameterCommand> _answers = new HashMap<Integer, DiameterCommand>();	
-	private Map<Integer, ResultCode> _resultCodes = new HashMap<Integer, ResultCode>();
+	private Map<Long, ResultCode> _resultCodes = new HashMap<Long, ResultCode>();
 	
 	public DiameterCommand getRequest(int code)
 	{
@@ -42,7 +42,7 @@ public class Dictionary
 	
 	public ResultCode getResultCode(int vendorId, int code)
 	{
-		return _resultCodes.get(code);
+		return _resultCodes.get(id(vendorId, code));
 	}
 	
 	public void load(Class<?> clazz) 
@@ -75,7 +75,7 @@ public class Dictionary
 					{
 						ResultCode rc = (ResultCode) field.get(null);
 						Log.debug("Loaded result code: " + rc);
-						_resultCodes.put(rc.getCode(), rc);
+						_resultCodes.put(id(rc.getVendorId(), rc.getCode()), rc);
 					}
 				} 
 				catch (Exception e) 

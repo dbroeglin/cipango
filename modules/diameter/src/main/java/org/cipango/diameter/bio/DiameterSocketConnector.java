@@ -20,10 +20,17 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.cipango.diameter.AVP;
+import org.cipango.diameter.AVPList;
 import org.cipango.diameter.AbstractDiameterConnector;
+import org.cipango.diameter.DiameterAnswer;
 import org.cipango.diameter.DiameterConnection;
 import org.cipango.diameter.DiameterMessage;
+import org.cipango.diameter.Dictionary;
+import org.cipango.diameter.Factory;
 import org.cipango.diameter.Peer;
+import org.cipango.diameter.ResultCode;
+import org.cipango.diameter.base.Base;
 import org.cipango.diameter.io.Codecs;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -176,6 +183,31 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					DiameterMessage message = Codecs.__message.decode(b);
 					message.setConnection(this);
 					message.setNode(getNode());
+					
+					// TODO move the following code at a better place. Need to be done before _listener.messageReceived(message, this);
+					if (!message.isRequest())
+					{
+						int code;
+						int vendorId = Base.IETF_VENDOR_ID;
+						
+						AVP<Integer> avp = message.getAVPs().get(Base.RESULT_CODE);
+						if (avp != null)
+						{
+							code = avp.getValue();
+						}
+						else
+						{
+							AVPList expRc = message.get(Base.EXPERIMENTAL_RESULT);
+							code = expRc.getValue(Base.EXPERIMENTAL_RESULT_CODE);
+							vendorId = expRc.getValue(Base.VENDOR_ID);
+						}
+						
+						ResultCode rc = Dictionary.getInstance().getResultCode(vendorId, code);
+						if (rc == null)
+							rc = Factory.newResultCode(vendorId, code, "Unknown");
+						
+						((DiameterAnswer) message).setResultCode(rc);
+					}
 					
 					if (_listener != null)
 						_listener.messageReceived(message, this);

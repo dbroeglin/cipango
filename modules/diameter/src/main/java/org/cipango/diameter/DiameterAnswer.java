@@ -63,4 +63,9 @@ public class DiameterAnswer extends DiameterMessage
 	{
 		_request.getConnection().write(this);
 	}
+	
+	public String toString()
+	{
+		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command + " / " + _resultCode + " :" + _avps;
+	}
 }

@@ -16,8 +16,10 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
@@ -250,11 +252,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	public void addPeer(Peer peer)
 	{
+		Peer[] olds = getPeers().toArray(new Peer[] {});
 		synchronized (_peers)
 		{
 			_peers.put(peer.getHost(), peer);
 			peer.setNode(this);
 		}
+		if (_server != null)
+			_server.getContainer().update(this, olds, getPeers().toArray(new Peer[] {}), "peers");
 	}
 	
 	public Peer getPeer(String host)
@@ -262,6 +267,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		synchronized (_peers)
 		{
 			return _peers.get(host);
+		}
+	}
+	
+	public List<Peer> getPeers()
+	{
+		synchronized (_peers)
+		{
+			return new ArrayList<Peer>(_peers.values());
 		}
 	}
 	
@@ -339,29 +352,6 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	public void handle(DiameterMessage message) throws IOException
 	{
-		if (!message.isRequest())
-		{
-			int code;
-			int vendorId = Base.IETF_VENDOR_ID;
-			
-			AVP<Integer> avp = message.getAVPs().get(Base.RESULT_CODE);
-			if (avp != null)
-			{
-				code = avp.getValue();
-			}
-			else
-			{
-				AVPList expRc = message.get(Base.EXPERIMENTAL_RESULT);
-				code = expRc.getValue(Base.EXPERIMENTAL_RESULT_CODE);
-				vendorId = expRc.getValue(Base.VENDOR_ID);
-			}
-			
-			ResultCode rc = Dictionary.getInstance().getResultCode(vendorId, code);
-			if (rc == null)
-				rc = Factory.newResultCode(vendorId, code, "Unknown");
-			
-			((DiameterAnswer) message).setResultCode(rc);
-		}
 		/*
 		System.out.println("Got message: " + message);
 		String sessionId = message.getSessionId();

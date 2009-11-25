@@ -107,6 +107,11 @@ public class Peer
 		return _state;
 	}
 	
+	public String getStateAsString()
+	{
+		return _state.toString();
+	}
+	
 	public boolean isOpen()
 	{
 		return _state == OPEN;

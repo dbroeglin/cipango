@@ -48,7 +48,7 @@ public class TestMessageCodec extends TestCase
 		
 		AVPList vsai = message.get(Base.VENDOR_SPECIFIC_APPLICATION_ID);
 		assertEquals(IMS.IMS_VENDOR_ID, (int) vsai.getValue(Base.VENDOR_ID));
-		assertEquals(Cx.CX_APPLICATION_ID, (int) vsai.getValue(Base.AUTH_APPLICATION_ID));	
+		assertEquals(Cx.CX_APPLICATION_ID.getId(), (int) vsai.getValue(Base.AUTH_APPLICATION_ID));	
 	}
 	
 	public void testDecodeLIA() throws Exception

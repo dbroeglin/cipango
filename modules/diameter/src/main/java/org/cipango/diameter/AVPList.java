@@ -16,6 +16,9 @@ package org.cipango.diameter;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.mortbay.util.LazyList;
 
 /**
  * A list of AVPs. Used for diameter messages and AVP of Grouped type.
@@ -67,25 +70,18 @@ public class AVPList extends AbstractList<AVP<?>>
 		return _avps.size();
 	}	
 	
-	// -- old
-	
-	/*
-	public Iterator<AVP> getAVPs(int code)
-	{
-		return getAVPs(Base.IETF_VENDOR_ID, code);
-	}
 	
 	@SuppressWarnings("unchecked")
-	public Iterator<AVP> getAVPs(int vendorId, int code)
+	public <T> Iterator<AVP<T>> getAVPs(Type<T> type)
 	{
 		Object avps = null;
 		for (int i = 0; i < _avps.size(); i++)
 		{
 			AVP avp = _avps.get(i);
-			if (avp.getVendorId() == vendorId && avp.getCode() == code)
+			if (avp.getType() == type)
 				avps = LazyList.add(avps, avp);
 		}
 		return LazyList.iterator(avps);
 	}	
-	*/
+
 }

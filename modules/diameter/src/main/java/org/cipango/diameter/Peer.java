@@ -131,7 +131,7 @@ public class Peer
 	{
 		// FIXME find a solution when peer is starting.
 		if (!isOpen())
-			throw new IOException("peer not open");
+			throw new IOException("peer " + this + " not open");
 		
 		DiameterConnection connection = getConnection();
 		if (connection == null || !connection.isOpen())
@@ -338,8 +338,9 @@ public class Peer
 	
 	// ==================== Actions ====================
 
-	protected void iSndConnReq()
+	protected synchronized void iSndConnReq()
 	{
+		setState(WAIT_CONN_ACK);
 		// cnx request is blocking so start in a new thread
 		new Thread(new Runnable() 
 		{
@@ -362,7 +363,6 @@ public class Peer
 				}
 			}
 		}).start();
-		setState(WAIT_CONN_ACK);
 	}
 	
 	protected boolean elect()

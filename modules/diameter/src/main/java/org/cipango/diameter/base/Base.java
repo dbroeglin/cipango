@@ -574,10 +574,11 @@ public abstract class Base// extends Factory
 	 * following ABNF grammar:
 	 *
 	 * AVP Format
-     *
+     * <pre>
 	 *    Experimental-Result ::= < AVP Header: 297 >
 	 *                               { Vendor-Id }
 	 *                               { Experimental-Result-Code }
+	 * </pre>
      *
 	 * The Vendor-Id AVP (see Section 5.3.3) in this grouped AVP identifies
 	 * the vendor responsible for the assignment of the result code which
@@ -663,12 +664,88 @@ public abstract class Base// extends Factory
 	 */
 	public static final Type<AVPList> FAILED_AVP = newGroupedType("Failed-AVP", FAILED_AVP_ORDINAL);
 	
-	// Radius for digest authentication
+	// Radius for digest authentication (RFC 4590)
 	public static final int
-		DIGEST_REALM = 104,
-		DIGEST_QOP = 110,
-		DIGEST_ALGORITHM = 111,
-		DIGEST_HA1 = 121;
+		DIGEST_REALM_ORDINAL = 104,
+		DIGEST_QOP_ORDINAL = 110,
+		DIGEST_ALGORITHM_ORDINAL = 111,
+		DIGEST_HA1_ORDINAL = 121;
+	
+	/**
+	 * Description: This attribute describes a protection space component of the
+	 * RADIUS server. HTTP-style protocols differ in their definition of the
+	 * protection space. See [RFC2617], Section 1.2, for details. It MUST only
+	 * be used in Access-Request and Access-Challenge packets.
+	 * 
+	 * Type: 104 for Digest-Realm
+	 * 
+	 * Length: >=3
+	 * 
+	 * Text: In Access-Requests, the RADIUS client takes the value of the realm
+	 * directive (realm-value according to [RFC2617]) without surrounding quotes
+	 * from the HTTP-style request it wants to authenticate. In Access-Challenge
+	 * packets, the RADIUS server puts the expected realm value into this
+	 * attribute.
+	 */
+	public static final Type<String> DIGEST_REALM = newUTF8StringType("Digest-Realm", DIGEST_REALM_ORDINAL);
+	
+	/**
+	 * Description: This attribute holds the Quality of Protection parameter that
+	 * influences the HTTP Digest calculation. This attribute MUST only be used
+	 * in Access-Request and Access-Challenge packets. A RADIUS client SHOULD
+	 * insert one of the Digest-Qop attributes it has received in a previous
+	 * Access-Challenge packet. RADIUS servers SHOULD insert at least one
+	 * Digest-Qop attribute in an Access-Challenge packet. Digest-Qop is
+	 * optional in order to preserve backward compatibility with a minimal
+	 * implementation of [RFC2069].
+	 * 
+	 * Text: In Access-Requests, the RADIUS client takes the value of the qop
+	 * directive (qop-value as described in [RFC2617]) from the HTTP-style
+	 * request it wants to authenticate. In Access-Challenge packets, the RADIUS
+	 * server puts a desired qop-value into this attribute. If the RADIUS server
+	 * supports more than one "quality of protection" value, it puts each
+	 * qop-value into a separate Digest-Qop attribute.
+	 */
+	public static final Type<String> DIGEST_QOP = newUTF8StringType("Digest-Qop", DIGEST_QOP_ORDINAL);
+	
+	/**
+	 * Description This attribute holds the algorithm parameter that influences
+	 * the HTTP Digest calculation. It MUST only be used in Access-Request and
+	 * Access-Challenge packets. If this attribute is missing, MD5 is assumed.
+	 * 
+	 * Text In Access-Requests, the RADIUS client takes the value of the
+	 * algorithm directive (as described in [RFC2617], section 3.2.1) from the
+	 * HTTP-style request it wants to authenticate. In Access-Challenge packets,
+	 * the RADIUS server SHOULD put the desired algorithm into this attribute.
+	 */
+	public static final Type<String> DIGEST_ALGORITHM = newUTF8StringType("Digest-Algorithm", DIGEST_ALGORITHM_ORDINAL);
+	
+	/**
+	 * Description This attribute is used to allow the generation of an
+	 * Authentication-Info header, even if the HTTP-style response's body is
+	 * required for the calculation of the rspauth value. It SHOULD be used in
+	 * Access-Accept packets if the required quality of protection ('qop') is
+	 * 'auth-int'.
+	 * 
+	 * This attribute MUST NOT be sent if the qop parameter was not specified or
+	 * has a value of 'auth' (in this case, use Digest-Response-Auth instead).
+	 * 
+	 * The Digest-HA1 attribute MUST only be sent by the RADIUS server or
+	 * processed by the RADIUS client if at least one of the following
+	 * conditions is true:
+	 * 
+	 * + The Digest-Algorithm attribute's value is 'MD5-sess' or
+	 * 'AKAv1-MD5-sess'.
+	 * 
+	 * + IPsec is configured to protect traffic between RADIUS client and RADIUS
+	 * server with IPsec (see Section 8).
+	 * 
+	 * This attribute MUST only be used in Access-Accept packets.
+	 * 
+	 * Text This attribute contains the hexadecimal representation of H(A1) as
+	 * described in [RFC2617], sections 3.1.3, 3.2.1, and 3.2.2.2.
+	 */
+	public static final Type<String> DIGEST_HA1 = newUTF8StringType("Digest-HA1", DIGEST_HA1_ORDINAL);
 	
 	// ======================== Commands ========================
 	

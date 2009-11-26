@@ -46,12 +46,75 @@ public class Cx
 		PPR_ORDINAL = 305,
 		PPA_ORDINAL = 305;
 	
+	
 	/**
-	 * The Server-Assignment-Request (SAR) command, indicated by the Command-Code field set to 301 
-	 * and the ÔRÕ bit set in the Command Flags field, is sent by a Diameter Multimedia client to 
-	 * a Diameter Multimedia server in order to request it to store the name of the server that is 
+	 * The User-Authorization-Request (UAR) command, indicated by the
+	 * Command-Code field set to 300 and the ‘R’ bit set in the Command Flags
+	 * field, is sent by a Diameter Multimedia client to a Diameter Multimedia
+	 * server in order to request the authorization of the registration of a
+	 * multimedia user.
+	 * 
+	 * <pre>
+	 * < User-Authorization-Request> ::= < Diameter Header: 300, REQ, PXY, 16777216 >
+	 * 		< Session-Id >
+	 * 		{ Vendor-Specific-Application-Id }
+	 * 		{ Auth-Session-State }
+	 * 		{ Origin-Host }
+	 * 		{ Origin-Realm }
+	 * 		[ Destination-Host ]
+	 * 		{ Destination-Realm }
+	 * 		{ User-Name }
+	 * 	   *[ Supported-Features ]
+	 * 		{ Public-Identity }
+	 * 		{ Visited-Network-Identifier }
+	 * 		[ User-Authorization-Type ]
+	 * 		[ UAR-Flags ]
+	 * 	   *[ AVP ]
+	 * 	   *[ Proxy-Info ]
+	 * 	   *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand UAR = IMS.newRequest(UAR_ORDINAL,
+			"User-Authorization-Request");
+
+	/**
+	 * The User-Authorization-Answer (UAA) command, indicated by the
+	 * Command-Code field set to 300 and the ‘R’ bit cleared in the Command
+	 * Flags field, is sent by a server in response to the
+	 * User-Authorization-Request command. The Experimental-Result AVP may
+	 * contain one of the values defined in section 6.2.
+	 * 
+	 * <pre>
+	 * < User-Authorization-Answer> ::=	 < Diameter Header: 300, PXY, 16777216 >
+	 *      < Session-Id >
+	 *      { Vendor-Specific-Application-Id }
+	 *      [ Result-Code ]
+	 *      [ Experimental-Result ]
+	 *      { Auth-Session-State }
+	 *      { Origin-Host }
+	 *      { Origin-Realm }
+	 *     *[ Supported-Features ]
+	 *      [ Server-Name ]
+	 *      [ Server-Capabilities ]
+	 *      [ Wildcarded-IMPU ]
+	 *     *[ AVP ]
+	 *     *[ Failed-AVP ]
+	 *     *[ Proxy-Info ]
+	 *     *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand UAA = IMS.newAnswer(UAA_ORDINAL,
+			"User-Authorization-Answer");
+
+	/**
+	 * The Server-Assignment-Request (SAR) command, indicated by the
+	 * Command-Code field set to 301 and the 'R' bit set in the Command Flags
+	 * field, is sent by a Diameter Multimedia client to a Diameter Multimedia
+	 * server in order to request it to store the name of the server that is
 	 * currently serving the user.
-	 * <pre> {@code
+	 * 
+	 * <pre>
+	 * @code
 	 * <Server-Assignment-Request> ::= < Diameter Header: 301, REQ, PXY, 16777216 > 
 	 * 		< Session-Id >
 	 * 		{ Vendor-Specific-Application-Id } 
@@ -66,12 +129,277 @@ public class Cx
 	 * 		{ Server-Assignment-Type } 
 	 * 		{ User-Data-Already-Available } 
 	 * 		*[ AVP ] 
-	 * 		*[ Proxy-Info ] 
-	 * 		*[ Route-Record ]
+	 * 		*[ Proxy-Info ]
+	 * *[ Route-Record ]
 	 */
-	public static final DiameterCommand SAR = IMS.newRequest(SAR_ORDINAL, "Server-Assignment-Request");
+	public static final DiameterCommand SAR = IMS.newRequest(SAR_ORDINAL,
+			"Server-Assignment-Request");
+
+	/**
+	 * The Server-Assignment-Answer (SAA) command, indicated by the Command-Code
+	 * field set to 301 and the ‘R’ bit cleared in the Command Flags field, is
+	 * sent by a server in response to the Server-Assignment-Request command.
+	 * The Experimental-Result AVP may contain one of the values defined in
+	 * section 6.2. If Result-Code or Experimental-Result does not inform about
+	 * an error, the User-Data AVP shall contain the information that the S-CSCF
+	 * needs to give service to the user.
+	 * 
+	 * <pre>
+	 * <Server-Assignment-Answer> ::=	< Diameter Header: 301, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     [ Result-Code ]
+	 *     [ Experimental-Result ]
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     [ User-Name ]
+	 *    *[ Supported-Features ]
+	 *     [ User-Data ]
+	 *     [ Charging-Information ]
+	 *     [ Associated-Identities ]
+	 *     [ Loose-Route-Indication ]
+	 *    *[ SCSCF-Restoration-Info ]
+	 *     [ Associated-Registered-Identities ]
+	 *     [ Server-Name ]
+	 *    *[ AVP ]
+	 *    *[ Failed-AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand SAA = IMS.newAnswer(SAA_ORDINAL,
+			"Server-Assignment-Answer");
+
+	/**
+	 * The Location-Info-Request (LIR) command, indicated by the Command-Code
+	 * field set to 302 and the ‘R’ bit set in the Command Flags field, is sent
+	 * by a Diameter Multimedia client to a Diameter Multimedia server in order
+	 * to request name of the server that is currently serving the user.
+	 * 
+	 * <pre>
+	 * <Location-Info-Request> ::= < Diameter Header: 302, REQ, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     [ Destination-Host ]
+	 *     { Destination-Realm }
+	 *     [ Originating-Request ]
+	 *    *[ Supported-Features ]
+	 *     { Public-Identity }
+	 *     [ User-Authorization-Type ]
+	 *    *[ AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand LIR = IMS.newRequest(LIR_ORDINAL,
+			"Location-Info-Request");
 	
+	/**
+	 * The Location-Info-Answer (LIA) command, indicated by the Command-Code
+	 * field set to 302 and the ‘R’ bit cleared in the Command Flags field, is
+	 * sent by a server in response to the Location-Info-Request command. The
+	 * Experimental-Result AVP may contain one of the values defined in section
+	 * 6.2.
+	 * 
+	 * <pre>
+	 * <Location-Info-Answer> ::= < Diameter Header: 302, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     [ Result-Code ]
+	 *     [ Experimental-Result ]
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *    *[ Supported-Features ]
+	 *     [ Server-Name ]
+	 *     [ Server-Capabilities ]
+	 *     [ Wildcarded-PSI ]
+	 *     [ Wildcarded-IMPU ]
+	 *    *[ AVP ]
+	 *    *[ Failed-AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand LIA = IMS.newAnswer(LIA_ORDINAL,
+			"Location-Info-Answer");
+
+	/**
+	 * The Multimedia-Auth-Request (MAR) command, indicated by the Command-Code
+	 * field set to 303 and the ‘R’ bit set in the Command Flags field, is sent
+	 * by a Diameter Multimedia client to a Diameter Multimedia server in order
+	 * to request security information.
+	 * 
+	 * <pre>
+	 * < Multimedia-Auth-Request > ::=  < Diameter Header: 303, REQ, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     { Destination-Realm }
+	 *     [ Destination-Host ]
+	 *     { User-Name }
+	 *    *[ Supported-Features ]
+	 *     { Public-Identity }
+	 *     { SIP-Auth-Data-Item }
+	 *     { SIP-Number-Auth-Items } 
+	 *     { Server-Name }
+	 *    *[ AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand MAR = IMS.newRequest(MAR_ORDINAL,
+			"Multimedia-Auth-Request");
 	
+	/**
+	 * The Multimedia-Auth-Answer (MAA) command, indicated by the Command-Code
+	 * field set to 303 and the ‘R’ bit cleared in the Command Flags field, is
+	 * sent by a server in response to the Multimedia-Auth-Request command. The
+	 * Experimental-Result AVP may contain one of the values defined in section
+	 * 6.2.
+	 * 
+	 * <pre>
+	 * < Multimedia-Auth-Answer > ::= < Diameter Header: 303, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     [ Result-Code ]
+	 *     [ Experimental-Result ]
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     [ User-Name ]
+	 *    *[ Supported-Features ]
+	 *     [ Public-Identity ]
+	 *     [ SIP-Number-Auth-Items ]
+	 *    *[SIP-Auth-Data-Item ]
+	 *     [ Wildcarded-IMPU ]
+	 *    *[ AVP ]
+	 *    *[ Failed-AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand MAA = IMS.newAnswer(MAA_ORDINAL,
+			" Multimedia-Auth-Answer");
+
+	/**
+	 * The Registration-Termination-Request (RTR) command, indicated by the
+	 * Command-Code field set to 304 and the ‘R’ bit set in the Command Flags
+	 * field, is sent by a Diameter Multimedia server to a Diameter Multimedia
+	 * client in order to request the de-registration of a user.
+	 * 
+	 * <pre>
+	 * <Registration-Termination-Request> ::= < Diameter Header: 304, REQ, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     { Destination-Host }
+	 *     { Destination-Realm }
+	 *     { User-Name }
+	 *     [ Associated-Identities ]
+	 *    *[ Supported-Features ]
+	 *    *[ Public-Identity ]
+	 *     { Deregistration-Reason }
+	 *    *[ AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand RTR = IMS.newRequest(RTR_ORDINAL,
+			"Registration-Termination-Request");
+
+	/**
+	 * The Registration-Termination-Answer (RTA) command, indicated by the
+	 * Command-Code field set to 304 and the ‘R’ bit cleared in the Command
+	 * Flags field, is sent by a client in response to the
+	 * Registration-Termination-Request command. The Experimental-Result AVP may
+	 * contain one of the values defined in section 6.2.
+	 * 
+	 * <pre>
+	 * <Registration-Termination-Answer> ::= < Diameter Header: 304, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     [ Result-Code ]
+	 *     [ Experimental-Result ]
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     [ Associated-Identities ]
+	 *    *[ Supported-Features ]
+	 *    *[ AVP ]
+	 *    *[ Failed-AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand RTA = IMS.newAnswer(RTA_ORDINAL,
+			"Registration-Termination-Answer");
+
+	/**
+	 * The Push-Profile-Request (PPR) command, indicated by the Command-Code
+	 * field set to 305 and the ‘R’ bit set in the Command Flags field, is sent
+	 * by a Diameter Multimedia server to a Diameter Multimedia client in order
+	 * to update the subscription data and for SIP Digest authentication the
+	 * authentication data of a multimedia user in the Diameter Multimedia
+	 * client whenever a modification has occurred in the subscription data or
+	 * digest password that constitutes the data used by the client.
+	 * 
+	 * <pre>
+	 * < Push-Profile-Request > ::=	< Diameter Header: 305, REQ, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *     { Destination-Host }
+	 *     { Destination-Realm }
+	 *     { User-Name }
+	 *    *[ Supported-Features ]
+	 *     [ User-Data ]
+	 *     [ Charging-Information ]
+	 *     [ SIP-Auth-Data-Item ]
+	 *    *[ AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand PPR = IMS.newRequest(PPR_ORDINAL,
+			"Multimedia-Auth-Request");
+
+	/**
+	 * The Push-Profile-Answer (PPA) command, indicated by the Command-Code
+	 * field set to 305 and the ‘R’ bit cleared in the Command Flags field, is
+	 * sent by a client in response to the Push-Profile-Request command. The
+	 * Experimental-Result AVP may contain one of the values defined in section
+	 * 6.2.
+	 * 
+	 * <pre>
+	 * < Push-Profile-Answer > ::= < Diameter Header: 305, PXY, 16777216 >
+	 *     < Session-Id >
+	 *     { Vendor-Specific-Application-Id }
+	 *     [Result-Code ]
+	 *     [ Experimental-Result ]
+	 *     { Auth-Session-State }
+	 *     { Origin-Host }
+	 *     { Origin-Realm }
+	 *    *[ Supported-Features ]
+	 *    *[ AVP ]
+	 *    *[ Failed-AVP ]
+	 *    *[ Proxy-Info ]
+	 *    *[ Route-Record ]
+	 * </pre>
+	 */
+	public static final DiameterCommand PPA = IMS.newAnswer(PPA_ORDINAL,
+			" Multimedia-Auth-Answer");
+
 	//-------------------------------------------------------------------------
 	//                               AVPs
 	//-------------------------------------------------------------------------
@@ -361,7 +689,7 @@ public class Cx
 		PERMANENT_TERMINATION,
 		NEW_SERVER_ASSIGNED,
 		SERVER_CHANGE,
-		REMOVE_S_CSCF;
+		REMOVE_SCSCF;
 	}
 	
 	/**
@@ -440,6 +768,19 @@ public class Cx
 	public static final Type<byte[]> INTEGRITY_KEY = IMS.newIMSType("Integrity-Key",
 			INTEGRITY_KEY_ORDINAL, Base.__octetString);
 	
+	/**
+	 * The Associated-Identities AVP is of type Grouped and it contains the
+	 * private user identities associated to an IMS subscription.
+	 * 
+	 * <pre>
+	 * Associated-Identities ::= < AVP header: 632, 10415 >
+	 *     *[ User-Name ]
+	 *     *[ AVP ]
+	 * </pre>
+	 */
+	public static final Type<AVPList> ASSOCIATED_IDENTITIES = IMS.newIMSType("SIP-Digest-Authenticate", 
+			ASSOCIATED_IDENTITIES_ORDINAL, Base.__grouped);
+	
 	public static enum OriginatingRequest
 	{
 		/** (0) This value informs the HSS that it should check originating unregistered services for the public identity. */
@@ -474,6 +815,14 @@ public class Cx
 			SIP_DIGEST_AUTHENTICATE_ORDINAL, Base.__grouped);
 	
 	/**
+	 * The Wildcarded-PSI AVP is of type UTF8String. This AVP contains a
+	 * Wildcarded PSI stored in the HSS. The syntax of the contents of this AVP
+	 * is described in 3GPP TS 23.003 [13].
+	 */
+	public static final Type<String> WILCARDED_PSI = IMS.newIMSType("Wildcarded-PSI", 
+			WILCARDED_PSI_ORDINAL, Base.__utf8String);
+	
+	/**
 	 * The Public-Identity AVP is of type UTF8String. This AVP contains the
 	 * public identity of a user in the IMS. The syntax of this AVP corresponds
 	 * either to a SIP URL (with the format defined in IETF RFC 3261 [3] and
@@ -482,6 +831,27 @@ public class Cx
 	 */
 	public static final Type<String> PUBLIC_IDENTITY = IMS.newIMSType("Public-Identity", 
 			PUBLIC_IDENTITY_ORDINAL, Base.__utf8String);
+	
+	/**
+	 * The Wildcarded-IMPU AVP is of type UTF8String. This AVP contains a
+	 * Wildcarded Public User Identity stored in the HSS. The syntax of the
+	 * contents of this AVP is described in 3GPP TS 23.003 [13].
+	 */
+	public static final Type<String> WILCARDED_IMPU = IMS.newIMSType("Wildcarded-IMPU", 
+			WILCARDED_IMPU_ORDINAL, Base.__utf8String);
+
+	/**
+	 * The UAR-Flags AVP is of type Unsigned32 and it contains a bit mask. The
+	 * meaning of the bits is defined in the following table:
+	 * <ul>
+	 * <li>Bit 0: IMS Emergency Registration: This bit, when set, indicates that
+	 * the request corresponds to an IMS Emergency Registration.</li>
+	 * </ul>
+	 * Note: Bits not defined in this table shall be cleared by the sending
+	 * I-CSCF and discarded by the receiving HSS.
+	 */
+	public static final Type<Integer> UAR_FLAGS = IMS.newIMSType("UAR-Flags", 
+			UAR_FLAGS_ORDINAL, Base.__unsigned32);
 	
 	/**
 	 * The Server-Name AVP is of type UTF8String. This AVP contains a SIP-URL (as defined in IETF 

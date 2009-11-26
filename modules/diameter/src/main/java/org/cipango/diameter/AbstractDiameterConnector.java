@@ -17,6 +17,7 @@ package org.cipango.diameter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.cipango.diameter.app.DiameterListener;
 import org.mortbay.component.AbstractLifeCycle;
 import org.mortbay.component.LifeCycle;
 import org.mortbay.io.Buffer;
@@ -92,6 +93,11 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 		{
 			throw new RuntimeException(e);
 		}
+	}
+	
+	public DiameterMessageListener getMessageListener()
+	{
+		return _listener;
 	}
 	
 	public Buffer getBuffer(int size)

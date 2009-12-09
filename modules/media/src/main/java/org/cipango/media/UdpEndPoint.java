@@ -21,7 +21,7 @@ import java.net.SocketAddress;
 
 import org.mortbay.io.Buffer;
 
-public class UdpEndPoint 
+public class UdpEndPoint
 {
 	private DatagramSocket _socket;
 	

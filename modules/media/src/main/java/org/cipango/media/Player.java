@@ -18,7 +18,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.cipango.media.codecs.Encoder;
 import org.cipango.media.codecs.PcmuEncoder;
-import org.cipango.media.rtp.RtpEncoder;
+import org.cipango.media.rtp.RtpCodec;
 import org.cipango.media.rtp.RtpPacket;
 import org.cipango.media.rtp.RtpSession;
 import org.mortbay.io.Buffer;
@@ -42,7 +42,7 @@ public class Player {
     private File file;
     private SocketAddress socketAddress;
     private UdpEndPoint udpEndPoint;
-    private RtpEncoder rtpEncoder;
+    private RtpCodec rtpCodec;
     private RtpSession rtpSession;
     private AudioInputStream audioInputStream;
     private byte[] byteBuffer;
@@ -63,6 +63,7 @@ public class Player {
             Log.warn("IOException", e);
             return;
         }
+       
         // TODO check format is supported
         try {
             audioInputStream = AudioSystem.getAudioInputStream(file);
@@ -90,7 +91,7 @@ public class Player {
         }
         udpEndPoint = new UdpEndPoint(datagramSocket);
         rtpSession = new RtpSession(RtpSession.PAYLOAD_TYPE_PCMU);
-        rtpEncoder = new RtpEncoder();
+        rtpCodec = new RtpCodec();
         byteBuffer = new byte[BUFFER_SIZE];
         buffer = new ByteArrayBuffer(BUFFER_SIZE);
         encoder = new PcmuEncoder();
@@ -117,7 +118,7 @@ public class Player {
                 buffer.put(byteBuffer, 0, bytesRead);
                 encoder.encode(buffer);
                 rtpPacket.setData(buffer);
-                Buffer rtpBuffer = rtpEncoder.encode(rtpPacket, rtpSession);
+                Buffer rtpBuffer = rtpCodec.encode(rtpPacket, rtpSession);
                 try {
                     udpEndPoint.send(rtpBuffer, socketAddress);
                 } catch (IOException e) {

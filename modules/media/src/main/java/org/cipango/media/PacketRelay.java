@@ -9,7 +9,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License. toto
+// limitations under the License.
 // ========================================================================
 
 package org.cipango.media; 
@@ -22,6 +22,7 @@ import java.net.SocketAddress;
 import org.mortbay.component.AbstractLifeCycle;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
+import org.mortbay.log.Log;
 
 public class PacketRelay extends AbstractLifeCycle
 {
@@ -91,7 +92,8 @@ public class PacketRelay extends AbstractLifeCycle
 			} 
 			catch (IOException e)
 			{
-				try { close(); } catch (Exception e2) { }
+				Log.debug(e);
+				try { close(); } catch (Exception e2) { Log.ignore(e2); }
 			}
 		}
 	}

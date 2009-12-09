@@ -16,13 +16,13 @@ package org.cipango.media.rtp;
 
 import org.mortbay.io.Buffer;
 
-class RtpPacket
+public class RtpPacket
 {
-	private long _ssrc;
-	private long[] _csrc;
+	//private long _ssrc;
+	//private long[] _csrc;
 	
-	private int _sequenceNumber;
-	private long _timestamp;
+	//private int _sequenceNumber;
+	//private long _timestamp;
 	
 	private Buffer _data;
 	
@@ -34,5 +34,5 @@ class RtpPacket
 	public Buffer getData()
 	{
 		return _data;
-	}	
+	}
 }

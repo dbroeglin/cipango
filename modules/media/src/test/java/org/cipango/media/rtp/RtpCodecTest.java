@@ -24,7 +24,7 @@ import org.mortbay.io.ByteArrayBuffer;
 import junit.framework.TestCase;
 
 
-public class RtpDecoderTest extends TestCase
+public class RtpCodecTest extends TestCase
 {
 	protected Buffer load(String name) throws Exception
 	{
@@ -41,7 +41,28 @@ public class RtpDecoderTest extends TestCase
 	{
 		Buffer buffer = load("rtp.dat");
 		
-		RtpPacket packet = new RtpDecoder().decode(buffer);
+		RtpPacket packet = new RtpCodec().decode(buffer);
 		assertEquals(160, packet.getData().length());
+		assertEquals(260124933, packet.getSsrc());
+		assertEquals(5025, packet.getSequenceNumber());
+		assertEquals(229080, packet.getTimestamp());
+	}
+	
+	public void testEncode()
+	{
+		long ts = Integer.MAX_VALUE + 1l;
+		
+		RtpPacket packet = new RtpPacket(123456789, 987654321, ts);
+		packet.setData(new ByteArrayBuffer("hello world".getBytes()));
+		
+		RtpCodec codec = new RtpCodec();
+		Buffer buffer = new ByteArrayBuffer(1024);
+		codec.encode(buffer, packet);
+		RtpPacket packet2 = codec.decode(buffer);
+		
+		assertEquals(ts, packet2.getTimestamp());
+		assertEquals(123456789, packet2.getSsrc());
+		
+		assertEquals("hello world", new String(packet2.getData().asArray()));
 	}
 }

@@ -37,7 +37,7 @@ public class UdpEndPointTest extends TestCase
 
 		new Thread() 
 		{
-			public void run() 
+			public void run()
 			{
 				try { ep2.read(buffer2); } catch (Exception e) { e.printStackTrace(); }
 			}

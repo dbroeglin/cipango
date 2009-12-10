@@ -1,0 +1,13 @@
+<classpath>
+  <classpathentry kind="src" path="src/test/java" output="target/test-classes" including="**/*.java"/>
+  <classpathentry kind="src" path="src/test/resources" output="target/test-classes" excluding="**/*.java"/>
+  <classpathentry kind="src" path="src/main/java" including="**/*.java"/>
+  <classpathentry kind="output" path="target/classes"/>
+  <classpathentry kind="var" path="M2_REPO/javax/servlet/sip-api/1.1/sip-api-1.1.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/cipango/cipango/1.0-SNAPSHOT/cipango-1.0-SNAPSHOT.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty/6.1.21/jetty-6.1.21.jar" sourcepath="M2_REPO/org/mortbay/jetty/jetty/6.1.21/jetty-6.1.21-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/jetty-util/6.1.21/jetty-util-6.1.21.jar" sourcepath="M2_REPO/org/mortbay/jetty/jetty-util/6.1.21/jetty-util-6.1.21-sources.jar"/>
+  <classpathentry kind="var" path="M2_REPO/junit/junit/3.8/junit-3.8.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+</classpath>

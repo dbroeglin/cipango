@@ -18,6 +18,9 @@ import org.mortbay.io.Buffer;
 
 public class RtpPacket
 {
+
+    public static final int PAYLOAD_TYPE_PCMU = 0;
+
 	private int _ssrc;
 	private int[] _csrc;
 	
@@ -27,11 +30,13 @@ public class RtpPacket
 	
 	private Buffer _data;
 	
-	public RtpPacket(int ssrc, int sequenceNumber, long timestamp)
+	public RtpPacket(int ssrc, int sequenceNumber, long timestamp,
+	        int payloadType)
 	{
 		_ssrc = ssrc;
 		_sequenceNumber = sequenceNumber;
 		_timestamp = timestamp;
+		_payloadType = payloadType;
 	}
 	
 	public int getSsrc()
@@ -39,11 +44,21 @@ public class RtpPacket
 		return _ssrc;
 	}
 	
+	public void setSequenceNumber(int sequenceNumber)
+	{
+	    _sequenceNumber = sequenceNumber;
+	}
+	
 	public int getSequenceNumber()
 	{
 		return _sequenceNumber;
 	}
-	
+
+    public void setTimestamp(long timestamp)
+    {
+        _timestamp = timestamp;
+    }
+    
 	public long getTimestamp()
 	{
 		return _timestamp;

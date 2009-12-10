@@ -1,3 +1,17 @@
+// ========================================================================
+// Copyright 2008-2009 NEXCOM Systems
+// ------------------------------------------------------------------------
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at 
+// http://www.apache.org/licenses/LICENSE-2.0
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// ========================================================================
+
 package org.cipango.media;
 
 import java.io.File;
@@ -8,10 +22,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -20,7 +34,6 @@ import org.cipango.media.codecs.Encoder;
 import org.cipango.media.codecs.PcmuEncoder;
 import org.cipango.media.rtp.RtpCodec;
 import org.cipango.media.rtp.RtpPacket;
-import org.cipango.media.rtp.RtpSession;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.log.Log;
@@ -43,7 +56,6 @@ public class Player {
     private SocketAddress socketAddress;
     private UdpEndPoint udpEndPoint;
     private RtpCodec rtpCodec;
-    private RtpSession rtpSession;
     private AudioInputStream audioInputStream;
     private byte[] byteBuffer;
     private Buffer buffer;
@@ -53,16 +65,6 @@ public class Player {
 
     public Player(String filename, String ipAddress, int port) {
         file = new File(filename);
-        AudioFileFormat audioFileFormat;
-        try {
-            audioFileFormat = AudioSystem.getAudioFileFormat(file);
-        } catch (UnsupportedAudioFileException e) {
-            Log.warn("UnsupportedAudioFileException " + filename, e);
-            return;
-        } catch (IOException e) {
-            Log.warn("IOException", e);
-            return;
-        }
        
         // TODO check format is supported
         try {
@@ -90,12 +92,13 @@ public class Player {
             return;
         }
         udpEndPoint = new UdpEndPoint(datagramSocket);
-        rtpSession = new RtpSession(RtpSession.PAYLOAD_TYPE_PCMU);
         rtpCodec = new RtpCodec();
         byteBuffer = new byte[BUFFER_SIZE];
         buffer = new ByteArrayBuffer(BUFFER_SIZE);
         encoder = new PcmuEncoder();
-        rtpPacket = new RtpPacket();
+        Random random = new Random();
+        rtpPacket = new RtpPacket(random.nextInt(), random.nextInt(),
+                random.nextInt() & 0xffffffffl, RtpPacket.PAYLOAD_TYPE_PCMU);
         timer = new Timer();
     }
 
@@ -111,6 +114,7 @@ public class Player {
                 bytesRead = audioInputStream.read(byteBuffer);
             } catch (IOException e) {
                 Log.warn("IOException", e);
+                stop();
                 return;
             }
             if (bytesRead > 0) {
@@ -118,30 +122,43 @@ public class Player {
                 buffer.put(byteBuffer, 0, bytesRead);
                 encoder.encode(buffer);
                 rtpPacket.setData(buffer);
-                Buffer rtpBuffer = rtpCodec.encode(rtpPacket, rtpSession);
+                Buffer rtpBuffer = new ByteArrayBuffer(buffer.length() + 12);
+                rtpCodec.encode(rtpBuffer, rtpPacket);
                 try {
                     udpEndPoint.send(rtpBuffer, socketAddress);
                 } catch (IOException e) {
                     Log.warn("IOException", e);
+                    stop();
                     return;
                 }
+                int sequenceNumber = rtpPacket.getSequenceNumber() + 1;
+                long timestamp = rtpPacket.getTimestamp() + buffer.length();
+                rtpPacket.setSequenceNumber(sequenceNumber);
+                rtpPacket.setTimestamp(timestamp);
             } else {
-                try {
-                    audioInputStream.close();
-                } catch (IOException e) {
-                    Log.warn("IOException", e);
-                    return;
-                }
-                timer.cancel();
+                stop();
             }
+        }
+    }
+
+    public void stop() {
+        timer.cancel();
+        try {
+            audioInputStream.close();
+        } catch (IOException e) {
+            Log.warn("IOException", e);
+        }
+        try {
+            udpEndPoint.close();
+        } catch (IOException e) {
+            Log.warn("IOException", e);
         }
     }
 
     public static void main(String[] args) {
         Player player = new Player("D:/workspace/cipango-googlecode/modules/" +
-        		"media/src/test/resources/test.wav", "192.168.2.1", 8000);
+        		"media/src/test/resources/test.wav", "127.0.0.1", 6000);
         player.play();
-        Log.debug("ok");
     }
 
 }

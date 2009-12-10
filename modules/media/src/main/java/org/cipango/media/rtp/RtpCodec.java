@@ -114,7 +114,8 @@ public class RtpCodec
 			data.setPutIndex(data.putIndex() - nb);
 		}
 		
-		RtpPacket packet = new RtpPacket(ssrc, sequenceNumber, timestamp);
+		RtpPacket packet = new RtpPacket(ssrc, sequenceNumber, timestamp,
+		        RtpPacket.PAYLOAD_TYPE_PCMU);
 		
 		packet.setData(data);
 		return packet;

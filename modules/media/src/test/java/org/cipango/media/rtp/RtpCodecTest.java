@@ -52,7 +52,7 @@ public class RtpCodecTest extends TestCase
 	{
 		long ts = Integer.MAX_VALUE + 1l;
 		
-		RtpPacket packet = new RtpPacket(123456789, 987654321, ts);
+		RtpPacket packet = new RtpPacket(123456789, 987654321, ts, 0);
 		packet.setData(new ByteArrayBuffer("hello world".getBytes()));
 		
 		RtpCodec codec = new RtpCodec();

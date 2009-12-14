@@ -19,7 +19,9 @@ import org.mortbay.io.Buffer;
 public class RtpPacket
 {
 
-    public static final int PAYLOAD_TYPE_PCMU = 0;
+	public static final int PAYLOAD_TYPE_PCMU = 0;
+	public static final int PAYLOAD_TYPE_PCMA = 8;
+    
 
 	private int _ssrc;
 	private int[] _csrc;

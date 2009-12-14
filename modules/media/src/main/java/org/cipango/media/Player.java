@@ -39,102 +39,117 @@ import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.log.Log;
 
 /**
- * input: pcm wave file, mono-channel, 8000 Hz, 16 bits samples, signed,
- *     big endian
- * output: rtp stream towards specified destination
+ * Play an audio file in an RTP stream. 
  * 
- * @author yohann
- *
+ * input: mu-law wav file
+ * output: rtp stream towards specified destination
  */
-public class Player {
-
-    public static final int BUFFER_SIZE = 320; // uncompressed bytes
+public class Player 
+{
+	public static final int DEFAULT_PTIME = 20;
+	
+	private String _filename;
+	private String _host;
+	private int _port;
+	
+	private SocketAddress _remoteAddress;
+    private UdpEndPoint _udpEndPoint;
+    
+    private AudioInputStream _audioInputStream;
+    private int _ptime = DEFAULT_PTIME;
+    
+    private int _ssrc;
+    private int _seqNumber;
+    private long _timestamp;
+    
+    private int _dataLength;
+    
+    private Buffer _audioBuffer;
+    private Buffer _packetBuffer;
+    
+    public static final int BUFFER_SIZE = 160; // uncompressed bytes
     public static final int PERIOD = 20; // ms
     public static final int DELAY = 10; // ms
 
-    private File file;
-    private SocketAddress socketAddress;
-    private UdpEndPoint udpEndPoint;
+    
     private RtpCodec rtpCodec;
-    private AudioInputStream audioInputStream;
-    private byte[] byteBuffer;
-    private Buffer buffer;
-    private Encoder encoder;
-    private RtpPacket rtpPacket;
-    private Timer timer;
 
-    public Player(String filename, String ipAddress, int port) {
-        file = new File(filename);
-       
-        // TODO check format is supported
-        try {
-            audioInputStream = AudioSystem.getAudioInputStream(file);
-        } catch (UnsupportedAudioFileException e) {
-            Log.warn("UnsupportedAudioFileException", e);
-            return;
-        } catch (IOException e) {
-            Log.warn("IOException", e);
-            return;
-        }
-        InetAddress inetAddress;
-        try {
-            inetAddress = InetAddress.getByName(ipAddress);
-        } catch (UnknownHostException e) {
-            Log.warn("unknown host: " + ipAddress, e);
-            return;
-        }
-        socketAddress = new InetSocketAddress(inetAddress, port);
-        DatagramSocket datagramSocket;
-        try {
-            datagramSocket = new DatagramSocket();
-        } catch (SocketException e) {
-            Log.warn("SocketException", e);
-            return;
-        }
-        udpEndPoint = new UdpEndPoint(datagramSocket);
-        rtpCodec = new RtpCodec();
-        byteBuffer = new byte[BUFFER_SIZE];
-        buffer = new ByteArrayBuffer(BUFFER_SIZE);
-        encoder = new PcmuEncoder();
+    private Timer timer = new java.util.Timer();
+
+    public Player(String filename, String host, int port) 
+    {
+       _filename = filename;
+       _host = host;
+       _port = port;
+    }
+    
+    public void start() throws Exception
+    {
+    	File file = new File(_filename);
+        
+        _audioInputStream = AudioSystem.getAudioInputStream(file);
+        
+        Log.info("Playing audio: " + file.getName() + " with format: " + _audioInputStream.getFormat());
+        
+        _remoteAddress = new InetSocketAddress(InetAddress.getByName(_host), _port);
+        _udpEndPoint = new UdpEndPoint(new DatagramSocket());
+        
         Random random = new Random();
-        rtpPacket = new RtpPacket(random.nextInt(), random.nextInt(),
-                random.nextInt() & 0xffffffffl, RtpPacket.PAYLOAD_TYPE_PCMU);
-        timer = new Timer();
+        _ssrc = random.nextInt();
+        
+        _dataLength = 8000 * _ptime / 1000;
+        
+        _audioBuffer = new ByteArrayBuffer(_dataLength);
+        _packetBuffer = new ByteArrayBuffer(12 + _dataLength);
+        
+        rtpCodec = new RtpCodec();    
     }
 
-    public void play() {
+    public void play() 
+    {
         timer.scheduleAtFixedRate(new PlayTimerTask(), DELAY, PERIOD);
     }
 
-    class PlayTimerTask extends TimerTask {
-        @Override
-        public void run() {
+    class PlayTimerTask extends TimerTask 
+    {
+        public void run() 
+        {
             int bytesRead;
-            try {
-                bytesRead = audioInputStream.read(byteBuffer);
-            } catch (IOException e) {
+            try 
+            {
+                bytesRead = _audioInputStream.read(_audioBuffer.array());
+            } 
+            catch (IOException e) 
+            {
                 Log.warn("IOException", e);
                 stop();
                 return;
             }
-            if (bytesRead > 0) {
-                buffer.clear();
-                buffer.put(byteBuffer, 0, bytesRead);
-                encoder.encode(buffer);
-                rtpPacket.setData(buffer);
-                Buffer rtpBuffer = new ByteArrayBuffer(buffer.length() + 12);
-                rtpCodec.encode(rtpBuffer, rtpPacket);
-                try {
-                    udpEndPoint.send(rtpBuffer, socketAddress);
-                } catch (IOException e) {
+            if (bytesRead > 0) 
+            {
+            	_audioBuffer.setGetIndex(0); _audioBuffer.setPutIndex(bytesRead);
+            	
+            	RtpPacket packet = new RtpPacket(_ssrc, _seqNumber, _timestamp, RtpPacket.PAYLOAD_TYPE_PCMA);
+            	
+            	_seqNumber++;
+            	_timestamp += bytesRead;
+            	
+            	packet.setData(_audioBuffer);
+            	
+            	_packetBuffer.clear();
+            	rtpCodec.encode(_packetBuffer, packet);
+            	
+                try 
+                {
+                    _udpEndPoint.send(_packetBuffer, _remoteAddress);
+                } 
+                catch (IOException e) 
+                {
                     Log.warn("IOException", e);
                     stop();
                     return;
                 }
-                int sequenceNumber = rtpPacket.getSequenceNumber() + 1;
-                long timestamp = rtpPacket.getTimestamp() + buffer.length();
-                rtpPacket.setSequenceNumber(sequenceNumber);
-                rtpPacket.setTimestamp(timestamp);
+                
             } else {
                 stop();
             }
@@ -144,21 +159,27 @@ public class Player {
     public void stop() {
         timer.cancel();
         try {
-            audioInputStream.close();
+            _audioInputStream.close();
         } catch (IOException e) {
             Log.warn("IOException", e);
         }
         try {
-            udpEndPoint.close();
+            _udpEndPoint.close();
         } catch (IOException e) {
             Log.warn("IOException", e);
         }
     }
 
-    public static void main(String[] args) {
-        Player player = new Player("D:/workspace/cipango-googlecode/modules/" +
-        		"media/src/test/resources/test.wav", "127.0.0.1", 6000);
-        player.play();
+    public static void main(String[] args) throws Exception
+    {
+    	if (args.length == 0)
+    	{
+    		System.err.println("Usage: java org.cipango.media.Player audio_file");
+    		System.exit(-1);
+    	}
+    	
+        Player player = new Player(args[0], "127.0.0.1", 6000);
+        player.start();
     }
 
 }

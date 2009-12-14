@@ -16,11 +16,11 @@ package org.cipango.media.rtp;
 
 import java.net.DatagramSocket;
 
-import org.cipango.media.UdpEndPoint;
+import org.cipango.media.UdpEndPoint; 
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 
-import junit.framework.TestCase;
+import junit.framework.TestCase; 
 
 public class UdpEndPointTest extends TestCase
 {

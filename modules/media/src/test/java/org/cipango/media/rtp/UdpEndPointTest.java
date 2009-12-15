@@ -15,6 +15,9 @@
 package org.cipango.media.rtp;
 
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import org.cipango.media.UdpEndPoint; 
 import org.mortbay.io.Buffer;
@@ -42,7 +45,9 @@ public class UdpEndPointTest extends TestCase
 				try { ep2.read(buffer2); } catch (Exception e) { e.printStackTrace(); }
 			}
 		}.start();
-		ep1.send(buffer1, socket2.getLocalSocketAddress());
+		SocketAddress socketAddress = new InetSocketAddress(
+		        InetAddress.getLocalHost(), socket2.getLocalPort());
+		ep1.send(buffer1, socketAddress);
 		Thread.sleep(100);
 		
 		String s = new String(buffer2.asArray());

@@ -96,6 +96,11 @@
       <artifactId>jetty</artifactId>
     </dependency>
   </dependencies>
-  
+
+  <!-- to avoid warning -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
 </project>
 

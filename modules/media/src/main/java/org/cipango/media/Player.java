@@ -20,18 +20,13 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.cipango.media.codecs.Encoder;
-import org.cipango.media.codecs.PcmuEncoder;
 import org.cipango.media.rtp.RtpCodec;
 import org.cipango.media.rtp.RtpPacket;
 import org.mortbay.io.Buffer;

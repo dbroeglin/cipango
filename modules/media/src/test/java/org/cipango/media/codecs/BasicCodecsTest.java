@@ -40,14 +40,20 @@ public class BasicCodecsTest extends TestCase {
         "StandardGreeting.8000.mono.pcma.s16le.test";
     public static final String IN_PCMA_S16LE =
         "StandardGreeting.8000.mono.pcma.s16le";
-//    public static final String OUT_PCMU_S16LE =
-//        "StandardGreeting.8000.mono.pcmu.s16le.test";
+    public static final String OUT_PCMA_PCMU =
+        "StandardGreeting.8000.mono.pcma.pcmu.test";
+    public static final String IN_PCMA_PCMU =
+        "StandardGreeting.8000.mono.pcma.pcmu";
 
     public static final String IN_PCMU = "StandardGreeting.8000.mono.pcmu";
     public static final String OUT_PCMU_S16LE =
         "StandardGreeting.8000.mono.pcmu.s16le.test";
     public static final String IN_PCMU_S16LE =
         "StandardGreeting.8000.mono.pcmu.s16le";
+    public static final String OUT_PCMU_PCMA =
+        "StandardGreeting.8000.mono.pcmu.pcma.test";
+    public static final String IN_PCMU_PCMA =
+        "StandardGreeting.8000.mono.pcmu.pcma";
 
     public static final int BUFFER_SIZE = 256;
 
@@ -186,6 +192,48 @@ public class BasicCodecsTest extends TestCase {
         ulawFileInputStream.close();
         s16leFileOutputStream.close();
         assertFileEquals(s16leFile, IN_PCMU_S16LE);
+    }
+
+    public void testAlaw2ulaw() throws Exception
+    {
+        URL alawUrl = getClass().getClassLoader().getResource(IN_PCMA);
+        File alawFile = new File(alawUrl.toURI());
+        FileInputStream alawFileInputStream = new FileInputStream(alawFile);
+        File ulawFile = new File(OUTPUT_DIR + "/" + OUT_PCMA_PCMU);
+        FileOutputStream ulawFileOutputStream = new FileOutputStream(ulawFile);
+        byte[] buf = new byte[BUFFER_SIZE];
+        int readBytes = 0;
+        while ((readBytes = alawFileInputStream.read(buf)) > 0)
+        {
+            byte[] pcmuBuf = new byte[readBytes];
+            for (int i = 0; i < readBytes; ++i)
+                pcmuBuf[i] = BasicCodecs.alaw2ulaw(buf[i]);
+            ulawFileOutputStream.write(pcmuBuf);
+        }
+        alawFileInputStream.close();
+        ulawFileOutputStream.close();
+        assertFileEquals(ulawFile, IN_PCMA_PCMU);
+    }
+
+    public void testUlaw2alaw() throws Exception
+    {
+        URL ulawUrl = getClass().getClassLoader().getResource(IN_PCMU);
+        File ulawFile = new File(ulawUrl.toURI());
+        FileInputStream ulawFileInputStream = new FileInputStream(ulawFile);
+        File alawFile = new File(OUTPUT_DIR + "/" + OUT_PCMU_PCMA);
+        FileOutputStream alawFileOutputStream = new FileOutputStream(alawFile);
+        byte[] buf = new byte[BUFFER_SIZE];
+        int readBytes = 0;
+        while ((readBytes = ulawFileInputStream.read(buf)) > 0)
+        {
+            byte[] pcmaBuf = new byte[readBytes];
+            for (int i = 0; i < readBytes; ++i)
+                pcmaBuf[i] = BasicCodecs.ulaw2alaw(buf[i]);
+            alawFileOutputStream.write(pcmaBuf);
+        }
+        ulawFileInputStream.close();
+        alawFileOutputStream.close();
+        assertFileEquals(alawFile, IN_PCMU_PCMA);
     }
 
 }

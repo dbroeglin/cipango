@@ -78,7 +78,7 @@ public class Player
        _port = port;
     }
     
-    public void start() throws Exception
+    public void init() throws Exception
     {
     	File file = new File(_filename);
         
@@ -170,11 +170,14 @@ public class Player
     	if (args.length == 0)
     	{
     		System.err.println("Usage: java org.cipango.media.Player audio_file");
+    		System.err.println("audio_file must be a wave file containing " +
+    				"pcma or pcmu data");
     		System.exit(-1);
     	}
     	
         Player player = new Player(args[0], "127.0.0.1", 6000);
-        player.start();
+        player.init();
+        player.play();
     }
 
 }

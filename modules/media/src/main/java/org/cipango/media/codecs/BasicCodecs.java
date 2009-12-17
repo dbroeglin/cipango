@@ -31,6 +31,21 @@ public class BasicCodecs {
     private static final int seg_aend[] = {0x1F, 0x3F, 0x7F, 0xFF,
         0x1FF, 0x3FF, 0x7FF, 0xFFF};
 
+    private static final int seg_uend[] = {0x3F, 0x7F, 0xFF, 0x1FF,
+        0x3FF, 0x7FF, 0xFFF, 0x1FFF};
+
+    /* Bias for linear code. */
+    private static final int BIAS = 0x84;
+    private static final int CLIP = 8159;
+
+    private static int search(int val, int[] table)
+    {
+        for (int i = 0; i < table.length; ++i)
+            if (val <= table[i])
+                return i;
+        return table.length;
+    }
+
     /**
      * Convert a pcm sample to a alaw value.
      * 
@@ -63,14 +78,6 @@ public class BasicCodecs {
         }
     }
 
-    private static int search(int val, int[] table)
-    {
-        for (int i = 0; i < table.length; ++i)
-            if (val <= table[i])
-                return i;
-        return table.length;
-    }
-
     /**
      * Convert a alaw value to a pcm sample.
      * 
@@ -94,6 +101,63 @@ public class BasicCodecs {
             t <<= seg - 1;
         }
         return ((a_val & SIGN_BIT) != 0) ? t : -t;
+    }
+
+    /**
+     * Convert a pcm sample to a ulaw value.
+     * 
+     * @param pcm_val 16 bits signed linear sample
+     * @return ulaw 8 bits
+     */
+    public static byte linear2ulaw(int pcm_val)
+    {
+
+        /* Get the sign and the magnitude of the value. */
+        pcm_val = pcm_val >> 2;
+        int mask;
+        if (pcm_val < 0)
+        {
+            pcm_val = -pcm_val;
+            mask = 0x7F;
+        }
+        else
+            mask = 0xFF;
+        if (pcm_val > CLIP)
+            pcm_val = CLIP;       /* clip the magnitude */
+        pcm_val += (BIAS >> 2);
+
+        /* Convert the scaled magnitude to segment number. */
+        int seg = search(pcm_val, seg_uend);
+
+        /*
+         * Combine the sign, segment, quantization bits;
+         * and complement the code word.
+         */
+        if (seg >= 8)       /* out of range, return maximum value. */
+            return (byte)(0x7F ^ mask);
+        int uval = (byte) (seg << 4) | ((pcm_val >> (seg + 1)) & 0xF);
+        return (byte)(uval ^ mask);
+    }
+
+    /**
+     * Convert a ulaw value to a pcm sample.
+     * 
+     * @param u_val ulaw value
+     * @return 16 bits signed linear sample
+     */
+    public static int ulaw2linear(byte u_val)
+    {
+        /* Complement to obtain normal u-law value. */
+        u_val = (byte)~(u_val & 0xff);
+
+        /*
+         * Extract and bias the quantization bits. Then
+         * shift up by the segment number and subtract out the bias.
+         */
+        int t = ((u_val & QUANT_MASK) << 3) + BIAS;
+        t <<= ((u_val & 0xff) & SEG_MASK) >> SEG_SHIFT;
+
+        return ((u_val & SIGN_BIT) != 0 ? (BIAS - t) : (t - BIAS));
     }
 
 }

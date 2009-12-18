@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<sip-app xmlns="http://www.jcp.org/xml/ns/sipservlet"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet sip-app_1_1.xsd"
+    version="1.1" xmlns:ee="http://java.sun.com/xml/ns/javaee">
+
+  <app-name>Media example</app-name>
+
+  <servlet-selection>
+    <main-servlet>MediaServlet</main-servlet>
+  </servlet-selection>
+
+  <listener>
+    <ee:listener-class>org.cipango.example.MediaServlet</ee:listener-class>
+  </listener>
+
+  <servlet>
+    <ee:servlet-name>MediaServlet</ee:servlet-name>
+    <ee:servlet-class>org.cipango.example.MediaServlet</ee:servlet-class>
+    <ee:load-on-startup>1</ee:load-on-startup>
+  </servlet>
+
+</sip-app>

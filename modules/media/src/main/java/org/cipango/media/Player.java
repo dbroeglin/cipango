@@ -46,6 +46,7 @@ public class Player
 	private String _filename;
 	private String _host;
 	private int _port;
+	private int _payloadType;
 	
 	private SocketAddress _remoteAddress;
     private UdpEndPoint _udpEndPoint;
@@ -71,11 +72,12 @@ public class Player
 
     private Timer timer = new java.util.Timer();
 
-    public Player(String filename, String host, int port) 
+    public Player(String filename, String host, int port, int payloadType) 
     {
        _filename = filename;
        _host = host;
        _port = port;
+       _payloadType = payloadType;
     }
     
     public void init() throws Exception
@@ -84,9 +86,11 @@ public class Player
         
         _audioInputStream = AudioSystem.getAudioInputStream(file);
         
-        Log.info("Playing audio: " + file.getName() + " with format: " + _audioInputStream.getFormat());
+        Log.info("Playing audio: " + file.getName() + " with format: "
+                + _audioInputStream.getFormat());
         
-        _remoteAddress = new InetSocketAddress(InetAddress.getByName(_host), _port);
+        _remoteAddress = new InetSocketAddress(
+                InetAddress.getByName(_host), _port);
         _udpEndPoint = new UdpEndPoint(new DatagramSocket());
         
         Random random = new Random();
@@ -122,9 +126,11 @@ public class Player
             }
             if (bytesRead > 0) 
             {
-            	_audioBuffer.setGetIndex(0); _audioBuffer.setPutIndex(bytesRead);
+            	_audioBuffer.setGetIndex(0);
+            	_audioBuffer.setPutIndex(bytesRead);
             	
-            	RtpPacket packet = new RtpPacket(_ssrc, _seqNumber, _timestamp, RtpPacket.PAYLOAD_TYPE_PCMA);
+            	RtpPacket packet = new RtpPacket(_ssrc, _seqNumber,
+            	        _timestamp, _payloadType);
             	
             	_seqNumber++;
             	_timestamp += bytesRead;
@@ -169,13 +175,16 @@ public class Player
     {
     	if (args.length == 0)
     	{
-    		System.err.println("Usage: java org.cipango.media.Player audio_file");
+    		System.err.println("Usage: java org.cipango.media.Player " +
+    				"audio_file payloadType");
     		System.err.println("audio_file must be a wave file containing " +
     				"pcma or pcmu data");
+    		System.err.println("payloadType must be 0 for PCMU 8 for PCMA");
     		System.exit(-1);
     	}
     	
-        Player player = new Player(args[0], "127.0.0.1", 6000);
+        Player player = new Player(args[0], "127.0.0.1", 6000,
+                Integer.parseInt(args[1]));
         player.init();
         player.play();
     }

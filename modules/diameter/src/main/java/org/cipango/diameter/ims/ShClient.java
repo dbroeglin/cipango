@@ -13,6 +13,7 @@ import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Node;
 import org.cipango.diameter.Peer;
+import org.cipango.diameter.Router;
 import org.cipango.diameter.base.Base;
 import org.cipango.diameter.base.Base.AuthSessionState;
 import org.cipango.diameter.bio.DiameterSocketConnector;
@@ -44,7 +45,8 @@ public class ShClient implements DiameterHandler
 		peer.setAddress(InetAddress.getByName("192.168.2.10"));
 		peer.setPort(3869);
 		
-		node.addPeer(peer);
+		node.setRouter(new Router());
+		node.getRouter().addPeer(peer);
 		
 		node.start();
 		

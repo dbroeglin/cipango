@@ -2,8 +2,6 @@ package org.cipango.diameter;
 
 import java.net.InetAddress;
 
-import org.mortbay.log.Log;
-
 import junit.framework.TestCase;
 
 public class NodeTest extends TestCase
@@ -18,8 +16,8 @@ public class NodeTest extends TestCase
 		Peer peer = new Peer("server");
 		peer.setAddress(InetAddress.getLocalHost());
 		peer.setPort(3869);
-		
-		client.addPeer(peer);
+		client.setRouter(new Router());
+		client.getRouter().addPeer(peer);
 		
 		Node server = new Node(3869);
 		server.setIdentity("server");

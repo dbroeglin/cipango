@@ -16,11 +16,7 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -67,7 +63,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private long _tc = DEFAULT_TC;
 	
 	private DiameterConnector[] _connectors;
-	private Map<String, Peer> _peers = new HashMap<String, Peer>();
+	private DiameterRouter _router;
 	
 	private DiameterHandler _handler;
 	private SessionManager _sessionManager;
@@ -105,6 +101,8 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			for (int i = 0; i < connectors.length; i++)
 				connectors[i].setNode(this);
 		}
+		if (_server != null)
+			_server.getContainer().update(this, _connectors, connectors, "connectors");
 		_connectors = connectors;
 	}
 	
@@ -160,10 +158,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		}
 		mex.ifExceptionThrow();
 		
-		for (Peer peer : _peers.values())
-		{
-			peer.start();
-		}
+		if (_router == null)
+			_router = new Router();
+		
+		_router.setNode(this);
+		
+		if (_router instanceof LifeCycle)
+			((LifeCycle) _router).start();
+		
 		_timer.schedule(new WatchdogTask(), _tw, 1000);
 		
 		Log.info("Started {}", this);
@@ -172,37 +174,9 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	@Override
 	protected void doStop() throws Exception 
 	{
-		Iterator<Peer> peers = _peers.values().iterator();
-		while (peers.hasNext()) 
-		{
-			Peer peer = peers.next();
-			Log.debug("Stopping peer: " + peer);
-			peer.stop();
-		} 
+		if (_router instanceof LifeCycle)
+			((LifeCycle) _router).start();
 		
-		// Wait at most 1 seconds for DPA reception
-		try {
-			boolean allClosed = false;
-			int iter = 20;
-			while (iter-- > 0 && allClosed)
-			{
-				allClosed = true;
-				peers = _peers.values().iterator();
-				while (peers.hasNext()) 
-				{
-					Peer peer = peers.next();
-					if (!peer.isClosed())
-					{
-						allClosed = false;
-						Log.info("Wait 50ms for " + peer + " closing");
-						Thread.sleep(50);
-						break;
-					}
-				} 
-			}
-		} catch (Exception e) {
-			Log.ignore(e);
-		}
 		for (int i = 0; i < _connectors.length; i++)
 		{
 			if (_connectors[i] instanceof LifeCycle) 		
@@ -239,6 +213,11 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		return _productName;
 	}
+
+	public void setProductName(String productName)
+	{
+		_productName = productName;
+	}
 	
 	public SessionManager getSessionManager()
 	{
@@ -250,49 +229,16 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		return _connectors[0].getConnection(peer);
 	}
 	
-	public void addPeer(Peer peer)
-	{
-		Peer[] olds = getPeers().toArray(new Peer[] {});
-		synchronized (_peers)
-		{
-			_peers.put(peer.getHost(), peer);
-			peer.setNode(this);
-		}
-		if (_server != null)
-			_server.getContainer().update(this, olds, getPeers().toArray(new Peer[] {}), "peers");
-	}
-	
-	public Peer getPeer(String host)
-	{
-		synchronized (_peers)
-		{
-			return _peers.get(host);
-		}
-	}
-	
-	public List<Peer> getPeers()
-	{
-		synchronized (_peers)
-		{
-			return new ArrayList<Peer>(_peers.values());
-		}
-	}
+
 	
 	public void send(DiameterRequest request) throws IOException
 	{
-		String destinationHost = request.getDestinationHost();
-		if (destinationHost != null)
-		{
-			Peer peer = getPeer(destinationHost);
-			if (peer != null)
-				peer.send(request);
-			else 
-				throw new IOException("No peer for destination " + destinationHost); // TODO
-		}
+		Peer peer = _router.getRoute(request);
+		if (peer == null)
+			throw new IOException("No peer for destination host " + request.getDestinationHost()
+					+ " and destination realm " + request.getDestinationRealm());
 		else
-		{
-			throw new IOException("No destination-host"); // TODO
-		}
+			peer.send(request);
 	}
 	
 	public void setPeers(Peer[] peers)
@@ -300,7 +246,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		if (isRunning())
 			throw new IllegalArgumentException("Could not set peers while running");
 		for (Peer peer: peers)
-			addPeer(peer);
+			_router.addPeer(peer);
 	}
 	
 	public void receive(DiameterMessage message) throws IOException
@@ -325,15 +271,22 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 					message.getConnection().stop();
 					return;
 				}
+				String realm = message.getOriginRealm();
+				if (realm == null)
+				{
+					Log.debug("No Origin-Realm in CER");
+					message.getConnection().stop();
+					return;
+				}
 				
-				peer = _peers.get(originHost);
+				peer = _router.getPeer(realm, originHost);
 				
 				if (peer == null)
 				{
 					Log.warn("Unknown peer " + originHost);
 					peer = new Peer(originHost);
 					peer.setNode(this);
-					_peers.put(originHost, peer);
+					_router.addPeer(peer);
 				}
 				message.getConnection().setPeer(peer);
 				peer.rConnCER((DiameterRequest) message);
@@ -433,6 +386,22 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		_timer.schedule(task, _tc);
 	}
+	
+	public DiameterRouter getRouter()
+	{
+		return _router;
+	}
+
+	public void setRouter(DiameterRouter router)
+	{
+		if (_server != null)
+			_server.getContainer().update(this, _router, router, "router");
+		_router = router;
+		if (_router != null)
+			_router.setNode(this);
+
+	}
+
 
     class WatchdogTask extends TimerTask
     {
@@ -446,11 +415,10 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			}
 			// Jitter is between -2 and 2 seconds
 			long twJitter = _random.nextInt(4000) - 2000;
-			Iterator<Peer> it = _peers.values().iterator();
+			Iterator<Peer> it = _router.getPeers().iterator();
 			while (it.hasNext())
 				it.next().sendDWRIfNeeded(_tw + twJitter);
 		}
     }
-
 
 }

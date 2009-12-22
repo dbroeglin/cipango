@@ -6,14 +6,6 @@
 
   <app-name>Media example</app-name>
 
-  <servlet-selection>
-    <main-servlet>MediaServlet</main-servlet>
-  </servlet-selection>
-
-  <listener>
-    <ee:listener-class>org.cipango.example.MediaServlet</ee:listener-class>
-  </listener>
-
   <servlet>
     <ee:servlet-name>MediaServlet</ee:servlet-name>
     <ee:servlet-class>org.cipango.example.MediaServlet</ee:servlet-class>

@@ -20,6 +20,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -39,13 +42,14 @@ import org.mortbay.log.Log;
  * input: mu-law wav file
  * output: rtp stream towards specified destination
  */
-public class Player 
+public class Player
 {
 	public static final int DEFAULT_PTIME = 20;
 	
 	private String _filename;
 	private String _host;
 	private int _port;
+	private int _localPort;
 	private int _payloadType;
 	
 	private SocketAddress _remoteAddress;
@@ -68,16 +72,21 @@ public class Player
     public static final int DELAY = 10; // ms
 
     
-    private RtpCodec rtpCodec;
+    private RtpCodec _rtpCodec;
 
-    private Timer timer = new java.util.Timer();
+    private Timer _timer;
+
+    private List<PlayerListener> _eventListeners;
 
     public Player(String filename, String host, int port, int payloadType) 
     {
+        super();
        _filename = filename;
        _host = host;
        _port = port;
        _payloadType = payloadType;
+       _eventListeners = Collections.synchronizedList(
+               new ArrayList<PlayerListener>());
     }
     
     public void init() throws Exception
@@ -91,7 +100,9 @@ public class Player
         
         _remoteAddress = new InetSocketAddress(
                 InetAddress.getByName(_host), _port);
-        _udpEndPoint = new UdpEndPoint(new DatagramSocket());
+        DatagramSocket datagramSocket = new DatagramSocket();
+        _udpEndPoint = new UdpEndPoint(datagramSocket);
+        _localPort = datagramSocket.getLocalPort();
         
         Random random = new Random();
         _ssrc = random.nextInt();
@@ -101,12 +112,65 @@ public class Player
         _audioBuffer = new ByteArrayBuffer(_dataLength);
         _packetBuffer = new ByteArrayBuffer(12 + _dataLength);
         
-        rtpCodec = new RtpCodec();    
+        _rtpCodec = new RtpCodec();
+        _timer = new Timer();
     }
 
     public void play() 
     {
-        timer.scheduleAtFixedRate(new PlayTimerTask(), DELAY, PERIOD);
+        _timer.scheduleAtFixedRate(new PlayTimerTask(), DELAY, PERIOD);
+    }
+
+    public void stop()
+    {
+        _timer.cancel();
+        try
+        {
+            _audioInputStream.close();
+        }
+        catch (IOException e)
+        {
+            Log.warn("IOException", e);
+        }
+        try
+        {
+            _udpEndPoint.close();
+        }
+        catch (IOException e)
+        {
+            Log.warn("IOException", e);
+        }
+    }
+
+    public int getPort()
+    {
+        return _port;
+    }
+
+    public int getLocalPort()
+    {
+        return _localPort;
+    }
+
+    public void addEventListener(PlayerListener playerListener)
+    {
+        _eventListeners.add(playerListener);
+    }
+
+    public void removeEventListener(PlayerListener playerListener)
+    {
+        _eventListeners.remove(playerListener);
+    }
+
+    private void dispatchEvent(PlayerEvent playerEvent)
+    {
+        for (PlayerListener playerListener: _eventListeners)
+            switch (playerEvent)
+            {
+            case END_OF_FILE:
+                playerListener.endOfFile(this);
+                break;
+            }
     }
 
     class PlayTimerTask extends TimerTask 
@@ -138,7 +202,7 @@ public class Player
             	packet.setData(_audioBuffer);
             	
             	_packetBuffer.clear();
-            	rtpCodec.encode(_packetBuffer, packet);
+            	_rtpCodec.encode(_packetBuffer, packet);
             	
                 try 
                 {
@@ -151,23 +215,12 @@ public class Player
                     return;
                 }
                 
-            } else {
-                stop();
             }
-        }
-    }
-
-    public void stop() {
-        timer.cancel();
-        try {
-            _audioInputStream.close();
-        } catch (IOException e) {
-            Log.warn("IOException", e);
-        }
-        try {
-            _udpEndPoint.close();
-        } catch (IOException e) {
-            Log.warn("IOException", e);
+            else
+            {
+                stop();
+                dispatchEvent(PlayerEvent.END_OF_FILE);
+            }
         }
     }
 

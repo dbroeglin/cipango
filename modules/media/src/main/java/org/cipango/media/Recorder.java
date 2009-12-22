@@ -33,12 +33,18 @@ public class Recorder
 {
 
     public static final int RTP_PACKET_SIZE = 172;
+    private static final int DEFAULT_PORT = -1;
 
-    private int _port;
+    private int _port = DEFAULT_PORT;
     private UdpEndPoint _udpEndPoint;
     private FileOutputStream _fileOutputStream;
     private boolean _running;
     private ByteArrayBuffer _buffer;
+
+    public Recorder()
+    {
+        this(DEFAULT_PORT);
+    }
 
     public Recorder(int port)
     {
@@ -51,7 +57,13 @@ public class Recorder
         DatagramSocket datagramSocket;
         try
         {
-            datagramSocket = new DatagramSocket(_port);
+            if (_port == DEFAULT_PORT)
+            {
+                datagramSocket = new DatagramSocket();
+                _port = datagramSocket.getLocalPort();
+            }
+            else
+                datagramSocket = new DatagramSocket(_port);
         }
         catch (SocketException e)
         {
@@ -61,7 +73,7 @@ public class Recorder
         _udpEndPoint = new UdpEndPoint(datagramSocket);
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH.mm.ss,SSS");
         String filename = dateFormat.format(new Date()) + " " + _port
-            + " 8000.mono.pcma";
+            + " 8000.mono.g711";
         try
         {
             _fileOutputStream = new FileOutputStream(filename);
@@ -130,6 +142,15 @@ public class Recorder
     public void stop()
     {
         _running = false;
+        try {
+            _udpEndPoint.close();
+        } catch (IOException e) {
+            Log.ignore(e);
+        }
+    }
+
+    public int getPort() {
+        return _port;
     }
 
     public static void main(String[] args)

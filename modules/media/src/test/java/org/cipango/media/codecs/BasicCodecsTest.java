@@ -14,6 +14,8 @@
 
 package org.cipango.media.codecs;
 
+import static org.cipango.media.MediaTestConstants.OUTPUT_DIR;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,8 +24,6 @@ import java.net.URL;
 import junit.framework.TestCase;
 
 public class BasicCodecsTest extends TestCase {
-
-    public static final String OUTPUT_DIR = "target/test-classes";
 
     public static final String IN_S16LE = "StandardGreeting.8000.mono.s16le";
     public static final String OUT_S16LE_PCMA =

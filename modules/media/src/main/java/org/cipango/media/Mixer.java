@@ -68,11 +68,22 @@ public class Mixer implements Runnable {
                         break;
                     }
                     // little-endian input
-                    sum += (secondByte << 8) | firstByte;
+                    //sum += (secondByte << 8 | firstByte) / numberOfStreams;
+                    int sample = secondByte << 8 | firstByte;
+                    if (sample > 32767)
+                        sample -= 65536;
+                    // sum += secondByte << 8 | firstByte;
+                    sum += sample;
                 }
                 if (streamTerminated != null)
                     _inputStreams.remove(streamTerminated);
+                sum /= Math.sqrt(numberOfStreams);
                 int roundedSum = Math.round(sum);
+                // clip
+                if (roundedSum > 32767)
+                    roundedSum = 32767;
+                else if (roundedSum < -32767)
+                    roundedSum = -32767;
                 // little-endian output
                 _outputStream.write(roundedSum);
                 _outputStream.write(roundedSum >> 8);

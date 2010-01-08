@@ -245,6 +245,11 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		if (isRunning())
 			throw new IllegalArgumentException("Could not set peers while running");
+		if (_router == null)
+		{
+			_router = new Router();
+			_router.setNode(this);
+		}
 		for (Peer peer: peers)
 			_router.addPeer(peer);
 	}
@@ -332,6 +337,31 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		System.out.println(message.getSession());
 		*/
+		if (message instanceof DiameterAnswer)
+		{
+			DiameterAnswer answer = (DiameterAnswer) message;
+			if (Base.DIAMETER_REDIRECT_INDICATION.equals(answer.getResultCode()))
+			{
+				try 
+                {
+                    String redirectHost = answer.get(Base.REDIRECT_HOST);
+                    Peer peer = _router.getPeer(answer.getRequest().getDestinationRealm(), redirectHost);
+                    if (peer != null) 
+                    {
+                        Log.debug("Redirecting request to: " + peer);
+                        peer.send(answer.getRequest());
+                    }
+                    else
+                    	Log.warn("Unknwon peer {} indicating in redirect-host AVP", redirectHost);
+                    return;
+                } 
+                catch (Exception e)
+                {
+                    Log.warn("Failed to redirect request", e);
+                    return;
+                }
+			}
+		}
 		if (_handler != null)
 			_handler.handle(message);
 		//System.out.println("Got message: " + message.getAVPs());

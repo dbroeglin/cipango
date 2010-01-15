@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,13 +46,15 @@ public class RtpCodecTest extends TestCase
 		assertEquals(260124933, packet.getSsrc());
 		assertEquals(5025, packet.getSequenceNumber());
 		assertEquals(229080, packet.getTimestamp());
+		assertEquals(0, packet.getPayloadType());
+		assertEquals(false, packet.getMarker());
 	}
 	
 	public void testEncode()
 	{
 		long ts = Integer.MAX_VALUE + 1l;
 		
-		RtpPacket packet = new RtpPacket(123456789, 987654321, ts, 0);
+		RtpPacket packet = new RtpPacket(123456789, 987654321, ts, 0, false);
 		packet.setData(new ByteArrayBuffer("hello world".getBytes()));
 		
 		RtpCodec codec = new RtpCodec();

@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,16 +29,18 @@ public class RtpPacket
 	private int _sequenceNumber;
 	private long _timestamp;
 	private int _payloadType;
+	private boolean _marker;
 	
 	private Buffer _data;
 	
 	public RtpPacket(int ssrc, int sequenceNumber, long timestamp,
-	        int payloadType)
+	        int payloadType, boolean marker)
 	{
 		_ssrc = ssrc;
 		_sequenceNumber = sequenceNumber;
 		_timestamp = timestamp;
 		_payloadType = payloadType;
+		_marker = marker;
 	}
 	
 	public int getSsrc()
@@ -80,8 +82,16 @@ public class RtpPacket
 	{
 		return _data;
 	}
-	
-	public String toString()
+
+	public boolean getMarker() {
+        return _marker;
+    }
+
+    public void setMarker(boolean marker) {
+        _marker = marker;
+    }
+
+    public String toString()
 	{
 		return "[ssrc=" + _ssrc + ",seq=" + _sequenceNumber + ",ts=" + _timestamp + "]";
 	}

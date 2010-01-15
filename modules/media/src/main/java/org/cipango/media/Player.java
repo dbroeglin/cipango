@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,11 +49,11 @@ public class Player
 	private String _filename;
 	private String _host;
 	private int _port;
-	private int _localPort;
 	private int _payloadType;
 	
 	private SocketAddress _remoteAddress;
     private UdpEndPoint _udpEndPoint;
+    private boolean _closeUdpEndPoint;
     
     private AudioInputStream _audioInputStream;
     private int _ptime = DEFAULT_PTIME;
@@ -80,13 +80,22 @@ public class Player
 
     public Player(String filename, String host, int port, int payloadType) 
     {
+        this(filename, host, port, payloadType, null);
+    }
+
+    public Player(String filename, String host, int port, int payloadType,
+            UdpEndPoint udpEndPoint) 
+    {
         super();
        _filename = filename;
        _host = host;
        _port = port;
        _payloadType = payloadType;
+       _udpEndPoint = udpEndPoint;
        _eventListeners = Collections.synchronizedList(
                new ArrayList<PlayerListener>());
+       _closeUdpEndPoint = udpEndPoint == null;
+       Log.debug("_closeUdpEndPoint after playback: " + _closeUdpEndPoint);
     }
     
     public void init() throws Exception
@@ -95,14 +104,13 @@ public class Player
         
         _audioInputStream = AudioSystem.getAudioInputStream(file);
         
-        Log.info("Playing audio: " + file.getName() + " with format: "
-                + _audioInputStream.getFormat());
-        
         _remoteAddress = new InetSocketAddress(
                 InetAddress.getByName(_host), _port);
-        DatagramSocket datagramSocket = new DatagramSocket();
-        _udpEndPoint = new UdpEndPoint(datagramSocket);
-        _localPort = datagramSocket.getLocalPort();
+        if (_udpEndPoint == null)
+        {
+            DatagramSocket datagramSocket = new DatagramSocket();
+            _udpEndPoint = new UdpEndPoint(datagramSocket);
+        }
         
         Random random = new Random();
         _ssrc = random.nextInt();
@@ -118,12 +126,29 @@ public class Player
 
     public void play() 
     {
+        synchronized (this) {
+            if (_timer == null)
+                _timer = new Timer();
+        }
         _timer.scheduleAtFixedRate(new PlayTimerTask(), DELAY, PERIOD);
     }
 
     public void stop()
     {
-        _timer.cancel();
+        synchronized (this) {
+            if (_timer != null)
+            {
+                try
+                {
+                    _timer.cancel();
+                }
+                catch (Throwable t)
+                {
+                    Log.warn("cannot cancel timer", t);
+                }
+                _timer = null;
+            }
+        }
         try
         {
             _audioInputStream.close();
@@ -132,24 +157,15 @@ public class Player
         {
             Log.warn("IOException", e);
         }
-        try
-        {
-            _udpEndPoint.close();
-        }
-        catch (IOException e)
-        {
-            Log.warn("IOException", e);
-        }
-    }
-
-    public int getPort()
-    {
-        return _port;
-    }
-
-    public int getLocalPort()
-    {
-        return _localPort;
+        if (_closeUdpEndPoint)
+            try
+            {
+                _udpEndPoint.close();
+            }
+            catch (IOException e)
+            {
+                Log.warn("IOException", e);
+            }
     }
 
     public void addEventListener(PlayerListener playerListener)
@@ -173,6 +189,26 @@ public class Player
             }
     }
 
+    public String getFilename() {
+        return _filename;
+    }
+
+    public int getLocalPort()
+    {
+        return _udpEndPoint.getLocalPort();
+    }
+
+    public void setFilename(String filename) throws Exception
+    {
+        _filename = filename;
+        File file = new File(_filename);
+        
+        _audioInputStream = AudioSystem.getAudioInputStream(file);
+        
+        Log.info("Player source file: " + file.getName() + " with format: "
+                + _audioInputStream.getFormat());
+    }
+
     class PlayTimerTask extends TimerTask 
     {
         public void run() 
@@ -192,9 +228,8 @@ public class Player
             {
             	_audioBuffer.setGetIndex(0);
             	_audioBuffer.setPutIndex(bytesRead);
-            	
             	RtpPacket packet = new RtpPacket(_ssrc, _seqNumber,
-            	        _timestamp, _payloadType);
+            	        _timestamp, _payloadType, _seqNumber == 0);
             	
             	_seqNumber++;
             	_timestamp += bytesRead;
@@ -224,6 +259,7 @@ public class Player
         }
     }
 
+    // main not tested recently
     public static void main(String[] args) throws Exception
     {
     	if (args.length == 0)

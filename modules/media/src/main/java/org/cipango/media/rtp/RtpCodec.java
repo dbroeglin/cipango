@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,8 +51,7 @@ public class RtpCodec
     	// assume CC=0 
     	buffer.put(DEFAULT_FIRST_BYTE);
     	
-    	boolean mark = false; // TODO from RTP packet
-    	if (mark)
+    	if (packet.getMarker())
     		buffer.put((byte) (packet.getPayloadType() | MARKER_FLAG));
     	else
     		buffer.put((byte) (packet.getPayloadType() & 0x7f));
@@ -115,7 +114,7 @@ public class RtpCodec
 		}
 		
 		RtpPacket packet = new RtpPacket(ssrc, sequenceNumber, timestamp,
-		        RtpPacket.PAYLOAD_TYPE_PCMU);
+		        payloadType, marker);
 		
 		packet.setData(data);
 		return packet;

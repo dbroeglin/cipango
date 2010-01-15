@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns="http://www.jcp.org/xml/ns/sipservlet"
+           targetNamespace="http://www.jcp.org/xml/ns/sipservlet"
+           xmlns:javaee="http://java.sun.com/xml/ns/javaee"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           version="1.1">
+
+  <xs:import namespace="http://java.sun.com/xml/ns/javaee"
+      schemaLocation="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"/>
+
+  <xs:element name="sip-app" type="sip-appType"/>
+
+  <xs:complexType name="sip-appType">
+    <xs:annotation>
+      <xs:documentation>
+        The sip-app element is the root of the deployment descriptor for
+        a SIP servlet application. Note that the sub-elements of this element can be
+        in the arbitrary order. Because of that, the multiplicity of the elements of distributable,
+        session-config, proxy-config, and login-config was changed from "?" to "*" in this schema.
+        However, the deployment descriptor instance file must not contain multiple elements of distributable,
+        session-config, proxy-config, and login-config.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="app-name" minOccurs="1" type="javaee:nonEmptyStringType">
+        <xs:annotation>
+          <xs:documentation>
+            The application name specifies the unique name of the application within
+            the container. The names of Sip Servlet applications must be unique within
+            a container instance or across clustered containers under common
+            administrative control for application selection to function properly.
+            It is recommended that application developers follow the Java class naming
+            convention when naming applications, e.g. "org.sipservlet.app.voiceMail",
+            to avoid naming conflicts with other developers.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:group ref="javaee:descriptionGroup"/>
+      <xs:element name="distributable" type="javaee:emptyType"/>
+      <xs:element name="context-param" type="javaee:param-valueType"/>
+      <xs:element name="listener" type="javaee:listenerType"/>
+      <xs:element name="servlet-selection" type="servlet-selectionType"/>
+      <xs:element name="servlet" type="javaee:servletType"/>
+      <xs:element name="proxy-config" type="proxy-configType"/>
+      <xs:element name="session-config" type="javaee:session-configType"/>
+      <xs:element name="security-constraint" type="security-constraintType"/>
+      <xs:element name="login-config" type="login-configType"/>
+      <xs:element name="security-role" type="javaee:security-roleType"/>
+      <xs:group ref="javaee:jndiEnvironmentRefsGroup"/>
+      <xs:element name="message-destination" type="javaee:message-destinationType"/>
+      <xs:element name="locale-encoding-mapping-list" type="javaee:locale-encoding-mapping-listType"/>
+    </xs:choice>
+    <xs:attribute name="version" type="sip-app-versionType"/>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:complexType name="servlet-selectionType">
+    <xs:choice>
+      <xs:element name="main-servlet" type="javaee:nonEmptyStringType">
+        <xs:annotation>
+          <xs:documentation>
+            The main servlet name element contains the canonical name of the main servlet.
+            Only one servlet is designated as main within the servlet application.
+            The name is the name of one of the servlets declared in the servlet-name element.
+            If servlet-mapping mechanism is not used and there is only one servlet in the application,
+            then this declaration is optional wherein the lone servlet becomes the main servlet.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element maxOccurs="unbounded" name="servlet-mapping" type="servlet-mappingType"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:complexType name="servlet-mappingType">
+    <xs:annotation>
+      <xs:documentation>
+        The servlet-mapping element defines a mapping between a servlet and a pattern
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="servlet-name" type="javaee:servlet-nameType"/>
+      <xs:element name="pattern" type="patternType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:element name="condition" abstract="true">
+    <xs:annotation>
+      <xs:documentation>
+        The different types of conditions supported.
+      </xs:documentation>
+    </xs:annotation>
+  </xs:element>
+
+  <xs:complexType name="patternType">
+    <xs:annotation>
+      <xs:documentation>
+        A pattern is a condition: a predicate over the set of SIP requests.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element ref="condition"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:element name="and" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        An "and" condition is true if and only if all its constituent conditions are true.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="condition"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="or" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        An "or" condition is true if at least one of its constituent conditions is true.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="condition"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="not" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        Negates the value of the contained condition.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="condition"/>
+      </xs:sequence>
+      <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="equal" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        True if the value of the variable equals the specified literal value.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="var">
+          <xs:sequence>
+            <xs:element ref="value"/>
+          </xs:sequence>
+          <xs:attribute name="ignore-case" default="false">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="true"/>
+                <xs:enumeration value="false"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="id" type="xs:ID"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="contains" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        True if the value of the variable contains the specified literal value.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="var">
+          <xs:sequence>
+            <xs:element ref="value"/>
+          </xs:sequence>
+          <xs:attribute name="ignore-case" default="false">
+            <xs:simpleType>
+              <xs:restriction base="xs:token">
+                <xs:enumeration value="true"/>
+                <xs:enumeration value="false"/>
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:attribute>
+          <xs:attribute name="id" type="xs:ID"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="exists" substitutionGroup="condition">
+    <xs:annotation>
+      <xs:documentation>
+        True if the specified variable exists.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="var">
+          <xs:attribute name="id" type="xs:ID"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="subdomain-of" substitutionGroup="condition">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="var">
+          <xs:sequence>
+            <xs:element ref="value"/>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:ID"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="var">
+    <xs:annotation>
+      <xs:documentation>
+        Specifies a variable. Example: <var>request.uri.user</var>
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element ref="var"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:element name="var">
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="value">
+    <xs:annotation>
+      <xs:documentation>
+        Specifies a literal string value that is used to specify rules.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:complexType mixed="true">
+      <xs:attribute name="id" type="xs:ID"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="proxy-configType">
+    <xs:annotation>
+      <xs:documentation>
+        The proxy-config element configures proxy-related parameters.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="proxy-timeout" minOccurs="0" type="javaee:xsdIntegerType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:complexType name="security-constraintType">
+    <xs:annotation>
+      <xs:documentation>
+        The security-constraint element is used to associate security
+        constraints with one or more servlet resource collections
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="display-name" minOccurs="0" maxOccurs="unbounded" type="javaee:display-nameType"/>
+      <xs:element name="resource-collection" maxOccurs="unbounded" type="resource-collectionType"/>
+      <xs:element name="proxy-authentication" minOccurs="0" type="proxy-authenticationType"/>
+      <xs:element name="auth-constraint" minOccurs="0" type="javaee:auth-constraintType"/>
+      <xs:element name="user-data-constraint" minOccurs="0" type="javaee:user-data-constraintType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:complexType name="resource-collectionType">
+    <xs:annotation>
+      <xs:documentation>
+        The resource-collection element is used to identify a subset
+        of the resources and SIP methods on those resources within a servlet
+        application to which a security constraint applies. If no SIP methods
+        are specified, then the security constraint applies to all SIP methods.
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="resource-name" type="javaee:string"/>
+      <xs:element name="description" minOccurs="0" type="javaee:descriptionType"/>
+      <xs:element name="servlet-name" minOccurs="0" maxOccurs="unbounded" type="javaee:servlet-nameType"/>
+      <xs:element name="sip-method" minOccurs="0" maxOccurs="unbounded" type="javaee:nonEmptyStringType"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:complexType name="proxy-authenticationType">
+    <xs:annotation>
+      <xs:documentation>
+        The presence of the proxy-authentication element indicates to the
+        container that it must challenge the user agent with a 407 (Proxy
+        Authentication Required) response status code when authenticating an
+        incoming request. If not present a 401 (Unauthorized) status code is used.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:complexType name="login-configType">
+    <xs:annotation>
+      <xs:documentation>
+        The login-configType is used to configure the authentication
+        method that should be used, the realm name that should be
+        used for this application and the identity assertion scheme to be used.
+
+        Used in: sip-app
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="auth-method"
+                  type="javaee:auth-methodType"
+                  minOccurs="0"/>
+      <xs:element name="realm-name"
+                  type="javaee:string" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>
+            The realm name element specifies the realm name to
+            use for authentication.
+          </xs:documentation>
+        </xs:annotation>
+      </xs:element>
+
+      <xs:element name="identity-assertion"
+                  type="identity-assertionType"
+                  minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:ID"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="identity-assertionType">
+    <xs:annotation>
+      <xs:documentation>
+        The identity-assertionType is used to configure the identity-assertion
+        scheme that should be used and whether the scheme is required or
+        supported.
+
+        Used in: login-config
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:sequence>
+      <xs:element name="identity-assertion-scheme"
+                  type="identity-assertion-schemeType"
+                  minOccurs="1">
+      </xs:element>
+      <xs:element name="identity-assertion-support"
+                  type="identity-assertion-supportType"
+                  minOccurs="0">
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="identity-assertion-schemeType">
+    <xs:annotation>
+      <xs:documentation>
+        The identity-assertion-schemeType is used to specify the scheme to be
+        used for identity assertion. Legal values include Identity and
+        P-Asserted-Identity.
+
+        Used in: identity-assertionType
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:simpleContent>
+      <xs:restriction base="javaee:string">
+        <xs:enumeration value="P-Asserted-Identity"/>
+        <xs:enumeration value="Identity"/>
+      </xs:restriction>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="identity-assertion-supportType">
+    <xs:annotation>
+      <xs:documentation>
+        The identity-assertion-supportType element is used to specify if the
+        identity assertion scheme is REQUIRED or SUPPORTED by the application.
+        The default value of this element is SUPPORTED.
+
+        Used in: identity-assertionType
+      </xs:documentation>
+    </xs:annotation>
+
+    <xs:simpleContent>
+      <xs:restriction base="javaee:string">
+        <xs:enumeration value="REQUIRED"/>
+        <xs:enumeration value="SUPPORTED"/>
+      </xs:restriction>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:simpleType name="sip-app-versionType">
+    <xs:annotation>
+      <xs:documentation>
+        This type contains the recognized versions of sip application supported.
+        It is used to designate the version of the sip application.
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:token">
+      <xs:enumeration value="1.1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

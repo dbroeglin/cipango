@@ -114,11 +114,9 @@ public class DtmfServlet extends SipServlet
         SipServletResponse resp =
             invite.createResponse(SipServletResponse.SC_OK);
         String sdpAnswer = "v=0\r\n"
-            //+ "o=user1 123 456 IN IP4 127.0.0.1\r\n"
-            + "o=user1 123 456 IN IP4 192.168.2.149\r\n"
+            + "o=user1 123 456 IN IP4 127.0.0.1\r\n"
             + "s=-\r\n"
-            //+ "c=IN IP4 127.0.0.1\r\n"
-            + "c=IN IP4 192.168.2.149\r\n"
+            + "c=IN IP4 127.0.0.1\r\n"
             + "t=0 0\r\n"
             + "m=audio " + dtmfSession.getLocalPort() + " RTP/AVP "
                 + audioPayloadType + " " + DTMF_PAYLOAD_TYPE + "\r\n"

@@ -175,7 +175,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	protected void doStop() throws Exception 
 	{
 		if (_router instanceof LifeCycle)
-			((LifeCycle) _router).start();
+			((LifeCycle) _router).stop();
 		
 		for (int i = 0; i < _connectors.length; i++)
 		{

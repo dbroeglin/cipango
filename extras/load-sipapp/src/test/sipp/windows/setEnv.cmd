@@ -1,0 +1,34 @@
+@rem *************************************************************************
+@rem @set SIPP env for load tests
+@rem *************************************************************************
+
+@rem TO ADAPT
+@set SIPP_EXE="C:\Program Files\sipp\sipp"
+
+@rem The limit for the load message
+@set NB_MESSAGE= 1
+
+@set AS=192.168.2.10:5060
+
+@set SIPP_HOST=192.168.2.10
+
+@rem The tester UAS port (default 5062)
+@set SIPP_UAS_PORT=5062
+
+@rem The tester UAC port (default 5064)
+@set SIPP_UAC_PORT=5065
+
+@rem The IP address of the tester host 
+@set SIPP_HOST=192.168.2.10
+
+@rem SIPP options like -nr (to disable retransmission in UDP mode) 
+@rem or -nd (for no default)
+@set SIPP_OPTIONS=
+
+@rem default -trace_err -trace_screen
+@rem for debugging  -trace_msg
+@set TRACE_OPTIONS=-trace_err -trace_msg
+
+@set LOAD_CALL_RATE=10
+@set /A RATE_PERIOD="1000"
+

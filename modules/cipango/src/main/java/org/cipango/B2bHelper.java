@@ -75,7 +75,7 @@ public class B2bHelper implements B2buaHelper
 	{
 		try {
 			// FIXME max-forward should be decremented ?, should be linked ?
-			return createRequest(origRequest, false, null);
+			return createRequest(origRequest, true, null);
 		} catch (TooManyHopsException e) {
 			throw new IllegalStateException(e);
 		}

@@ -154,9 +154,9 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 	
     public SipServletHolder getDefaultServlet()
     {
-    	if (_context.getSpecVersion() == SipXmlConfiguration.VERSION_10)
+    	if (_mainServlet == null)
     		return _defaultServlet;
-    	else
+    	else 
     		return _mainServlet;
     }
     

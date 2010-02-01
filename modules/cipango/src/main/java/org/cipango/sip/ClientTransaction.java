@@ -152,11 +152,12 @@ public class ClientTransaction extends Transaction
 			via.setBranch(getBranch());
 			_request.pushVia(via);
 			
-			getServer().getConnectorManager().send(
+			SipConnection connection = getServer().getConnectorManager().send(
 					_request,
 					transport,
 					address,
 					port);
+			setConnection(connection);
 		}
 	}
 	

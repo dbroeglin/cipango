@@ -22,6 +22,7 @@ import java.util.Iterator;
 import javax.servlet.UnavailableException;
 
 import org.cipango.plus.servlet.SipServletHandler;
+import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlConfiguration;
 import org.mortbay.jetty.plus.annotation.Injection;
 import org.mortbay.jetty.plus.annotation.InjectionCollection;
@@ -104,10 +105,10 @@ public abstract class AbstractConfiguration extends SipXmlConfiguration
         if (findSipXml() == null)
         {
         	Log.info("No sip.xml found, assume SIP Servlet 1.1 application and parse annotations");
-        	_version = VERSION_11;
+        	_version = SipAppContext.VERSION_11;
         }
         
-        if (_version != VERSION_10)
+        if (_version != SipAppContext.VERSION_10)
         {
 	        if (Log.isDebugEnabled()) 
 	        	Log.debug("Processing annotations");

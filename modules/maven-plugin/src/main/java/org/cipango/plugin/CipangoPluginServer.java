@@ -56,7 +56,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
 
 	public SipConnector[] getSipConnectors()
 	{
-		return server.getTransportManager().getConnectors();
+		return server.getConnectorManager().getConnectors();
 	}
 
 	public void setSipConnectors(SipConnector[] connectors) throws Exception
@@ -68,7 +68,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
         {
             PluginLog.getLog().debug("Setting SIP Connector: " + connectors[i].getClass().getName()
             		+ " on port "+connectors[i].getPort());
-            server.getTransportManager().addConnector(connectors[i]);
+            server.getConnectorManager().addConnector(connectors[i]);
         }
 	} 
 	
@@ -88,7 +88,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
             messageLog = log;
 		}
         
-        server.getTransportManager().addAccessLog(messageLog);      
+        server.getConnectorManager().setAccessLog(messageLog);      
 	}
 	
 }

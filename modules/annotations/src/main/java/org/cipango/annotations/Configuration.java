@@ -150,7 +150,7 @@ public class Configuration extends org.cipango.plus.sipapp.Configuration
         	servletHandler.setMainServletName(sipApp.mainServlet());
         	//TODO description, icons
         }
-        getSipAppContext().setSipAppKeyMethod(processor.getSipApplicationKeyMethod());
+        getSipAppContext().setSipApplicationKeyMethod(processor.getSipApplicationKeyMethod());
         getSipAppContext().setName(processor.getAppName());
         getWebAppContext().setEventListeners((EventListener[])LazyList.toArray(_listeners,EventListener.class));
     }

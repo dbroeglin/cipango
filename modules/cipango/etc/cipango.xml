@@ -59,7 +59,7 @@
     </Arg>
   </Call>
 
-  <Get name="transportManager">
+  <Get name="connectorManager">
     <Call name="addConnector">
       <Arg>
         <New class="org.cipango.sip.UdpConnector">
@@ -76,7 +76,7 @@
         </New>
       </Arg>
     </Call>
-    <Call name="addAccessLog">
+    <Call name="setAccessLog">
       <Arg>
         <New class="org.cipango.log.FileMessageLog">
           <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.message.log</Set>
@@ -86,7 +86,8 @@
       </Arg>
     </Call>
   </Get>
-  
+ 
+<!-- 
   <Get name="callManager">
     <Set name="CallLog">
 	  <New class="org.cipango.log.FileCallLog">
@@ -94,6 +95,7 @@
       </New>
 	</Set>
   </Get>
+-->
 
   <!-- Set name="applicationRouter">
     <New class="org.cipango.ar.DefaultApplicationRouter">

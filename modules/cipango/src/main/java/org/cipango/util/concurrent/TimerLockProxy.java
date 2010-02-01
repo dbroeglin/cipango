@@ -19,71 +19,66 @@ import java.io.Serializable;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 
-import org.cipango.CallManager;
+import org.cipango.SessionManager;
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.servlet.AppSession;
 
 public class TimerLockProxy implements ServletTimer
 {
-	private CallManager _callManager;
+	private SessionManager _callManager;
 	private ServletTimer _timer;
 	private AppSession _appSession;
 	
 	public TimerLockProxy(AppSession session, long delay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
-		before();
+		SessionTransaction workUnit = begin();
 		try
 		{
 			_timer = _appSession.newTimer(delay, isPersistent, info);
 		}
 		finally
 		{
-			after();
+			workUnit.done();
 		}
 	}
 	
 	public TimerLockProxy(AppSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_timer = _appSession.newTimer(delay, period, fixedDelay, isPersistent, info);
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 	}
 	
-	protected CallManager getCallManager()
+	protected SessionManager getCallSessionManager()
 	{
 		if (_callManager == null)
-			_callManager = _appSession.getCall().getServer().getCallManager();
+			_callManager = _appSession.getCallSession().getServer().getSessionManager();
 		return _callManager;
 	}
 	
-	
-	protected void before()
+	protected SessionTransaction begin()
 	{
-		getCallManager().lock(_appSession.getCall());
-	}
-	
-	protected void after()
-	{
-		getCallManager().unlock(_appSession.getCall());
+		return getCallSessionManager().begin(_appSession.getCallSession());
 	}
 	
 	public void cancel()
 	{
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_timer.cancel();
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 	}
 

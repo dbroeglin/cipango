@@ -79,7 +79,7 @@ public class SipXmlParserTest extends TestCase
 
 		SipServletHandler servletHandler = (SipServletHandler) context.getServletHandler();
 		
-		assertEquals(SipXmlConfiguration.VERSION_10, context.getSpecVersion());
+		assertEquals(SipAppContext.VERSION_10, context.getSpecVersion());
 		assertEquals("SIP Servlet based Registrar", context.getDisplayName());
 		
 		Enumeration<String> e = context.getInitParameterNames();
@@ -117,7 +117,6 @@ public class SipXmlParserTest extends TestCase
 		assertEquals(60, context.getSessionTimeout());
 		
 		assertNull(servletHandler.getMainServlet());
-		assertEquals(context.getContextPath(), context.getName());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -129,7 +128,7 @@ public class SipXmlParserTest extends TestCase
 		conf.setWebAppContext(context);
 		conf.configure(getClass().getResource("/org/cipango/xml/sip-sample-1.1.xml").toString());
 		
-		assertEquals(SipXmlConfiguration.VERSION_11, context.getSpecVersion());
+		assertEquals(SipAppContext.VERSION_11, context.getSpecVersion());
 		assertEquals("SIP Servlet based Registrar", context.getDisplayName());
 		
 		Enumeration<String> e = context.getInitParameterNames();
@@ -166,7 +165,6 @@ public class SipXmlParserTest extends TestCase
 		
 		assertEquals("main", servletHandler.getMainServlet().getName());
 		assertEquals("org.cipango.kaleo", context.getName());
-		
 	}
 	
 	public void testNamespace() throws Exception
@@ -179,7 +177,7 @@ public class SipXmlParserTest extends TestCase
 		
 		conf.configure(getClass().getResource("/org/cipango/xml/sip-namespace.xml").toString());
 		
-		assertEquals(SipXmlConfiguration.VERSION_11, context.getSpecVersion());
+		assertEquals(SipAppContext.VERSION_11, context.getSpecVersion());
 		
 		Enumeration<String> e = context.getInitParameterNames();
 		String name = (String) e.nextElement();
@@ -206,7 +204,9 @@ public class SipXmlParserTest extends TestCase
 		assertEquals(0, mappings.length);
 		
 		assertEquals("main", servletHandler.getMainServlet().getName());
+		
 		assertEquals("org.cipango.kaleo", context.getName());
+		
 		
 	}
 	
@@ -223,5 +223,4 @@ public class SipXmlParserTest extends TestCase
 		parser.parse(getClass().getResource("/org/cipango/xml/web.xml").toString());
 	}
 	*/
-	
 }

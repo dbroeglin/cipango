@@ -14,13 +14,14 @@
 
 package org.cipango.servlet;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,24 +31,18 @@ import javax.servlet.http.HttpSession;
 
 import javax.servlet.sip.*;
 
-import org.cipango.Call;
+import org.cipango.CallSession;
 import org.cipango.NameAddr;
-import org.cipango.Server;
 import org.cipango.SipMessage;
-import org.cipango.Call.TimerTask;
-import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.sipapp.SipXmlConfiguration;
 import org.cipango.util.ID;
+import org.cipango.util.TimerTask;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
-public class AppSession implements AppSessionIf, Serializable
-{
-	private static final long serialVersionUID = 1L;
-	
-	public static final String APP_ID = "org.cipango.aid";
-	public static final String APP_ID_PREFIX = ";" + APP_ID + "=";
+public class AppSession implements AppSessionIf
+{	
+	public static final String APP_ID_PREFIX = ";" + ID.APP_SESSION_ID_PARAMETER + "=";
 	
 	enum State { VALID, EXPIRED, INVALIDATING, INVALID }
 		
@@ -84,32 +79,29 @@ public class AppSession implements AppSessionIf, Serializable
         }
     }
     
+    private String _appId; 
 	private State _state = State.VALID;
     
-    private transient SipAppContext _context;
-    private String _contextName;
-    
-    private Object _sessions; // LazyList<Session>
-    private Object _httpSessions; // LazyList<HttpSession>
+	private List<Session> _sessions = new ArrayList<Session>(1);
+	private Object _otherSessions;
+	
+    private CallSession _callSession;
+    private SipAppContext _context;
     
     private Map<String, Object> _attributes;
-    private Call _call;
-    
-    private String _appId; 
 
     private long _created = System.currentTimeMillis();
     private long _accessed = _created;
     private long _expirationTime = 0;
     
-    private Object _timers; // LazyList<Timer>
-
+    private List<ServletTimer> _timers; 
     private TimerTask _expiryTimer;
     
-    private boolean _invalidateWhenReady;
+    private boolean _invalidateWhenReady = true;
 	
-    public AppSession(Call call, String id)
+    public AppSession(CallSession callSession, String id)
     {
-        _call = call;
+        _callSession = callSession;
         _appId = id;
     }
     
@@ -135,7 +127,7 @@ public class AppSession implements AppSessionIf, Serializable
 	 */
 	public String getId()
 	{
-		return _call.getCallId() + ";" + _appId;
+		return _callSession.getId() + ";" + _appId;
 	}
 
 	/**
@@ -148,14 +140,14 @@ public class AppSession implements AppSessionIf, Serializable
 		
 		if (_expiryTimer != null)
 		{
-			_call.cancel(_expiryTimer);
+			_callSession.cancel(_expiryTimer);
 			_expiryTimer = null;
 		}
 		
 		if (deltaMinutes > 0)
 		{
 			long delayMs = deltaMinutes * 60000l;
-			_expiryTimer = _call.schedule(new Expired(), delayMs);
+			_expiryTimer = _callSession.schedule(new Expired(), delayMs);
 			_expirationTime = System.currentTimeMillis() + delayMs;
 		}
 		else
@@ -173,45 +165,53 @@ public class AppSession implements AppSessionIf, Serializable
 	public void invalidate()
 	{
 		checkValid();
+		
+		if (Log.isDebugEnabled())
+			Log.debug("invalidating SipApplicationSession: " + this);
+			
 		try 
 		{
 			if (_expiryTimer != null)
 			{
-				_call.cancel(_expiryTimer);
+				_callSession.cancel(_expiryTimer);
 				_expiryTimer = null;
 			}
 			
 			synchronized (this)
 			{			
-				while (LazyList.size(_sessions) > 0)
+				for (int i = _sessions.size(); i-->0;)
 				{
-					Session session = (Session) LazyList.get(_sessions, 0);
-					_sessions = LazyList.remove(_sessions, 0);
-					session.invalidate();
+					_sessions.get(i).invalidate();
 				}
-				while (LazyList.size(_httpSessions) > 0)
+				_sessions.clear();
+				
+				for (int i = LazyList.size(_otherSessions); i-->0;)
 				{
-					HttpSession session = (HttpSession) LazyList.get(_httpSessions, 0);
-					_httpSessions = LazyList.remove(_httpSessions, 0);
-					session.invalidate();
+					Object session = LazyList.get(_otherSessions, i);
+					if (session instanceof HttpSession)
+						((HttpSession) session).invalidate();
 				}
-				while (LazyList.size(_timers) > 0)
+				_otherSessions = null;
+				
+				if (_timers != null)
 				{
-					Timer timer = (Timer) LazyList.get(_timers, 0);
-					_timers = LazyList.remove(_timers, 0);
-					timer.cancel();
+					Iterator<ServletTimer> it2 = _timers.iterator();
+					while (it2.hasNext())
+					{
+						it2.next().cancel();
+						it2.remove();
+					}
 				}
 			}
-			getCall().removeSession(this);
+			getCallSession().removeSession(this);
 			
 			if (getContext() != null)
 				getContext().updateNbSessions(false);
 			
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length > 0)
-				fireEvent(listeners, __appSessionDestroyed, new SipApplicationSessionEvent(this));
+				getContext().fire(listeners, __appSessionDestroyed, new SipApplicationSessionEvent(this));
 			
-			// Call remove attributes and call associated listeners
 			SipApplicationSessionAttributeListener[] attrListeners = getContext().getSipApplicationSessionAttributeListeners();
 	        while (_attributes!=null && _attributes.size()>0)
 	        {
@@ -257,7 +257,7 @@ public class AppSession implements AppSessionIf, Serializable
 			
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length > 0)
-				fireEvent(listeners, __appSessionExpired, new SipApplicationSessionEvent(this));
+				getContext().fire(listeners, __appSessionExpired, new SipApplicationSessionEvent(this));
 			
 			if (_state == State.EXPIRED)
 			{
@@ -274,9 +274,10 @@ public class AppSession implements AppSessionIf, Serializable
 		String ftag = message.from().getParameter("tag");
 		String ttag = message.to().getParameter("tag");
 		
-		for (int i = LazyList.size(_sessions); i-->0;)
+		for (int i = 0; i < _sessions.size(); i++)
 		{
-			Session session = (Session) LazyList.get(_sessions, i);
+			Session session = _sessions.get(i);
+
 			if (ftag.equals(session.getRemoteTag()) && ttag.equals(session.getLocalTag()))
 				return session;
 			if (ttag.equals(session.getRemoteTag()) && ftag.equals(session.getLocalTag()))
@@ -286,12 +287,14 @@ public class AppSession implements AppSessionIf, Serializable
 	}
 	
 	@SuppressWarnings("unchecked")
-	public synchronized Iterator<?> getSessions() 
+	public synchronized Iterator<?> getSessions()
 	{
 		checkValid();
-		List<?> sessions = LazyList.getList(_sessions);
-		sessions.addAll(LazyList.getList(_httpSessions));
-		return sessions.iterator();
+		
+		List<Object> list = new ArrayList<Object>(_sessions);
+		list.addAll(LazyList.getList(_otherSessions));
+		
+		return list.iterator();
 	}
 
 	public synchronized Iterator<?> getSessions(String protocol)
@@ -302,22 +305,34 @@ public class AppSession implements AppSessionIf, Serializable
 			throw new NullPointerException("null protocol");
 		
 		if ("sip".equalsIgnoreCase(protocol))
-			return LazyList.iterator(_sessions);
-		else if ("http".equalsIgnoreCase(protocol))
-			return LazyList.iterator(_httpSessions);
-		else
-			throw new IllegalArgumentException("unknown protocol: " + protocol);
+			return _sessions.iterator();
+		
+		if ("http".equalsIgnoreCase(protocol))
+		{
+			List<HttpSession> sessions = new ArrayList<HttpSession>();
+			for (int i = LazyList.size(_otherSessions); i-->0;)
+			{
+				Object session = LazyList.get(_otherSessions, i);
+				if (session instanceof HttpSession)
+					sessions.add((HttpSession) session);
+			}
+			return sessions.iterator();
+		}
+		return Collections.emptyList().iterator();
 	}
 
 	public synchronized ServletTimer getTimer(String id)
 	{
 		checkValid();
 		
-		for (int i = LazyList.size(_sessions); i-->0;)
+		if (_timers != null)
 		{
-			Timer timer = (Timer) LazyList.get(_timers, i);
-			if (timer.getId().equals(id))
-				return timer;
+			for (int i = 0; i < _timers.size(); i++)
+			{
+				ServletTimer timer = _timers.get(i);
+				if (timer.getId().equals(id))
+					return timer;
+			}
 		}
 		return null;
 	}
@@ -325,7 +340,7 @@ public class AppSession implements AppSessionIf, Serializable
 	public void encodeURI(URI uri) 
 	{
 		checkValid();
-		uri.setParameter(APP_ID, getId());
+		uri.setParameter(ID.APP_SESSION_ID_PARAMETER, getId());
 	}
 
 	public synchronized Object getAttribute(String name) 
@@ -410,7 +425,7 @@ public class AppSession implements AppSessionIf, Serializable
 		if (_timers == null)
 			return Collections.emptyList();
 		
-		return new ArrayList<ServletTimer>(LazyList.getList(_timers));
+		return new ArrayList<ServletTimer>(_timers);
 	}
 
 	public void unbindValue(String name, Object value)
@@ -425,9 +440,9 @@ public class AppSession implements AppSessionIf, Serializable
 			((SipApplicationSessionBindingListener) value).valueBound(new SipApplicationSessionBindingEvent(this, name));
 	}
 	
-    public void setCall(Call call)
+    public void setCallSession(CallSession callSession)
     {
-        _call = call;
+        _callSession = callSession;
     }
     
     public void access(long accessed)
@@ -479,7 +494,7 @@ public class AppSession implements AppSessionIf, Serializable
 
 	public String getApplicationName()
 	{
-		return _contextName;
+		return _context.getName();
 	}
 
 	public long getExpirationTime()
@@ -502,19 +517,18 @@ public class AppSession implements AppSessionIf, Serializable
 		
 		if (protocol == Protocol.SIP)
 		{
-			for (int i = LazyList.size(_sessions); i-->0;)
+			for (Session session : _sessions)
 			{
-				Session session = (Session) LazyList.get(_sessions, i);
 				if (session.getId().equals(id))
 					return session;
 			}
 		}
 		else if (protocol == Protocol.HTTP)
 		{
-			for (int i = LazyList.size(_httpSessions); i-->0;)
+			for (int i = LazyList.size(_otherSessions); i-->0;)
 			{
-				HttpSession session = (HttpSession) LazyList.get(_httpSessions, i);
-				if (session.getId().equals(id))
+				Object session = LazyList.get(_otherSessions, i);
+				if (session instanceof HttpSession && ((HttpSession) session).getId().equals(id))
 					return session;
 			}
 		}
@@ -529,31 +543,34 @@ public class AppSession implements AppSessionIf, Serializable
 		return ((SipSession) getSession(id, Protocol.SIP));
 	}
 
-	
 	public boolean isReadyToInvalidate()
 	{
 		checkValid();
 		
-		for (int i = LazyList.size(_sessions); i-->0;)
+		for (int i = 0; i < _sessions.size(); i++)
 		{
-			Session session = (Session) LazyList.get(_sessions, i);
+			Session session = _sessions.get(i);
 			if (!session.isReadyToInvalidate())
 				return false;
 		}
-		return LazyList.size(_timers) == 0;
+		return (_timers == null || _timers.isEmpty());
 	}
 	
-	protected void checkReadyToInvalidate()
+	public void invalidateIfReady()
 	{
-		if (_state != State.INVALID && _state != State.INVALIDATING  && getInvalidateWhenReady()
-				&& LazyList.size(_sessions) == 0 && LazyList.size(_httpSessions) == 0
-				&& LazyList.size(_timers) == 0)
+		for (int i = 0; i < _sessions.size(); i++)
+		{
+			Session session = _sessions.get(i);
+			session.invalidateIfReady();
+		}
+		
+		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate())
 		{
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
-			if (listeners.length > 0)
-				fireEvent(listeners, __appSessionReadyToInvalidate, new SipApplicationSessionEvent(this));
+			if (listeners.length >0)
+				getContext().fire(listeners, __appSessionReadyToInvalidate, new SipApplicationSessionEvent(this));
 			
-			if (_invalidateWhenReady)
+			if (getInvalidateWhenReady() && isValid())
 				invalidate();
 		}
 	}
@@ -572,11 +589,6 @@ public class AppSession implements AppSessionIf, Serializable
 	
 	public SipAppContext getContext()
 	{
-		if (_context == null)
-		{
-			Server server = _call.getServer();
-			_context = ((SipContextHandlerCollection) server.getHandler()).getContext(_contextName);
-		}
 		return _context;
 	}
 		
@@ -586,76 +598,81 @@ public class AppSession implements AppSessionIf, Serializable
 			throw new IllegalStateException("context != null");
 
 		_context = context;
-		_contextName = _context.getName();
 
 		_context.updateNbSessions(true);
-		_invalidateWhenReady = _context.getSpecVersion() != SipXmlConfiguration.VERSION_10;
+		
+		if (_context.getSpecVersion() == SipAppContext.VERSION_10)
+			_invalidateWhenReady = false;
 		
 		SipApplicationSessionListener[] listeners = _context.getSipApplicationSessionListeners();
 		if (listeners.length > 0)
-			fireEvent(listeners, __appSessionCreated, new SipApplicationSessionEvent(this));
+			getContext().fire(listeners, __appSessionCreated, new SipApplicationSessionEvent(this));
 
 		setExpires(_context.getSessionTimeout());
 	}
 	
-    public Session newSession()
+    public Session createSession()
     {
-        Session session = new Session(this, _call.getServer().getIdManager().newSessionId());
+        Session session = new Session(this, ID.newSessionId());
+        session.setInvalidateWhenReady(_invalidateWhenReady);
         addSession(session);
         return session;
     }
     
-    public Session newSession(Session session)
+    public Session createDerivedsession(Session session)
     {
     	if (session.appSession() != this)
-    		throw new IllegalArgumentException("!same appsession");
+    		throw new IllegalArgumentException("SipSession " + session.getId() +  " does not belong to SipApplicationSession " + getId());
     	
     	Session clone = session.clone();
-    	clone.setId(_call.getServer().getIdManager().newSessionId());
+    	clone.setId(ID.newSessionId());
     	addSession(clone);
     	return clone;
     }
     
-    public Session newUacSession(String callId, NameAddr from, NameAddr to)
+    public Session createUacSession(String callId, NameAddr from, NameAddr to)
     {
-        Session session = new Session(this, _call.getServer().getIdManager().newSessionId(), callId, from, to);
+        Session session = new Session(this, ID.newSessionId(), callId, from, to);
+        session.setInvalidateWhenReady(_invalidateWhenReady);
         addSession(session);
         return session;
     }
     
-	private synchronized void addSession(Session session)
+	public void addSession(Object session)
 	{
-		_sessions = LazyList.add(_sessions, session);
-		
-		SipSessionListener[] listeners = getContext().getSipSessionListeners();
-		if (listeners.length > 0)
-			fireEvent(listeners, __sessionCreated, new SipSessionEvent(session));
+		if (session instanceof Session)
+		{
+			_sessions.add((Session) session);
+			
+			SipSessionListener[] listeners = getContext().getSipSessionListeners();
+			if (listeners.length > 0)
+				getContext().fire(listeners, __sessionCreated, new SipSessionEvent((SipSession) session));
+		}
+		else
+		{
+			_otherSessions = LazyList.add(_otherSessions, session);
+		}
 	}
 	
-	public synchronized void removeSession(Session session)
+	public void removeSession(Object session)
 	{
-		_sessions = LazyList.remove(_sessions, session);
-		
-		SipSessionListener[] listeners = getContext().getSipSessionListeners();
-		if (listeners.length > 0)
-			fireEvent(listeners, __sessionDestroyed, new SipSessionEvent(session));
-		checkReadyToInvalidate();
+		if (session instanceof Session)
+		{
+			_sessions.remove((Session) session);
+			
+			SipSessionListener[] listeners = getContext().getSipSessionListeners();
+			if (listeners.length > 0)
+				getContext().fire(listeners, __sessionDestroyed, new SipSessionEvent((SipSession) session));
+		}
+		else
+		{
+			_otherSessions = LazyList.remove(_otherSessions, session);
+		}
 	}
 	
-	public synchronized void addHttpSession(HttpSession session) 
+	public CallSession getCallSession() 
 	{
-		_httpSessions = LazyList.add(_httpSessions, session);
-	}
-	
-	public synchronized void removeHttpSession(HttpSession session)
-	{
-		_httpSessions = LazyList.remove(_httpSessions, session);
-		checkReadyToInvalidate();
-	}
-	
-	public Call getCall() 
-	{
-		return _call;
+		return _callSession;
 	}
 	
 	public String getAppId()
@@ -663,48 +680,18 @@ public class AppSession implements AppSessionIf, Serializable
 		return _appId;
 	}
     
-	public void fireEvent(EventListener[] listeners, Method method, Object... args)
-    {
-		ClassLoader oldClassLoader = null;
-		Thread currentThread = null;
-		
-		ClassLoader contextCL = getContext().getClassLoader();
-		
-		if (contextCL != null)
-		{
-			currentThread = Thread.currentThread();
-			oldClassLoader = currentThread.getContextClassLoader();
-			currentThread.setContextClassLoader(contextCL);
-		}
-
-		for (int i = 0; i < listeners.length; i++)
-		{
-			try
-			{
-				method.invoke(listeners[i], args);
-			}
-			catch (Throwable t)
-			{
-			}
-		}
-		if (contextCL != null)
-		{
-			currentThread.setContextClassLoader(oldClassLoader);
-		}
-    }
-	
 	public void noAck(SipServletRequest request, SipServletResponse response)
 	{
 		SipErrorListener[] listeners = getContext().getSipErrorListeners();
 		if (listeners.length > 0)
-			fireEvent(listeners, __noAck, new SipErrorEvent(request, response));
+			getContext().fire(listeners, __noAck, new SipErrorEvent(request, response));
 	}
 	
 	public void noPrack(SipServletRequest request, SipServletResponse response)
 	{
 		SipErrorListener[] listeners = getContext().getSipErrorListeners();
 		if (listeners.length > 0)
-			fireEvent(listeners, __noPrack, new SipErrorEvent(request, response));
+			getContext().fire(listeners, __noPrack, new SipErrorEvent(request, response));
 	}
 	
     public ServletTimer newTimer(long delay, boolean persistent, Serializable info)
@@ -719,15 +706,18 @@ public class AppSession implements AppSessionIf, Serializable
         return new Timer(delay, period, fixedDelay, isPersistent, info);
     }
     
-    private synchronized void addTimer(Timer timer)
+    private void addTimer(Timer timer)
     {
-    	_timers = LazyList.add(_timers, timer);
+    	if (_timers == null)
+    		_timers = new ArrayList<ServletTimer>(1);
+    	
+    	_timers.add(timer);
     }
     
-    private synchronized void removeTimer(Timer timer)
+    private void removeTimer(Timer timer)
     {
-    	_timers = LazyList.remove(_timers, timer);
-    	checkReadyToInvalidate();
+    	if (_timers != null)
+    		_timers.remove(timer);
     }
     
 	public AppSession getAppSession()
@@ -737,7 +727,7 @@ public class AppSession implements AppSessionIf, Serializable
     
     public String toString()
     {
-    	return _appId + "/" + _contextName;
+    	return _appId + "/" + getApplicationName() + "(" + _sessions.size() + ")";
     }
     
     public boolean equals(Object o)
@@ -748,10 +738,13 @@ public class AppSession implements AppSessionIf, Serializable
     	return this == session;
     }
     
-    class Expired implements Runnable, Serializable
+    public void save(DataOutputStream out)  throws IOException 
     {
-		private static final long serialVersionUID = 1L;
-
+    	out.writeUTF(_appId);
+    }
+    
+    class Expired implements Runnable
+    {
 		public void run()
     	{
     		expired();
@@ -759,14 +752,12 @@ public class AppSession implements AppSessionIf, Serializable
     	
     	public String toString()
     	{
-    		return "session_timer";
+    		return "session-timer";
     	}
     }
     
-    public class Timer implements ServletTimer, Serializable
+    public class Timer implements ServletTimer, Runnable
     {
-		private static final long serialVersionUID = 1L;
-
 		private Serializable _info;
         private long _period = -1;
         private TimerTask _timerTask;
@@ -779,7 +770,7 @@ public class AppSession implements AppSessionIf, Serializable
             addTimer(this);
             _info = info;
             _executionTime = System.currentTimeMillis() + delay;
-            _timerTask = _call.schedule(new TimeoutTask(), delay);
+            _timerTask = getCallSession().schedule(this, delay);
         }
         
         public Timer(long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)
@@ -788,7 +779,7 @@ public class AppSession implements AppSessionIf, Serializable
             _info = info;
             _period = period;
             _executionTime = System.currentTimeMillis() + delay;
-            _timerTask = _call.schedule(new TimeoutTask(), delay);
+            _timerTask = getCallSession().schedule(this, delay);
         }
         
         public SipApplicationSession getApplicationSession()
@@ -819,43 +810,26 @@ public class AppSession implements AppSessionIf, Serializable
         public void cancel()
         {
         	if (_timerTask != null)
-        		getCall().cancel(_timerTask);
+        		getCallSession().cancel(_timerTask);
         	_timerTask = null;
         	removeTimer(this);
            _period = -1;
         }
         
-        private void timeout()
+        public void run()
         {
         	TimerListener[] listeners = getContext().getTimerListeners();
         	if (listeners.length > 0)
-        		fireEvent(listeners, __timerExpired, this);
+        		getContext().fire(listeners, __timerExpired, this);
 
         	if (_period != -1)
             {
             	_executionTime = System.currentTimeMillis() + _period;
-                _timerTask = getCall().schedule(new TimeoutTask(), _period);
+                _timerTask = getCallSession().schedule(this, _period);
             }
             else
             {
                removeTimer(this);
-            }
-        }
-        
-        class TimeoutTask implements Runnable, Serializable
-        {
-			private static final long serialVersionUID = 1L;
-
-			public void run()
-            {
-                try 
-                {
-                    timeout();
-                }
-                catch (Throwable t)
-                {
-                    Log.debug("Exception in servlet timer {}", t);
-                }
             }
         }
     }

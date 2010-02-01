@@ -33,7 +33,7 @@ public class LoadBalancer extends AbstractLifeCycle implements SipHandler
 	{
 		connector = new UdpConnector();
 		connector.setThreadPool(new BoundedThreadPool());
-		connector.setHandler(this);
+		//connector.setHandler(this);
 		connector.start();
 	}
 	

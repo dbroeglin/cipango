@@ -24,7 +24,6 @@ import org.cipango.SipHandler;
 import org.cipango.Server;
 import org.cipango.Via;
 import org.mortbay.component.LifeCycle;
-import org.mortbay.io.Buffer;
 
 public interface SipConnector extends LifeCycle
 {    
@@ -48,13 +47,13 @@ public interface SipConnector extends LifeCycle
 
     void setTransportParam(boolean b);
     
-    //SipConnection getConnection(InetAddress addr, int port) throws IOException;
+    SipConnection getConnection(InetAddress addr, int port) throws IOException;
      
-    void setServer(Server sipServer);
+    void setServer(Server server);
     void setHandler(SipHandler handler);
     
-    SipEndpoint send(Buffer buffer, InetAddress address, int port) throws IOException;
-    void send(Buffer buffer, SipEndpoint endpoint) throws IOException;
+    //SipEndpoint send(Buffer buffer, InetAddress address, int port) throws IOException;
+    //void send(Buffer buffer, SipEndpoint endpoint) throws IOException;
     
     long getNbParseError();
     void setStatsOn(boolean on);

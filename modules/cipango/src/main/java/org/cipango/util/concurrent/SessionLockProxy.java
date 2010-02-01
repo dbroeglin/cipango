@@ -26,16 +26,16 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.Call;
-import org.cipango.CallManager;
+import org.cipango.SessionManager;
 import org.cipango.SipRequest;
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.servlet.Session;
 import org.cipango.servlet.SessionIf;
 
 public class SessionLockProxy implements SessionIf
 {
 	private Session _session;
-	private transient CallManager _callManager;
+	private transient SessionManager _callManager;
 	
 	public SessionLockProxy(Session session)
 	{
@@ -49,8 +49,7 @@ public class SessionLockProxy implements SessionIf
 
 	public SipApplicationSession getApplicationSession()
 	{
-		// TODO should return interceptor ?
-		return _session.getApplicationSession();
+		return new AppSessionLockProxy(_session.appSession());
 	}
 
 	public Object getAttribute(String name)
@@ -120,14 +119,14 @@ public class SessionLockProxy implements SessionIf
 
 	public void invalidate()
 	{
-		before();
+		SessionTransaction workUnit = begin();
 		try
 		{
 			_session.invalidate();
 		}
 		finally
 		{
-			after();
+			workUnit.done();
 		}
 	}
 
@@ -176,28 +175,18 @@ public class SessionLockProxy implements SessionIf
 		return _session;
 	}
 		
-	public Call getCall()
-	{
-		return _session.getCall();
-	}
-
-	protected CallManager getCallManager()
+	protected SessionManager getCallSessionManager()
 	{
 		if (_callManager == null)
-			_callManager = getCall().getServer().getCallManager();
+			_callManager = _session.getServer().getSessionManager();
 		return _callManager;
 	}
 	
-	protected void before()
+	protected SessionTransaction begin()
 	{
-		getCallManager().lock(getCall());
+		return getCallSessionManager().begin(_session.getCallSession());
 	}
 	
-	protected void after()
-	{
-		getCallManager().unlock(getCall());
-	}
-
 	public SipRequest createRequest(String method, long cseq)
 	{
 		return _session.createRequest(method, cseq);
@@ -212,6 +201,4 @@ public class SessionLockProxy implements SessionIf
 	 {
 		 return _session.equals(o);
 	 }
-
-	 	 
 }

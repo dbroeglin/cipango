@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.cipango.SipMessage;
+import org.cipango.sip.SipConnection;
 import org.mortbay.io.Buffer;
 import org.mortbay.log.Log;
 import org.mortbay.util.RolloverFileOutputStream;
@@ -78,11 +79,11 @@ public class FileMessageLog extends AbstractMessageLog implements AccessLog
 		}
 	}
 	
-	public void doLog(SipMessage message, int direction, String transport, String localAddr, int localPort, String remoteAddr, int remotePort) throws IOException 
+	public void doLog(SipMessage message, int direction, SipConnection connection) throws IOException 
 	{
         synchronized (_lock)
 		{
-        	_out.write(generateInfoLine(direction, transport, localAddr, localPort, remoteAddr, remotePort, System.currentTimeMillis()).getBytes()); 
+        	_out.write(generateInfoLine(direction, connection, System.currentTimeMillis()).getBytes()); 
             Buffer buffer = generateMessage(message);
     		_out.write(buffer.array(), 0, buffer.length());
     		_out.write(StringUtil.__LINE_SEPARATOR.getBytes());

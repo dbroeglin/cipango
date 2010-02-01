@@ -24,7 +24,8 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.URI;
 
-import org.cipango.CallManager;
+import org.cipango.SessionManager;
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.AppSessionIf;
 import org.cipango.servlet.Session;
@@ -38,23 +39,18 @@ public class AppSessionLockProxy implements AppSessionIf
 		_appSession = appSession;
 	}
 	
-	private transient CallManager _callManager;
+	private transient SessionManager _callManager;
 	
-	protected CallManager getCallManager()
+	protected SessionManager getCallManager()
 	{
 		if (_callManager == null)
-			_callManager = _appSession.getCall().getServer().getCallManager();
+			_callManager = _appSession.getCallSession().getServer().getSessionManager();
 		return _callManager;
 	}
 	
-	protected void before()
-	{
-		getCallManager().lock(_appSession.getCall());
-	}
-	
-	protected void after()
-	{
-		getCallManager().unlock(_appSession.getCall());
+	private SessionTransaction begin()
+	{	
+		return getCallManager().begin(_appSession.getCallSession());
 	}
 	
 	public void encodeURI(URI uri) 
@@ -166,16 +162,16 @@ public class AppSessionLockProxy implements AppSessionIf
 		return _appSession.getTimers();
 	}
 
-	public void invalidate() 
+	public void invalidate()
 	{
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_appSession.invalidate();
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 	}
 
@@ -191,53 +187,53 @@ public class AppSessionLockProxy implements AppSessionIf
 
 	public void removeAttribute(String name)
 	{
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_appSession.removeAttribute(name);
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 	}
 
 	public void setAttribute(String name, Object value) 
 	{
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_appSession.setAttribute(name, value);
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 	}
 
 	public int setExpires(int deltaMinutes) 
 	{
-		before();
+		SessionTransaction workUnit = begin();
 		try
 		{
 			return _appSession.setExpires(deltaMinutes);
 		}
 		finally
 		{
-			after();
+			workUnit.done();
 		}
 	}
 
 	public void setInvalidateWhenReady(boolean invalidateWhenReady)
 	{
-		before();
+		SessionTransaction transaction = begin();
 		try
 		{
 			_appSession.setInvalidateWhenReady(invalidateWhenReady);
 		}
 		finally
 		{
-			after();
+			transaction.done();
 		}
 		// TODO Auto-generated method stub
 	}

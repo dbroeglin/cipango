@@ -33,19 +33,19 @@ import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.Call.TimerTask;
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.servlet.AppSession;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ClientTransactionListener;
 import org.cipango.sip.ServerTransaction;
 import org.cipango.sip.ServerTransactionListener;
 import org.cipango.sip.SipConnector;
-import org.cipango.sip.SipEndpoint;
 import org.cipango.util.ID;
+import org.cipango.util.TimerTask;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
-public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
+public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 {    
 	private static final long serialVersionUID = 1L;
 
@@ -61,9 +61,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
     private boolean _recurse = true;
     private boolean _supervised = true;
     private boolean _noCancel = false;
-    
-    private boolean _initial;
-    
+        
     private int _proxyTimeout = DEFAULT_TIMEOUT;
     
     private SipURI _rrUri;
@@ -77,17 +75,19 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
     private Object _branches;
     private Object _targets;
 
-	public ProxyImpl(ServerTransaction tx) throws TooManyHopsException
+	public SipProxy(SipRequest request) throws TooManyHopsException
     {
-		_tx = tx;
+		_tx = (ServerTransaction) request.getTransaction();
         _tx.setListener(this);
-        
-        _initial = _tx.getRequest().isInitial();
-        
-        validate(_tx.getRequest());
+                        
+        int maxForwards = request.getMaxForwards();
+        if (maxForwards == 0) 
+            throw new TooManyHopsException();
+        else if (maxForwards == -1) 
+            request.setMaxForwards(70);
         
         if (Log.isDebugEnabled()) 
-        	Log.debug("Created proxy for tx {}", tx, null);
+        	Log.debug("Created proxy for tx {}", _tx, null);
     }
 	
 	/**
@@ -397,10 +397,10 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 			return;
 		
 		// Patch TMP fix for CIPANGO 8
-		Call call = _tx.getRequest().getCall();
-		CallManager cm = call.getServer().getCallManager();
+		CallSession callSession = _tx.getRequest().getCallSession();
+		SessionManager cm = callSession.getServer().getSessionManager();
     	
-    	cm.lock(call);
+    	SessionTransaction work = cm.begin(callSession);
     	try
     	{
     	// End patch 
@@ -420,7 +420,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
     	} 
     	finally
     	{
-    		cm.unlock(call);
+    		work.done();
     	}
     	// End patch 
 	}
@@ -429,28 +429,15 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 	
 	private SipURI newProxyURI(boolean applicationId)
 	{
-		SipConnector connector = null;
-		
-		SipEndpoint ep = _tx.getRequest().getEndpoint();
-        if (ep != null)
-        {
-	       connector = ep.getConnector();
-        }
-        else
-        {
-        	int transport = _tx.getRequest().transport();
-        	InetAddress addr = _tx.getRequest().remoteAddress();
-        	
-        	connector = _tx.getCall().getServer().getTransportManager().findConnector(transport, addr);
-        }
-        
+		SipConnector connector = _tx.getRequest().getConnection().getConnector();
+		        
 		SipURI rrUri = (SipURI) connector.getSipUri().clone();
 		rrUri.setParameter("lr", "");
 		
 		if (applicationId)
 		{
 			AppSession appSession = _tx.getRequest().appSession();
-			rrUri.setUser("aid!" + appSession.getAppId());
+			rrUri.setParameter(ID.APP_SESSION_ID_PARAMETER, appSession.getAppId());
 		}
 
 		return rrUri;
@@ -520,15 +507,6 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 		}
 		return branch;
 	}
-	
-    private void validate(SipRequest request) throws TooManyHopsException
-    {
-        int maxForwards = request.getMaxForwards();
-        if (maxForwards == 0) 
-            throw new TooManyHopsException();
-        else if (maxForwards == -1) 
-            request.setMaxForwards(70);
-    } 
    
     public void handleCancel(ServerTransaction tx, SipRequest cancel)
     {
@@ -661,7 +639,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
         /**
          * @see ProxyBranch#cancel(String[], int[], String[])
          */
-        public void cancel(String[] protocol, int[] reasonCode, String[] reasonText) 
+        public void cancel(String[] protocol, int[] reasonCode, String[] reasonText)
         {
         	if (!_ctx.isCompleted())
         	{
@@ -672,8 +650,8 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 	        	{
 	        		for (int i = 0; i < protocol.length; i++)
 	        		{
-	        			String reason = protocol[i] 
-	        			                + ";cause=" + reasonCode[i] 
+	        			String reason = protocol[i]
+	        			                + ";cause=" + reasonCode[i]
 	        			                + ";reason=\"" + SipGrammar.escapeQuoted(reasonText[i]) + "\"";
 	        			cancel.addHeader(SipHeaders.REASON, reason);
 	        		}
@@ -708,7 +686,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
          */
         public Proxy getProxy() 
 		{
-			return ProxyImpl.this;
+			return SipProxy.this;
 		}
         
         /**
@@ -865,11 +843,8 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 			
 			if (_branchPathUri != null && _request.isRegister())
 				_request.addAddressHeader(SipHeaders.PATH, new NameAddr(_branchPathUri), true);
-			
-			if (!getRecordRoute() && _request.isInitial())
-				_request.session().setMayReadyToInvalidate(true);
 				
-			_ctx = _request.getCall().getServer().sendRequest(_request, this);
+			_ctx = _request.getCallSession().getServer().sendRequest(_request, this);
 			
 			if (_request.isInvite())
 				startTimerC();
@@ -879,7 +854,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
         
         public void startTimerC()
         {
-        	_timerC = _tx.getCall().schedule(new TimeoutC(this), __timerC * 1000);
+        	_timerC = _tx.getCallSession().schedule(new TimeoutC(this), __timerC * 1000);
         }
         
         public void updateTimerC()
@@ -889,13 +864,13 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
         	
         	_provisional = true;
         
-        	_tx.getCall().cancel(_timerC);
-        	_timerC = _tx.getCall().schedule(new TimeoutC(this), __timerC * 1000);
+        	_tx.getCallSession().cancel(_timerC);
+        	_timerC = _tx.getCallSession().schedule(new TimeoutC(this), __timerC * 1000);
         }
         
         public void stopTimerC()
         {
-        	_tx.getCall().cancel(_timerC);
+        	_tx.getCallSession().cancel(_timerC);
         	_timerC = null;
         }
         
@@ -987,7 +962,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 				
 				if (status >= 600) 
 	            {
-					ProxyImpl.this.doCancel(null, null, null);
+					SipProxy.this.doCancel(null, null, null);
 				}
 				
 				if (status < 300) 
@@ -996,7 +971,7 @@ public class ProxyImpl implements Proxy, ServerTransactionListener, Serializable
 	                invokeServlet(response);
 					forward(response);
 					
-					ProxyImpl.this.doCancel(null, null, null);
+					SipProxy.this.doCancel(null, null, null);
 				}
 	            else 
 	            {

@@ -26,12 +26,12 @@ import sun.misc.Service;
 
 /**
  * Locates and loads a {@link SipApplicationRouter} using javax.servlet.sip.ar.spi.SipApplicationRouterProvider 
- * system property or Java SPI if no property is defined.
+ * system property or Java SPI if no property is defined (as defined in JSR289)
  */
-public class ApplicationRouterFactory
+public class ApplicationRouterLoader
 {
 	@SuppressWarnings("unchecked")
-	public static SipApplicationRouter newApplicationRouter()
+	public static SipApplicationRouter loadApplicationRouter()
 	{
 		SipApplicationRouterProvider provider = null;
 		
@@ -59,6 +59,6 @@ public class ApplicationRouterFactory
 		if (provider != null)
 			return provider.getSipApplicationRouter();
 		else
-			throw new IllegalStateException("Could not found any application router provider");
+			throw new IllegalStateException("Could not find any application router provider");
 	}
 }

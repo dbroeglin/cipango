@@ -44,6 +44,7 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.security.AuthInfoImpl;
 import org.cipango.security.Authenticate;
 import org.cipango.security.Authorization;
@@ -51,28 +52,23 @@ import org.cipango.security.AuthInfoImpl.AuthElement;
 import org.cipango.servlet.Session;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ServerTransaction;
-import org.cipango.sip.SipEndpoint;
-import org.cipango.sipapp.SipAppContext;
+import org.cipango.util.LazyMap;
 import org.mortbay.io.Buffer;
 import org.mortbay.log.Log;
 
-public class SipRequest extends SipMessage implements SipServletRequest, Serializable
+public class SipRequest extends SipMessage implements SipServletRequest
 {
     private String _method;
     private URI _requestUri;
     private String _sRequestUri;
     private boolean _initial = false;
-    private SipURI _paramURI;
-    private ProxyImpl _proxy;
+    private SipProxy _proxy;
     
     private Address _poppedRoute;
     private Address _initialPoppedRoute;
 
     private Serializable _stateInfo;
     private SipApplicationRouterInfo _nextRouterInfo;
-    
-    private SipEndpoint _endpoint;
-    //private TransportInfo _transportInfo;
 
     private B2bHelper _b2bHelper;
     
@@ -81,7 +77,8 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
     private URI _subscriberURI;
     
     private boolean _nextHopStrictRouting = false;
-    private SipAppContext _context;
+   
+	private Object _handlerAttributes;
     
 	public SipRequest() { }
 	
@@ -165,7 +162,7 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 
     	if (_proxy == null) 
     	{
-    		_proxy = new ProxyImpl((ServerTransaction) getTransaction());
+    		_proxy = new SipProxy(this);
     		_proxy.setProxyTimeout(appSession().getContext().getProxyTimeout());
     	}
     	return _proxy;
@@ -282,19 +279,19 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
         	throw new IllegalStateException("Can send request only in UAC mode");
     	setCommitted(true);
     	
-    	CallManager cm = getCall().getServer().getCallManager();
+    	SessionManager csm = getCallSession().getServer().getSessionManager();
     	
-    	cm.lock(getCall());
+    	SessionTransaction workUnit = csm.begin(getCallSession());
     	try
     	{
 	    	if (isCancel())
 	    		((ClientTransaction) getTransaction()).cancel(this);
 	    	else
-	    		getCall().getServer().sendRequest(this, _session);
+	    		getCallSession().getServer().sendRequest(this, _session);
     	} 
     	finally
     	{
-    		cm.unlock(getCall());
+    		workUnit.done();
     	}
     }
     
@@ -370,10 +367,12 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 	 */
 	public String getParameter(String name) 
     {
-		if (_paramURI == null) 
+		SipURI paramUri = getParamUri();
+		
+		if (paramUri == null) 
 			return null;
 		
-		return _paramURI.getParameter(name);
+		return paramUri.getParameter(name);
 	}
 	
 	/**
@@ -382,13 +381,16 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 	public Map getParameterMap() 
     {
 		Map map = new HashMap();
-		if (_paramURI != null) 
+		
+		SipURI paramUri = getParamUri();
+		
+		if (paramUri != null) 
         {
-			Iterator it = _paramURI.getParameterNames();
+			Iterator it = paramUri.getParameterNames();
 			while (it.hasNext()) 
             {
 				String key = (String) it.next();
-				map.put(key, new String[] {_paramURI.getParameter(key)});
+				map.put(key, new String[] {paramUri.getParameter(key)});
 			}
 		}
 		return Collections.unmodifiableMap(map);
@@ -399,10 +401,12 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 	 */
 	public Enumeration getParameterNames() 
     {
-		if (_paramURI == null) 
+		SipURI paramUri = getParamUri();
+		
+		if (paramUri == null) 
 			return Collections.enumeration(Collections.EMPTY_LIST);
 		
-		return new IteratorToEnum(_paramURI.getParameterNames());
+		return new IteratorToEnum(paramUri.getParameterNames());
 	}
 	
 	/**
@@ -477,6 +481,16 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		
 	// -- 
 	
+	public SipURI getParamUri()
+	{
+		if (_poppedRoute != null)
+			return (SipURI) _poppedRoute.getURI();
+		else if (_requestUri.isSipURI())
+			return (SipURI) _requestUri;
+		else
+			return null;
+	}
+	
 	public void addRecordRoute(NameAddr route) 
     {
 		_fields.addAddress(SipHeaders.RECORD_ROUTE_BUFFER, route, true);
@@ -487,12 +501,12 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		_fields.addVia(via, true);
 	}
 	
-	protected ProxyImpl getProxyImpl() 
+	protected SipProxy getProxyImpl() 
     {
 		return _proxy;
 	}
 	
-	protected void setProxyImpl(ProxyImpl proxy)
+	protected void setProxyImpl(SipProxy proxy)
 	{
 		_proxy = proxy;
 	}
@@ -502,7 +516,7 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		SipRequest request = new SipRequest();
 		
 		request._session = _session;
-        request._call = _call;
+        request._callSession = _callSession;
         request.setTransaction(getTransaction());
 		request._fields.setAddress(SipHeaders.FROM, (NameAddr) getFrom().clone());
 		request._fields.setAddress(SipHeaders.TO, (NameAddr) getTo().clone());
@@ -580,31 +594,16 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		_initial = b;
 	}
 	
-	public void setContext(SipAppContext context)
-	{
-		_context = context;
-	}
-	
-	public SipAppContext getContext()
-	{
-		return _context;
-	}
-	
 	public void setMethod(String method) 
     {
 		this._method = method;
 	}
-    
-    public void setParamUri(SipURI uri)
-    {
-        _paramURI = uri;
-    }
-    
+ 
     public void setPoppedRoute(Address route)
     {
         _poppedRoute = route;
         if (_initialPoppedRoute == null)
-        	setInitialPoppedRoute(route);
+        	_initialPoppedRoute = route;
     }
     
     public Address getPoppedRoute()
@@ -718,7 +717,6 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		clone._b2bHelper = null;
 		clone._proxy = null;
 		clone._initialPoppedRoute = null;
-		clone._context = null;
 		return clone;
 	}
 	
@@ -775,16 +773,21 @@ public class SipRequest extends SipMessage implements SipServletRequest, Seriali
 		_nextRouterInfo = routerInfo;
 	}
 	
-	public void setEndpoint(SipEndpoint endpoint)
-	{
-		_endpoint = endpoint;
-	}
-	
-	public SipEndpoint getEndpoint()
-	{
-		return _endpoint;
-	}
-	
+	public Object getHandlerAttribute(String name)
+    {
+    	return LazyMap.get(_handlerAttributes, name);
+    }
+    
+    public void addHandlerAttribute(String name, Object value)
+    {
+    	_handlerAttributes = LazyMap.add(_handlerAttributes, name, value);
+    }
+    
+    public String getRequestLine()
+    {
+    	return _method + " " + getRequestURI().toString(); 
+    }
+    
 	class IteratorToEnum  implements Enumeration<String>
 	{
 		private Iterator<String> _it;

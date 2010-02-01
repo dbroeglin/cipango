@@ -14,42 +14,36 @@
 
 package org.cipango;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.sip.Address;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipURI;
-import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 
-import org.cipango.ar.ApplicationRouterFactory;
+import org.cipango.ar.ApplicationRouterLoader;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ClientTransactionListener;
 import org.cipango.sip.SipConnector;
 import org.cipango.sip.TransactionManager;
-import org.cipango.sip.TransportManager;
+import org.cipango.sip.ConnectorManager;
 import org.cipango.sipapp.SipAppContext;
 import org.mortbay.component.LifeCycle;
 import org.mortbay.log.Log;
 import org.mortbay.thread.BoundedThreadPool;
 import org.mortbay.thread.ThreadPool;
 import org.mortbay.util.MultiException;
-import org.mortbay.util.TypeUtil;
 
 /**
- * Cipango SIP/HTTP Servlet Server. 
- * It extends Jetty HTTP Server and is in addition a SIP handler.
+ * Cipango SIP/HTTP Servlet Server.
+ * It extends Jetty HTTP Server to add SIP capabilities.
  */
 public class Server extends org.mortbay.jetty.Server implements SipHandler
 {
@@ -58,11 +52,10 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
     	
 	private ThreadPool _sipThreadPool;
     
-    private TransportManager _transportManager = new TransportManager();
+    private ConnectorManager _connectorManager = new ConnectorManager();
     private TransactionManager _transactionManager = new TransactionManager();
     
-    private CallManager _callManager = new CallManager();    
-    private IdManager _idManager;
+    private SessionManager _sessionManager = new SessionManager();    
     private SipApplicationRouter _applicationRouter;
 
     private long _statsStartedAt = -1;
@@ -72,11 +65,10 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
     
     public Server()
     {
-    	setTransportManager(_transportManager);
+    	setConnectorManager(_connectorManager);
 		setTransactionManager(_transactionManager);
-		setCallManager(_callManager);
+		setSessionManager(_sessionManager);
     }
-    
 	
 	@Override
 	protected void doStart() throws Exception 
@@ -95,8 +87,6 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 				((LifeCycle) _sipThreadPool).start();
 		}
 		catch (Throwable t) { mex.add(t); }
-
-		_idManager = new IdManager();
 		
 		try
 		{
@@ -105,9 +95,10 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		catch (Throwable t) { mex.add(t); }
 
 		if (_applicationRouter == null)
-			setApplicationRouter(ApplicationRouterFactory.newApplicationRouter());
-		if (_callManager == null)
-			setCallManager(new CallManager());
+			setApplicationRouter(ApplicationRouterLoader.loadApplicationRouter());
+			
+		if (_sessionManager == null)
+			setSessionManager(new SessionManager());
 		
 		try 
 		{
@@ -122,12 +113,12 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 			}
 			_applicationRouter.applicationDeployed(appNames);
 			
-			_callManager.start();
-			_transportManager.start();
+			_sessionManager.start();
+			_connectorManager.start();
 			
 			if (contexts != null)
 			{
-				for (SipAppContext context: contexts)
+				for (SipAppContext context : contexts)
 					context.initialized();
 			}
 		}
@@ -144,8 +135,8 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
         try 
         {
         	_applicationRouter.destroy();
-        	_transportManager.stop();
-    		_callManager.stop();
+        	_connectorManager.stop();
+    		_sessionManager.stop();
 		} 
         catch (Throwable e) { mex.add(e); }
 
@@ -217,7 +208,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 	    		
 	    		if (routerInfo != null && routerInfo.getNextApplicationName() != null)
 	    		{
-	    			SipConnector defaultConnector = _transportManager.getDefaultConnector();
+	    			SipConnector defaultConnector = _connectorManager.getDefaultConnector();
 	    			SipURI internalRoute = new SipURIImpl(null, defaultConnector.getHost(), defaultConnector.getPort());
 	    			RouterInfoUtil.encode(internalRoute, routerInfo);
 
@@ -234,20 +225,17 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
        	}
     }
 	
-    /**
-     * SIP handler.
-     */
-	public void handle(SipServletMessage message) throws IOException, ServletException
-	{
+    public void handle(SipServletMessage message) throws IOException, ServletException
+    {
 		if (isStatsOn())
 		{
-			synchronized (_statsLock) 
+			synchronized (_statsLock)
 			{
 				_messages++;
 			}
 		}
     	
-		((SipHandler) getHandler()).handle(message);
+		((SipHandler) getHandler()).handle(message); 
 	}
 	
 	public void setTransactionManager(TransactionManager transactionManager) 
@@ -257,11 +245,11 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		_transactionManager.setServer(this);
 	}
 	
-	public void setTransportManager(TransportManager transportManager)
+	public void setConnectorManager(ConnectorManager connectorManager)
 	{
-		getContainer().update(this, _transportManager, transportManager, "transportManager", true);
-		_transportManager = transportManager;
-		_transportManager.setServer(this);
+		getContainer().update(this, _connectorManager, connectorManager, "connectorManager", true);
+		_connectorManager = connectorManager;
+		_connectorManager.setServer(this);
 	}
 	
 	public void setSipThreadPool(ThreadPool sipThreadPool) 
@@ -270,11 +258,11 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		_sipThreadPool = sipThreadPool;
 	}
 	
-	public void setCallManager(CallManager callManager) 
+	public void setSessionManager(SessionManager sessionManager) 
 	{
-		getContainer().update(this, _callManager, callManager, "callManager", true);
-		_callManager = callManager;
-		_callManager.setServer(this);
+		getContainer().update(this, _sessionManager, sessionManager, "sessionManager", true);
+		_sessionManager = sessionManager;
+		_sessionManager.setServer(this);
 	}
 	
 	public ThreadPool getSipThreadPool()
@@ -282,9 +270,9 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		return _sipThreadPool;
 	}
 	
-	public TransportManager getTransportManager()
+	public ConnectorManager getConnectorManager()
 	{
-		return _transportManager;
+		return _connectorManager;
 	}
 	
 	public TransactionManager getTransactionManager()
@@ -292,14 +280,9 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		return _transactionManager;
 	}
 	
-	public CallManager getCallManager()
+	public SessionManager getSessionManager()
 	{
-		return _callManager;
-	}
-	
-	public IdManager getIdManager()
-	{
-		return _idManager;
+		return _sessionManager;
 	}
 	
 	public void statsReset()
@@ -309,31 +292,6 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 			_statsStartedAt = _statsStartedAt == -1 ? -1 : System.currentTimeMillis();
 			_messages = 0;
 		}
-	}
-	
-	public void statsAllReset()
-	{
-		statsReset();
-		getCallManager().statsReset();
-		getTransportManager().statsReset();
-		getTransactionManager().statsReset();
-	}
-	
-	public void setAllStatsOn(boolean on) 
-	{
-		setStatsOn(on);
-		if (getCallManager() != null)
-			getCallManager().setStatsOn(on);
-		getTransportManager().setStatsOn(on);		
-		getTransactionManager().setStatsOn(on);
-	}
-	
-	public boolean getAllStatsOn() 
-	{
-		return isStatsOn()
-			&& getCallManager().isStatsOn()
-			&& getTransportManager().isStatsOn()
-			&& getTransactionManager().isStatsOn();
 	}
 	
 	public void setStatsOn(boolean on) 
@@ -348,7 +306,32 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 	
 	public boolean isStatsOn() 
     {
-		return  _statsStartedAt != -1;
+		return _statsStartedAt != -1;
+	}
+	
+	public void allStatsReset()
+	{
+		statsReset();
+		getSessionManager().statsReset();
+		getConnectorManager().statsReset();
+		getTransactionManager().statsReset();
+	}
+	
+	public void setAllStatsOn(boolean on) 
+	{
+		setStatsOn(on);
+		if (getSessionManager() != null)
+			getSessionManager().setStatsOn(on);
+		getConnectorManager().setStatsOn(on);		
+		getTransactionManager().setStatsOn(on);
+	}
+	
+	public boolean isAllStatsOn() 
+	{
+		return isStatsOn()
+			&& getSessionManager().isStatsOn()
+			&& getConnectorManager().isStatsOn()
+			&& getTransactionManager().isStatsOn();
 	}
 	
 	public long getMessages()

@@ -15,9 +15,10 @@
 package org.cipango.log;
 
 import org.cipango.SipMessage;
+import org.cipango.sip.SipConnection;
 
 public interface AccessLog
 {
-	void messageReceived(SipMessage message);
-	void messageSent(SipMessage message, int transport, String localAddr, int localPort, String remoteAddr, int remotePort);
+	void messageReceived(SipMessage message, SipConnection connection);
+	void messageSent(SipMessage message, SipConnection connection);
 }

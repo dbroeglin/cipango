@@ -39,18 +39,19 @@ import org.cipango.util.ID;
 import org.mortbay.jetty.handler.AbstractHandler;
 import org.mortbay.log.Log;
 
+/**
+ * Handles incoming messages in the appropriate SipSession context.
+ *
+ */
 public class SipSessionHandler extends AbstractHandler implements SipHandler
 {
 	public void handle(String target, HttpServletRequest request,
-			HttpServletResponse response, int dispatch) throws IOException,
-			ServletException 
+			HttpServletResponse response, int dispatch) throws IOException, ServletException 
 	{
 		throw new UnsupportedOperationException("sip-only handler");
 	}
-
 	
-	public void handle(SipServletMessage message) throws IOException,
-			ServletException 
+	public void handle(SipServletMessage message) throws IOException, ServletException 
 	{
 		SipMessage baseMessage = (SipMessage) message;
 		
@@ -58,35 +59,16 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 		{
 			SipRequest request = (SipRequest) message;
 			
-			// preprocess route
-
-			SipURI paramUri = null;
-			
-			Address route = request.getTopRoute();
-			if (route != null && ((Server) getServer()).getTransportManager().isLocalUri(route.getURI()))
-			{
-				request.removeTopRoute();
-				paramUri = (SipURI) route.getURI();
-				request.setPoppedRoute(route);
-			}
-			else 
-			{
-				URI uri = request.getRequestURI();
-				if (uri.isSipURI())
-					paramUri = (SipURI) uri;
-			}
-			request.setParamUri(paramUri);
-			
 			Session session = null;
 			
 			if (request.isInitial())
 			{
-				SipAppContext context = request.getContext();
-				SipServletHolder handler = ((SipServletHandler) context.getServletHandler()).findHolder(request);
+				SipAppContext appContext = (SipAppContext) request.getHandlerAttribute(ID.CONTEXT_ATTRIBUTE);
+				SipServletHolder handler = ((SipServletHandler) appContext.getServletHandler()).findHolder(request);
 		
 				if (handler == null)
 				{
-					Log.debug("The SIP application {} has no matching servlet for {}. Sending '404 Not found'", context.getName(), request.getMethod());
+					Log.debug("SIP application {} has no matching servlet for {}", appContext.getName(), request.getMethod());
 					if (!request.isAck())
 					{						
 						SipResponse response = (SipResponse) request.createResponse(SipServletResponse.SC_NOT_FOUND);
@@ -97,20 +79,22 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 				}
 				
 				AppSession appSession;
-				/*
-				String key = context.getSipApplicationKey(request);
+				
+				String key = (String) request.getHandlerAttribute(ID.SESSION_KEY_ATTRIBUTE);
+				
 				if (key != null)
-					appSession = getCallManager().getApplicationSessionByKey(context, request, key);
+				{
+					String id = ID.getIdFromSessionKey(appContext.getName(), key);
+					appSession = request.getCallSession().getAppSession(id);
+					if (appSession == null)
+						appSession = request.getCallSession().createAppSession(appContext, id);
+				}
 				else
 				{
-		            appSession = request.getCall().newSession();
-		            appSession.setContext(context);
+					appSession = request.getCallSession().createAppSession(appContext, ID.newAppSessionId());
 				}
-				*/
-				appSession = request.getCall().newSession();
-				appSession.setContext(context);
-				
-				session = appSession.newSession();
+					
+				session = appSession.createSession();
 				session.setHandler(handler);
 	        
 				session.setSubscriberURI(request.getSubscriberURI());
@@ -121,7 +105,7 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 			}
 			else
 			{
-				session = request.getCall().findSession(request);
+				session = request.getCallSession().findSession(request);
 				
 				if (session == null) 
 	            {

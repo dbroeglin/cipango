@@ -20,7 +20,7 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.ProxyImpl;
+import org.cipango.SipProxy;
 import org.cipango.SipGrammar;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
@@ -60,12 +60,12 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		if (request.isCancel()) 
 			branch = "cancel-" + branch;
 		
-		ServerTransaction tx = request.getCall().getServerTx(branch);
+		ServerTransaction tx = request.getCallSession().getServerTransaction(branch);
 		
 		if (tx != null) 
         {
             if (Log.isDebugEnabled()) 
-                Log.debug("request {} in transaction {}", request, tx);
+                Log.debug("request {} in transaction {}", request.getRequestLine(), tx);
 			
             request.setTransaction(tx);
 			boolean handled = tx.handleRequest(request);
@@ -79,7 +79,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		if (request.isCancel())
         {
             String txBranch = request.getTopVia().getBranch();
-            ServerTransaction stx = request.getCall().getServerTx(txBranch);
+            ServerTransaction stx = request.getCallSession().getServerTransaction(txBranch);
             if (stx == null)
             {
                 if (Log.isDebugEnabled())
@@ -104,10 +104,10 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		ServerTransaction tx = new ServerTransaction(request);
 
 		if (!request.isAck()) 
-			request.getCall().addServerTx(tx);
+			request.getCallSession().addServerTransaction(tx);
 		 
         if (Log.isDebugEnabled())
-            Log.debug("new transaction {} for request {}", tx, request);
+            Log.debug("new transaction {} for request {}", tx, request.getRequestLine());
 
         return tx;
 	}
@@ -119,7 +119,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		if (response.isCancel()) 
 			branch = "cancel-" + branch;
 		
-		ClientTransaction ctx = response.getCall().getClientTx(branch);
+		ClientTransaction ctx = response.getCallSession().getClientTransaction(branch);
 
 		if (ctx == null) 
         {
@@ -133,7 +133,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 			if (invite2xx)
 			{
 				incrementNbRetransmission();
-				Session session = (Session) response.getCall().findSession(response);
+				Session session = (Session) response.getCallSession().findSession(response);
 				if (session != null)
 				{
 					try
@@ -171,7 +171,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		ClientTransaction ctx = new ClientTransaction(request, listener);
 		
 		if (!request.isAck())
-			request.getCall().addClientTx(ctx);
+			request.getCallSession().addClientTransaction(ctx);
 		
 		try 
         {
@@ -188,7 +188,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 	public int getT2() { return Transaction.__T2; }
 	public int getT4() { return Transaction.__T4; }
 	public int getTD() { return Transaction.__TD; }
-	public int getTimerC() { return ProxyImpl.__timerC; }
+	public int getTimerC() { return SipProxy.__timerC; }
 	
 	public void setT1(int millis)
 	{ 
@@ -222,7 +222,7 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 	{
 		if (millis < 0)
 			throw new IllegalArgumentException("SIP Timers must be positive");
-		ProxyImpl.__timerC = millis;
+		SipProxy.__timerC = millis;
 	}
 	
 	protected void incrementNbRetransmission() {

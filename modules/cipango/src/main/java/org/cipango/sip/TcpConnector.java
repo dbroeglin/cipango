@@ -188,7 +188,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		return SipConnectors.TCP_ORDINAL;
 	}
 
-	protected TcpConnection getConnection(InetAddress addr, int port) throws IOException 
+	public SipConnection getConnection(InetAddress addr, int port) throws IOException 
 	{
 		synchronized (_connections) // TODO check blocked
 		{
@@ -201,13 +201,6 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			}
 			return cnx;
 		}
-	}
-	
-	public SipEndpoint send(Buffer buffer, InetAddress address, int port)  throws IOException
-	{
-		TcpConnection connection = getConnection(address, port);
-		connection.flush(buffer);
-		return connection;
 	}
 	
 	@Override
@@ -256,7 +249,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		_connectionsOpenMax = 0;
 	}
 
-	class TcpConnection extends SocketEndPoint implements Runnable, SipEndpoint
+	class TcpConnection extends SocketEndPoint implements SipConnection, Runnable
 	{
 		private InetAddress _local;
 		private InetAddress _remote;
@@ -270,7 +263,6 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			_local = socket.getLocalAddress();
 			_remote = socket.getInetAddress();
 		}
-
 		
 		public void dispatch() throws IOException
         {
@@ -291,11 +283,15 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			return _remote;
 		}
 		
-		public synchronized int flush(Buffer buffer) throws IOException 
+
+		public void write(Buffer buffer) throws IOException 
 		{
-			int nb = super.flush(buffer);
-			flush();
-			return nb;
+			synchronized (this)
+			{
+				int nb = super.flush(buffer);
+				flush();
+				//return nb;
+			}
 		}
 		
 		public void run()
@@ -339,15 +335,17 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 					while (overflow);
 					
 					message = handler.getMessage();
-					message.set5uple(
+					message.setConnection(this);
+
+					/*message.set5uple(
 							getTransportOrdinal(), 
-							getLocalAddress(), 
+							getLocalAddress(),
 							getLocalPort(),
 							getRemoteAddress(), 
 							getRemotePort());
 					
 					if (message.isRequest())
-						((SipRequest) message).setEndpoint(this);
+						((SipRequest) message).setEndpoint(this);*/
 					
 					process(message);
 				} 
@@ -409,5 +407,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			sb.append(getRemoteAddr()).append(":").append(getRemotePort());
 			return sb.toString();
 		}
+
+
 	}
 }

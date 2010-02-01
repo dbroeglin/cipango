@@ -20,6 +20,7 @@ import java.util.TimeZone;
 
 import org.cipango.SipGenerator;
 import org.cipango.SipMessage;
+import org.cipango.sip.SipConnection;
 import org.cipango.sip.SipConnectors;
 import org.mortbay.component.AbstractLifeCycle;
 import org.mortbay.io.Buffer;
@@ -60,15 +61,13 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
 		}
 	}
     
-    public void messageReceived(SipMessage message)
+    public void messageReceived(SipMessage message, SipConnection connection)
 	{
     	if (!isStarted()) return;
     	
     	try
     	{
-    		doLog(message, IN, message.getTransport(), 
-    				message.getLocalAddr(), message.getLocalPort(),
-    				message.getRemoteAddr(), message.getRemotePort());
+    		doLog(message, IN, connection);
     	}
     	catch (Exception e)
     	{
@@ -76,13 +75,13 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
     	}
 	}
     
-	public void messageSent(SipMessage message, int transport, String localAddr, int localPort, String remoteAddr, int remotePort)
+	public void messageSent(SipMessage message, SipConnection connection)
 	{
     	if (!isStarted()) return;
     	
     	try
     	{
-    		doLog(message, OUT, SipConnectors.getName(transport), localAddr, localPort, remoteAddr, remotePort);
+    		doLog(message, OUT, connection);
     	}
 		catch (Exception e)
 		{
@@ -90,9 +89,9 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
 		}
 	}
 	
-	public abstract void doLog(SipMessage message, int direction, String transport, String localAddr, int localPort, String remoteAddr, int remotePort) throws IOException;
+	public abstract void doLog(SipMessage message, int direction, SipConnection connection) throws IOException;
 	
-	protected String generateInfoLine(int direction, String transport, String localAddr, int localPort, String remoteAddr, int remotePort, long date)
+	protected String generateInfoLine(int direction, SipConnection connection, long date)
 	{
 		_buf.setLength(0);
         _buf.append(_logDateCache.format(date));
@@ -101,20 +100,20 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
 		else
             _buf.append(" OUT ");
 		
-		_buf.append(transport);
+		_buf.append(connection.getConnector().getTransport());
         _buf.append(" ");
-        _buf.append(localAddr);
+        _buf.append(connection.getLocalAddress());
         _buf.append(':');
-        _buf.append(localPort);
+        _buf.append(connection.getLocalPort());
         
         if (direction == IN)
         	_buf.append(" < ");
         else
         	_buf.append(" > ");
         
-        _buf.append(remoteAddr);
+        _buf.append(connection.getRemoteAddress());
         _buf.append(':');
-        _buf.append(remotePort);
+        _buf.append(connection.getRemotePort());
         _buf.append(StringUtil.__LINE_SEPARATOR);
         _buf.append(StringUtil.__LINE_SEPARATOR);
         return _buf.toString();

@@ -59,7 +59,7 @@ public class B2bHelper implements B2buaHelper
 	public SipServletRequest createCancel(SipSession sipSession)
 	{
 		Session session = ((SessionIf) sipSession).getSession();
-		Iterator<ClientTransaction> it = session.getCall().getClientTransactions(session).iterator();
+		Iterator<ClientTransaction> it = session.getCallSession().getClientTransactions(session).iterator();
 		while (it.hasNext())
 		{
 			ClientTransaction tx = (ClientTransaction) it.next();
@@ -103,7 +103,7 @@ public class B2bHelper implements B2buaHelper
         
         int mf = request.getMaxForwards();
         if (mf == -1)
-            mf = ProxyImpl.__maxForwards;
+            mf = SipProxy.__maxForwards;
         else if (mf == 0)
             throw new TooManyHopsException();
         else
@@ -113,8 +113,7 @@ public class B2bHelper implements B2buaHelper
         if (!request.isRegister())
             fields.remove(SipHeaders.CONTACT_BUFFER);
         
-        Server server = appsession.getContext().getSipServer();
-        String callId = server.getIdManager().newCallId(request.getCallId());
+        String callId = ID.newCallId(request.getCallId());
         
         fields.setString(SipHeaders.CALL_ID, callId);
         
@@ -139,7 +138,7 @@ public class B2bHelper implements B2buaHelper
         from.setParameter(SipParams.TAG, ID.newTag());
         to.removeParameter(SipParams.TAG);
         
-        Session session = appsession.newUacSession(callId, from, to);
+        Session session = appsession.createUacSession(callId, from, to);
         session.setLocalCSeq(request.getCSeq().getNumber() + 1);
         session.setHandler(appsession.getContext().getSipServletHandler().getDefaultServlet());
         
@@ -321,7 +320,7 @@ public class B2bHelper implements B2buaHelper
 				}
 			}
 		}
-		request.setMaxForwards(origRequest.getMaxForwards() == -1 ? ProxyImpl.__maxForwards : origRequest.getMaxForwards() - 1);
+		request.setMaxForwards(origRequest.getMaxForwards() == -1 ? SipProxy.__maxForwards : origRequest.getMaxForwards() - 1);
 		// Copy headerMaps headers
 		List<String> contacts = processHeaderMap(headerMap, fields, false);
 		// TODO Merge contact with the one set by headerMap
@@ -337,7 +336,7 @@ public class B2bHelper implements B2buaHelper
 			throw new IllegalArgumentException("session invalid");
 		
 		Session session = ((SessionIf) sipSession).getSession();
-		Iterator<ServerTransaction> it = session.getCall().getServerTransactions(session).iterator();
+		Iterator<ServerTransaction> it = session.getCallSession().getServerTransactions(session).iterator();
 		while (it.hasNext())
 		{
 			ServerTransaction tx = (ServerTransaction) it.next();
@@ -350,7 +349,7 @@ public class B2bHelper implements B2buaHelper
 						throw new IllegalStateException("A final response has been already sent");
 					SipResponse response = new SipResponse(request, status, reason);
 					
-					response.setSession(session.appSession().newSession(session));
+					response.setSession(session.appSession().createDerivedsession(session));
 					linkSipSessions(response.getSession(), _request.getSession());
 					response.setSendOutsideTx(true);
 					return response;
@@ -386,7 +385,7 @@ public class B2bHelper implements B2buaHelper
 
 		if (mode == UAMode.UAS)
 		{
-			Iterator<ServerTransaction> it = session.getCall().getServerTransactions(session).iterator();
+			Iterator<ServerTransaction> it = session.getCallSession().getServerTransactions(session).iterator();
 			while (it.hasNext())
 			{
 				ServerTransaction tx = (ServerTransaction) it.next();
@@ -397,7 +396,7 @@ public class B2bHelper implements B2buaHelper
 		}
 		else
 		{
-			Iterator<ClientTransaction> it = session.getCall().getClientTransactions(session).iterator();
+			Iterator<ClientTransaction> it = session.getCallSession().getClientTransactions(session).iterator();
 			while (it.hasNext())
 			{
 				ClientTransaction tx = (ClientTransaction) it.next();

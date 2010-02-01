@@ -69,7 +69,7 @@ public class SipMessageParserTortureTest extends TestCase
 				SipMessage message = getMessage(testFiles[i]);
 
 				assertTrue("Failed on SipTorture test " + testFiles[i] + ":\n" + message,
-						new TransportManager().preValidateMessage(message));
+						new ConnectorManager().preValidateMessage(message));
 				if (message instanceof SipRequest)
 				{
 					SipRequest request = (SipRequest) message;
@@ -103,7 +103,7 @@ public class SipMessageParserTortureTest extends TestCase
 			{
 				SipMessage message = getMessage(testFiles[i]);
 				assertFalse("Failed on SipTorture test " + testFiles[i] + ":\n" + message,
-						new TransportManager().preValidateMessage(message));
+						new ConnectorManager().preValidateMessage(message));
 				/* } catch (ServletParseException e) { */
 
 			}

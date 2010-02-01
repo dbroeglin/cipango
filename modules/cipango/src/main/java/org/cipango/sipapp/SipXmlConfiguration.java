@@ -35,13 +35,11 @@ import org.mortbay.util.LazyList;
 import org.mortbay.xml.XmlParser;
 
 public class SipXmlConfiguration implements Configuration 
-{
-	public static final int VERSION_10 = 10;
-	public static final int VERSION_11 = 11;
+{	
 	private WebAppContext _context;
 	private XmlParser _xmlParser;
 	
-	protected int _version = -1;
+	protected int _version = SipAppContext.VERSION_11;
 	protected String _appName;
 	
 	protected Object _listeners;
@@ -70,12 +68,12 @@ public class SipXmlConfiguration implements Configuration
 		return xmlParser;
 	}
 	
-	public void setWebAppContext(WebAppContext context) 
+	public void setWebAppContext(WebAppContext context)
 	{
 		_context = context;
 	}
 
-	public WebAppContext getWebAppContext() 
+	public WebAppContext getWebAppContext()
 	{
 		return _context;
 	}
@@ -118,11 +116,11 @@ public class SipXmlConfiguration implements Configuration
 		String overrideDescriptor = getSipAppContext().getOverrideSipDescriptor();
         if(overrideDescriptor!=null&&overrideDescriptor.length()>0)
         {
-            Resource orideResource=Resource.newSystemResource(overrideDescriptor);
-            if(orideResource==null)
-                orideResource=Resource.newResource(overrideDescriptor);
+            Resource overrideResource=Resource.newSystemResource(overrideDescriptor);
+            if(overrideResource==null)
+                overrideResource=Resource.newResource(overrideDescriptor);
             _xmlParser.setValidating(false);
-            configure(orideResource.getURL().toString());
+            configure(overrideResource.getURL().toString());
         }
 	}
 	
@@ -155,15 +153,15 @@ public class SipXmlConfiguration implements Configuration
 		
 		String version = config.getAttribute("version", "unknown");
 		if ("1.0".equals(version))
-			_version = VERSION_10;
+			_version = SipAppContext.VERSION_10;
 		else if ("1.1".equals(version))
-			_version = VERSION_11;
+			_version = SipAppContext.VERSION_11;
 		else if ("unknown".equals(version))
 		{
-			_version = VERSION_11;
+			_version = SipAppContext.VERSION_11;
             String dtd=_xmlParser.getDTD();
             if (dtd!=null && dtd.indexOf("sip-app_1_0")>=0)
-                _version=VERSION_10;
+                _version=SipAppContext.VERSION_10;
 		}
 		else
 			throw new UnavailableException("Unsupported version " + version);
@@ -208,11 +206,7 @@ public class SipXmlConfiguration implements Configuration
 		if (_mainServlet != null)
 			servletHandler.setMainServletName(_mainServlet);
 		
-		if (_appName != null)
-			getSipAppContext().setName(_appName);
-		else
-			getSipAppContext().setName(getWebAppContext().getContextPath());
-		
+		getSipAppContext().setName(_appName);
 		getWebAppContext().setEventListeners((EventListener[]) LazyList.toArray(_listeners, EventListener.class));
 	}
 	
@@ -241,7 +235,7 @@ public class SipXmlConfiguration implements Configuration
         else if("main-servlet".equals(name))
         {
         	initMainServlet(node);
-        	Log.warn("main-servlet node should be place into servlet-selection node");
+        	Log.debug("main-servlet node should be a child of servlet-selection node");
         }
 	}
 	

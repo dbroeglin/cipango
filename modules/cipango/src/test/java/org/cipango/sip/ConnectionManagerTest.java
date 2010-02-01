@@ -22,14 +22,14 @@ import org.mortbay.io.Buffer;
 
 import junit.framework.TestCase;
 
-public class TransportManagerTest extends TestCase
+public class ConnectionManagerTest extends TestCase
 {
 
 	private static final String[] MATCHING_LOCAL_URI = 
 	{ 
 			"sip:cipango.org;lr",
 			"sip:cipango.org:5060;lr",
-			"sip:as.cipango.org;lr",
+			// "sip:as.cipango.org;lr",
 			"sip:as.cipango.org:5070;lr",
 			"sip:192.168.1.1;lr",
 			"sip:192.168.1.1:5060;lr",
@@ -53,26 +53,26 @@ public class TransportManagerTest extends TestCase
 	
 	public void testIsLocalUri() throws Exception
 	{
-		TransportManager transportManager = new TransportManager();
-		transportManager.addConnector(new FakeConnector("cipango.org", "192.168.1.1", 5060));
-		transportManager.addConnector(new FakeConnector("ipv6.cipango.org", "[2000::1]", 5060));
-		transportManager.addConnector(new FakeConnector("as.cipango.org", "192.168.2.2", 5070));
-		transportManager.addConnector(new FakeConnector("ipv6.as.cipango.org", "[1fff:0:a88:85a3::ac1f:8001]", 5070));
+		ConnectorManager connectorManager = new ConnectorManager();
+		connectorManager.addConnector(new TestConnector("cipango.org", "192.168.1.1", 5060));
+		connectorManager.addConnector(new TestConnector("ipv6.cipango.org", "[2000::1]", 5060));
+		connectorManager.addConnector(new TestConnector("as.cipango.org", "192.168.2.2", 5070));
+		connectorManager.addConnector(new TestConnector("ipv6.as.cipango.org", "[1fff:0:a88:85a3::ac1f:8001]", 5070));
 		
 		for (int i = 0; i < MATCHING_LOCAL_URI.length; i++)
 			assertTrue("Not match on " + MATCHING_LOCAL_URI[i], 
-					transportManager.isLocalUri(new SipURIImpl(MATCHING_LOCAL_URI[i])));
+					connectorManager.isLocalUri(new SipURIImpl(MATCHING_LOCAL_URI[i])));
 		
 		for (int i = 0; i < NO_MATCHING_LOCAL_URI.length; i++)
 			assertFalse("Match on " + NO_MATCHING_LOCAL_URI[i], 
-					transportManager.isLocalUri(new SipURIImpl(NO_MATCHING_LOCAL_URI[i])));
+					connectorManager.isLocalUri(new SipURIImpl(NO_MATCHING_LOCAL_URI[i])));
 	}
 	
-	class FakeConnector extends AbstractSipConnector
+	class TestConnector extends AbstractSipConnector
 	{
 		private InetAddress _addr;
 		
-		public FakeConnector(String host, String addr, int port) throws UnknownHostException
+		public TestConnector(String host, String addr, int port) throws UnknownHostException
 		{
 			super(SipConnectors.UDP_ORDINAL);
 			_addr = InetAddress.getByName(addr);
@@ -113,6 +113,11 @@ public class TransportManagerTest extends TestCase
 				InterruptedException
 		{
 		}
+		
+		public SipConnection getConnection(InetAddress address, int port)
+		{
+			return null;
+		}
 
 		public Object getConnection()
 		{
@@ -129,7 +134,5 @@ public class TransportManagerTest extends TestCase
 		{
 			return null;
 		}
-
-		
 	}
 }

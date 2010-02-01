@@ -31,6 +31,7 @@ import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.security.Authenticate;
 import org.cipango.sip.ServerTransaction;
 import org.mortbay.log.Log;
@@ -40,7 +41,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
     private SipRequest _request;
     private int _status;
     private String _reason;
-    private ProxyImpl _proxy;
+    private SipProxy _proxy;
     private ProxyBranch _proxyBranch;
     private boolean _branchResponse;
     
@@ -59,6 +60,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
             _request.setCommitted(true);
 		setStatus(status, reason);
 		
+		setCallSession(request.getCallSession());
 		setTransaction(request.getTransaction());
 		setSession(request.session());
 		
@@ -360,9 +362,9 @@ public class SipResponse extends SipMessage implements SipServletResponse
         if (isCommitted())
             throw new IllegalStateException("Response is commited");
         
-        CallManager cm = getCall().getServer().getCallManager();
+        SessionManager csm = getCallSession().getServer().getSessionManager();
         
-        cm.lock(getCall());
+        SessionTransaction workUnit = csm.begin(getCallSession());
         
         try 
         {
@@ -378,7 +380,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         }
         finally
         {
-        	cm.unlock(getCall());
+        	workUnit.done();
         }
     }
 	
@@ -458,6 +460,11 @@ public class SipResponse extends SipMessage implements SipServletResponse
 	public boolean isSendOutsideTx()
 	{
 		return _sendOutsideTx;
+	}
+	
+	public String getRequestLine()
+	{
+		return _status + " " + _status;
 	}
 
 	public Object clone()

@@ -32,7 +32,7 @@ import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.io.View;
 import org.mortbay.log.Log;
 
-public class UdpConnector extends AbstractSipConnector implements SipEndpoint
+public class UdpConnector extends AbstractSipConnector
 {
 	public static final int MAX_UDP_SIZE = 65536;
 	public static final int DEFAULT_PORT = 5060;
@@ -122,12 +122,17 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 		try
 		{
 			parser.parse();
-		
+			
 			SipMessage message = handler.getMessage();
+			message.setConnection(new UdpConnection(p.getAddress(), p.getPort()));
+			
+			/*
 			message.set5uple(getTransportOrdinal(), getAddr(), getPort(), p.getAddress(), p.getPort());
 		
 			if (message.isRequest())
 				((SipRequest) message).setEndpoint(this);
+				
+			*/
 			
 			process(message);
 		}
@@ -150,15 +155,9 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 		
 	}
 	
-	public SipEndpoint send(Buffer buffer, InetAddress address, int port) throws IOException
+	public SipConnection getConnection(InetAddress address, int port)
 	{
-		DatagramPacket packet = new DatagramPacket(
-				buffer.array(),
-				buffer.length(),
-				address,
-				port);
-		_datagramSocket.send(packet);
-		return this;
+		return new UdpConnection(address, port);
 	}
 
 	public int getDefaultPort()
@@ -194,6 +193,58 @@ public class UdpConnector extends AbstractSipConnector implements SipEndpoint
 	public SipConnector getConnector()
 	{
 		return this;
+	}
+	
+	class UdpConnection implements SipConnection
+	{
+		private InetAddress _remoteAddr;
+		private int _remotePort;
+		
+		public UdpConnection(InetAddress remoteAddr, int remotePort)
+		{
+			_remoteAddr = remoteAddr;
+			_remotePort = remotePort;
+		}
+		
+		public SipConnector getConnector()
+		{
+			return UdpConnector.this;
+		}
+		
+		public InetAddress getLocalAddress()
+		{
+			return _localAddr;
+		}
+		
+		public int getLocalPort()
+		{
+			return UdpConnector.this.getPort();
+		}
+		
+		public InetAddress getRemoteAddress()
+		{
+			return _remoteAddr;
+		}
+		
+		public int getRemotePort()
+		{
+			return _remotePort;
+		}
+		
+		public void write(Buffer buffer) throws IOException
+		{
+			DatagramPacket packet = new DatagramPacket(
+					buffer.array(),
+					buffer.length(),
+					_remoteAddr,
+					_remotePort);
+			_datagramSocket.send(packet);
+		}
+		
+		public String toString()
+		{
+			return "udp/" + _remoteAddr.getHostAddress() + ":" + _remotePort; 
+		}
 	}
 	
 	class EventHandler extends SipParser.EventHandler

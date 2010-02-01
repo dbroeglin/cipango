@@ -65,9 +65,9 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     private int _acceptors = 1;
     private Thread[] _acceptorThread;
     
+    private SipHandler _handler;
     private Server _server;
     private ThreadPool _threadPool;
-    private SipHandler _handler;
 
     private boolean _transportParam = false;
     
@@ -194,7 +194,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
             {
                 if (!_threadPool.dispatch(new Acceptor(i)))
                 {
-                    Log.warn("insufficient maxThreads configured for {}",this);
+                    Log.warn("insufficient maxThreads configured for {}", this);
                     break;
                 }
             }
@@ -235,21 +235,21 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     
     public void process(SipMessage message)
     {
-    	if (!getThreadPool().dispatch(new MessageTask(message))) 
+    	if (!getThreadPool().dispatch(new MessageTask(message)))
 		{
     		Log.warn("No threads to dispatch message from {}:{}",
 					message.getRemoteAddr(), message.getRemotePort());
 		}
     }
     
-    public SipHandler getHandler() 
+    public void setHandler(SipHandler handler)
     {
-        return _handler;
+    	_handler = handler;
     }
     
-    public void setHandler(SipHandler handler) 
+    public SipHandler getHandler()
     {
-        _handler = handler;
+    	return _handler;
     }
     
     public void setServer(Server server) 
@@ -412,7 +412,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     	}
     }
     	
-	public static class EventHandler extends SipParser.EventHandler 
+	public static class EventHandler extends SipParser.EventHandler
 	{
 		public static final String UTF_8 = "UTF-8";
 

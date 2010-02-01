@@ -15,6 +15,7 @@
 package org.cipango.handler;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
@@ -22,7 +23,6 @@ import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
-import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
@@ -35,6 +35,7 @@ import org.cipango.SipResponse;
 import org.cipango.URIFactory;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.servlet.SipSessionHandler;
+import org.cipango.sip.ConnectorManager;
 import org.cipango.sip.TransactionManager;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
@@ -47,9 +48,12 @@ import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
 /**
- * Handler which performs application selection. 
- * It extends the HTTP {@link ContextHandlerCollection} handler but application selection 
- * is performed based on the {@link SipApplicationRouter} rather than context path.
+ * Handler responsible for application selection based on application router result. In addition, it also 
+ * performs session key targeting when needed. 
+ * 
+ * It extends the HTTP {@link ContextHandlerCollection}. However, contrary to HTTP, the selected handler 
+ * is not invoked directly for processing since several handlers necessary to SIP Servlets are invoked first. 
+ * Therefore, selected application handler is stored in the request for use at a later stage. 
  */
 public class SipContextHandlerCollection extends ContextHandlerCollection implements SipHandler
 {  
@@ -61,14 +65,14 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 		super();
 		setContextClass(SipAppContext.class);
 		
-		CallHandler callHandler = new CallHandler();
-		TransactionManager txHandler = new TransactionManager();
-		SipSessionHandler sessionHandler = new SipSessionHandler();
+		CallSessionHandler callSessionHandler = new CallSessionHandler();
+		TransactionManager transactionHandler = new TransactionManager();
+		SipSessionHandler sipSessionHandler = new SipSessionHandler();
 		
-		callHandler.setHandler(txHandler);
-		txHandler.setHandler(sessionHandler);
+		callSessionHandler.setHandler(transactionHandler);
+		transactionHandler.setHandler(sipSessionHandler);
 		
-		_handler = callHandler;
+		_handler = callSessionHandler;
 	}
 	
 	@Override
@@ -121,37 +125,54 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
         _sipContexts = (SipAppContext[]) LazyList.toArray(sipHandlers, SipAppContext.class);
     }
 
+	public ConnectorManager getConnectorManager()
+	{
+		return ((Server) getServer()).getConnectorManager();
+	}
+	
 	private boolean isInitial(SipRequest request)
 	{
 		return ((request.getTo().getParameter(SipParams.TAG) == null) && !request.isCancel());
 	}
 	
+	public Address popLocalRoute(SipRequest request)
+	{
+		Address route = request.getTopRoute();
+		if (route != null && getConnectorManager().isLocalUri(route.getURI()))
+		{
+			request.removeTopRoute();
+			return route;
+		}
+		return null;
+	}
+	
 	public void handle(SipServletMessage message) throws ServletException, IOException 
     {
-		SipMessage baseMessage = (SipMessage) message;
-		
-		if (baseMessage.isRequest())
+		if (((SipMessage) message).isRequest())
 		{
 			SipRequest request = (SipRequest) message;
+		
+			Address route = popLocalRoute(request); 
 			
 			if (isInitial(request))
 	        {
 				request.setInitial(true);
 				
 				SipApplicationRouterInfo routerInfo = null;
-				SipAppContext context = null;
+				SipAppContext appContext = null;
 				
 				try
 				{
-					Address route = request.getTopRoute();
-					if (route != null && ((Server)getServer()).getTransportManager().isLocalUri(route.getURI()))
+					if (route != null)
 					{
 						SipURI uri = (SipURI) route.getURI();
-						if ("router-info".equals(uri.getUser()))
+						if (RouterInfoUtil.ROUTER_INFO.equals(uri.getUser()))
 						{
-							request.removeTopRoute();
 							routerInfo = RouterInfoUtil.decode(uri);
+							route = popLocalRoute(request);
 						}
+						if (route != null)
+							request.setPoppedRoute(route);
 					}
 					
 					if (routerInfo == null)
@@ -169,58 +190,13 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 								SipServletResponse.SC_SERVER_INTERNAL_ERROR,
 								"Application router error: " + t.getMessage());
 						ExceptionUtil.fillStackTrace(response, t);
-						((Server) getServer()).getTransportManager().send(response, request);
+						getConnectorManager().send(response);
 					}
 					return;
 				}
 				
 				if (routerInfo != null && routerInfo.getNextApplicationName() != null)
 				{
-					/*
-					String[] routes = routerInfo.getRoutes();
-					try
-					{
-						if (SipRouteModifier.ROUTE == routerInfo.getRouteModifier() && routes != null)
-						{
-							NameAddr topRoute = new NameAddr(routes[0]);
-							if (getTransportLayer().isLocalUri(topRoute.getURI()))
-								request.setPoppedRoute(topRoute);
-							else
-							{
-								for (int i = routes.length; i >= 0; --i)
-									request.pushRoute(new NameAddr(routes[i]));
-								request.send();
-								return;
-							}
-						}
-						else if (SipRouteModifier.ROUTE_BACK == routerInfo.getRouteModifier() && routes != null)
-						{
-							Address ownRoute = getTransportLayer().getContact(SipConnectors.getOrdinal(SipConnectors.TCP));
-							ownRoute.getURI().setParameter("lr", null);
-							// TODO encode AR state in own route
-							request.pushRoute(ownRoute);
-							for (int i = routes.length; i >= 0; --i)
-								request.pushRoute(new NameAddr(routes[i]));
-							request.send();
-							return;
-						} 
-						else if (routes == null 
-								&& (SipRouteModifier.ROUTE_BACK == routerInfo.getRouteModifier() || SipRouteModifier.ROUTE == routerInfo.getRouteModifier()))
-						{
-							Log.debug("Router info set route modifier to ROUTE_BACK but no route provided, assume NO_ROUTE");
-						}
-					}
-					catch (Exception e)
-					{
-						// Could have ServletParseException or IllegalArgumentException on pushRoute
-						SipResponse response = (SipResponse) request.createResponse(
-	    	        			SipServletResponse.SC_SERVER_INTERNAL_ERROR,
-	    	        			"Error in handler: " + e.getMessage());
-	    	        	fillStackTrace(response, e);
-	    	        	((ServerTransaction) request.getTransaction()).send(response);
-	    	        	return;
-					}
-					*/
 					request.setStateInfo(routerInfo.getStateInfo());
 					request.setRegion(routerInfo.getRoutingRegion());
 					
@@ -238,26 +214,48 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					}
 					
 					String applicationName = routerInfo.getNextApplicationName();
-					context = (SipAppContext) getContext(applicationName);
+					appContext = (SipAppContext) getContext(applicationName);
+										
+					Method method = appContext.getSipApplicationKeyMethod();
+					if (method != null)
+					{
+						try
+						{
+							String sessionKey = (String) method.invoke(null, request);
+							
+							if (Log.isDebugEnabled())
+								Log.debug("routing initial request to key {}", sessionKey);
+							
+							request.addHandlerAttribute(ID.SESSION_KEY_ATTRIBUTE, sessionKey);
+						}
+						catch (Exception e)
+						{
+							Log.debug("failed to get SipApplicationKey", e);
+						}
+					}
 					
-					//System.out.println("application : " + applicationName + " context " + context);
 					if (Log.isDebugEnabled())
-						Log.debug("AR returned application {} for initial request {}", applicationName, request.getMethod());
+						Log.debug("application router returned application {} for initial request {}", applicationName, request.getMethod());
 				}
 				
-				if (context == null)
+				if (appContext == null)
 				{
 					if (!request.isAck())
 					{
 						SipResponse response = new SipResponse(request, SipServletResponse.SC_NOT_FOUND, null);
 						response.to().setParameter(SipParams.TAG, ID.newTag());
-						((Server) getServer()).getTransportManager().send(response, request);
+						getConnectorManager().send(response);
 					}
 					return;
-				}				
-				request.setContext(context);
+				}			
+				request.addHandlerAttribute(ID.CONTEXT_ATTRIBUTE, appContext);
+			}
+			else
+			{
+				if (route != null)
+					request.setPoppedRoute(route);
 			}
 		}		
-		_handler.handle(baseMessage);
+		_handler.handle(message);
     }
 }

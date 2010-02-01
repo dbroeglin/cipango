@@ -38,6 +38,7 @@ import org.cipango.SipHeaders.HeaderInfo;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.Session;
 
+import org.cipango.sip.SipConnection;
 import org.cipango.sip.SipConnectors;
 import org.cipango.sip.Transaction;
 import org.cipango.util.ContactAddress;
@@ -61,26 +62,23 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
     protected SipFields _fields = new SipFields();
 	private byte[] _content;
 	
-	private int _transport;
-	private InetAddress _localAddr;
-	private int _localPort = -1;
-	private InetAddress _remoteAddr;
-	private int _remotePort = -1;
+	private SipConnection _connection;
 	
 	private int _initialTransport;
 	private InetAddress _initialRemoteAddr;
 	private int _initialRemotePort = -1;
 	
+	protected CallSession _callSession;
 	private Transaction _tx;
-	private boolean _committed = false;
+	
 	protected Session _session;
 	
-	protected Call _call;
+	private boolean _committed = false;
 	
 	private Map<String, Object> _attributes;
 	
 	private HeaderForm _headerForm = HeaderForm.DEFAULT;
-	
+
 	public SipMessage() 
 	{
 	}
@@ -113,7 +111,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		if (address == null || name == null) 
 			throw new NullPointerException("name or address is null");
 		
-		_fields.addAddress(buffer, (NameAddr) address, first);
+		_fields.addAddress(buffer, address, first);
 	}
 	
 	/*
@@ -178,7 +176,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	/**
 	 * @see SipServletMessage#getAcceptLanguages()
 	 */
-	public Iterator getAcceptLanguages() 
+	public Iterator<Locale> getAcceptLanguages() 
     {
         Iterator<String> it = getFields().getValues(SipHeaders.ACCEPT_LANGUAGE_BUFFER);
 
@@ -225,10 +223,10 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		if (hi.getType() != HeaderInfo.ADDRESS && hi.getOrdinal() != -1)
 			throw new ServletParseException("Header: " + name + " is not of address type");
 		
-		NameAddr address;
+		Address address;
 		try
 		{
-			address = (NameAddr) _fields.getAddress(buffer);
+			address =  _fields.getAddress(buffer);
 		}
 		catch (LazyParsingException e)
 		{
@@ -474,7 +472,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public String getLocalAddr() 
 	{
-		return _localAddr.getHostAddress();
+		return _connection != null ?_connection.getLocalAddress().getHostAddress() : null;
 	}
 	
 	/**
@@ -482,7 +480,8 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public int getLocalPort() 
 	{
-		return _localPort;
+		
+		return _connection != null ? _connection.getLocalPort() : -1;
 	}
 	
 	/**
@@ -506,10 +505,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public String getRemoteAddr()
 	{
-		if (_remoteAddr == null)
-			return null;
-		
-		return _remoteAddr.getHostAddress();
+		return _connection != null ? _connection.getRemoteAddress().getHostAddress() : null;
 	}
 	
 	/**
@@ -517,7 +513,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public int getRemotePort() 
 	{
-		return _remotePort;
+		return _connection != null ? _connection.getRemotePort() : null;
 	}
 	
 	/**
@@ -557,7 +553,9 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public String getTransport() 
 	{
-		return SipConnectors.getName(_transport);
+		if (_connection == null)
+			return null;
+		return _connection.getConnector().getTransport();
 	}
 	
 	/**
@@ -919,6 +917,16 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	
 	protected abstract boolean canSetContact();
 	
+	public void setConnection(SipConnection connection)
+	{
+		_connection = connection;
+	}
+	
+	public SipConnection getConnection()
+	{
+		return _connection;
+	}
+	
 	public Address from() 
 	{
 		return _fields.getAddress(SipHeaders.FROM_BUFFER);
@@ -938,9 +946,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 			clone._committed = false;
 			clone._tx = null;
 			clone._attributes = null;
-			clone._localAddr = clone._remoteAddr = null;
-			clone._localPort = clone._remotePort = -1;
-			clone._transport = -1;
+			clone._connection = null;
 			//clone._session = null;
 			return clone;
 		} 
@@ -1071,16 +1077,14 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		return _fields;
 	}
 	
-	public void setCall(Call call)
+	public void setCallSession(CallSession callSession)
 	{
-		_call = call;
+		_callSession = callSession;
 	}
 	
-	public Call getCall()
+	public CallSession getCallSession()
 	{
-        if (_call != null) return _call;
-        
-		return _session == null ? null : _session.getCall();
+        return _callSession;
 	}
 	
 	public void setCommitted(boolean b) 
@@ -1114,29 +1118,6 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
         return _tx;
     }
     
-    public void set5uple(int transport, InetAddress localAddr, int localPort, InetAddress remoteAddr, int remotePort)
-    {
-    	_transport = transport;
-    	_localAddr = localAddr;
-    	_localPort = localPort;
-    	_remoteAddr = remoteAddr;
-    	_remotePort = remotePort;
-    	
-		_initialTransport = transport;
-		_initialRemoteAddr = remoteAddr;
-		_initialRemotePort = remotePort;
-    }
-    
-    public InetAddress remoteAddress()
-    {
-    	return _remoteAddr;
-    }
-    
-    public int transport()
-    {
-    	return _transport;
-    }
-    
     public Session session()
     {
     	return _session;
@@ -1146,6 +1127,8 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
     {
     	return _session.appSession();
     }
+    
+    public abstract String getRequestLine();
     
     public String toString() 
     {

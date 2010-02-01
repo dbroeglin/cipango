@@ -22,11 +22,19 @@ import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 
 /**
- * Base interface for all Sip handlers. 
+ * Base interface for all SIP handlers. 
+ * 
  * @see Handler
  */
 public interface SipHandler
 {
+	/**
+	 * Handles an incoming SIP message (request or response).
+	 * 
+	 * @param message	the message to handle
+	 * @throws IOException
+	 * @throws ServletException
+	 */
 	void handle(SipServletMessage message) throws IOException, ServletException;
 	
     void setServer(Server server);

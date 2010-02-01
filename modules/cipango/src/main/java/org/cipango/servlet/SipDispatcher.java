@@ -28,7 +28,6 @@ public class SipDispatcher implements RequestDispatcher
     private SipServletHolder _holder;
     
     public SipDispatcher(SipServletHolder holder)
-        throws IllegalStateException
     {
         _holder = holder;
     }
@@ -48,6 +47,6 @@ public class SipDispatcher implements RequestDispatcher
      */
     public void include(ServletRequest request, ServletResponse response) throws ServletException, IOException
     {
-        throw new UnsupportedOperationException("include(ServletRequest,ServletResponse) is not supported in SIP Servlet API");
+        throw new UnsupportedOperationException("RequestDispatcher.include(ServletRequest, ServletResponse) is not supported in SIP Servlet API");
     }
 }

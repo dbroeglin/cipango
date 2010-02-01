@@ -87,8 +87,7 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 			holder.handle(null, (ServletResponse) baseMessage);
 	}
 	
-    public void handle(String target, HttpServletRequest request,HttpServletResponse response, int type)
-    throws IOException, ServletException
+    public void handle(String target, HttpServletRequest request,HttpServletResponse response, int type) throws IOException, ServletException
     {
     	int semi = request.getRequestURI().lastIndexOf(';');
         if (semi>=0)

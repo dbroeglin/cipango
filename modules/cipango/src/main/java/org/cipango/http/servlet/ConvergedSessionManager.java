@@ -21,6 +21,7 @@ import javax.servlet.sip.SipApplicationSession;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
+import org.cipango.util.ID;
 import org.cipango.util.concurrent.AppSessionLockProxy;
 import org.mortbay.jetty.HttpSchemes;
 import org.mortbay.jetty.Request;
@@ -62,9 +63,9 @@ public class ConvergedSessionManager extends HashSessionManager
             {   
                 String path_params=uri.substring(semi+1);
                 
-                if (path_params!=null && path_params.startsWith(AppSession.APP_ID))
+                if (path_params!=null && path_params.startsWith(ID.APP_SESSION_ID_PARAMETER))
                 {
-                	appId = path_params.substring(AppSession.APP_ID.length() + 1);
+                	appId = path_params.substring(ID.APP_SESSION_ID_PARAMETER.length() + 1);
                     if(Log.isDebugEnabled())
                     	Log.debug("Got App ID " + appId + " from URL");
                 }
@@ -74,7 +75,7 @@ public class ConvergedSessionManager extends HashSessionManager
 				AppSession appSession = (AppSession) getSipAppContext().getSipSessionsUtil().getApplicationSessionById(appId);
 				if (appSession != null && appSession.isValid())
 				{
-        		   appSession.getAppSession().addHttpSession(this);
+        		   appSession.getAppSession().addSession(this);
         		   _appSession = new AppSessionLockProxy(appSession);
 				}
 			}
@@ -143,7 +144,7 @@ public class ConvergedSessionManager extends HashSessionManager
 			if (_appSession == null)
 			{
 				_appSession = (AppSessionIf) getSipAppContext().getSipFactory().createApplicationSession();
-				_appSession.getAppSession().addHttpSession(this);
+				_appSession.getAppSession().addSession(this);
 			}
 			return _appSession;
 		}
@@ -161,7 +162,7 @@ public class ConvergedSessionManager extends HashSessionManager
 		{
 			 super.doInvalidate();
 			 if (_appSession != null)
-				 _appSession.getAppSession().removeHttpSession(this);
+				 _appSession.getAppSession().removeSession(this);
 		}
 	}
 	

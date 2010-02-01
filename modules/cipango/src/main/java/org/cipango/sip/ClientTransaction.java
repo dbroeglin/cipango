@@ -32,17 +32,11 @@ import org.mortbay.log.Log;
 
 public class ClientTransaction extends Transaction 
 {
-	private static final long serialVersionUID = 1L;
-
 	private long _aDelay = __T1;
     private long _eDelay = __T1;
     
     private ClientTransactionListener _listener;
     private SipRequest _pendingCancel;
-    
-    private int _transport = -1;
-    private InetAddress _address;
-    private int _port;
     
     private boolean _canceled = false;
     
@@ -69,7 +63,7 @@ public class ClientTransaction extends Transaction
 		}
 		try 
         {
-			getServer().getTransportManager().send(ack, _transport, _address, _port);
+			getServer().getConnectorManager().send(ack, getConnection());
 		} 
         catch (IOException e) 
         {
@@ -105,11 +99,9 @@ public class ClientTransaction extends Transaction
 	private ClientTransaction doCancel(SipRequest cancel)
 	{
 		ClientTransaction cancelTx = new ClientTransaction(cancel, _listener, cancel.getTopVia().getBranch());
-		cancelTx._transport = _transport;
-		cancelTx._address = _address;
-		cancelTx._port = _port;
+		cancelTx.setConnection(getConnection());
 		
-		cancel.getCall().addClientTx(cancelTx);
+		cancel.getCallSession().addClientTransaction(cancelTx);
 		
 		try 
         {
@@ -124,9 +116,9 @@ public class ClientTransaction extends Transaction
 
 	private void doSend() throws IOException 
     {
-		if (_transport != -1)
+		if (getConnection() != null)
 		{
-			getServer().getTransportManager().send(_request, _transport, _address, _port); // TODO EP
+			getServer().getConnectorManager().send(_request, getConnection()); 
 		}
 		else 
 		{
@@ -145,26 +137,26 @@ public class ClientTransaction extends Transaction
 			
 			SipURI target = (SipURI) uri;
 			
-			_address = InetAddress.getByName(target.getHost()); // TODO 3263
-			_transport = SipConnectors.getOrdinal(target.getTransportParam()); // TODO opt
+			InetAddress address = InetAddress.getByName(target.getHost()); // TODO 3263
+			int transport = SipConnectors.getOrdinal(target.getTransportParam()); // TODO opt
 			
-			if (_transport == -1) 
-				_transport = SipConnectors.UDP_ORDINAL;
+			if (transport == -1) 
+				transport = SipConnectors.UDP_ORDINAL;
 			
-			_port = target.getPort();
-			if (_port == -1) 
-				_port = SipConnectors.getDefaultPort(_transport);
+			int port = target.getPort();
+			if (port == -1) 
+				port = SipConnectors.getDefaultPort(transport);
 		
 
 			Via via = new Via(SipVersions.SIP_2_0, null, null);
 			via.setBranch(getBranch());
 			_request.pushVia(via);
 			
-			getServer().getTransportManager().send(
+			getServer().getConnectorManager().send(
 					_request,
-					_transport,
-					_address,
-					_port);
+					transport,
+					address,
+					port);
 		}
 	}
 	
@@ -198,7 +190,7 @@ public class ClientTransaction extends Transaction
 	
 	public boolean isTransportReliable()
 	{
-		return SipConnectors.isReliable(_transport);
+		return getConnection().getConnector().isReliable();
 	}
 	
 	public void handleResponse(SipResponse response) 
@@ -315,7 +307,7 @@ public class ClientTransaction extends Transaction
 	protected void terminated() 
     {
 		setState(STATE_TERMINATED);
-		getCall().removeClientTx(this); 
+		getCallSession().removeClientTransaction(this); 
     }
 	
 	public void timeout(int id) 
@@ -386,20 +378,5 @@ public class ClientTransaction extends Transaction
 		SipResponse responseB = new SipResponse(_request, SipServletResponse.SC_REQUEST_TIMEOUT, null);
 		responseB.setToTag(ID.newTag());
 		return responseB;
-	}
-	
-	public int getTransport()
-	{
-		return _transport;
-	}
-	
-	public InetAddress getAddress()
-	{
-		return _address;
-	}
-	
-	public int getPort()
-	{
-		return _port;
 	}
 }

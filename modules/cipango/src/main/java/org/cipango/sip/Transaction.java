@@ -16,16 +16,14 @@ package org.cipango.sip;
 
 import java.io.Serializable;
 
-import org.cipango.Call;
+import org.cipango.CallSession;
 import org.cipango.SipRequest;
 import org.cipango.Server;
-import org.cipango.Call.TimerTask;
+import org.cipango.util.TimerTask;
 import org.mortbay.log.Log;
 
-public abstract class Transaction implements Serializable
+public abstract class Transaction
 {
-	private static final long serialVersionUID = 1L;
-
 	public static final int STATE_UNDEFINED  = 0;
     public static final int STATE_CALLING    = 1;
     public static final int STATE_TRYING     = 2;
@@ -72,13 +70,15 @@ public abstract class Transaction implements Serializable
     private String _branch;
     private String _key;
     protected SipRequest _request;
-    protected Call _call;
+    protected CallSession _callSession;
     protected boolean _cancel;
+    
+    private SipConnection _connection;
     
     public Transaction(SipRequest request, String branch)
     {
         _request = request;
-        _call = request.getCall();
+        _callSession = request.getCallSession();
         _branch = branch;
         _cancel = request.isCancel();
             
@@ -86,12 +86,22 @@ public abstract class Transaction implements Serializable
         request.setTransaction(this);
     }
     
-    public void setCall(Call call)
+    protected Transaction() { }
+    
+    public void setCallSession(CallSession callSession)
     {
-    	_call = call;
+    	_callSession = callSession;
     }
     
-    protected Transaction() { }
+    public SipConnection getConnection()
+    {
+    	return _connection;
+    }
+    
+    public void setConnection(SipConnection connection)
+    {
+    	_connection = connection;
+    }
     
     public boolean isInvite() 
     {
@@ -137,15 +147,15 @@ public abstract class Transaction implements Serializable
     {
     	TimerTask timerTask = _timers[timer];
     	if (timerTask != null)
-    		_call.cancel(timerTask);
-    	_timers[timer] = _call.schedule(new Timer(timer), delay);
+    		_callSession.cancel(timerTask);
+    	_timers[timer] = _callSession.schedule(new Timer(timer), delay);
     }
     
     public void cancelTimer(int timer) 
     {
     	TimerTask timerTask = _timers[timer];
     	if (timerTask != null)
-    		_call.cancel(timerTask);
+    		_callSession.cancel(timerTask);
     	_timers[timer] = null;
     }
     
@@ -153,7 +163,7 @@ public abstract class Transaction implements Serializable
     
     public Server getServer() 
     {
-        return getCall().getServer();
+        return getCallSession().getServer();
     }
     
     public String getBranch() 
@@ -161,17 +171,15 @@ public abstract class Transaction implements Serializable
         return _branch;
     }
     
-    public Call getCall() 
+    public CallSession getCallSession() 
     {
-        return _call;
+        return _callSession;
     }
     
     public abstract void timeout(int id);
     
-    class Timer implements Runnable, Serializable
+    class Timer implements Runnable
     {
-		private static final long serialVersionUID = 1L;
-	
 		private int _timer;
     	
     	public Timer(int timer)

@@ -14,8 +14,6 @@
 
 package org.cipango;
 
-import java.net.InetAddress;
-
 import org.cipango.deployer.SipAppDeployer;
 import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sip.SipConnector;
@@ -74,7 +72,7 @@ public class Main
 	        udp.setHost(host); tcp.setHost(host);
 	        udp.setPort(port); tcp.setPort(port);
 	        
-	        server.getTransportManager().setConnectors(new SipConnector[] {udp, tcp});
+	        server.getConnectorManager().setConnectors(new SipConnector[] {udp, tcp});
 			
 	        Connector connector=new SocketConnector();
 	        connector.setPort(8080);

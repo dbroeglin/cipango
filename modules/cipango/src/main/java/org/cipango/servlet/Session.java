@@ -20,7 +20,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,13 +42,12 @@ import javax.servlet.sip.SipSessionBindingEvent;
 import javax.servlet.sip.SipSessionBindingListener;
 import javax.servlet.sip.SipSessionEvent;
 import javax.servlet.sip.SipSessionListener;
-import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.Call;
+import org.cipango.CallSession;
 import org.cipango.NameAddr;
 import org.cipango.Server;
 import org.cipango.SipException;
@@ -59,8 +57,6 @@ import org.cipango.SipMethods;
 import org.cipango.SipParams;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
-import org.cipango.Call.TimerTask;
-import org.cipango.servlet.Session.ServerInvite.ReliableContext;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ClientTransactionListener;
 import org.cipango.sip.ServerTransaction;
@@ -68,17 +64,15 @@ import org.cipango.sip.ServerTransactionListener;
 import org.cipango.sip.SipConnectors;
 import org.cipango.sip.Transaction;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.sipapp.SipXmlConfiguration;
 import org.cipango.util.ID;
 import org.cipango.util.ReadOnlyAddress;
+import org.cipango.util.TimerTask;
 import org.cipango.util.concurrent.AppSessionLockProxy;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
-public class Session implements SessionIf, ClientTransactionListener, ServerTransactionListener, Serializable, Cloneable
-{	
-	private static final long serialVersionUID = 1L;
-    
+public class Session implements SessionIf, ClientTransactionListener, ServerTransactionListener, Cloneable
+{	    
 	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
     private long _created = System.currentTimeMillis();
@@ -89,44 +83,36 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     private State _state = State.INITIAL;
     
     private boolean _valid = true;
+    private boolean _invalidateWhenReady = true;
 
+    private String _callId;
     private NameAddr _localParty;
     private NameAddr _remoteParty;
-    
+
     private URI _remoteTarget;
-    private String _callId;
     private long _localCSeq = 1;
     private long _remoteCSeq = -1;
     private LinkedList _routeSet;
-    private boolean _secure;
-    private boolean _invalidateWhenReady;
-    // true if it is acting as a non-record-routing proxy or if the SipSession
-    // acting as a UAC transitions from the EARLY state back to the INITIAL 
-    // state on account of receiving a non-2xx final response.
-    // 'May' term refers to the fact that there could be pending transactions
-    private boolean _mayReadyToInvalidate = false;
-    private boolean _invokingServlet = false;
+    private boolean _secure = false;
     
     private int _rseq = 1;
     
-    private Map<String, Object> _attributes;
-    
     private AppSession _appSession;
     private String _linkedSessionId;
-    private transient SipServletHolder _handler;
-    private String _handlerName;
-
-    private transient Object _invites;
-    private transient Object _cinvites;
+    private SipServletHolder _handler;
     
     private URI _subscriberURI;
     private SipApplicationRoutingRegion _region;
+    
+    private Map<String, Object> _attributes;
+    
+    private Object _serverInvites;
+    private Object _clientInvites;
     
 	public Session(AppSession appSession, String id)
     {
         _appSession = appSession;
         _id = id;
-        _invalidateWhenReady = appSession.getContext().getSpecVersion() != SipXmlConfiguration.VERSION_10; // TODO
 	}
 
 	public Session(AppSession appSession, String id, String callId, NameAddr local, NameAddr remote) 
@@ -147,12 +133,12 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		checkValid();
 		
 		if (method.equals(SipMethods.ACK) || method.equals(SipMethods.CANCEL))
-			throw new IllegalArgumentException("Method " + method + " not allowed here");
+			throw new IllegalArgumentException("Request method " + method + " is not allowed");
 		
-		// TODO throws java.lang.IllegalStateException - if this SipSession is in the INITIAL 
+		// TODO throw java.lang.IllegalStateException - if this SipSession is in the INITIAL 
 		// state and there is an ongoing transaction 
 		if (_state == State.TERMINATED)
-			throw new IllegalStateException("In state TERMINATED");
+			throw new IllegalStateException("Cannot create request in terminated state");
 		
 		return createRequest(method, _localCSeq++);
 	}
@@ -256,6 +242,10 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public void invalidate() 
     {
 		checkValid();
+		
+		if (Log.isDebugEnabled())
+			Log.debug("invalidating SipSession: " + this);
+		
 		_valid = false;
 		_appSession.removeSession(this);
 	}
@@ -330,8 +320,10 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     {
 		checkValid();
 		
-        SipServletHolder handler = findHandler(name);
-        if (handler == null)
+		SipAppContext context = _appSession.getContext();
+		SipServletHolder handler = context.getSipServletHandler().getHolder(name);
+		
+		if (handler == null)
             throw new ServletException("No handler named " + name);
         
         setHandler(handler);
@@ -398,7 +390,14 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	 */
 	public boolean isReadyToInvalidate()
 	{
-		return isReadyToInvalidate(true);
+		checkValid();
+
+		if (_state == State.TERMINATED)
+			return true;
+		else if (isUA() && _state == State.INITIAL)
+			return !hasTransactions();
+
+		return false;
 	}
 	
 	/**
@@ -421,9 +420,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
     // ======================= non-API methods ============================
 	
-	public Call getCall()
+	public CallSession getCallSession()
     {
-        return _appSession.getCall();
+        return _appSession.getCallSession();
     }
 	
 	protected void setId(String id)
@@ -442,13 +441,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		if (!_valid) 
 			throw new IllegalStateException("Session has been invalidated");
 	}
-	
-	private SipServletHolder findHandler(String name)
-	{
-		SipAppContext context = _appSession.getContext();
-        SipServletHolder handler = context.getSipServletHandler().getHolder(name);
-        return handler;
-	}
    
 	protected void bindValue(String name, Object value)
 	{
@@ -464,7 +456,8 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
     public Address getContact()
     {
-        Address addr = getServer().getTransportManager().getContact(SipConnectors.TCP_ORDINAL);
+        Address addr = getServer().getConnectorManager().getContact(SipConnectors.TCP_ORDINAL); // TODO
+        addr.getURI().setParameter(ID.APP_SESSION_ID_PARAMETER, _appSession.getAppId());
         //((SipURI) addr.getURI()).setParameter("transport", "tcp");
         return addr;
     }
@@ -575,9 +568,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         
         if (response.needsContact()) 
         {
-            Address contact = getServer().getTransportManager().getContact(
-                    SipConnectors.getOrdinal(SipConnectors.TCP));
-            response.setContact(contact);
+            response.setContact(getContact());
         }
         
         if (response.isInvite())
@@ -606,28 +597,28 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         }
         
         if (response.isSendOutsideTx())
-        	getServer().getTransportManager().send(response, (SipRequest) response.getRequest());
+        	getServer().getConnectorManager().send(response);
         else
         	tx.send(response);
 	}
 	
 	private ClientInvite getClientInvite(long cseq, boolean create)
 	{
-		for (int i = LazyList.size(_cinvites); i-->0;)
+		for (int i = LazyList.size(_clientInvites); i-->0;)
         {
-            ClientInvite invite = (ClientInvite) LazyList.get(_cinvites, i);
+            ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
             if (invite.getCSeq() == cseq)
                 return invite;
         }
         if (create)
         {
         	final ClientInvite invite = new ClientInvite(cseq);
-            _cinvites = LazyList.add(_cinvites, invite);
-            getCall().schedule(new Runnable() {
+        	_clientInvites = LazyList.add(_clientInvites, invite);
+            getCallSession().schedule(new Runnable() {
 
 				public void run()
 				{
-					_cinvites = LazyList.remove(_cinvites, invite);
+					_clientInvites = LazyList.remove(_clientInvites, invite);
 				}
 				
 			}, 64 * Transaction.__T1);
@@ -636,44 +627,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         return null;
 	}
 	
-    private ServerInvite getServerInvite(long cseq, boolean create)
-    {
-        for (int i = LazyList.size(_invites); i-->0;)
-        {
-            ServerInvite invite = (ServerInvite) LazyList.get(_invites, i);
-            if (invite.getCSeq() == cseq)
-                return invite;
-        }
-        if (create)
-        {
-            final ServerInvite invite = new ServerInvite(cseq);
-            _invites = LazyList.add(_invites, invite);
-            getCall().schedule(new Runnable() {
-
-				public void run()
-				{
-					_invites = LazyList.remove(_invites, invite);
-				}
-				
-			}, 64 * Transaction.__T1);
-            return invite;     
-        }
-        return null;
-    }
-    
-    private ServerInvite removeServerInvite(long cseq)
-    {
-        for (int i = LazyList.size(_invites); i-->0;)
-        {
-            ServerInvite invite = (ServerInvite) LazyList.get(_invites, i);
-            if (invite.getCSeq() == cseq)
-            {
-                _invites = LazyList.remove(_invites, i);
-                return invite;
-            }
-        }
-        return null;
-    }
+   
     
 	private void access() 
     {
@@ -757,14 +711,14 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		if (request.isInitial()) 
         {
 			if (Log.isDebugEnabled())
-                Log.debug("{} initial request {}", this, request);
+                Log.debug("initial request {} for session {}", request.getRequestLine(), this);
 			
 			invokeServlet(request);
 		} 
         else 
         {
             if (Log.isDebugEnabled())
-                Log.debug("{} subsequent request {}", this, request);
+                Log.debug("subsequent request {} for session {}", request.getRequestLine(), this);
             
 			access();
             
@@ -784,15 +738,14 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 					setRemoteTarget(request);
                 
                 if (request.isPrack())
-                {
+                {/*
                     String s = request.getHeader(SipHeaders.RACK);
                     
                     if (s == null)
                     {
                         try 
                         {
-                            request.createResponse(SipServletResponse.SC_BAD_REQUEST, 
-                                    "Out of order request").send(); // TODO ex
+                            request.createResponse(SipServletResponse.SC_BAD_REQUEST, "Missing Rack header").send(); // TODO ex
                         } 
                         catch (Throwable _) { }
                         return;
@@ -813,6 +766,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
                         reliable.prack();
                     else 
                         throw new SipException(SipServletResponse.SC_CALL_LEG_DONE, "No matching provisional response");
+               		*/
                 }
                 else if (request.isAck())
                 {
@@ -850,46 +804,37 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
     public void handleCancel(ServerTransaction tx, SipRequest cancel)
     {
-    	try 
-    	{
-    		// On CANCEL reception, the session is in the state "ready to invalidate" before 
-    		// invoking servlet. Set _invokingServlet to true here prevent invalidation too early.
-    		_invokingServlet = true;
-	        cancel.setSession(this);
-	        synchronized (tx) 
-	        {
-	            if (tx.getState() > Transaction.STATE_PROCEEDING) 
-	            {
-	                Log.debug("Late CANCEL, ignoring"); // TODO invoke ?
-	            } 
-	            else 
-	            {
-	                try 
-	                {
-	                    tx.getRequest().createResponse(SipServletResponse.SC_REQUEST_TERMINATED).send();
-	                } 
-	                catch (Exception e) 
-	                {
-	                    Log.debug("Failed to cancel request", e);
-	                }
-	                setState(State.TERMINATED);
-	            }
-	        }
-	        
-	        try 
-	        {
-	            invokeServlet(cancel);
-	        } 
-	        catch (Exception e)
-	        {
-	            Log.debug(e);
-	        }
-    	}
-    	finally
-    	{
-    		_invokingServlet = false;
-    	}
-    } 
+		cancel.setSession(this);
+        synchronized (tx) 
+        {
+            if (tx.getState() > Transaction.STATE_PROCEEDING) 
+            {
+                Log.debug("Late CANCEL, ignoring"); // TODO invoke ?
+            } 
+            else 
+            {
+                try 
+                {
+                    tx.getRequest().createResponse(SipServletResponse.SC_REQUEST_TERMINATED).send();
+                } 
+                catch (Exception e) 
+                {
+                    Log.debug("Failed to cancel request", e);
+                }
+                setState(State.TERMINATED);
+            }
+        }
+        
+        try 
+        {
+            invokeServlet(cancel);
+        } 
+        catch (Exception e)
+        {
+            Log.debug(e);
+        }
+    }
+     
 
 	public void handleResponse(SipResponse response) 
     {
@@ -949,8 +894,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
                     _remoteCSeq = -1;
                     _routeSet = null;
                     _secure = false;
-
-                    setMayReadyToInvalidate(true);
                 }
             }
         }
@@ -975,7 +918,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	        		try 
 	        		{
 	        			ClientTransaction ct = invite.getAck();
-	        			getServer().getTransportManager().send(ct.getRequest(), ct.getTransport(), ct.getAddress(), ct.getPort());
+	        			getServer().getConnectorManager().send(ct.getRequest(), ct.getConnection());
 	        		}
 	        		catch (Exception e)
 	        		{
@@ -1008,7 +951,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         	invokeServlet(response);
 	}
 	
-	protected void setRemoteTarget(SipMessage message) 
+	protected void setRemoteTarget(SipMessage message)
     {
 		try 
         {
@@ -1033,29 +976,19 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     {
         try 
         {
-        	_invokingServlet = true;
-            //getServer().handle(response);
         	_appSession.getContext().handle(response);
         } 
         catch (Exception e)
         {
             Log.debug(e);
         }
-        finally
-        {
-        	_invokingServlet = false;
-            checkReadyToInvalidate();
-        }
-
     }
 	
 	public void invokeServlet(SipRequest request) throws SipException
     { 
 		try 
         {
-			_invokingServlet = true;
 			_appSession.getContext().handle(request);
-			//getServer().handle(request);
 		} 
         catch (TooManyHopsException e) 
         {
@@ -1065,24 +998,16 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         {
             throw new SipException(SipServletResponse.SC_SERVER_INTERNAL_ERROR, t);
 		}
-        finally
-        {
-        	_invokingServlet = false;
-            checkReadyToInvalidate();
-        }
 	}
 	
 	public SipServletHolder getHandler() 
     {
-		if (_handler == null && _handlerName != null)
-			_handler = findHandler(_handlerName);
 		return _handler;
 	}
 	
 	public void setHandler(SipServletHolder handler) 
     {
-		this._handler = handler;
-		_handlerName = _handler.getName();
+		_handler = handler;
 	}
 	
 	public AppSession appSession()
@@ -1092,7 +1017,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
 	public Server getServer()
 	{
-		return _appSession.getCall().getServer();
+		return _appSession.getCallSession().getServer();
 	}
 	
 	public String toString() 
@@ -1110,6 +1035,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public List<SipServletResponse> getUncommitted200(UAMode mode)
 	{
 		List<SipServletResponse> list = null;
+		/*
 		if (mode == UAMode.UAS)
 		{
 			for (int i = LazyList.size(_invites); i-->0;)
@@ -1136,11 +1062,10 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	            }
 	        }
 		}
-
+		*/
         return list;
 	}
 	
-
 	public void setSubscriberURI(URI uri)
 	{
 		_subscriberURI = uri;
@@ -1151,40 +1076,23 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		_region = region;
 	}
 	
-	public boolean isReadyToInvalidate(boolean checkLinkedSession)
+	public boolean hasTransactions()
 	{
-		checkValid();
-
-		Session linkedSession = getLinkedSession();
-		if ((_state == State.TERMINATED || _mayReadyToInvalidate) 
-				&& !getCall().hasRunningTransactions(this)
-				&& (!checkLinkedSession || linkedSession == null || linkedSession.isReadyToInvalidate(false)))
-			return true;
-		
-		return false;
+		return getCallSession().hasActiveTransactions(this);
 	}
 
-	public void checkReadyToInvalidate()
+	public void invalidateIfReady()
 	{
-		if (isValid() && _invalidateWhenReady && isReadyToInvalidate() && !_invokingServlet)
-		{
-			Session linkedSession = getLinkedSession();
-			
-			SipSessionListener[] listeners = appSession().getContext().getSipSessionListeners();
+		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate())
+		{			
+			SipAppContext context = _appSession.getContext();
+			SipSessionListener[] listeners = context.getSipSessionListeners();
 			if (listeners.length > 0)
-				appSession().fireEvent(listeners, AppSession.__sessionReadyToInvalidate, new SipSessionEvent(this));
+				context.fire(listeners, AppSession.__sessionReadyToInvalidate, new SipSessionEvent(this));
 			
-			if (_invalidateWhenReady && isValid())
+			if (getInvalidateWhenReady() && isValid())
 				invalidate();
-			
-			if (linkedSession != null)
-				linkedSession.checkReadyToInvalidate();
 		}
-	}
-	
-	public void setMayReadyToInvalidate(boolean ready)
-	{
-		_mayReadyToInvalidate = ready;
 	}
 	
 	public Session getLinkedSession()
@@ -1236,14 +1144,47 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		return clone;
 	}
 	
+	 private ServerInvite getServerInvite(long cseq, boolean create)
+	    {
+	    	for (int i = 0; i < LazyList.size(_serverInvites); i++)
+	    	{
+	    		ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
+	    		if (invite.getCSeq() == cseq)
+	    			return invite;
+	    	}
+	    	if (create)
+	    	{
+	    		ServerInvite invite = new ServerInvite(cseq);
+	    		_serverInvites = LazyList.add(_serverInvites, invite);
+	    		
+	    		if (Log.isDebugEnabled())
+	    			Log.debug("added server invite context for cseq: " + cseq);
+	    		return invite;
+	    	}
+	    	return null;    
+	    }
+	    
+	    private ServerInvite removeServerInvite(long cseq)
+	    {
+	        for (int i = LazyList.size(_serverInvites); i-->0;)
+	        {
+	            ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
+	            if (invite.getCSeq() == cseq)
+	            {
+	            	_serverInvites = LazyList.remove(_serverInvites, i);
+	            	
+	            	if (Log.isDebugEnabled())
+	            		Log.debug("removed server invite context for cseq: " + cseq);
+	                return invite;
+	            }
+	        }
+	        return null;
+	    }
+	    
 	class ClientInvite implements Serializable
 	{
-
 		private ClientTransaction _ack;
-
 		private SipResponse _2xx;
-
-		
 		private long _cseq = -1;
 		
 		public ClientInvite(long cseq)
@@ -1260,7 +1201,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		{
 			return _ack;
 		}
-
 				
 		public void setAck(ClientTransaction ack)
 		{
@@ -1276,216 +1216,187 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		{
 			return _2xx;
 		}
-		
 	}
 	
-    class ServerInvite implements Serializable
-    {
-        private long _cseq = -1;
-        private Object _reliables;
-        
-        private SipResponse _2xx;
-        
-        private long _timerValue = Transaction.__T1;
-        private long _startRetransmit;
-        
-        private TimerTask _2xxTimer;
-        
-        class ReliableContext implements Serializable
-        {
-            private SipResponse _response;
-            private long _timerValue = Transaction.__T1;
-            
-            private TimerTask _retransTimer;
-            private TimerTask _prackTimer;
-            
-            public ReliableContext(SipResponse response)
-            {
-                _response = response;
-            }
-            
-            public void startTimer()
-            {
-                _retransTimer = getCall().schedule(new RetransReliableTask(this), _timerValue);
-                _prackTimer = getCall().schedule(new WaitPrackTask(this), 64 * Transaction.__T1);
-            }
-            
-            public void prack()
-            {
-               stopRetrans();
-               if (_prackTimer != null)
-                   getCall().cancel(_prackTimer);
-            }
-            
-            public void stopRetrans()
-            {
-                _response = null;
-                if (_retransTimer != null)
-                	getCall().cancel(_retransTimer);
-            }
-            
-            public void noPrack()
-            {
-                if (_retransTimer != null)
-                    getCall().cancel(_retransTimer);
-                
-                if (_response != null)
-                {
-                    removeReliable(_response.getRSeq());             
-                    _appSession.noPrack(_response.getRequest(), _response);
-                    _response = null;
-                }
-            }
-            
-            public void retransmit()
-            {
-                System.out.println(new Date() + "  >>timeout");
-                if (_response != null)
-                {
-                    ServerTransaction stx = (ServerTransaction) _response.getTransaction();
-                    if (stx.getState() == Transaction.STATE_PROCEEDING)
-                    {
-                        stx.send(_response);
-                        _timerValue = _timerValue * 2;
-                        
-                        _retransTimer = getCall().schedule(new RetransReliableTask(this), _timerValue);
-                        System.out.println("next in " + _timerValue);
-                    }
-                }
-            }
-        }
-        
-        public ServerInvite(long cseq)
-        {
-            _cseq = cseq;
-        }
-        
-        public long getCSeq()
-        {
-            return _cseq;
-        }
-        
-        public void addReliable1xx(SipResponse response)
-        {
-            ReliableContext reliable = new ReliableContext(response);
-            _reliables = LazyList.add(_reliables, reliable);
-            reliable.startTimer();
-        }
-        
-        public void set2xx(SipResponse response)
-        {
-            _2xx = response;
-            
-            for (int i = LazyList.size(_reliables); i-->0;)
-            {
-                ReliableContext reliable = (ReliableContext) LazyList.get(_reliables, i);
-                reliable.stopRetrans();
-            }
-            
-            _startRetransmit = System.currentTimeMillis();           
-            _2xxTimer = getCall().schedule(new Retrans2xxTask(this), _timerValue);
-        }
-        
-        public void retransmit2xx()
-        {
-            if (_2xx != null)
-            {
-                long now = System.currentTimeMillis();
-                if (now - _startRetransmit >= 64 * Transaction.__T1)
-                {
-                    removeServerInvite(_cseq);
-                    _appSession.noAck(_2xx.getRequest(), _2xx);
-                }
-                else 
-                {
-                    try 
-                    {
-                        getServer().getTransportManager().send(_2xx, (SipRequest) _2xx.getRequest());
-                    }
-                    catch (Exception e)
-                    {
-                        Log.warn(e);
-                    }
-                    _timerValue = Math.min(_timerValue * 2, Transaction.__T2);
-                    _timerValue = Math.min(_timerValue, _startRetransmit + 64 * Transaction.__T1 - now);
-                    
-                    _2xxTimer = getCall().schedule(new Retrans2xxTask(this), _timerValue);
-                }
-            }
-        }
-        
-        public void ack()
+	class ServerInvite
+	{
+		private static final int TIMER_RETRANS_2XX = 0;
+		private static final int TIMER_WAIT_ACK = 1;
+			    
+	    private long _cseq;
+		private SipResponse _2xx;
+		private Object _reliable1xxs;
+		
+        private long _timer2xxValue = Transaction.__T1;
+
+		private TimerTask[] _timers = new TimerTask[2];
+		
+		public ServerInvite(long cseq)
+		{
+			_cseq = cseq;
+		}
+		
+		public void set2xx(SipResponse response)
+		{
+			_2xx = response;
+			
+			for (int i = 0; i < LazyList.size(_reliable1xxs); i++)
+			{
+				Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(_reliable1xxs, i);
+				reliable1xx.stopRetrans();
+				
+			}
+			_timers[TIMER_RETRANS_2XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_2XX), _timer2xxValue);
+			_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64 * Transaction.__T1);
+		}
+		
+		public void ack()
         {
             _2xx = null;
-            if (_2xxTimer != null)
-            {
-                getCall().cancel(_2xxTimer);
-                _2xxTimer = null;
-            }
+            cancelTimer(TIMER_RETRANS_2XX);
+            cancelTimer(TIMER_WAIT_ACK);
         }
-        
-        public ReliableContext removeReliable(int rseq)
-        {
-            for (int i = LazyList.size(_reliables); i-->0;)
-            {
-                ReliableContext reliable = (ReliableContext) LazyList.get(_reliables, i);
-                SipResponse response = reliable._response;
-                
-                if (response.getRSeq() == rseq)
-                {
-                    _reliables = LazyList.remove(_reliables, i);
-                    return reliable;
-                }
-            }
-            return null;
-        }
-    }
-
-    class Retrans2xxTask implements Runnable, Serializable
-    {
-        private ServerInvite _invite;
-         
-        public Retrans2xxTask(ServerInvite invite)
-        {
-            _invite = invite;
-        }
-        
-        public void run()
-        {
-            _invite.retransmit2xx();
-        }
-    }
-	
-    class RetransReliableTask implements Runnable, Serializable
-    {
-        private ReliableContext _reliable;
-        
-        public RetransReliableTask(ReliableContext reliable)
-        {
-            _reliable = reliable;
-        }
-        
-        public void run()
-        {
-            _reliable.retransmit();
-        }
-    }
-    
-    class WaitPrackTask implements Runnable, Serializable
-    {
-        private ReliableContext _reliable;
-        
-        public WaitPrackTask(ReliableContext reliable)
-        {
-            _reliable = reliable;
-        }
-        
-        public void run()
-        {
-            _reliable.noPrack();
-        }
-    }
-
-
-	
+		
+		protected void cancelTimer(int id)
+		{
+			TimerTask timer = _timers[id];
+            if (timer != null)
+            	getCallSession().cancel(timer);
+            _timers[id] = null;
+		}
+		
+		public void addReliable1xx(SipResponse response)
+		{
+			Reliable1xx reliable1xx = new Reliable1xx(response);
+			_reliable1xxs = LazyList.add(_reliable1xxs, reliable1xx);
+			reliable1xx.start();
+		}
+		
+		public void removeReliable1xx(Reliable1xx reliable1xx)
+		{
+			_reliable1xxs = LazyList.remove(_reliable1xxs, reliable1xx);
+		}
+		
+		public long getCSeq()
+		{
+			return _cseq;
+		}
+		
+		public void timeout(int id)
+		{
+			switch (id) 
+			{
+			case TIMER_RETRANS_2XX:
+				if (_2xx != null)
+				{
+					try
+					{
+						getServer().getConnectorManager().send(_2xx);
+					}
+					catch (Exception e)
+					{
+						Log.debug(e);
+					}
+					_timer2xxValue = Math.min(_timer2xxValue*2, Transaction.__T2);
+					_timers[TIMER_RETRANS_2XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_2XX), _timer2xxValue);
+				}
+				break;
+				
+			case TIMER_WAIT_ACK:
+				cancelTimer(TIMER_RETRANS_2XX);
+				// remove server invite
+				_appSession.noAck(_2xx.getRequest(), _2xx);
+				break;
+			default:
+				throw new IllegalStateException("unknown timer " + id);
+			}
+		}
+		
+		class Timer implements Runnable
+		{
+			private int _id;
+			
+			public Timer(int id) { _id = id; }
+			public void run() { timeout(_id); }
+			public String toString() { return _id == TIMER_RETRANS_2XX ? "retrans-2xx" : "wait-ack"; }
+		}
+		
+		class Reliable1xx
+		{
+			private static final int TIMER_RETRANS_1XX = 0;
+			private static final int TIMER_WAIT_PRACK = 1;
+						
+			private TimerTask[] _timers = new TimerTask[2];
+			
+			private SipResponse _1xx;
+			private long _1xxRetransDelay = Transaction.__T1;
+			
+			public Reliable1xx(SipResponse response)
+			{
+				_1xx = response;
+			}
+			
+			public void start()
+			{
+				_timers[TIMER_RETRANS_1XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_1XX), _1xxRetransDelay);
+				_timers[TIMER_WAIT_PRACK] = getCallSession().schedule(new Timer(TIMER_WAIT_PRACK), 64 * Transaction.__T1);
+			}
+			
+			public void stopRetrans()
+			{
+				cancelTimer(TIMER_RETRANS_1XX);
+			}
+			
+			public void prack()
+			{
+				_1xx = null;
+				cancelTimer(TIMER_RETRANS_1XX);
+				cancelTimer(TIMER_WAIT_PRACK);
+			}
+			
+			protected void cancelTimer(int id)
+			{
+				TimerTask timer = _timers[id];
+	            if (timer != null)
+	            	getCallSession().cancel(timer);
+	            _timers[id] = null;
+			}
+			
+			protected void timeout(int id)
+			{
+				switch (id)
+				{
+				case TIMER_RETRANS_1XX:
+					if (_1xx != null)
+					{
+						ServerTransaction transaction = (ServerTransaction) _1xx.getTransaction();
+						if (transaction.getState() == Transaction.STATE_PROCEEDING)
+						{
+							transaction.send(_1xx);
+							_1xxRetransDelay = _1xxRetransDelay * 2;
+							_timers[TIMER_RETRANS_1XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_1XX), _1xxRetransDelay);
+						}
+					}
+					break;
+				case TIMER_WAIT_PRACK:
+					cancelTimer(TIMER_WAIT_PRACK);
+					if (_1xx != null)
+					{
+						// remove reliable
+						_appSession.noPrack(_1xx.getRequest(), _1xx);
+						_1xx = null;
+					}
+				}
+			}
+			
+			class Timer implements Runnable
+			{
+				private int _id;
+				
+				public Timer(int id) { _id = id; }
+				public void run() { timeout(_id); }
+				public String toString() { return _id == TIMER_RETRANS_1XX ? "retrans-1xx" : "wait-prack"; }
+			}
+		}
+	}
 }

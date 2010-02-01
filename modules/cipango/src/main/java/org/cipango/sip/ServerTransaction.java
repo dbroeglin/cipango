@@ -15,17 +15,14 @@
 package org.cipango.sip;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 import org.cipango.SipHeaders;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.mortbay.log.Log;
 
-public class ServerTransaction extends Transaction implements Serializable
-{
-	private static final long serialVersionUID = 1L;
-	
+public class ServerTransaction extends Transaction
+{	
 	private SipResponse _provisionalResponse;
     private SipResponse _gResponse;
     private SipResponse _finalResponse;
@@ -37,6 +34,8 @@ public class ServerTransaction extends Transaction implements Serializable
 	public ServerTransaction(SipRequest request) 
     {
 		super(request, request.getTopVia().getBranch());
+		setConnection(request.getConnection());
+		
 		if (isInvite()) 
 			setState(STATE_PROCEEDING);
 		else 
@@ -186,12 +185,12 @@ public class ServerTransaction extends Transaction implements Serializable
 	
 	public boolean isTransportReliable()
 	{
-		return SipConnectors.isReliable(_request.transport());
+		return getConnection().getConnector().isReliable();
 	}
 	
 	private void doSend(SipResponse response) throws IOException 
     {
-		getServer().getTransportManager().send(response, _request);
+		getServer().getConnectorManager().send(response);
 	}
 	
 	public void timeout(int id) 
@@ -230,13 +229,6 @@ public class ServerTransaction extends Transaction implements Serializable
     {
 		_provisionalResponse = _finalResponse = _gResponse = null;
         setState(STATE_TERMINATED);
-        getCall().removeServerTx(this);
-    }
-	
-	public void setState(int state) 
-    {
-		super.setState(state);
-        if ((_state == STATE_COMPLETED || state == STATE_TERMINATED) && _request.session() != null)
-        	_request.session().checkReadyToInvalidate();
+        getCallSession().removeServerTransaction(this);
     }
 }

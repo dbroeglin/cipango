@@ -25,42 +25,22 @@ import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
-import javax.servlet.sip.Address;
-import javax.servlet.sip.AuthInfo;
-import javax.servlet.sip.Parameterable;
-import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.ServletTimer;
-import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipApplicationSessionAttributeListener;
-import javax.servlet.sip.SipApplicationSessionListener;
-import javax.servlet.sip.SipErrorListener;
-import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServlet;
-import javax.servlet.sip.SipServletContextEvent;
-import javax.servlet.sip.SipServletListener;
-import javax.servlet.sip.SipServletMessage;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipSessionAttributeListener;
-import javax.servlet.sip.SipSessionListener;
-import javax.servlet.sip.SipSessionsUtil;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.TimerListener;
-import javax.servlet.sip.TimerService;
-import javax.servlet.sip.URI;
+import javax.servlet.sip.*;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.Call;
+import org.cipango.CallSession;
 import org.cipango.NameAddr;
 import org.cipango.ParameterableImpl;
 import org.cipango.Server;
 import org.cipango.SipFields;
+import org.cipango.SipHandler;
 import org.cipango.SipHeaders;
 import org.cipango.SipMethods;
 import org.cipango.SipParams;
 import org.cipango.SipRequest;
 import org.cipango.SipURIImpl;
 import org.cipango.URIFactory;
+import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.http.servlet.ConvergedSessionManager;
 import org.cipango.log.EventLog;
 import org.cipango.security.AuthInfoImpl;
@@ -80,14 +60,16 @@ import org.mortbay.jetty.security.SecurityHandler;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ErrorPageErrorHandler;
 import org.mortbay.jetty.servlet.ServletHandler;
-import org.mortbay.jetty.servlet.ServletHolder;
 import org.mortbay.jetty.servlet.SessionHandler;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
 
-public class SipAppContext extends WebAppContext 
+public class SipAppContext extends WebAppContext implements SipHandler
 {
+	public static final int VERSION_10 = 10;
+	public static final int VERSION_11 = 11;
+	
 	private static final String SIP_CONFIGURATION_CLASS =
     	"org.cipango.sipapp.SipXmlConfiguration";
     
@@ -117,9 +99,7 @@ public class SipAppContext extends WebAppContext
     	public void fireEvent(SipErrorListener listener, SipErrorEvent event) { listener.noPrackReceived(event); }
     };
     */
-    
-	
-	
+
     private String _name;
     
     private TimerListener[] _timerListeners;
@@ -142,7 +122,7 @@ public class SipAppContext extends WebAppContext
     private SipFactory _sipFactory = new Factory();
     private TimerService _timerService = new Timer();
     private SipSessionsUtil _sipSessionsUtil = new SessionUtil();
-    private Method _sipAppKeyMethod;
+    private Method _sipApplicationKeyMethod;
     
     private int _specVersion;
 
@@ -375,7 +355,7 @@ public class SipAppContext extends WebAppContext
 		
 		List<SipURI> outbounds = new ArrayList<SipURI>();
 
-		SipConnector[] connectors = getSipServer().getTransportManager().getConnectors();
+		SipConnector[] connectors = getSipServer().getConnectorManager().getConnectors();
 		
 		if (connectors != null)
 		{
@@ -394,6 +374,13 @@ public class SipAppContext extends WebAppContext
 		{
 			super.startContext();
 	              
+			if (_name == null)
+			{
+				_name = getContextPath();
+				if (_name != null && _name.startsWith("/"))
+					_name = _name.substring(1);	
+			}
+			
 			if (_servletHandler != null && _servletHandler.isStarted())
 	            ((SipServletHandler) _servletHandler).initializeSip();
 		} 
@@ -556,7 +543,6 @@ public class SipAppContext extends WebAppContext
         
     }
     
-    
 	public SipFactory getSipFactory()
 	{
 		return _sipFactory;
@@ -575,30 +561,33 @@ public class SipAppContext extends WebAppContext
 	
 	public String getSipApplicationKey(SipServletRequest request)
 	{
-		if (_sipAppKeyMethod == null)
+		if (_sipApplicationKeyMethod == null)
 			return null;
 		try
 		{
-			return (String) _sipAppKeyMethod.invoke(null, request);
+			return (String) _sipApplicationKeyMethod.invoke(null, request);
 		}
 		catch (Throwable e)
 		{
 			Log.debug("Fail to get SipApplicationKey", e);
 			return null;
 		}
-
 	}
-
-	public void setSipAppKeyMethod(Method sipAppKeyMethod)
+	
+	public Method getSipApplicationKeyMethod()
 	{
-		_sipAppKeyMethod = sipAppKeyMethod;
+		return _sipApplicationKeyMethod;
+	}
+	
+	public void setSipApplicationKeyMethod(Method sipApplicationKeyMethod)
+	{
+		_sipApplicationKeyMethod = sipApplicationKeyMethod;
 	}
 	
     public int getSpecVersion()
 	{
 		return _specVersion;
 	}
-
 
 	public void setSpecVersion(int specVersion)
 	{
@@ -620,10 +609,10 @@ public class SipAppContext extends WebAppContext
         public ServletTimer createTimer(SipApplicationSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info) 
         {
         	return new TimerLockProxy(((AppSessionIf) session).getAppSession(), delay, period, fixedDelay, isPersistent, info);
-        }   
+        }
     }
 
-    public class Factory implements SipFactory 
+    public class Factory implements SipFactory
     {
         private Factory() { }
        
@@ -666,9 +655,9 @@ public class SipAppContext extends WebAppContext
             
             AppSession appSession = ((AppSessionIf) sipAppSession).getAppSession();           
             
-            String cid = getSipServer().getIdManager().newCallId(appSession.getCall().getCallId());
+            String cid = ID.newCallId(appSession.getCallSession().getId());
             
-            Session session = appSession.newUacSession(cid, local, remote); 
+            Session session = appSession.createUacSession(cid, local, remote); 
             session.setHandler(getSipServletHandler().getDefaultServlet());
             
             SipRequest request = (SipRequest) session.createRequest(method);
@@ -716,10 +705,10 @@ public class SipAppContext extends WebAppContext
             if (sameCallId)
                 callId = request.getCallId();
             else 
-                callId = getSipServer().getIdManager().newCallId(request.getCallId());
+                callId = ID.newCallId(request.getCallId());
             
             fields.setString(SipHeaders.CALL_ID, callId);
-            Session session = appsession.newUacSession(callId, from, to);
+            Session session = appsession.createUacSession(callId, from, to);
           
             session.setLocalCSeq(request.getCSeq().getNumber() + 1);
             session.setHandler(getSipServletHandler().getDefaultServlet());
@@ -735,18 +724,19 @@ public class SipAppContext extends WebAppContext
             return request;
         }
         
-        public SipApplicationSession createApplicationSession() 
+        public SipApplicationSession createApplicationSession()
         {
-        	Call call = getSipServer().getCallManager().lock(getSipServer().getIdManager().newCallId());
+        	Server server = getSipServer();
+        	
+        	SessionTransaction transaction = server.getSessionManager().begin(ID.newCallId());
 	        try
 	        {
-	        	AppSession session = call.newSession();
-	        	session.setContext(SipAppContext.this);        	
+	        	AppSession session = transaction.getCallSession().createAppSession(SipAppContext.this, ID.newAppSessionId());
 	        	return new AppSessionLockProxy(session);
 	        }
 	        finally
 	        {
-	        	getSipServer().getCallManager().unlock(call);
+	        	transaction.done();
 	        }
         }
 
@@ -768,18 +758,18 @@ public class SipAppContext extends WebAppContext
 
     class SessionUtil implements SipSessionsUtil
     {
- 
 		public SipApplicationSession getApplicationSessionById(String applicationSessionId)
 		{
 			if (applicationSessionId == null)
 				throw new NullPointerException("applicationSessionId is null");
-			int i = applicationSessionId.indexOf(';'); // TODO helper class
+			
+			int i = applicationSessionId.indexOf(';'); // TODO id helper class
 			if (i < 0) 
 				return null;
 			
 			String callId = applicationSessionId.substring(0, i);
 			
-			Call call = ((Server) getServer()).getCallManager().get(callId);
+			CallSession call = ((Server) getServer()).getSessionManager().get(callId);
 			if (call == null)
 				return null;
 			
@@ -794,6 +784,9 @@ public class SipAppContext extends WebAppContext
 		{
 			if (key == null)
 				throw new NullPointerException("key is null");
+			
+			String cid = getName() + ";" + key;
+			
 			
 			return null;
 		}

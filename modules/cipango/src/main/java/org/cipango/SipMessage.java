@@ -629,7 +629,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		if (isSystemHeader(hi)) 
 			throw new IllegalArgumentException(name + " is a system header");
 
-		_fields.setAddress(buffer, (NameAddr) addr);
+		_fields.setAddress(buffer, addr);
 	}
 	
 	/**

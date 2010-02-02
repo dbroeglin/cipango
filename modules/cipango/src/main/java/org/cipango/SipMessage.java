@@ -95,7 +95,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 * @see SipServletMessage#addAddressHeader(java.lang.String, javax.servlet.sip.Address, boolean)
 	 */
 	public void addAddressHeader(String name, Address address, boolean first) 
-	{	
+	{
 		if (isCommitted())
 			throw new IllegalStateException("Message is committed");
 		
@@ -1086,8 +1086,10 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	{
 		if (_callSession != null)
 			return _callSession;
-		else 
+		else if (_session != null)
 			return _session.getCallSession();
+		else 
+			return null;
 	}
 	
 	public void setCommitted(boolean b) 

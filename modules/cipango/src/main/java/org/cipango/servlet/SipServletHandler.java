@@ -34,7 +34,6 @@ import org.cipango.SipHandler;
 import org.cipango.SipMessage;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipServletMapping;
-import org.cipango.sipapp.SipXmlConfiguration;
 import org.mortbay.jetty.handler.ContextHandler;
 import org.mortbay.jetty.handler.ContextHandler.SContext;
 import org.mortbay.jetty.servlet.ServletHandler;
@@ -183,22 +182,22 @@ public class SipServletHandler extends ServletHandler implements SipHandler
         }
 	}
 	
-	public void initializeSip() throws Exception 
+	public void initializeSip() throws Exception
 	{
 		MultiException mx = new MultiException();
 
-		if (_sipServlets != null) 
+		if (_sipServlets != null)
 		{
 	        // Sort and Initialize servlets
 	        SipServletHolder[] servlets = (SipServletHolder[]) _sipServlets.clone();
 	        Arrays.sort(servlets);
-	        for (int i=0; i<servlets.length; i++) 
+	        for (int i=0; i<servlets.length; i++)
 	        {
-	            try 
+	            try
 	            {
 	                servlets[i].start();
 	            }
-	            catch(Exception e) 
+	            catch(Exception e)
 	            {
 
 	            	Log.debug(Log.EXCEPTION, e);
@@ -209,17 +208,17 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 		}
 	}
 	
-	public SipServletHolder findHolder(SipServletRequest request) 
+	public SipServletHolder findHolder(SipServletRequest request)
 	{
 		if (_mainServlet != null)
 			return _mainServlet;
 		
-		if (_sipServletMappings != null) 
+		if (_sipServletMappings != null)
 		{
-			for (int i = 0; i < _sipServletMappings.length; i++) 
+			for (int i = 0; i < _sipServletMappings.length; i++)
 			{
 				SipServletMapping mapping = _sipServletMappings[i];
-				if (mapping.getMatchingRule().matches(request)) 
+				if (mapping.getMatchingRule().matches(request))
 					return (SipServletHolder) _sipServletNameMap.get(mapping.getServletName());
 			}
 		}
@@ -231,7 +230,7 @@ public class SipServletHandler extends ServletHandler implements SipHandler
         return (SipServletHolder) _sipServletNameMap.get(name);
     }
 	
-	public SipServletHolder[] getSipServlets() 
+	public SipServletHolder[] getSipServlets()
 	{
 		return _sipServlets;
 	}

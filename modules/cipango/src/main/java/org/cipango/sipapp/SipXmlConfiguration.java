@@ -60,8 +60,11 @@ public class SipXmlConfiguration implements Configuration
 		
 		URL dtd10 = SipAppContext.class.getResource("/javax/servlet/sip/resources/sip-app_1_0.dtd");
 		URL sipapp11xsd = SipAppContext.class.getResource("/javax/servlet/sip/resources/sip-app_1_1.xsd");
-        
+        URL javaee5xsd = WebAppContext.class.getResource("/javax/servlet/resources/javaee_5.xsd");
+		
 		xmlParser.redirectEntity("-//Java Community Process//DTD SIP Application 1.0//EN", dtd10);
+		
+		xmlParser.redirectEntity("javaee_5.xsd", javaee5xsd);
 		xmlParser.redirectEntity("sip-app_1_1.xsd", sipapp11xsd);
 		xmlParser.redirectEntity("http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd", sipapp11xsd);
 		
@@ -231,12 +234,7 @@ public class SipXmlConfiguration implements Configuration
         else if("session-config".equals(name))
             initSessionConfig(node);
         else if ("servlet-selection".equals(name))
-        	initMainServlet(node.get("main-servlet"));
-        else if("main-servlet".equals(name))
-        {
-        	initMainServlet(node);
-        	Log.debug("main-servlet node should be a child of servlet-selection node");
-        }
+        	initServletSelection(node);
 	}
 	
     protected void initSessionConfig(XmlParser.Node node)
@@ -479,6 +477,21 @@ public class SipXmlConfiguration implements Configuration
 			catch (Exception e) 
 			{
 				Log.warn("Could not instantiate listener: " + lc, e);
+			}
+		}
+	}
+	
+	public void initServletSelection(XmlParser.Node node)
+	{
+		XmlParser.Node mainServlet = node.get("main-servlet");
+		if (mainServlet != null)
+			_mainServlet = mainServlet.toString(false, true);
+		else
+		{
+			Iterator it = node.iterator("servlet-mapping");
+			while (it.hasNext())
+			{
+				initServletMapping((XmlParser.Node)it.next());
 			}
 		}
 	}

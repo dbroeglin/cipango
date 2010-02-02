@@ -226,7 +226,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 		Address address;
 		try
 		{
-			address =  _fields.getAddress(buffer);
+			address = _fields.getAddress(buffer);
 		}
 		catch (LazyParsingException e)
 		{

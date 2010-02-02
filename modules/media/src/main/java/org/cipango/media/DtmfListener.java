@@ -14,8 +14,20 @@
 
 package org.cipango.media;
 
+/**
+ * This interface defines objects that can interpret DTMF reception.
+ * 
+ * @author yohann
+ */
 public interface DtmfListener {
 
+    /**
+     * This method is invoked on DtmfListener when a new telephone-event
+     * occurs. This DtmfListener is notified of the character typed by
+     * user, i.e. '0' to '9', '*', '#' or 'A' to 'B'.
+     * 
+     * @param event character decoded from incoming RTP packet.
+     */
     public void telephoneEvent(char event);
 
 }

@@ -24,9 +24,13 @@ import org.mortbay.log.Log;
 
 /**
  * Mix mono channel signed 16 bits big endian streams to one stream.
+ * To add input streams to this Mixer, invoke addInputStream with the
+ * corresponding InputStream. This Mixer is a Runnable. It implies that
+ * it requires its own Thread to run. You should first add all your
+ * streams to the Mixer instance and then, start it in a new Thread.
+ * Dynamic streams adding/removal has not been tested yet.
  * 
  * @author yohann
- *
  */
 public class Mixer implements Runnable {
 

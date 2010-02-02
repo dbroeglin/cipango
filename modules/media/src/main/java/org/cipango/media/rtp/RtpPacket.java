@@ -16,6 +16,24 @@ package org.cipango.media.rtp;
 
 import org.mortbay.io.Buffer;
 
+/**
+ * This class represents an RTP packet. An RTP packet contains several
+ * variables about the data it contains:
+ * <ul>
+ *   <li>
+ *     a synchronization source identifier, giving the source "device" of
+ *     this stream,
+ *   </li>
+ *   <li>a sequence number to identify packets order,</li>
+ *   <li>a timestamp, corresponding to capture time</li>
+ *   <li>a payload type, to identify the way packets are encoded,</li>
+ *   <li>a marker, to emphasize important events in RTP stream,</li>
+ *   <li>and a data buffer, implemented as a jetty Buffer.</li>
+ * </ul>
+ * RTPPacket is just a POJO.
+ * 
+ * @author yohann
+ */
 public class RtpPacket
 {
 

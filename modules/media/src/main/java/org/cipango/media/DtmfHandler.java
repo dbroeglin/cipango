@@ -28,6 +28,23 @@ import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 import org.mortbay.log.Log;
 
+/**
+ * This class implements DTMF detection. It analyzes incoming RTP DTMF packets
+ * and invokes a callback on its list of DTMF listeners. To detect a new DTMF,
+ * at least two packets must be received: one without end marker bit set in
+ * telephone-event payload, and one with end marker bit set. Generally, several
+ * packets are sent without end marker bit set: at least one with RTP marker
+ * and several intermediate packets without any marker; and three packets with
+ * end marker bit set in telephone-event payload. Thus, even if several packets
+ * are lost during DTMF transmission, the probability that at least one packet
+ * without end marker and one packet with marker is recveived is very high.
+ * <p>
+ * To receive DTMF notifications, create a class that implements DtmfListener
+ * interface, and add this listener to your DtmfHandler instance with method
+ * addDtmfListener.
+ * 
+ * @author yohann
+ */
 public class DtmfHandler implements Runnable
 {
 
@@ -36,7 +53,7 @@ public class DtmfHandler implements Runnable
     private static final int DEFAULT_PORT = -1;
 
     private int _payloadType;
-    private int _port = DEFAULT_PORT;
+    private int _port = DEFAULT_PORT; 
     private UdpEndPoint _udpEndPoint;
     private RtpCodec _rtpCodec;
     private TelephoneEventCodec _telephoneEventCodec;
@@ -119,11 +136,11 @@ public class DtmfHandler implements Runnable
             char event = _telephoneEventCodec.decode(buffer);
             if (!_active)
             {
-                if ((byte)(buffer.get() & -128) != -128)
+                if ((byte)(buffer.get() & -128) != -128) // no end bit
                     _active = true;
             }
             else
-                if ((byte)(buffer.get() & -128) == -128)
+                if ((byte)(buffer.get() & -128) == -128) // end bit
                 {
                     _active = false;
                     for (DtmfListener dtmfListener: _dtmfListeners)
@@ -157,6 +174,11 @@ public class DtmfHandler implements Runnable
         return _port;
     }
 
+    /**
+     * Adds a DTMF listener to this DTMF handler.
+     * 
+     * @param dtmfListener
+     */
     public void addDtmfListener(DtmfListener dtmfListener)
     {
         _dtmfListeners.add(dtmfListener);

@@ -14,6 +14,16 @@
 
 package org.cipango.media.codecs;
 
+/**
+ * This class provides methods to convert audio samples from linear PCM
+ * to G.711 PCMA or PCMU. The only supported format for input/output PCM
+ * is mono-channel, 8kHz, 16 bits, signed and little-endian. Methods are
+ * also provided for PCMU/PCMA transcoding. Those methods are optimized
+ * for transcoding. Thus, samples are not decoded completly and then
+ * encoded using encoding method.
+ * 
+ * @author yohann
+ */
 public class BasicCodecs {
 
     /* Sign bit for a A-law byte. */

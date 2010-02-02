@@ -16,6 +16,24 @@ package org.cipango.media.codecs;
 
 import org.mortbay.io.Buffer;
 
+/**
+ * This class encodes/decodes telephone-events, also known as DTMF
+ * (Dual Tone Multi-Frequency). Those events are propagated when someone
+ * press a key on its phone. It's based on RFC 4733:
+ *   http://www.ietf.org/rfc/rfc4733.txt
+ * Telephone-event is a payload corresponding to RTP data field encoding.
+ * The following diagram shows the encoding of those events, it's just an
+ * extract from specification:
+ * <pre>
+ *  0                   1                   2                   3
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |     event     |E|R| volume    |          duration             |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * </pre>
+ * 
+ * @author yohann
+ */
 public class TelephoneEventCodec
 {
 
@@ -24,15 +42,7 @@ public class TelephoneEventCodec
     public static final char[] EVENTS = { '0', '1', '2', '3', '4', '5',
         '6', '7', '8', '9', '*', '#', 'A', 'B', 'C', 'D' };
 
-    /*
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |     event     |E|R| volume    |          duration             |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-    
-                     Figure 1: Payload Format for Named Events
-     */
+
     // TODO E, R, volume, duration
     public char decode(Buffer buffer)
     {

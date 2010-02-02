@@ -9,6 +9,11 @@
   <groupId>org.cipango</groupId>
   <artifactId>cipango-media</artifactId>
   <name>Cipango Media</name>
+  <description>
+    Cipango media module provides an API to allow media management for
+    sip application developers. It provides announcement, recording, DTMF
+    detection and mixing.
+  </description>
   
   <build>
     <plugins>

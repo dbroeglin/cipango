@@ -18,7 +18,7 @@ import org.mortbay.io.Buffer;
 
 /**
  * Encodes and decodes RTP packets to/from Buffer.
- * 
+ * <pre>
  *   0                   1                   2                   3
  *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -31,6 +31,7 @@ import org.mortbay.io.Buffer;
  *  |            contributing source (CSRC) identifiers             |
  *  |                             ....                              |
  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  </pre>
  */
 public class RtpCodec 
 {

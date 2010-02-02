@@ -13,9 +13,9 @@
         <param-value>/WEB-INF/kaleo.xml</param-value>
     </context-param>
     
-    <main-servlet>
-        main
-    </main-servlet>
+    <servlet-selection>
+    	<main-servlet>main</main-servlet>
+    </servlet-selection>
 
     <servlet>
         <servlet-name>main</servlet-name>

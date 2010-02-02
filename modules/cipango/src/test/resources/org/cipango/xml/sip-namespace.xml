@@ -4,9 +4,11 @@
      xmlns:javaee="http://java.sun.com/xml/ns/javaee">
   <app-name>org.cipango.kaleo</app-name>
   
+  <servlet-selection>
   <main-servlet>
         main
   </main-servlet>
+  </servlet-selection>
 
   <context-param>
     <javaee:param-name>contextConfigLocation</javaee:param-name>

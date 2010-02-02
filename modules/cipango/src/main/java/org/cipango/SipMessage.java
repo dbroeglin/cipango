@@ -1084,7 +1084,10 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	
 	public CallSession getCallSession()
 	{
-        return _callSession;
+		if (_callSession != null)
+			return _callSession;
+		else 
+			return _session.getCallSession();
 	}
 	
 	public void setCommitted(boolean b) 

@@ -49,6 +49,11 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	private SortedSet<String> _applicationNames = new TreeSet<String>();
 	private boolean _matchOnNewOutgoingRequests;
 
+	public String[] getApplicationNames()
+	{
+		return _applicationNames.toArray(new String[] {});
+	}
+	
 	public void applicationDeployed(List<String> newlyDeployedApplicationNames)
 	{
 		_applicationNames.addAll(newlyDeployedApplicationNames);
@@ -175,6 +180,16 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	{
 		init();
 	}
+	
+	public String getConfiguration()
+	{
+		return _configuration;
+	}
+	
+	public boolean isMatchOnNewOutgoingRequests()
+	{
+		return _matchOnNewOutgoingRequests;
+	}
 
 	static class RouterInfo
 	{
@@ -218,4 +233,6 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 			return _region;
 		}
 	}
+
+
 }

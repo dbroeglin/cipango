@@ -1035,12 +1035,12 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public List<SipServletResponse> getUncommitted200(UAMode mode)
 	{
 		List<SipServletResponse> list = null;
-		/*
+		
 		if (mode == UAMode.UAS)
 		{
-			for (int i = LazyList.size(_invites); i-->0;)
+			for (int i = LazyList.size(_serverInvites); i-->0;)
 	        {
-	            ServerInvite invite = (ServerInvite) LazyList.get(_invites, i);
+	            ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
 	            if (!invite._2xx.isCommitted())
 	            {
 	            	if (list == null)
@@ -1051,9 +1051,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 		}
 		else
 		{
-			for (int i = LazyList.size(_cinvites); i-->0;)
+			for (int i = LazyList.size(_clientInvites); i-->0;)
 	        {
-	            ClientInvite invite = (ClientInvite) LazyList.get(_cinvites, i);
+	            ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
 	            if (invite._2xx != null && !invite._2xx.isCommitted())
 	            {
 	            	if (list == null)
@@ -1062,7 +1062,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	            }
 	        }
 		}
-		*/
+		
         return list;
 	}
 	

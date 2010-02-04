@@ -57,6 +57,12 @@ public class TimerLockProxy implements ServletTimer
 		}
 	}
 	
+	public TimerLockProxy(ServletTimer timer)
+	{
+		_timer = timer;
+		_appSession = (AppSession) timer.getApplicationSession();
+	}
+	
 	protected SessionManager getCallSessionManager()
 	{
 		if (_callManager == null)
@@ -84,7 +90,7 @@ public class TimerLockProxy implements ServletTimer
 
 	public SipApplicationSession getApplicationSession()
 	{
-		return _timer.getApplicationSession();
+		return new AppSessionLockProxy((AppSession) _timer.getApplicationSession());
 	}
 
 	public String getId()
@@ -105,5 +111,23 @@ public class TimerLockProxy implements ServletTimer
 	public long scheduledExecutionTime()
 	{
 		return _timer.scheduledExecutionTime();
+	}
+	
+	@Override
+	public String toString()
+	{
+		return _timer.toString();
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		return _timer.equals(o);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return _timer.hashCode();
 	}
 }

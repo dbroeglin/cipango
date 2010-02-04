@@ -17,6 +17,7 @@ package org.cipango.util.concurrent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -155,11 +156,20 @@ public class AppSessionLockProxy implements AppSessionIf
 	}
 
 	public ServletTimer getTimer(String id) {
-		return _appSession.getTimer(id);
+		ServletTimer timer = _appSession.getTimer(id);
+		if (timer != null)
+			return new TimerLockProxy(timer);
+		return null;
 	}
 
 	public Collection<ServletTimer> getTimers() {
-		return _appSession.getTimers();
+		Iterator<ServletTimer> it = _appSession.getTimers().iterator();
+		if (!it.hasNext())
+			return Collections.emptyList();
+		Collection<ServletTimer> timers = new ArrayList<ServletTimer>();
+		while (it.hasNext())
+			timers.add(new TimerLockProxy(it.next()));
+		return timers;
 	}
 
 	public void invalidate()
@@ -235,35 +245,29 @@ public class AppSessionLockProxy implements AppSessionIf
 		{
 			transaction.done();
 		}
-		// TODO Auto-generated method stub
 	}
 	
 	public AppSession getAppSession()
 	{
 		return _appSession;
 	}
-	
-	/*
-	public SessionIf newSession()
+		
+	@Override
+	public String toString()
 	{
-		Session delegate = _appSession.newSession();
-		return new SipSessionInterceptor(delegate);
+		return _appSession.toString();
 	}
-	 
-	 public SessionIf newUacSession(String callId, Address from, Address to)
-	 {
-		Session delegate = _appSession.newUacSession(callId, from, to);
-		return new SipSessionInterceptor(delegate);
-	 }
-	 
-	 */
-	 public String toString()
-	 {
-		 return _appSession.toString();
-	 }
-	 
-	 public boolean equals(Object o)
-	 {
-		 return _appSession.equals(o);
-	 }
+
+	@Override
+	public boolean equals(Object o)
+	{
+		return _appSession.equals(o);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return _appSession.hashCode();
+	}
+
 }

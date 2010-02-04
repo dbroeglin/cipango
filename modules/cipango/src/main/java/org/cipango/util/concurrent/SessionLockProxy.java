@@ -27,7 +27,6 @@ import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
 import org.cipango.SessionManager;
-import org.cipango.SipRequest;
 import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.servlet.Session;
 import org.cipango.servlet.SessionIf;
@@ -36,12 +35,12 @@ public class SessionLockProxy implements SessionIf
 {
 	private Session _session;
 	private transient SessionManager _callManager;
-	
+
 	public SessionLockProxy(Session session)
 	{
 		_session = session;
 	}
-	
+
 	public SipServletRequest createRequest(String method)
 	{
 		return _session.createRequest(method);
@@ -174,31 +173,34 @@ public class SessionLockProxy implements SessionIf
 	{
 		return _session;
 	}
-		
+
 	protected SessionManager getCallSessionManager()
 	{
 		if (_callManager == null)
 			_callManager = _session.getServer().getSessionManager();
 		return _callManager;
 	}
-	
+
 	protected SessionTransaction begin()
 	{
 		return getCallSessionManager().begin(_session.getCallSession());
 	}
-	
-	public SipRequest createRequest(String method, long cseq)
+
+	@Override
+	public String toString()
 	{
-		return _session.createRequest(method, cseq);
+		return _session.toString();
 	}
-	
-	 public String toString()
-	 {
-		 return _session.toString();
-	 }
-	 
-	 public boolean equals(Object o)
-	 {
-		 return _session.equals(o);
-	 }
+
+	@Override
+	public boolean equals(Object o)
+	{
+		return _session.equals(o);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return _session.hashCode();
+	}
 }

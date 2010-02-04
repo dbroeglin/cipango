@@ -316,6 +316,8 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
 	{
 		_statsStartedAt = _statsStartedAt == -1 ? -1 : System.currentTimeMillis();
 		_nbParseErrors = 0;
+		_connectionsOpen = 0;
+		_connectionsOpenMax = 0;
 	}
 	
 	public void setStatsOn(boolean on) 
@@ -326,6 +328,16 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
         statsReset();
         _statsStartedAt = on ? System.currentTimeMillis() : -1;
     }
+
+	public long getConnectionsOpen()
+	{
+		return _connectionsOpen;
+	}
+
+	public long getConnectionsOpenMax()
+	{
+		return _connectionsOpenMax;
+	}
 	
     class Acceptor implements Runnable 
     {
@@ -547,5 +559,6 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
 		}
 		
 	}
+
 	
 }

@@ -242,13 +242,6 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		return addr.getHostAddress() + ":" + port;
 	}
 	
-	public void statsReset() 
-	{	
-		super.statsReset();
-		_connectionsOpen = 0;
-		_connectionsOpenMax = 0;
-	}
-
 	class TcpConnection extends SocketEndPoint implements SipConnection, Runnable
 	{
 		private InetAddress _local;

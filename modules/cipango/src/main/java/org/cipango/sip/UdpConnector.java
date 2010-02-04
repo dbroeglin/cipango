@@ -49,7 +49,6 @@ public class UdpConnector extends AbstractSipConnector
 	
 	protected void doStart() throws Exception 
 	{		
-		setAcceptors(4);
 		_packets = new DatagramPacket[getAcceptors()];
 		for (int i = 0; i < getAcceptors(); i++)
 		{

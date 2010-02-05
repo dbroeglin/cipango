@@ -17,7 +17,8 @@ import org.mortbay.io.Buffer;
  * 
  * @author yohann
  */
-public interface Codec {
+public interface Codec
+{
 
 	/**
 	 * Encodes data from raw samples to compressed format.

@@ -10,7 +10,8 @@ package org.cipango.media.api;
  * 
  * @author yohann
  */
-public interface RtpListener {
+public interface RtpListener
+{
 
 	/**
 	 * Notifies the arrival of an incoming RTP packet. mediaBuffer is the

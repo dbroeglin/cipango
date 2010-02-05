@@ -1,8 +1,10 @@
 package org.cipango.media.api;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
 
 /**
  * Mixer is an audio multiplexer
@@ -30,7 +32,49 @@ public class Mixer implements Managed
      */
     public Buffer mix(List<Buffer> buffers)
     {
-        return null;
+        int length = 0;
+        for (Buffer buffer: buffers)
+        	if (buffer.length() > length)
+        		length = buffer.length();
+        Buffer output = new ByteArrayBuffer(length);
+        List<Buffer> toBeRemoved = new ArrayList<Buffer>();
+        while (buffers.size() > 0)
+        {
+        	float sum = 0;
+            int numberOfStreams = 0;
+        	for (Buffer buffer: buffers)
+            	if (buffer.length() < 2)
+            		toBeRemoved.add(buffer);
+            	else
+            	{
+                	++numberOfStreams;
+                    int firstByte = buffer.get();
+                    int secondByte = buffer.get();
+                    // little-endian input
+                    //sum += (secondByte << 8 | firstByte) / numberOfStreams;
+                    int sample = secondByte << 8 | firstByte;
+                    if (sample > 32767)
+                        sample -= 65536;
+                    // sum += secondByte << 8 | firstByte;
+                    sum += sample;
+            	}
+        	sum /= Math.sqrt(numberOfStreams);
+            int roundedSum = Math.round(sum);
+            // clip
+            if (roundedSum > 32767)
+                roundedSum = 32767;
+            else if (roundedSum < -32767)
+                roundedSum = -32767;
+            // little-endian output
+            output.put((byte)roundedSum);
+            output.put((byte)(roundedSum >> 8));
+            
+            // remove empty buffers
+            for (Buffer buffer: toBeRemoved)
+            	buffers.remove(buffer);
+            toBeRemoved.clear();
+        }
+        return output;
     }
 
 }

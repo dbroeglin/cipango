@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.media;
+package org.cipango.media.api;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -23,7 +23,7 @@ import java.net.SocketException;
 import org.mortbay.io.Buffer;
 import org.mortbay.log.Log;
 
-public class UdpEndPoint
+public class UdpEndPoint implements Managed
 {
 	private DatagramSocket _socket;
 	
@@ -31,12 +31,10 @@ public class UdpEndPoint
 	{
 		_socket = socket; 
 	}
-	
-	public SocketAddress getLocalAddress()
+
+	public DatagramSocket getDatagramSocket()
 	{
-		if (_socket != null)
-			return _socket.getLocalSocketAddress();
-		return null;
+		return _socket;
 	}
 	
 	public void close() throws IOException

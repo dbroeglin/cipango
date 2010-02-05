@@ -1,6 +1,14 @@
 package org.cipango.media.api;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+
+import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
+import org.mortbay.log.Log;
 
 /**
  * Listens to incoming RTP packets.
@@ -15,17 +23,44 @@ import java.net.InetAddress;
  *  
  * @author yohann
  */
-public class RtpReader implements Managed, LifeCycle
+public class RtpReader implements Managed, LifeCycle, Initializable
 {
+
+	private InetAddress _inetAddress;
+	private int _port;
+	private List<RtpListener> _rtpListeners;
+	private ExecutorService _executorService;
+	private boolean _running = false;
+	private Buffer _buffer;
+	private UdpEndPoint _udpEndPoint;
+	private RtpParser _rtpParser;
 
     RtpReader(int port)
     {
-        
+    	this(null, port);
     }
 
     RtpReader(InetAddress inetAddress, int port)
     {
-        
+        _inetAddress = inetAddress;
+        _port = port;
+    }
+
+    @Override
+    public void init()
+    {
+    	_rtpListeners = new ArrayList<RtpListener>();
+    	_executorService = MediaFactory.getExecutorService();
+    	try
+		{
+			_udpEndPoint = MediaFactory.getUdpEndPoint(_port, _inetAddress);
+		}
+		catch (NoObjectAvailableException e)
+		{
+			Log.warn("cannot retrieve UdpEndPoint instance", e);
+		}
+    	_buffer = new ByteArrayBuffer(_udpEndPoint.getReceiveBufferSize());
+    	_rtpParser = MediaFactory.getRtpParser();
     }
 
     /**
@@ -37,7 +72,7 @@ public class RtpReader implements Managed, LifeCycle
      */
     public void addRtpListener(RtpListener rtpListener)
     {
-        
+        _rtpListeners.add(rtpListener);
     }
 
     /**
@@ -50,7 +85,7 @@ public class RtpReader implements Managed, LifeCycle
      */
     public void removeRtpListener(RtpListener rtpListener)
     {
-        
+        _rtpListeners.remove(rtpListener);
     }
 
     /**
@@ -59,8 +94,8 @@ public class RtpReader implements Managed, LifeCycle
 	@Override
 	public void start()
 	{
-		// TODO Auto-generated method stub
-		
+		_executorService.execute(new RtpReaderTask());
+		_running = true;
 	}
 
 	/**
@@ -69,8 +104,46 @@ public class RtpReader implements Managed, LifeCycle
 	@Override
 	public void stop()
 	{
-		// TODO Auto-generated method stub
-		
+		_running = false;
+	}
+
+	class RtpReaderTask implements Runnable
+	{
+
+		@Override
+		public void run()
+		{
+			if(!_running)
+				return;
+			try
+			{
+				_udpEndPoint.read(_buffer);
+			}
+			catch (IOException e)
+			{
+				Log.warn("cannot read on datagram socket " + _inetAddress
+						+ ":" + _port, e);
+				return;
+			}
+        	RtpPacket rtpPacket = _rtpParser.decode(_buffer);
+        	// maybe rtpListener.receivedRtpPacket should be invoked using
+        	// executorService.
+        	for (RtpListener rtpListener: _rtpListeners)
+        		rtpListener.receivedRtpPacket(rtpPacket);
+			if(_running)
+				_executorService.execute(this);
+		}
+
+	}
+
+	public InetAddress getInetAddress()
+	{
+		return _inetAddress;
+	}
+
+	public int getPort()
+	{
+		return _port;
 	}
 
 }

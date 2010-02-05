@@ -33,7 +33,8 @@ package org.cipango.media.api;
  * 
  * @author yohann
  */
-public enum CodecType {
+public enum CodecType
+{
 	PCMU,
     PCMA,
     PCM_1S16LE8000 

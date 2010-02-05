@@ -1,8 +1,13 @@
 package org.cipango.media.api;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
+import org.mortbay.log.Log;
 
 /**
  * RtpSender is the class employed to send RTP packets over the network.
@@ -16,34 +21,84 @@ import org.mortbay.io.Buffer;
  * 
  * @author yohann
  */
-public class RtpSender implements Managed
+public class RtpSender implements Managed, Initializable
 {
 
-    RtpSender(InetAddress destAddress, int destPort)
+	public static final int DEFAULT_PTIME = 20;
+
+	private int _localPort;
+	private InetAddress _localAddress;
+	private int _remotePort;
+	private InetAddress _remoteAddress;
+	private SocketAddress _remoteSocketAddress;
+	private RtpParser _rtpParser;
+	private UdpEndPoint _udpEndPoint;
+	private Buffer _packetBuffer;
+
+	private int _ptime = DEFAULT_PTIME;
+    private int _ssrc;
+    private int _seqNumber;
+    private long _timestamp;
+    private int _payloadType;
+    private int _dataLength;
+
+    RtpSender(int payloadType, InetAddress destAddress, int destPort)
     {
-        
+        this(payloadType, destAddress, destPort, null,
+        		MediaFactory.DEFAULT_PORT);
+    }
+    
+    RtpSender(int payloadType, InetAddress destAddress, int destPort,
+    		int localPort)
+    {
+        this(payloadType, destAddress, destPort, null, localPort);
     }
 
-    RtpSender(InetAddress destAddress, int destPort, int localPort)
+    RtpSender(int payloadType, InetAddress destAddress, int destPort,
+    		InetAddress localAddress, int localPort)
     {
-        
+    	_payloadType = payloadType;
+        _remoteAddress = destAddress;
+        _remotePort = destPort;
+        _localAddress = localAddress;
+        _localPort = localPort;
     }
 
-    RtpSender(InetAddress destAddress, int destPort, InetAddress localAddress,
-            int localPort)
-    {
-        
-    }
+	@Override
+	public void init()
+	{
+		_rtpParser = MediaFactory.getRtpParser();
+		try
+		{
+			_udpEndPoint = MediaFactory.getUdpEndPoint(_localPort,
+					_localAddress);
+		}
+		catch (NoObjectAvailableException e)
+		{
+			Log.warn("cannot retrieve UdpEndPoint instance", e);
+		}
+		_ssrc = MediaFactory.getRandom().nextInt();
+		_dataLength = 8000 * _ptime / 1000;
+		_packetBuffer = new ByteArrayBuffer(12 + _dataLength);
+        _remoteSocketAddress = new InetSocketAddress(_remoteAddress,
+        		_remotePort);
+	}
 
-    /**
+	/**
      * Sends encoded data over the network. All RTP fields will be updated
      * appropriately, i.e. timestamp, sequence number, etc.
      * 
      * @param buffer encoded data to send to the remote RTP party.
+     * @throws IOException if underlying socket throws {@link IOException}.
      */
-    public void send(Buffer buffer)
+    public void send(Buffer buffer) throws IOException
     {
-        
+        RtpPacket rtpPacket = new RtpPacket(_ssrc, _seqNumber,
+        		_timestamp, _payloadType, _seqNumber == 0);
+        ++_seqNumber;
+        _timestamp += buffer.length();
+        rtpPacket.setData(buffer);
+        send(rtpPacket);
     }
 
     /**
@@ -51,10 +106,33 @@ public class RtpSender implements Managed
      * RtpPackets.
      * 
      * @param rtpPacket the RtpPacket that must be sent.
+     * @throws IOException if underlying socket throws {@link IOException}.
      */
-    public void send(RtpPacket rtpPacket)
+    public void send(RtpPacket rtpPacket) throws IOException
     {
-    	
+        _packetBuffer.clear();
+        _rtpParser.encode(_packetBuffer, rtpPacket);
+        _udpEndPoint.send(_packetBuffer, _remoteSocketAddress);
     }
+
+    public int getLocalPort()
+	{
+		return _localPort;
+	}
+
+	public InetAddress getLocalAddress()
+	{
+		return _localAddress;
+	}
+
+	public int getRemotePort()
+	{
+		return _remotePort;
+	}
+
+	public InetAddress getRemoteAddress()
+	{
+		return _remoteAddress;
+	}
 
 }

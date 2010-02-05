@@ -1,6 +1,12 @@
 package org.cipango.media.api;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import org.mortbay.io.Buffer;
+import org.mortbay.log.Log;
 
 /**
  * Write a Buffer in a File.
@@ -10,12 +16,35 @@ import org.mortbay.io.Buffer;
  * 
  * @author yohann
  */
-public class FileWriter implements Managed
+public class FileWriter implements Initializable, Door, Managed
 {
+
+	private String _filename;
+	private File _file;
+	private FileOutputStream _fileOutputStream;
 
     FileWriter(String filename)
     {
-        
+        _filename = filename;
+    }
+
+    @Override
+    public void init()
+    {
+    	_file = new File(_filename);
+    }
+
+    @Override
+    public void open()
+    {
+    	try
+		{
+			_fileOutputStream = new FileOutputStream(_file);
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.warn("file not found: " + _filename, e);
+		}
     }
 
     /**
@@ -25,7 +54,32 @@ public class FileWriter implements Managed
      */
     public void write(Buffer buffer)
     {
-        
+        try
+		{
+			_fileOutputStream.write(buffer.asArray());
+		}
+		catch (IOException e)
+		{
+			Log.warn("cannot write to file: " + _filename);
+		}
     }
+
+    @Override
+    public void close()
+    {
+    	try
+		{
+			_fileOutputStream.close();
+		}
+		catch (IOException e)
+		{
+			Log.warn("cannot close file: " + _filename, e);
+		}
+    }
+
+	public String getFilename()
+	{
+		return _filename;
+	}
 
 }

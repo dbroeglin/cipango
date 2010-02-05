@@ -1,5 +1,10 @@
 package org.cipango.media.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mortbay.io.Buffer;
+
 
 /**
  * Analyzes incoming DTMF RTP packets to trigger real telephone events.
@@ -17,8 +22,22 @@ package org.cipango.media.api;
  * 
  * @author yohann
  */
-public class DtmfFilter implements RtpListener
+public class DtmfFilter implements RtpListener, Initializable, Managed
 {
+
+    public static final char[] EVENTS = { '0', '1', '2', '3', '4', '5',
+        '6', '7', '8', '9', '*', '#', 'A', 'B', 'C', 'D' };
+
+	private List<DtmfListener> _dtmfListeners;
+	private int _payloadType;
+	private boolean _activeDtmf;
+
+	@Override
+	public void init()
+	{
+		_dtmfListeners = new ArrayList<DtmfListener>();
+		_activeDtmf = false;
+	}
 
 	/**
 	 * Adds a DtmfListener to this DtmfFilter. This DtmfListener will be
@@ -27,9 +46,9 @@ public class DtmfFilter implements RtpListener
 	 * @param DtmfListener the DtmfListener that will be invoked when a key
 	 * is pressed.
 	 */
-	public void addDtmfListener(DtmfListener DtmfListener)
+	public void addDtmfListener(DtmfListener dtmfListener)
 	{
-		
+		_dtmfListeners.add(dtmfListener);
 	}
 
 	/**
@@ -40,9 +59,9 @@ public class DtmfFilter implements RtpListener
 	 * @param DtmfListener the DtmfListener that does not need notifications
 	 * anymore.
 	 */
-	public void removeDtmfListener(DtmfListener DtmfListener)
+	public void removeDtmfListener(DtmfListener dtmfListener)
 	{
-		
+		_dtmfListeners.remove(dtmfListener);
 	}
 
 	/**
@@ -57,14 +76,33 @@ public class DtmfFilter implements RtpListener
 	 */
 	public void setPayloadType(int payloadType)
 	{
-		
+		_payloadType = payloadType;
 	}
 
 	@Override
 	public void receivedRtpPacket(RtpPacket rtpPacket)
 	{
-		// TODO Auto-generated method stub
-		
+		if (rtpPacket.getPayloadType() != _payloadType)
+			return;
+		Buffer buffer = rtpPacket.getData();
+        byte event = buffer.get();
+        char c;
+        if (event > -1 && event < 16)
+            c = EVENTS[event];
+        else
+        	c = (char)event;
+        if (!_activeDtmf)
+        {
+            if ((byte)(buffer.get() & -128) != -128) // no end bit
+                _activeDtmf = true;
+        }
+        else
+            if ((byte)(buffer.get() & -128) == -128) // end bit
+            {
+                _activeDtmf = false;
+                for (DtmfListener dtmfListener: _dtmfListeners)
+                    dtmfListener.dtmfReceived(c);
+            }
 	}
 
 }

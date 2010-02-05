@@ -1,5 +1,7 @@
 package org.cipango.media.api;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -25,17 +27,28 @@ import java.util.List;
  * 
  * @author yohann
  */
-public class SourceSynchronizer<T>
+class SourceSynchronizer implements Initializable, Managed
 {
 
+	private Hashtable<Integer, List<Object>> sources;
+
+	@Override
+	public void init()
+	{
+		sources = new Hashtable<Integer, List<Object>>();
+	}
+
 	/**
-	 * Add a source. Each source is identified using a simple integer.
+	 * Add a source. Each source is identified using a simple integer. If a
+	 * source is added twice, the first source will be dropped. Thus, this
+	 * method should be invoked only once for each source.
 	 * 
 	 * @param id the source identifier.
 	 */
 	public void addSource(int id)
 	{
-		
+		List<Object> list = new ArrayList<Object>();
+		sources.put(id, list);
 	}
 
 	/**
@@ -47,7 +60,7 @@ public class SourceSynchronizer<T>
 	 */
 	public void removeSource(int id)
 	{
-		
+		sources.remove(id);
 	}
 
 	/**
@@ -57,11 +70,12 @@ public class SourceSynchronizer<T>
 	 * 
 	 * @param sourceId the identifier of the source where the object is coming
 	 * from.
-	 * @param t the object that is coming from this source.
+	 * @param item the item that is coming from this source.
 	 */
-	public void put(int sourceId, T t)
+	public void put(int sourceId, Object item)
 	{
-		
+		List<Object> source = sources.get(sourceId);
+		source.add(item);
 	}
 
 	/**
@@ -72,9 +86,19 @@ public class SourceSynchronizer<T>
 	 * @return the list of oldest objects for each source. If no object is
 	 * available returns an empty list.
 	 */
-	public List<T> getOldests()
+	public List<Object> getOldests()
 	{
-		return null;
+		List<Object> oldests = new ArrayList<Object>();
+		for (List<Object> source: sources.values())
+		{
+			if (!source.isEmpty())
+			{
+				Object object = source.get(0);
+				oldests.add(object);
+				source.remove(0);
+			}
+		}
+		return oldests;
 	}
 
 }

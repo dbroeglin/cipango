@@ -1,6 +1,13 @@
 package org.cipango.media.api;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
+import org.mortbay.log.Log;
 
 /**
  * Reads a File into a Buffer.
@@ -19,23 +26,32 @@ public class FileReader implements Initializable, Door, Managed
 
 	public static final int DEFAULT_BUFFER_SIZE = 256;
 
+	private String _filename;
+	private File _file;
+	private FileInputStream _fileInputStream;
+
     FileReader(String filename)
     {
-        
+        _filename = filename;
     }
 
     @Override
     public void init()
     {
-    	// TODO Auto-generated method stub
-    	
+    	_file = new File(_filename);
     }
 
     @Override
     public void open()
     {
-    	// TODO Auto-generated method stub
-    	
+    	try
+		{
+			_fileInputStream = new FileInputStream(_file);
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.warn("file not found: " + _filename, e);
+		}
     }
 
     /**
@@ -47,7 +63,7 @@ public class FileReader implements Initializable, Door, Managed
      */
     public Buffer read()
     {
-        return null;
+    	return read(DEFAULT_BUFFER_SIZE);
     }
 
     /**
@@ -60,14 +76,35 @@ public class FileReader implements Initializable, Door, Managed
      */
     public Buffer read(int size)
     {
-    	return null;
+    	byte[] buf = new byte[size];
+    	try
+		{
+			_fileInputStream.read(buf);
+		}
+		catch (IOException e)
+		{
+			Log.warn("cannot read from file: " + _filename, e);
+			return null;
+		}
+		return new ByteArrayBuffer(buf);
     }
 
     @Override
     public void close()
     {
-    	// TODO Auto-generated method stub
-    	
+    	try
+		{
+			_fileInputStream.close();
+		}
+		catch (IOException e)
+		{
+			Log.warn("cannot close file: " + _filename, e);
+		}
     }
+
+	public String getFilename()
+	{
+		return _filename;
+	}
 
 }

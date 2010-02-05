@@ -1,6 +1,8 @@
 package org.cipango.media.api;
 
+import org.cipango.media.codecs.BasicCodecs;
 import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
 
 /**
  * Encode/decode ITU-T G.711 packets using mu-law variant.
@@ -17,15 +19,28 @@ public class PcmuCodec implements Codec
 	@Override
 	public Buffer decode(Buffer buffer)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		Buffer output = new ByteArrayBuffer(buffer.length() * 2);
+		while (buffer.length() > 0)
+		{
+	        int linear = BasicCodecs.ulaw2linear(buffer.get());
+	        output.put((byte)(linear & 0xff));
+	        output.put((byte)((linear >> 8) & 0xff));
+		}
+		return output;
 	}
 
 	@Override
 	public Buffer encode(Buffer buffer)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		Buffer output = new ByteArrayBuffer(buffer.length() / 2);
+		while (buffer.length() > 0)
+		{
+			byte firstByte = buffer.get();
+			byte secondByte = buffer.get();
+            int pcm_val = (secondByte << 8) | (firstByte & 0xff);
+            output.put(BasicCodecs.linear2ulaw(pcm_val));
+		}
+		return output;
 	}
 
 }

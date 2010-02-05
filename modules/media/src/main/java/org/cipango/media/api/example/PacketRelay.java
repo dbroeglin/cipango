@@ -1,5 +1,6 @@
 package org.cipango.media.api.example;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -10,9 +11,12 @@ import org.cipango.media.api.RtpListener;
 import org.cipango.media.api.RtpPacket;
 import org.cipango.media.api.RtpReader;
 import org.cipango.media.api.RtpSender;
+import org.mortbay.log.Log;
 
 public class PacketRelay implements RtpListener, LifeCycle
 {
+
+	public static final int PAYLOAD_TYPE = 0;
 
     private int _sourcePort;
     private InetAddress _destAddress;
@@ -32,7 +36,10 @@ public class PacketRelay implements RtpListener, LifeCycle
     {
         _rtpReader = MediaFactory.getRtpReader(_sourcePort);
         _rtpReader.addRtpListener(this);
-        _rtpSender = MediaFactory.getRtpSender(_destAddress, _destPort);
+        // here payload type won't be used as we send rtp packets directly
+        // but it has to be provided to media factory.
+        _rtpSender = MediaFactory.getRtpSender(PAYLOAD_TYPE, _destAddress,
+        		_destPort);
     }
 
     @Override
@@ -50,7 +57,14 @@ public class PacketRelay implements RtpListener, LifeCycle
     @Override
     public void receivedRtpPacket(RtpPacket rtpPacket)
     {
-        _rtpSender.send(rtpPacket.getData());
+    	try
+		{
+            _rtpSender.send(rtpPacket.getData());
+		}
+		catch (IOException e)
+		{
+			Log.warn("cannot send packet", e);
+		}
     }
 
     public static void main(String[] args) {

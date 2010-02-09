@@ -33,17 +33,4 @@ public abstract class IMS extends Factory
 		return new ResultCode(IMS_VENDOR_ID, code, name);
 	}
 	
-	public static final int 
-		BIR = 310,
-		BIA = 310;
-	
-		
-	public static final int 
-		GBA_USER_SEC_SETTINGS = 400,
-		TRANSACTION_IDENTIFIER = 401,
-		NAF_ID = 402,
-		KEY_EXPIRY_TIME = 404,
-		ME_KEY_MATERIAL = 405,
-		GUSS_TIMESTAMP = 409;
-	
 }

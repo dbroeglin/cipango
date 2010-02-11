@@ -43,7 +43,11 @@ import org.mortbay.util.MultiException;
 public class Node extends AbstractLifeCycle implements DiameterHandler
 {
 	public static String[] __dictionaryClasses = {
-		"org.cipango.diameter.base.Base", "org.cipango.diameter.ims.IMS", "org.cipango.diameter.ims.Cx", "org.cipango.diameter.ims.Sh"};
+		"org.cipango.diameter.base.Base", 
+		"org.cipango.diameter.ims.IMS", 
+		"org.cipango.diameter.ims.Cx", 
+		"org.cipango.diameter.ims.Sh",
+		"org.cipango.diameter.ims.Zh"};
 	
 	public static final String DEFAULT_REALM = "cipango.org";
 	public static final String DEFAULT_PRODUCT_NAME = "cipango";

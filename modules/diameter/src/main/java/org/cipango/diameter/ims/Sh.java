@@ -8,6 +8,7 @@ import java.util.Date;
 import org.cipango.diameter.AVPList;
 import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.DiameterCommand;
+import org.cipango.diameter.ResultCode;
 import org.cipango.diameter.Type;
 import org.cipango.diameter.base.Base;
 import org.cipango.diameter.base.Base.EnumDataFormat;
@@ -442,4 +443,99 @@ public class Sh
 	 */
 	public static final Type<byte[]> DSAI_TAG = IMS.newIMSType("DSAI-Tag",
 			DSAI_TAG_ORDINAL, Base.__octetString);
+	
+	
+	//-------------------------------------------------------------------------
+	//                           Result codes
+	//-------------------------------------------------------------------------
+	
+	public static final int
+		DIAMETER_ERROR_USER_DATA_NOT_RECOGNIZED_ORDINAL = 5100,
+		DIAMETER_ERROR_OPERATION_NOT_ALLOWED_ORDINAL = 5101,
+		DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ_ORDINAL = 5102,
+		DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED_ORDINAL = 5103,
+		DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED_ORDINAL = 5104,
+		DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC_ORDINAL = 5105,
+		DIAMETER_ERROR_SUBS_DATA_ABSENT_ORDINAL = 5106,
+		DIAMETER_ERROR_NO_SUBSCRIPTION_TO_DATA_ORDINAL = 5107,
+		DIAMETER_ERROR_DSAI_NOT_AVAILABLE_ORDINAL = 5108,
+		DIAMETER_USER_DATA_NOT_AVAILABLE_ORDINAL = 4100,
+		DIAMETER_PRIOR_UPDATE_IN_PROGRESS_ORDINAL = 4101;
+	
+	/**
+	 * The data received by the AS is not supported or recognized.
+	 */
+	public static final ResultCode DIAMETER_ERROR_USER_DATA_NOT_RECOGNIZED = IMS.newImsResultCode(
+			DIAMETER_ERROR_USER_DATA_NOT_RECOGNIZED_ORDINAL, "DIAMETER_ERROR_USER_DATA_NOT_RECOGNIZED");
+	
+	/**
+	 * The requested operation is not allowed for the user
+	 */
+	public static final ResultCode DIAMETER_ERROR_OPERATION_NOT_ALLOWED = IMS.newImsResultCode(
+			DIAMETER_ERROR_OPERATION_NOT_ALLOWED_ORDINAL, "DIAMETER_ERROR_OPERATION_NOT_ALLOWED");
+		
+	/**
+	 * The requested user data is not allowed to be read.
+	 */
+	public static final ResultCode DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ = IMS.newImsResultCode(
+			DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ_ORDINAL, "DIAMETER_ERROR_USER_DATA_CANNOT_BE_READ");
+		
+	/**
+	 * The requested user data is not allowed to be modified.
+	 */
+	public static final ResultCode DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED = IMS.newImsResultCode(
+			DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED_ORDINAL, "DIAMETER_ERROR_USER_DATA_CANNOT_BE_MODIFIED");
+	
+	/**
+	 * The requested user data is not allowed to be notified on changes.
+	 */
+	public static final ResultCode DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED = IMS.newImsResultCode(
+			DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED_ORDINAL, "DIAMETER_ERROR_USER_DATA_CANNOT_BE_NOTIFIED");
+	
+	/**
+	 * The request to update the repository data at the HSS could not be
+	 * completed because the requested update is based on an out-of-date version
+	 * of the repository data. That is, the sequence number in the Sh-Update
+	 * Request message, does not match with the immediate successor of the
+	 * associated sequence number stored for that repository data at the HSS. It
+	 * is also used where an AS tries to create a new set of repository data
+	 * when the identified repository data already exists in the HSS.
+	 */
+	public static final ResultCode DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC = IMS.newImsResultCode(
+			DIAMETER_ERROR_TRANSPARENT_DATA_OUT_OF_SYNC_ORDINAL, "DIAMETER_ERROR_TRANSPARENT_DATA OUT_OF_SYNC");
+	
+	/**
+	 * The Application Server requested to subscribe to changes to Repository Data that is not present in the HSS.
+	 */
+	public static final ResultCode DIAMETER_ERROR_SUBS_DATA_ABSENT = IMS.newImsResultCode(
+			DIAMETER_ERROR_SUBS_DATA_ABSENT_ORDINAL, "DIAMETER_ERROR_SUBS_DATA_ABSENT");
+	
+	/**
+	 * The AS received a notification of changes of some information to which it is not subscribed
+	 */
+	public static final ResultCode DIAMETER_ERROR_NO_SUBSCRIPTION_TO_DATA = IMS.newImsResultCode(
+			DIAMETER_ERROR_NO_SUBSCRIPTION_TO_DATA_ORDINAL, "DIAMETER_ERROR_NO_SUBSCRIPTION_TO_DATA");
+	
+	/**
+	 * The Application Server addressed a DSAI not configured in the HSS.
+	 */
+	public static final ResultCode DIAMETER_ERROR_DSAI_NOT_AVAILABLE  = IMS.newImsResultCode(
+			DIAMETER_ERROR_DSAI_NOT_AVAILABLE_ORDINAL, "DIAMETER_ERROR_DSAI_NOT_AVAILABLE ");
+	
+	/**
+	 * The requested user data is not available at this time to satisfy the requested operation.
+	 */
+	public static final ResultCode DIAMETER_USER_DATA_NOT_AVAILABLE = IMS.newImsResultCode(
+			DIAMETER_USER_DATA_NOT_AVAILABLE_ORDINAL, "DIAMETER_USER_DATA_NOT_AVAILABLE");
+	
+	/**
+	 * The request to update the repository data at the HSS could not be
+	 * completed because the related repository data is currently being updated
+	 * by another entity.
+	 */
+	public static final ResultCode DIAMETER_PRIOR_UPDATE_IN_PROGRESS = IMS.newImsResultCode(
+			DIAMETER_PRIOR_UPDATE_IN_PROGRESS_ORDINAL, "DIAMETER_PRIOR_UPDATE_IN_PROGRESS");
+	
+
+	
 }

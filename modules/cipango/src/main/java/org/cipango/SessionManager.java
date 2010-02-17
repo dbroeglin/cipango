@@ -164,6 +164,9 @@ public class SessionManager extends AbstractLifeCycle
         		{
         			callSession.runTimers();
         			time = callSession.nextExecutionTime();
+        			
+        			if (time < 0)
+        				break;
         		}
         		
         		if (time > 0)

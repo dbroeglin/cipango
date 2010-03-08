@@ -216,7 +216,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					String applicationName = routerInfo.getNextApplicationName();
 					appContext = (SipAppContext) getContext(applicationName);
 										
-					Method method = appContext.getSipApplicationKeyMethod();
+					Method method = appContext == null ? null : appContext.getSipApplicationKeyMethod();
 					if (method != null)
 					{
 						try

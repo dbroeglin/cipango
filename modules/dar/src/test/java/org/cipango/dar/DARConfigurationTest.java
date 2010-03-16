@@ -18,8 +18,6 @@ import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
 import junit.framework.TestCase;
 
-import org.cipango.dar.DefaultApplicationRouter.RouterInfo;
-
 public class DARConfigurationTest extends TestCase
 {
 	public void testConfig() throws Exception

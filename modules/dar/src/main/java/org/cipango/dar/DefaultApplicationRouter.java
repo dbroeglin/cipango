@@ -17,6 +17,7 @@ package org.cipango.dar;
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -122,6 +123,13 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 
 		return null;
 	}
+	
+	public String getDefaultApplication()
+	{
+		if ((_routerInfoMap == null || _routerInfoMap.isEmpty()) && !_applicationNames.isEmpty())
+			return _applicationNames.first();
+		return null;
+	}
 
 	public void setRouterInfos(Map<String, RouterInfo[]> infoMap)
 	{
@@ -131,6 +139,40 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	public Map<String, RouterInfo[]> getRouterInfos()
 	{
 		return _routerInfoMap;
+	}
+	
+	public String getConfig()
+	{
+		StringBuilder sb = new StringBuilder();
+		Iterator<String> it = _routerInfoMap.keySet().iterator();
+		while (it.hasNext())
+		{
+			
+			String method = (String) it.next();
+			RouterInfo[] routerInfos = _routerInfoMap.get(method);
+			sb.append(method).append(": ");
+			for (int i = 0; routerInfos != null && i < routerInfos.length; i++)
+			{
+				RouterInfo routerInfo = routerInfos[i];
+				sb.append('(');
+				sb.append('"').append(routerInfo.getName()).append("\", ");
+				sb.append('"').append(routerInfo.getIdentity()).append("\", ");
+				sb.append('"').append(routerInfo.getRegion().getType()).append("\", ");
+				sb.append('"').append(routerInfo.getUri()).append("\", ");
+				sb.append('"').append(routerInfo.getRouteModifier()).append("\", ");
+				sb.append('"').append(i).append('"');
+				sb.append(')');
+				if (i + 1 < routerInfos.length)
+					sb.append(", ");
+			}
+			sb.append('\n');
+		}
+		return sb.toString();
+	}
+	
+	public RouterInfo[] getRouterInfo(String key)
+	{
+		return _routerInfoMap.get(key);
 	}
 
 	public void init() 
@@ -190,49 +232,4 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	{
 		return _matchOnNewOutgoingRequests;
 	}
-
-	static class RouterInfo
-	{
-		private String _name;
-		private String _identity;
-		private SipApplicationRoutingRegion _region;
-		private String _uri;
-		private SipRouteModifier _routeModifier;
-
-		public RouterInfo(String name, String identity, SipApplicationRoutingRegion region, String uri, SipRouteModifier routeModifier)
-		{
-			_name = name;
-			_identity = identity;
-			_region = region;
-			_uri = uri;
-			_routeModifier = routeModifier;
-		}
-		
-		public String getUri()
-		{
-			return _uri;
-		}
-
-		public SipRouteModifier getRouteModifier()
-		{
-			return _routeModifier;
-		}
-
-		public String getName()
-		{
-			return _name;
-		}
-
-		public String getIdentity()
-		{
-			return _identity;
-		}
-
-		public SipApplicationRoutingRegion getRegion()
-		{
-			return _region;
-		}
-	}
-
-
 }

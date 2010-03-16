@@ -15,6 +15,7 @@
 package org.cipango.dar;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.text.ParseException;
@@ -29,7 +30,6 @@ import java.util.Properties;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 import javax.servlet.sip.ar.SipRouteModifier;
 
-import org.cipango.dar.DefaultApplicationRouter.RouterInfo;
 import org.mortbay.util.LazyList;
 
 public class DARConfiguration
@@ -49,13 +49,17 @@ public class DARConfiguration
 			url = uri.toURL();
 		}
 		_properties = new Properties();
-		_properties.load(url.openStream());
+		InputStream is = url.openStream();
+		_properties.load(is);
+		is.close();
 	}
 	
 	public DARConfiguration(URL url) throws Exception
 	{
 		_properties = new Properties();
-		_properties.load(url.openStream());
+		InputStream is = url.openStream();
+		_properties.load(is);
+		is.close();
 	}
 
 	public void configure(DefaultApplicationRouter dar) throws ParseException
@@ -88,7 +92,7 @@ public class DARConfiguration
 				SipRouteModifier routeModifier = SipRouteModifier.valueOf(it.next().toUpperCase());
 				String stateInfo = it.next();
 
-				DefaultApplicationRouter.RouterInfo sri = new DefaultApplicationRouter.RouterInfo(
+				RouterInfo sri = new RouterInfo(
 						name, identity, region, uri, routeModifier);
 				list.add(sri);
 			}

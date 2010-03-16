@@ -21,7 +21,6 @@ import java.util.TimeZone;
 import org.cipango.SipGenerator;
 import org.cipango.SipMessage;
 import org.cipango.sip.SipConnection;
-import org.cipango.sip.SipConnectors;
 import org.mortbay.component.AbstractLifeCycle;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -39,8 +38,8 @@ public abstract class AbstractMessageLog extends AbstractLifeCycle implements Ac
     private StringBuffer _buf = new StringBuffer();
     private Buffer _buffer;
     
-	private static final int IN = 0;
-	private static final int OUT = 1;
+	public static final int IN = 0;
+	public static final int OUT = 1;
     
     protected void doStart() throws Exception 
     {	

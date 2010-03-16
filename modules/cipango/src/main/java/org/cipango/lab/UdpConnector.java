@@ -132,7 +132,7 @@ public class UdpConnector extends AbstractSipConnector
 		{
 			if (_bufferQueue.size() < 1024)
 			{
-				_bufferQueue.offerLast(udpBuffer);
+				_bufferQueue.offer(udpBuffer);
 				_bufferQueue.notifyAll();
 			}
 			else 

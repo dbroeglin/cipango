@@ -29,6 +29,7 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import org.cipango.ar.ApplicationRouterLoader;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.handler.SipContextHandlerCollection;
+import org.cipango.log.EventLog;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ClientTransactionListener;
 import org.cipango.sip.SipConnector;
@@ -55,7 +56,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
     private ConnectorManager _connectorManager = new ConnectorManager();
     private TransactionManager _transactionManager = new TransactionManager();
     
-    private SessionManager _sessionManager = new SessionManager();    
+    private SessionManager _sessionManager;    
     private SipApplicationRouter _applicationRouter;
 
     private long _statsStartedAt = -1;
@@ -67,7 +68,6 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
     {
     	setConnectorManager(_connectorManager);
 		setTransactionManager(_transactionManager);
-		setSessionManager(_sessionManager);
     }
 	
 	@Override
@@ -109,7 +109,8 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 			if (contexts != null)
 			{
 				for (SipAppContext context : contexts)
-					appNames.add(context.getName());
+					if (context.hasSipServlets())
+						appNames.add(context.getName());
 			}
 			_applicationRouter.applicationDeployed(appNames);
 			
@@ -125,11 +126,14 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		catch (Throwable t) { mex.add(t); }
 		
 		mex.ifExceptionThrow();
+		
+		EventLog.log(EventLog.START, "Cipango " + __sipVersion + " started");
 	}
 	
 	@Override
     protected void doStop() throws Exception
     {
+		EventLog.log(EventLog.START, "Stopping Cipango " + __sipVersion);
     	MultiException mex = new MultiException();
         
         try 
@@ -159,6 +163,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 
 	public void setApplicationRouter(SipApplicationRouter applicationRouter)
 	{
+		getContainer().update(this, _applicationRouter, applicationRouter, "applicationRouter");
 		_applicationRouter = applicationRouter;
 	}
 	

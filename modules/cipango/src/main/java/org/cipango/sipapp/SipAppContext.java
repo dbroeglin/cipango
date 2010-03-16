@@ -60,6 +60,7 @@ import org.mortbay.jetty.security.SecurityHandler;
 import org.mortbay.jetty.servlet.Context;
 import org.mortbay.jetty.servlet.ErrorPageErrorHandler;
 import org.mortbay.jetty.servlet.ServletHandler;
+import org.mortbay.jetty.servlet.ServletMapping;
 import org.mortbay.jetty.servlet.SessionHandler;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.log.Log;
@@ -137,6 +138,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 				SIP_CONFIGURATION_CLASS,
 				String.class));
         _scontext = new SContext();
+        setSystemClasses((String[]) LazyList.addToArray(getSystemClasses(), "org.cipango.", String.class));
 	}
 	
 	
@@ -151,7 +153,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
     {
     	super(securityHandler, sessionHandler, servletHandler, errorHandler);
     	_scontext = new SContext();
-    	
+    	setSystemClasses((String[]) LazyList.addToArray(getSystemClasses(), "org.cipango.", String.class));
     	// FIXME do more???
     }
 
@@ -336,6 +338,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			}
 			catch (Throwable t)
 			{
+				Log.debug(t);
 			}
 		}
 		if (getClassLoader() != null)
@@ -397,19 +400,27 @@ public class SipAppContext extends WebAppContext implements SipHandler
     protected void doStart() throws Exception
     {
     	super.doStart();
-    	getSipServer().applicationDeployed(this);
+    	if (hasSipServlets())
+    		getSipServer().applicationDeployed(this);
     }
     
 	@Override
 	protected void doStop() throws Exception
 	{
-		getSipServer().applicationUndeployed(this);
+		if (hasSipServlets())
+			getSipServer().applicationUndeployed(this);
 		super.doStop();
 	}
 	
     public SipServletHandler getSipServletHandler()
     {
         return (SipServletHandler) getServletHandler();
+    }
+    
+    public boolean hasSipServlets()
+    {
+    	SipServletHolder[] holders = getSipServletHandler().getSipServlets();
+    	return holders != null && holders.length != 0;
     }
     
 	public void updateNbSessions(boolean increment)

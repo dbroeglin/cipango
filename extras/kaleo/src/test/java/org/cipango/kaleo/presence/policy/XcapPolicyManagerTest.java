@@ -13,40 +13,33 @@
 // ========================================================================
 package org.cipango.kaleo.presence.policy;
 
-import java.io.File;
-
-import junit.framework.TestCase;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.cipango.kaleo.presence.Presentity;
 import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
+import org.cipango.kaleo.xcap.AbstractXcapServletTest;
 import org.cipango.kaleo.xcap.XcapService;
-import org.cipango.kaleo.xcap.XcapServiceTest;
-import org.cipango.kaleo.xcap.dao.FileXcapDao;
 
-public class XcapPolicyManagerTest extends TestCase
+public class XcapPolicyManagerTest extends AbstractXcapServletTest
 {
 
-	private XcapService _xcapService;
+
 	private XcapPolicyManager _policyManager;
-	private File _xcapRoot;
+
+	private static final String PRES_RULES_1 = 
+		"/org.openmobilealliance.pres-rules/users/sip:nicolas@cipango.org/pres-rules";
 	
 	public void setUp() throws Exception
 	{
-		_xcapService = new XcapService();
-		FileXcapDao dao = new FileXcapDao();
-		_xcapRoot = new File("target/test-data");
-		_xcapRoot.mkdirs();
-		dao.setBaseDir(_xcapRoot);
-		_xcapService.setDao(dao);
-		
-		_xcapService.start();
-		_xcapService.setRootName("/");
-		_policyManager = new XcapPolicyManager(_xcapService);
+		super.setUp();
+		XcapService xcapService = _xcapServlet.getXcapService();
+		_policyManager = new XcapPolicyManager(xcapService);
 	}
 	
 	public void testGetPolicyNicolas() throws Exception
 	{
-		setContent("/org.openmobilealliance.pres-rules/users/sip:nicolas@cipango.org/pres-rules");
+		setContent(PRES_RULES_1);
 		Presentity presentity = new Presentity("sip:nicolas@cipango.org");
 
 		assertEquals(SubHandling.ALLOW, 
@@ -57,8 +50,31 @@ public class XcapPolicyManagerTest extends TestCase
 		
 		assertEquals(SubHandling.BLOCK,
 				_policyManager.getPolicy("sip:unknown@example.com", presentity));
+	}
+	
+	public void testGetPolicyAlice() throws Exception
+	{
+		setContent("/org.openmobilealliance.pres-rules/users/sip:alice@cipango.org/pres-rules");
+		setContent("/resource-lists/users/sip:alice@cipango.org/index");
+		Presentity presentity = new Presentity("sip:alice@cipango.org");
+		Policy policy = _policyManager.getPolicy(presentity);
+		assertEquals(SubHandling.CONFIRM,
+				_policyManager.getPolicy("sip:unknown@cipango.org", presentity));
+		
+		assertEquals(2, policy.getXcapResources().size());
+		assertEquals("org.openmobilealliance.pres-rules/users/sip:alice@cipango.org/pres-rules", 
+				policy.getXcapResources().get(0).toString());
+		assertEquals("resource-lists/users/sip:alice@cipango.org/index", 
+				policy.getXcapResources().get(1).toString());
+		
+		assertEquals(SubHandling.ALLOW, 
+				_policyManager.getPolicy("sip:bob@cipango.org", presentity));
+				
+		assertEquals(SubHandling.BLOCK,
+				_policyManager.getPolicy("sip:block@cipango.org", presentity));
 		
 	}
+	
 	
 	public void testGetPolicyIetf() throws Exception
 	{
@@ -88,7 +104,6 @@ public class XcapPolicyManagerTest extends TestCase
 		setContent("/org.openmobilealliance.pres-rules/users/sip:oma@cipango.org/pres-rules");
 		setContent("/resource-lists/users/sip:oma@cipango.org/index");
 		Presentity presentity = new Presentity("sip:oma@cipango.org");
-		
 
 		// Granted by resource list
 		assertEquals(SubHandling.ALLOW,
@@ -102,13 +117,43 @@ public class XcapPolicyManagerTest extends TestCase
 		// Blocked by resource list
 		assertEquals(SubHandling.BLOCK,
 				_policyManager.getPolicy("sip:edwige@cipango.org", presentity));
-		
-		
 	}
 	
-	protected void setContent(String xcapUri) throws Exception
+	/**
+	 * Check that a policy listener is invoked when the XCAP document is changed.
+	 * @throws Exception
+	 */
+	public void testPolicyListener() throws Exception
 	{
-		XcapServiceTest.setContent(_xcapService, _xcapRoot, xcapUri);
+		setContent(PRES_RULES_1);
+		Presentity presentity = new Presentity("sip:nicolas@cipango.org");
+		final List<Long> policyUpdated = new ArrayList<Long>();
+		PolicyListener l = new PolicyListener()
+		{
+			public void policyHasChanged(Policy policy)
+			{
+				policyUpdated.add(System.currentTimeMillis());
+			}
+		};
+		Policy policy = _policyManager.getPolicy(presentity);
+		policy.addListener(l);
+		assertEquals(SubHandling.BLOCK, 
+				_policyManager.getPolicy("sip:testInsertElement@example.com", presentity));
+		
+		
+		request.setRequestURI(PRES_RULES_1 + "/~~/cr:ruleset/cr:rule%5b@id=%22a%22%5d/cr:conditions");
+		request.setContentType("application/xcap-el+xml");
+		byte[] content = getResourceAsBytes("/xcap-root/pres-rules/users/put/element.xml");
+		request.setBodyContent(content);
+		request.setContentLength(content.length);
+		doPut();
+
+		assertEquals(200, response.getStatusCode());
+		
+		assertEquals(1, policyUpdated.size());
+		assertEquals(SubHandling.ALLOW, 
+				_policyManager.getPolicy("sip:testInsertElement@example.com", presentity));
+		
 	}
-	
+		
 }

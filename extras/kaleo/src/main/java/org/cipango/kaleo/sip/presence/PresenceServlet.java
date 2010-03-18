@@ -33,6 +33,7 @@ import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.PresenceEventPackage;
 import org.cipango.kaleo.presence.Presentity;
 import org.cipango.kaleo.presence.SoftState;
+import org.cipango.kaleo.presence.policy.Policy;
 import org.cipango.kaleo.presence.policy.PolicyManager;
 import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
@@ -280,8 +281,11 @@ public class PresenceServlet extends SipServlet
 		
 		try
 		{
-			SubHandling policy = _policyManager.getPolicy(subscriberUri, presentity);
-			if (policy == SubHandling.BLOCK)
+			Policy policy = _policyManager.getPolicy(presentity);
+			policy.addListener(_presence.getPolicyListener());
+			
+			SubHandling subHandling = policy.getPolicy(subscriberUri);
+			if (subHandling == SubHandling.BLOCK)
 			{
 				_log.debug("Reject presence subscription from {} to {} due to policy", subscriberUri, presentity.getUri());
 				SipServletResponse response = subscribe.createResponse(SipServletResponse.SC_FORBIDDEN);
@@ -321,19 +325,16 @@ public class PresenceServlet extends SipServlet
 					subscription.addListener(_watcherInfo.getSubscriptionListener());
 					presentity.addSubscription(subscription);
 					
-					switch (policy)
+					switch (subHandling)
 					{
 					case ALLOW:
 						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
-						subscription.setAuthorized(true);
 						break;
 					case CONFIRM:
 						subscription.setState(State.PENDING, Reason.SUBSCRIBE);
-						subscription.setAuthorized(false);
 						break;
 					case POLITE_BLOCK:
-						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
-						subscription.setAuthorized(false);
+						subscription.setState(State.POLITE_BLOCK, Reason.SUBSCRIBE);
 						break;
 					default:
 						break;
@@ -361,7 +362,9 @@ public class PresenceServlet extends SipServlet
 			SipServletResponse response = subscribe.createResponse(code);
 			response.setExpires(expires);
 			response.send();
-				
+			
+			// Ensure 200/SUBSCRIBE is received before NOTIFY
+			try { Thread.sleep(50); } catch (Exception e) {}
 			_presence.notify(subscription);
 		}
 		finally

@@ -17,12 +17,14 @@ package org.cipango.kaleo.event;
 import javax.servlet.sip.SipSession;
 
 import org.mortbay.util.LazyList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Subscription 
 {
 	public enum State
 	{
-		INIT("init"), ACTIVE("active"), PENDING("pending"), WAITING("waiting"), TERMINATED("terminated");
+		INIT("init"), POLITE_BLOCK("active"), ACTIVE("active"), PENDING("pending"), WAITING("waiting"), TERMINATED("terminated");
 		
 		private String _name;
 		
@@ -42,6 +44,8 @@ public class Subscription
 		public String getName() { return _name; }
 	}
 	
+	private static Logger __log = LoggerFactory.getLogger(Subscription.class);
+	
 	private EventResource _resource;
 	
 	private SipSession _session;
@@ -50,7 +54,6 @@ public class Subscription
 	private long _expirationTime;
 	private String _subscriberUri;
 	private Object _listeners; //LazyList<SubscriptionListener>
-	private boolean _authorized = true;
 	
 	public Subscription(EventResource resource, SipSession session, long expirationTime) 
 	{
@@ -105,9 +108,11 @@ public class Subscription
 		_state = state;
 		_reason = reason;
 		if (previousState != state)
+		{
+			__log.debug("State changed from {} to {} for " + this, previousState, state);
 			for (int i = 0; i < LazyList.size(_listeners); i++)
 				((SubscriptionListener) LazyList.get(_listeners, i)).subscriptionStateChanged(this, previousState, state);
-
+		}
 	}
 	
 	public Reason getReason()
@@ -137,11 +142,6 @@ public class Subscription
 
 	public boolean isAuthorized()
 	{
-		return _authorized;
-	}
-
-	public void setAuthorized(boolean authorized)
-	{
-		_authorized = authorized;
+		return _state == State.INIT || _state == State.ACTIVE;
 	}
 }

@@ -15,11 +15,18 @@
 package org.cipango.kaleo.presence;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.cipango.kaleo.event.AbstractEventPackage;
 import org.cipango.kaleo.event.ContentHandler;
+import org.cipango.kaleo.event.Subscription;
+import org.cipango.kaleo.event.Subscription.Reason;
+import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
+import org.cipango.kaleo.presence.policy.Policy;
+import org.cipango.kaleo.presence.policy.PolicyListener;
+import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +45,8 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	public int _minStateExpires = 1;
 	public int _maxStateExpires = 3600;
 	public int _defaultStateExpires = 3600;
+	
+	private PolicyListener _policyListener = new PolicyUpdater();
 	
 	public PresenceEventPackage()
 	{
@@ -82,4 +91,60 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 		else
 			return null;
 	}
+	
+	public PolicyListener getPolicyListener()
+	{
+		return _policyListener;
+	}
+	
+	class PolicyUpdater implements PolicyListener
+	{
+
+		public void policyHasChanged(Policy policy)
+		{
+			
+			Presentity presentity = (Presentity) get(policy.getResourceUri());
+
+			try
+			{
+				Iterator<Subscription> it = presentity.getSubscriptions().iterator();
+				while (it.hasNext())
+				{
+					Subscription subscription = it.next();
+					SubHandling subHandling = policy.getPolicy(subscription.getUri());
+					
+					State state = subscription.getState();
+					switch (subHandling)
+					{
+					case ALLOW:
+						subscription.setState(State.ACTIVE, Reason.APPROVED);
+						break;
+					case CONFIRM:
+						subscription.setState(State.PENDING, Reason.SUBSCRIBE);
+						break;
+					case POLITE_BLOCK:
+						subscription.setState(State.POLITE_BLOCK, Reason.SUBSCRIBE);
+						break;
+					case BLOCK:
+						subscription.setState(State.TERMINATED, Reason.REJECTED);
+						break;
+					default:
+						break;
+					}
+					
+					// send NOTIFY if state has changed.
+					if (state != subscription.getState())
+					{
+						PresenceEventPackage.this.notify(subscription);
+					}
+				}
+			}
+			finally
+			{
+				put(presentity);
+			}
+		}
+		
+	}
+
 }

@@ -16,7 +16,7 @@ import com.mockrunner.servlet.BasicServletTestCaseAdapter;
 
 public abstract class AbstractXcapServletTest extends BasicServletTestCaseAdapter {
 
-	private XcapServlet _xcapServlet;
+	protected XcapServlet _xcapServlet;
 	private File _xcapRoot;
 	
 	protected void setUp() throws Exception {

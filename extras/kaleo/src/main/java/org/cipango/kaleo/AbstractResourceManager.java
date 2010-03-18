@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.cipango.util.PriorityQueue;
@@ -64,6 +64,14 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 		return resources;
 	}
 	
+	public List<ResourceHolder> getHolders()
+	{
+		synchronized (_resources)
+		{
+			return new ArrayList<ResourceHolder>(_resources.values());
+		}
+	}
+	
 	protected ResourceHolder getHolder(String uri)
 	{
 		synchronized (_resources)
@@ -74,16 +82,18 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 	
 	public T get(String uri)
 	{
+		ResourceHolder holder;
 		synchronized (_resources)
 		{
-			ResourceHolder holder = _resources.get(uri);
+			holder = _resources.get(uri);
 			if (holder == null)
 			{
 				holder = new ResourceHolder(newResource(uri));
 				_resources.put(uri, holder);
 			}
-			return holder.lock();
 		}
+
+		return holder.lock();
 	}
 	
 	public boolean contains(String uri)
@@ -107,41 +117,46 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 	
 	protected void put(ResourceHolder holder)
 	{
-		T resource = holder.getResource();
-		long time = resource.nextTimeout();
-		
-		synchronized (_queue)
-		{
-			if (time > 0)
+		int holds = holder._lock.getHoldCount();
+    	
+    	if (holds == 1)
+    	{
+			T resource = holder.getResource();
+			long time = resource.nextTimeout();
+			
+			synchronized (_queue)
 			{
-				if (time < System.currentTimeMillis())
-					time = System.currentTimeMillis() + 100;
-				_queue.offer(holder, time);
+				if (time > 0)
+				{
+					if (time < System.currentTimeMillis())
+						time = System.currentTimeMillis() + 100;
+					_queue.offer(holder, time);
+				}
+				else 
+				{
+					_queue.remove(holder);
+				}
+				_queue.notifyAll();
 			}
-			else 
+			
+			if (resource.isDone())
 			{
-				_queue.remove(holder);
+				synchronized (_resources)
+				{
+					_resources.remove(resource.getUri());
+					_log.debug("Remove {} resource {}", resource.getClass().getSimpleName(), resource);
+				}
 			}
-			_queue.notifyAll();
-		}
-		
-		if (resource.isDone())
-		{
-			synchronized (_resources)
-			{
-				_resources.remove(resource.getUri());
-				_log.debug("Remove {} resource {}", resource.getClass().getSimpleName(), resource);
-			}
-		}
+    	}
 		holder.unlock();
 	}
 	
 	protected abstract T newResource(String uri);
 	
-	protected class ResourceHolder extends PriorityQueue.Node implements Runnable
+	public class ResourceHolder extends PriorityQueue.Node implements Runnable
 	{
 		private T _resource;
-		private Lock _lock = new ReentrantLock();
+		private ReentrantLock _lock = new ReentrantLock();
 		
 		ResourceHolder(T resource) 
 		{
@@ -156,8 +171,25 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 		
 		public T lock()
 		{
-			_lock.lock();
-			return _resource;
+			try 
+			{
+				if (_lock.tryLock(500, TimeUnit.MILLISECONDS))
+					return _resource;
+			}
+			catch (InterruptedException e) 
+			{
+			}
+			return null;
+		}
+		
+		public int getHoldCount()
+		{
+			return _lock.getHoldCount();
+		}
+		
+		public String getOwner()
+		{
+			return _lock.toString();
 		}
 		
 		public void unlock()
@@ -209,7 +241,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 							timeout = (holder != null) ? (holder.getValue() - System.currentTimeMillis()) : Long.MAX_VALUE;
 							
 							if (_log.isDebugEnabled())
-								_log.debug("next timeout in {} for node {}", timeout, holder);
+								_log.debug("next timeout in {} seconds for node {}", timeout / 1000, holder);
 							
 							if (timeout > 0)
 								_queue.wait(timeout);

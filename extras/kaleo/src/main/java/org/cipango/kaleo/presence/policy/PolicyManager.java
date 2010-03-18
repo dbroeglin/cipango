@@ -14,7 +14,6 @@
 package org.cipango.kaleo.presence.policy;
 
 import org.cipango.kaleo.Resource;
-import org.cipango.kaleo.event.Subscription;
 
 public interface PolicyManager
 {
@@ -44,8 +43,8 @@ public interface PolicyManager
 			return _value;
 		}
 	}
-	
-	public SubHandling getPolicy(Subscription subscription);
-	
+		
 	public SubHandling getPolicy(String subscriberUri, Resource resource);
+	
+	public Policy getPolicy(Resource resource);
 }

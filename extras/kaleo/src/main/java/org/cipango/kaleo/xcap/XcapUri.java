@@ -26,23 +26,31 @@ public class XcapUri
 		_global = false;
 	}
 	
+	public XcapUri(String documentSelector) throws XcapException
+	{
+		parse(documentSelector);
+	}
+	
 	public XcapUri(String requestUri, String rootName) throws XcapException
 	{
-		requestUri = getRequestUriWithoutRootName(RequestUtil.URLDecode(requestUri), rootName);
-
-		int separator = requestUri.indexOf(NODE_SELECTOR_SEPARATOR);
+		parse(getRequestUriWithoutRootName(RequestUtil.URLDecode(requestUri), rootName));
+	}
+	
+	private void parse(String requestUriWithoutRootName)
+	{
+		int separator = requestUriWithoutRootName.indexOf(NODE_SELECTOR_SEPARATOR);
 
 		if (separator == -1)
-			_documentSelector = requestUri;
+			_documentSelector = requestUriWithoutRootName;
 		else
 		{
-			_documentSelector = requestUri.substring(0, separator);
-			_nodeSelector = requestUri.substring(separator + NODE_SELECTOR_SEPARATOR.length());
+			_documentSelector = requestUriWithoutRootName.substring(0, separator);
+			_nodeSelector = requestUriWithoutRootName.substring(separator + NODE_SELECTOR_SEPARATOR.length());
 		}
 		
 		if (_documentSelector.indexOf('/') == -1)
 		{
-			throw new XcapException("Request URI " + requestUri
+			throw new XcapException("Request URI " + requestUriWithoutRootName
 					+ " does not contains a second '/'",
 					HttpServletResponse.SC_NOT_FOUND);
 		}
@@ -62,11 +70,9 @@ public class XcapUri
 			_global = false;
 		}
 		else
-			throw new XcapException("Request URI " + requestUri
+			throw new XcapException("Request URI " + requestUriWithoutRootName
 					+ " is not in subtree global or users",
 					HttpServletResponse.SC_BAD_REQUEST);
-		
-
 	}
 	
 	private String getRequestUriWithoutRootName(String requestUri, String rootName)
@@ -85,10 +91,7 @@ public class XcapUri
 	{
 		return _nodeSelector;
 	}
-	public void setNodeSelector(String nodeSelector)
-	{
-		_nodeSelector = nodeSelector;
-	}
+	
 	public boolean hasNodeSeparator()
 	{
 		return _nodeSelector != null;
@@ -97,18 +100,11 @@ public class XcapUri
 	{
 		return _documentSelector;
 	}
-	public void setDocumentSelector(String documentSelector)
-	{
-		_documentSelector = documentSelector;
-	}
 	public String getAuid()
 	{
 		return _auid;
 	}
-	public void setAuid(String auid)
-	{
-		_auid = auid;
-	}
+
 	/**
 	 * Returns <code>true</code> if the selected document is global.
 	 * i.e. if the subtree name after the auid is <code>global</code>.
@@ -118,18 +114,12 @@ public class XcapUri
 	{
 		return _global;
 	}
-	public void setGlobal(boolean global)
-	{
-		_global = global;
-	}
+
 	public String getUser()
 	{
 		return _user;
 	}
-	public void setUser(String user)
-	{
-		_user = user;
-	}
+
 	public String getResourceId()
 	{
 		return _resourceId;
@@ -137,13 +127,25 @@ public class XcapUri
 
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(_documentSelector);
-		if (hasNodeSeparator())
-			sb.append(NODE_SELECTOR_SEPARATOR).append(_nodeSelector);
+		if (!hasNodeSeparator())
+			return _documentSelector;
 		
+		StringBuilder sb = new StringBuilder();
+		sb.append(_documentSelector).append(NODE_SELECTOR_SEPARATOR).append(_nodeSelector);
 		return sb.toString();
 	}
 	
+	@Override
+	public boolean equals(Object object)
+	{
+		if (!(object instanceof XcapUri))
+			return false;
+		XcapUri other = (XcapUri) object;
+		if (!_documentSelector.equals(other.getDocumentSelector()))
+			return false;
+		if (_nodeSelector == null)
+			return other.getNodeSelector() == null;
+		return _nodeSelector.equals(other.getNodeSelector());
+	}
 	
 }

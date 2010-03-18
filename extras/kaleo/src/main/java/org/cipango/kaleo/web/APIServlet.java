@@ -1,6 +1,7 @@
 package org.cipango.kaleo.web;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -10,13 +11,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.cipango.kaleo.Resource;
+import org.cipango.kaleo.AbstractResourceManager.ResourceHolder;
 import org.cipango.kaleo.event.EventResource;
 import org.cipango.kaleo.event.Subscription;
 import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
 import org.cipango.kaleo.presence.PresenceEventPackage;
-import org.cipango.kaleo.presence.Presentity;
+import org.cipango.kaleo.presence.policy.Policy;
+import org.cipango.kaleo.presence.policy.PolicyManager;
+import org.cipango.kaleo.presence.policy.XcapPolicyManager;
+import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.mortbay.util.ajax.JSON;
 import org.mortbay.util.ajax.JSON.Convertor;
 import org.mortbay.util.ajax.JSON.Output;
@@ -25,11 +30,16 @@ public class APIServlet extends HttpServlet
 {
 	private PresenceEventPackage _presence;
 	private LocationService _locationService;
+	private XcapPolicyManager _xcapPolicyManager;
+	private WatcherInfoEventPackage _watcherInfo;
 	
 	public void init()
 	{
 		_presence = (PresenceEventPackage) getServletContext().getAttribute(PresenceEventPackage.class.getName());
 		_locationService = (LocationService) getServletContext().getAttribute(LocationService.class.getName());
+		_xcapPolicyManager = (XcapPolicyManager) getServletContext().getAttribute(PolicyManager.class.getName());
+		_watcherInfo = (WatcherInfoEventPackage) getServletContext().getAttribute(WatcherInfoEventPackage.class.getName());
+		
 		JSON.getDefault().addConvertor(Resource.class, new Convertor()
 		{
 			public void toJSON(Object obj, Output out) 
@@ -81,6 +91,29 @@ public class APIServlet extends HttpServlet
 			}
 			public Object fromJSON(Map object)  { return null; }
 		});
+		
+		JSON.getDefault().addConvertor(Policy.class, new Convertor()
+		{
+			public void toJSON(Object obj, Output out) 
+			{
+				Policy policy = (Policy) obj;
+				out.add("Resource", policy.getResourceUri());
+				out.add("XcapResources", policy.getXcapResources());
+			}
+			public Object fromJSON(Map object)  { return null; }
+		});
+		
+		JSON.getDefault().addConvertor(ResourceHolder.class, new Convertor()
+		{
+			public void toJSON(Object obj, Output out) 
+			{
+				ResourceHolder holder = (ResourceHolder) obj;
+				out.add("lock", holder.getHoldCount());
+				out.add("Owner", holder.getOwner());
+				out.add("Resource", holder.getResource());
+			}
+			public Object fromJSON(Map object)  { return null; }
+		});
 	}
 	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -96,16 +129,18 @@ public class APIServlet extends HttpServlet
 		String[] path = pathInfo.split("/");
 		
 		if ("registrations".equals(path[0]))
-		{
-			List<Registration> records = _locationService.getResources();
-			response.getOutputStream().println(JSON.getDefault().toJSON(records));
-		}
+			response.getOutputStream().println(JSON.getDefault().toJSON( _locationService.getResources()));
 		else if ("presentities".equals(path[0]))
+			response.getOutputStream().println(JSON.getDefault().toJSON(_presence.getResources()));
+		else if ("policies".equals(path[0]))
+			response.getOutputStream().println(JSON.getDefault().toJSON(_xcapPolicyManager.getPolicies()));
+		else if ("locks".equals(path[0]))
 		{
-			List<Presentity> presentities = _presence.getResources(); 
-			String json = JSON.getDefault().toJSON(presentities);
-			
-			response.getOutputStream().println(json);
+			List<ResourceHolder> holders = new ArrayList<ResourceHolder>();
+			holders.addAll(_locationService.getHolders());
+			holders.addAll(_presence.getHolders());
+			holders.addAll(_watcherInfo.getHolders());
+			response.getOutputStream().println(JSON.getDefault().toJSON(holders));
 		}
 	}
 }

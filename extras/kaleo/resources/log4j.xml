@@ -33,7 +33,10 @@
  --> 
   <!-- categories -->
 
-
+  <category name="org.cipango.kaleo.xcap.XcapService">
+    <priority value="info"/>
+  </category>
+  
   <category name="org.cipango.kaleo">
     <param name="additivity" value="false"/>
     <priority value="debug"/>

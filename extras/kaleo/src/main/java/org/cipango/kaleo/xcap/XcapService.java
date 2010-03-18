@@ -18,8 +18,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +64,7 @@ public class XcapService extends AbstractLifeCycle
 	private boolean _validate;
 	private boolean _validateOnGet;
 	private String _rootName;
+	private Map<String, List<XcapListener>> _listeners = new HashMap<String, List<XcapListener>>(); 
 	
 	@Override
 	protected void doStart() throws Exception
@@ -453,11 +457,7 @@ public class XcapService extends AbstractLifeCycle
 				checkIfSameNodeSelected(resource);
 				resource.getProcessor().processResource(resource);
 				_dao.save(resource);
-				/*
-				 * FIXME XcapDiffNotifierImpl notifier = getXcapDiffNotifier();
-				 * if (notifier != null) {
-				 * notifier.notifyDocumentChanged(resource, head); }
-				 */
+				notifyResourceChanged(resource);
 			}
 
 			String newEtag = getEtag(resource);
@@ -874,6 +874,50 @@ public class XcapService extends AbstractLifeCycle
 				_rootName = name;
 			else
 				_rootName = "/" +  name + "/";	
+		}
+	}
+	
+	public void addListener(XcapListener l, XcapUri uri)
+	{
+		synchronized (_listeners)
+		{
+			List<XcapListener> list = _listeners.get(uri.getDocumentSelector());
+			if (list == null)
+			{
+				list = new ArrayList<XcapListener>();
+				_listeners.put(uri.getDocumentSelector(), list);
+			}
+			if (!list.contains(l))
+				list.add(l);
+		}
+	}
+	
+	public void removeListener(XcapListener l, XcapUri uri)
+	{
+		synchronized (_listeners)
+		{
+			List<XcapListener> list = _listeners.get(uri.getDocumentSelector());
+			if (list != null)
+			{
+				list.remove(l);
+				if (list.isEmpty())
+					_listeners.remove(uri.getDocumentSelector());
+			}
+		}
+	}
+	
+	private void notifyResourceChanged(XcapResource resource)
+	{
+		List<XcapListener> list = null;
+		synchronized (_listeners)
+		{
+			list = _listeners.get(resource.getXcapUri().getDocumentSelector());
+		}
+		if (list != null)
+		{
+			Iterator<XcapListener> it = list.iterator();
+			while (it.hasNext())
+				it.next().documentChanged(resource);
 		}
 	}
 

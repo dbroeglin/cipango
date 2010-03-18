@@ -142,6 +142,6 @@ public class Subscription
 
 	public boolean isAuthorized()
 	{
-		return _state == State.INIT || _state == State.ACTIVE;
+		return _state == State.INIT || _state == State.ACTIVE || _state == State.TERMINATED;
 	}
 }

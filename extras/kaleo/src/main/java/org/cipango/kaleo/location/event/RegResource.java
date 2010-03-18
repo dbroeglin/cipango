@@ -131,7 +131,13 @@ public class RegResource extends AbstractEventResource implements RegistrationLi
 
 	public State getNeutralState()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		ReginfoDocument document = ReginfoDocument.Factory.newInstance();
+		Reginfo reginfo = document.addNewReginfo();
+		reginfo.setVersion(BigInteger.ZERO);
+		reginfo.setState(org.cipango.kaleo.location.event.ReginfoDocument.Reginfo.State.FULL);
+		Registration reg = reginfo.addNewRegistration();
+		reg.setAor(getUri());
+		reg.setId("123");
+		return new State(RegEventPackage.REGINFO, document);
 	}
 }

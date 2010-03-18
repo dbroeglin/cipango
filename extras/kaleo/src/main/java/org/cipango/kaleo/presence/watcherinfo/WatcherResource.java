@@ -159,8 +159,15 @@ public class WatcherResource extends AbstractEventResource implements Subscripti
 
 	public State getNeutralState()
 	{
-		// TODO Auto-generated method stub
-		return null;
+		WatcherinfoDocument document = WatcherinfoDocument.Factory.newInstance();
+		Watcherinfo watcherinfo = document.addNewWatcherinfo();
+		watcherinfo.setState(org.cipango.kaleo.presence.watcherinfo.WatcherinfoDocument.Watcherinfo.State.FULL);
+		watcherinfo.setVersion(BigInteger.ZERO);
+		WatcherList list = watcherinfo.addNewWatcherList();
+		list.setResource(getUri());
+		list.setPackage(PresenceEventPackage.NAME);
+		
+		return new State(WatcherInfoEventPackage.WATCHERINFO, document);
 	}
 
 }

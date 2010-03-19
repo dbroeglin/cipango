@@ -16,7 +16,6 @@ package org.cipango.kaleo.sipunit;
 import java.io.ByteArrayInputStream;
 
 import javax.sip.ServerTransaction;
-import javax.sip.header.AllowEventsHeader;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.header.MinExpiresHeader;
@@ -84,13 +83,13 @@ public class RegEventTest extends UaTestCase
 		registerSession.register(null, 0);
 		
 		SubscribeSession session = new SubscribeSession(getAlicePhone(), "reg");
-		Request subscribe = session.newInitialSubscribe(100, getAliceUri());
-		session.sendRequest(subscribe, Response.OK);
+		Request subscribe = session.newInitialSubscribe(100, getAliceUri()); // 1
+		session.sendRequest(subscribe, Response.OK); // 2
 		
 		ServerTransaction tx = session.waitForNotify();
-		Request notify = tx.getRequest();
+		Request notify = tx.getRequest(); // 3
 		//System.out.println(notify);
-		session.sendResponse(Response.OK, tx);
+		session.sendResponse(Response.OK, tx); // 4
 		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
 		assertBetween(95, 100, subState.getExpires());
@@ -102,12 +101,12 @@ public class RegEventTest extends UaTestCase
 		assertEquals(getAliceUri(), registration.getAor());
 		assertEquals(0, registration.getContactArray().length);
 		
-		registerSession.register(null, 1800);
+		registerSession.register(null, 1800); // 5 and 6
 		
-		tx = session.waitForNotify();
-		notify = tx.getRequest();
+		tx = session.waitForNotify(); 
+		notify = tx.getRequest(); // 7
 		//System.out.println(notify);
-		session.sendResponse(Response.OK, tx);
+		session.sendResponse(Response.OK, tx); // 8
 		regInfo = getRegInfo(notify);
 		registration = regInfo.getRegistrationArray(0);
 		assertEquals(1, registration.getContactArray().length);
@@ -117,11 +116,11 @@ public class RegEventTest extends UaTestCase
 		assertBetween(1795, 1800, contact.getExpires().intValue());
 		assertEquals(Event.REGISTERED, contact.getEvent());
 		
-		registerSession.register(null, 0);
-		tx = session.waitForNotify();
-		notify = tx.getRequest();
+		registerSession.register(null, 0); // 9 and  10
+		tx = session.waitForNotify(); 
+		notify = tx.getRequest(); // 11
 		//System.out.println(notify);
-		session.sendResponse(Response.OK, tx);
+		session.sendResponse(Response.OK, tx); // 12
 		regInfo = getRegInfo(notify);
 		registration = regInfo.getRegistrationArray(0);
 		assertEquals(1, registration.getContactArray().length);
@@ -131,13 +130,13 @@ public class RegEventTest extends UaTestCase
 		assertEquals(0, contact.getExpires().intValue());
 		assertEquals(Event.UNREGISTERED, contact.getEvent());
 		
-		subscribe = session.newSubsequentSubscribe(0);
-		session.sendRequest(subscribe, Response.OK);
+		subscribe = session.newSubsequentSubscribe(0); // 13
+		session.sendRequest(subscribe, Response.OK); // 14
 		
 		tx = session.waitForNotify();
-		notify = tx.getRequest();
+		notify = tx.getRequest(); // 15
 		//System.out.println(notify);
-		session.sendResponse(Response.OK, tx);
+		session.sendResponse(Response.OK, tx); // 16
 		subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
 		assertEquals(SubscriptionStateHeader.TERMINATED.toLowerCase(), 
 				subState.getState());

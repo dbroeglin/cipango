@@ -14,6 +14,7 @@
 package org.cipango.kaleo.sipunit;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
 import javax.sip.ServerTransaction;
 import javax.sip.header.ContentTypeHeader;
@@ -23,9 +24,17 @@ import javax.sip.header.SubscriptionStateHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.cafesip.sipunit.PublishSession;
 import org.cafesip.sipunit.SipResponse;
 import org.cafesip.sipunit.SubscribeSession;
 import org.cipango.kaleo.presence.PresenceEventPackage;
+import org.cipango.kaleo.presence.pidf.Basic;
+import org.cipango.kaleo.presence.pidf.Presence;
+import org.cipango.kaleo.presence.pidf.PresenceDocument;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.cipango.kaleo.presence.watcherinfo.WatcherinfoDocument;
 import org.cipango.kaleo.presence.watcherinfo.WatcherDocument.Watcher;
@@ -37,6 +46,8 @@ import org.cipango.kaleo.presence.watcherinfo.WatcherinfoDocument.Watcherinfo;
 public class WatcherInfoTest extends UaTestCase
 {
 	
+	private static final String BOB_PRES_RULES_URI = "/org.openmobilealliance.pres-rules/users/sip:bob@cipango.org/pres-rules/~~/cr:ruleset/cr:rule%5b@id=%22wp_prs_allow_own%22%5d/cr:actions";
+	
 	public void setUp() throws Exception
 	{
 		super.setUp();
@@ -46,7 +57,7 @@ public class WatcherInfoTest extends UaTestCase
 	
 	/**
 	 * <pre>
-	 *  Alice               Kaleo              SipUnit
+	    Alice               Kaleo              SipUnit
           |                   |(1) SUBSCRIBE        |
           |                   |Event:presence.winfo |
           |                   |<--------------------|
@@ -123,7 +134,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 7
 		notify = tx.getRequest();
-		System.out.println(notify);
+		//System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 8
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(1, watcherinfo.getVersion().intValue());
@@ -144,7 +155,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 13
 		notify = tx.getRequest();
-		System.out.println(notify);
+		// System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 14
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(2, watcherinfo.getVersion().intValue());
@@ -163,7 +174,7 @@ public class WatcherInfoTest extends UaTestCase
 		
 		tx = winfoSession.waitForNotify(); // 19
 		notify = tx.getRequest();
-		System.out.println(notify);
+		// System.out.println(notify);
 		winfoSession.sendResponse(Response.OK, tx); // 20
 		watcherinfo = getWatcherinfo(notify);
 		assertEquals(3, watcherinfo.getVersion().intValue());
@@ -174,7 +185,7 @@ public class WatcherInfoTest extends UaTestCase
 	
 	/**
 	 * <pre>
-	 *  Alice               Kaleo              SipUnit
+	    Alice               Kaleo              SipUnit
           |(1) SUBSCRIBE      |                     |
           |Event:presence     |                     |
           |------------------>|                     |
@@ -202,7 +213,6 @@ public class WatcherInfoTest extends UaTestCase
           |<------------------|                     |
           |(12) 200 OK        |                     |
           |------------------>|                     |
-
      * </pre>
 	 */
 	public void testSubscription2()
@@ -247,6 +257,159 @@ public class WatcherInfoTest extends UaTestCase
 			
 	}
 	
+	/**
+	 * <pre>
+	    Alice               Kaleo              SipUnit
+          |                   |(1) PUBLISH          |
+          |                   |<--------------------|
+          |                   |(2) 200 OK           |
+          |                   |-------------------->|
+          |(3) SUBSCRIBE      |                     |
+          |Event:presence     |                     |
+          |------------------>|                     |
+          |(4) 200 OK         |                     |
+          |<------------------|                     |
+          |(5) NOTIFY         |                     |
+          |<------------------|                     |
+          |(6) 200 OK         |                     |
+          |------------------>|                     |
+          |                   |(7) SUBSCRIBE        |
+          |                   |Event:presence.winfo |
+          |                   |<--------------------|
+          |                   |(8) 200 OK           |
+          |                   |-------------------->|
+          |                   |(9) NOTIFY           |
+          |                   |-------------------->|
+          |                   |(10) 200 OK          |
+          |                   |<--------------------|
+          |                   |(11) HTTP PUT        | Change subscription state from 
+          |                   |<--------------------| allow to polite-block
+          |                   |(12) 200 OK          |
+          |                   |-------------------->|
+          |(13) NOTIFY        |                     | Send NOTIFY with neutral state
+          |<------------------|                     |
+          |(14) 200 OK        |                     |
+          |------------------>|                     |
+          |                   |(15) NOTIFY          |
+          |                   |-------------------->| 
+          |                   |(16) 200 OK          |
+          |                   |<--------------------|
+          |                   |(17) SUBSCRIBE       |
+          |                   |Expires = 0          |
+          |                   |<--------------------|
+          |                   |(18) 200 OK          |
+          |                   |-------------------->|
+          |                   |(19) NOTIFY          |
+          |                   |-------------------->|
+          |                   |(20) 200 OK          |
+          |                   |<--------------------|
+          |(21) SUBSCRIBE     |                     |
+          |Expires: 0         |                     |
+          |------------------>|                     |
+          |(22) 200 OK        |                     |
+          |<------------------|                     |
+          |(23) NOTIFY        |                     |
+          |<------------------|                     |
+          |(24) 200 OK        |                     |
+          |------------------>|                     |
+     * </pre>
+	 */
+	public void testSubscription3() throws Exception
+	{
+		PublishSession publishSession = new PublishSession(getBobPhone());
+        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20); // 1
+        publishSession.sendRequest(publish, SipResponse.OK); // 2
+		
+		SubscribeSession presenceSession = new SubscribeSession(getAlicePhone(), "presence");
+		Request subscribe = presenceSession.newInitialSubscribe(100, getBobUri()); // 3
+		presenceSession.sendRequest(subscribe, Response.OK); // 4
+
+		ServerTransaction tx = presenceSession.waitForNotify(); // 5
+		//System.out.println("3:\n" + tx.getRequest());
+		presenceSession.sendResponse(Response.OK, tx); // 6
+		Presence presence = getPresence(tx.getRequest());
+		assertEquals(Basic.OPEN, presence.getTupleArray()[0].getStatus().getBasic());
+		
+		
+		SubscribeSession winfoSession = new SubscribeSession(getBobPhone(), "presence.winfo"); // 7
+		subscribe = winfoSession.newInitialSubscribe(60, getBobUri());
+		winfoSession.sendRequest(subscribe, Response.OK); // 8
+		
+		tx = winfoSession.waitForNotify(); // 9
+		Request notify = tx.getRequest();
+		//System.out.println(notify);
+		winfoSession.sendResponse(Response.OK, tx); // 10 
+		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
+		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
+		assertEquals(WatcherInfoEventPackage.NAME, ((EventHeader) notify.getHeader(EventHeader.NAME)).getEventType());
+		Watcherinfo watcherinfo = getWatcherinfo(notify);
+		assertEquals(0, watcherinfo.getVersion().intValue());
+		assertEquals(Watcherinfo.State.FULL, watcherinfo.getState());
+		assertEquals(1, watcherinfo.getWatcherListArray().length);
+		WatcherList watcherList = watcherinfo.getWatcherListArray(0);
+		assertEquals(getBobUri(), watcherList.getResource());
+		assertEquals(PresenceEventPackage.NAME, watcherList.getPackage());
+		assertEquals(1, watcherList.getWatcherArray().length);
+		Watcher watcher = watcherList.getWatcherArray(0);
+		assertEquals(Event.SUBSCRIBE, watcher.getEvent());
+		assertEquals(getAliceUri(), watcher.getStringValue());
+		assertEquals(Status.ACTIVE, watcher.getStatus());
+		
+		
+		HttpClient httpClient = new HttpClient();
+		PutMethod put = new PutMethod(getHttpXcapUri() + BOB_PRES_RULES_URI); // 11
+		
+		InputStream is = WatcherInfoTest.class.getResourceAsStream("/xcap-root/pres-rules/users/put/elementPoliteBlock.xml");
+		RequestEntity entity = new InputStreamRequestEntity(is, "application/xcap-el+xml"); 
+		put.setRequestEntity(entity); 
+		
+		int result = httpClient.executeMethod(put);
+		assertEquals(200, result); // 12
+		put.releaseConnection();
+		
+		tx = presenceSession.waitForNotify(); // 13
+		//System.out.println("11:\n" + tx.getRequest());
+		presenceSession.sendResponse(Response.OK, tx); // 14
+		presence = getPresence(tx.getRequest());
+		assertEquals(Basic.CLOSED, presence.getTupleArray()[0].getStatus().getBasic());
+		
+		tx = winfoSession.waitForNotify(); // 15
+		notify = tx.getRequest();
+		winfoSession.sendResponse(Response.OK, tx); // 16
+		System.out.println(notify);
+		subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
+		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
+		assertEquals(WatcherInfoEventPackage.NAME, ((EventHeader) notify.getHeader(EventHeader.NAME)).getEventType());
+		watcherinfo = getWatcherinfo(notify);
+		assertEquals(1, watcherinfo.getVersion().intValue());
+		assertEquals(Watcherinfo.State.FULL, watcherinfo.getState());
+		assertEquals(1, watcherinfo.getWatcherListArray().length);
+		watcherList = watcherinfo.getWatcherListArray(0);
+		assertEquals(getBobUri(), watcherList.getResource());
+		assertEquals(PresenceEventPackage.NAME, watcherList.getPackage());
+		assertEquals(1, watcherList.getWatcherArray().length);
+		watcher = watcherList.getWatcherArray(0);
+		assertEquals(Event.SUBSCRIBE, watcher.getEvent());
+		assertEquals(getAliceUri(), watcher.getStringValue());
+		assertEquals(Status.ACTIVE, watcher.getStatus());
+			
+		
+		subscribe = winfoSession.newSubsequentSubscribe(0); // 17
+		winfoSession.sendRequest(subscribe, Response.OK); // 18
+				
+		tx = winfoSession.waitForNotify(); // 19
+		winfoSession.sendResponse(Response.OK, tx); // 20
+		
+		
+		subscribe = presenceSession.newSubsequentSubscribe(0); // 21
+		presenceSession.sendRequest(subscribe, Response.OK); // 22
+				
+		tx = presenceSession.waitForNotify(); // 23
+		presenceSession.sendResponse(Response.OK, tx); // 24
+	}
+	
+	
+	
 	private Watcherinfo getWatcherinfo(Request request)
 	{
 		ContentTypeHeader contentType = (ContentTypeHeader) request.getHeader(ContentTypeHeader.NAME);
@@ -255,6 +418,21 @@ public class WatcherInfoTest extends UaTestCase
 		try
 		{
 			return WatcherinfoDocument.Factory.parse(new ByteArrayInputStream(request.getRawContent())).getWatcherinfo();
+		}
+		catch (Exception e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private Presence getPresence(Request request)
+	{
+		ContentTypeHeader contentType = (ContentTypeHeader) request.getHeader(ContentTypeHeader.NAME);
+		assertEquals("application", contentType.getContentType());
+		assertEquals("pidf+xml", contentType.getContentSubType());
+		try
+		{
+			return PresenceDocument.Factory.parse(new ByteArrayInputStream(request.getRawContent())).getPresence();
 		}
 		catch (Exception e)
 		{
@@ -271,5 +449,4 @@ public class WatcherInfoTest extends UaTestCase
         assertNotNull(minExpiresHeader);
     }
     
-
 }

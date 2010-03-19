@@ -117,6 +117,11 @@ public abstract class UaTestCase extends SipTestCase
 		return "sip:sipServlet@" + _properties.getProperty("sipunit.test.domain");
 	}
 	
+	public String getHttpXcapUri()
+	{
+		return _properties.getProperty("http.xcap.uri");
+	}
+	
 	public SipPhone getAlicePhone()
 	{
 		return _alicePhone;

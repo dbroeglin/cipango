@@ -328,13 +328,13 @@ public class PresenceServlet extends SipServlet
 					switch (subHandling)
 					{
 					case ALLOW:
-						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE);
+						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE, true);
 						break;
 					case CONFIRM:
-						subscription.setState(State.PENDING, Reason.SUBSCRIBE);
+						subscription.setState(State.PENDING, Reason.SUBSCRIBE, false);
 						break;
 					case POLITE_BLOCK:
-						subscription.setState(State.POLITE_BLOCK, Reason.SUBSCRIBE);
+						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE, false);
 						break;
 					default:
 						break;

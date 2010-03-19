@@ -24,7 +24,7 @@ public class Subscription
 {
 	public enum State
 	{
-		INIT("init"), POLITE_BLOCK("active"), ACTIVE("active"), PENDING("pending"), WAITING("waiting"), TERMINATED("terminated");
+		INIT("init"), ACTIVE("active"), PENDING("pending"), WAITING("waiting"), TERMINATED("terminated");
 		
 		private String _name;
 		
@@ -53,6 +53,7 @@ public class Subscription
 	private Reason _reason;
 	private long _expirationTime;
 	private String _subscriberUri;
+	private boolean _authorised = true;
 	private Object _listeners; //LazyList<SubscriptionListener>
 	
 	public Subscription(EventResource resource, SipSession session, long expirationTime) 
@@ -102,17 +103,31 @@ public class Subscription
 		return _state;
 	}
 	
-	public void setState(State state, Reason reason) 
+	public void setState(State state, Reason reason, boolean authorised) 
 	{
 		State previousState = _state;
+		boolean previousAuthorised = _authorised;
+		_authorised = authorised;
 		_state = state;
 		_reason = reason;
-		if (previousState != state)
+		if (previousState != state || previousAuthorised != authorised)
 		{
-			__log.debug("State changed from {} to {} for " + this, previousState, state);
+			if (__log.isDebugEnabled())
+			{
+				if (previousState != state)
+					__log.debug("State changed from {} to {} for " + this, previousState, state);
+				if (previousAuthorised != authorised)
+					__log.debug("Authorization changed from {} to {} for " + this, previousAuthorised, authorised);
+			}
+			
 			for (int i = 0; i < LazyList.size(_listeners); i++)
 				((SubscriptionListener) LazyList.get(_listeners, i)).subscriptionStateChanged(this, previousState, state);
 		}
+	}
+	
+	public void setState(State state, Reason reason) 
+	{
+		setState(state, reason, isAuthorized());
 	}
 	
 	public Reason getReason()
@@ -142,6 +157,6 @@ public class Subscription
 
 	public boolean isAuthorized()
 	{
-		return _state == State.INIT || _state == State.ACTIVE || _state == State.TERMINATED;
+		return _authorised;
 	}
 }

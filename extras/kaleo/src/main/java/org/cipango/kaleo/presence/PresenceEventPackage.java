@@ -114,26 +114,27 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 					SubHandling subHandling = policy.getPolicy(subscription.getUri());
 					
 					State state = subscription.getState();
+					boolean authorised = subscription.isAuthorized();
 					switch (subHandling)
 					{
 					case ALLOW:
-						subscription.setState(State.ACTIVE, Reason.APPROVED);
+						subscription.setState(State.ACTIVE, Reason.APPROVED, true);
 						break;
 					case CONFIRM:
-						subscription.setState(State.PENDING, Reason.SUBSCRIBE);
+						subscription.setState(State.PENDING, Reason.SUBSCRIBE, true);
 						break;
 					case POLITE_BLOCK:
-						subscription.setState(State.POLITE_BLOCK, Reason.SUBSCRIBE);
+						subscription.setState(State.ACTIVE, Reason.SUBSCRIBE, false);
 						break;
 					case BLOCK:
-						subscription.setState(State.TERMINATED, Reason.REJECTED);
+						subscription.setState(State.TERMINATED, Reason.REJECTED, false);
 						break;
 					default:
 						break;
 					}
 					
 					// send NOTIFY if state has changed.
-					if (state != subscription.getState())
+					if (state != subscription.getState() || authorised != subscription.isAuthorized())
 					{
 						PresenceEventPackage.this.notify(subscription);
 					}

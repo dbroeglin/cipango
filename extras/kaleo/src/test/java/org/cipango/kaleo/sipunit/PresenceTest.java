@@ -50,6 +50,37 @@ public class PresenceTest extends UaTestCase
 		setContent("/org.openmobilealliance.pres-rules/users/" + getBobUri() + "/pres-rules");
 	}
 	
+	/**
+	 * <pre>
+	 *  Alice               Kaleo                  Bob
+          |(1) SUBSCRIBE      |                     |
+          |Event:presence     |                     |
+          |------------------>|                     |
+          |(2) 200 OK         |                     |
+          |<------------------|                     |
+          |(3) NOTIFY         |                     |
+          |<------------------|                     |
+          |(4) 200 OK         |                     |
+          |------------------>|                     |
+          |                   |(5) PUBLISH          |
+          |                   |<--------------------|
+          |                   |(6) 200 OK           |
+          |                   |-------------------->|
+          |(7) NOTIFY         |                     |
+          |<------------------|                     |
+          |(8) 200 OK         |                     |
+          |------------------>|                     |
+          |(9) SUBSCRIBE      |                     |
+          |Expires: 0         |                     |
+          |------------------>|                     |
+          |(10) 200 OK        |                     |
+          |<------------------|                     |
+          |(11) NOTIFY        |                     |
+          |<------------------|                     |
+          |(12) 200 OK        |                     |
+          |------------------>|                     |
+     * </pre>
+	 */
     public void testBasicSubscription() throws Exception
     {
         // add the buddy to the buddy list - sends SUBSCRIBE, gets response

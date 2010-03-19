@@ -140,7 +140,7 @@ public abstract class AbstractEventResource implements EventResource
 		while (it.hasNext())
 		{
 			Subscription subscription = it.next();
-			if (subscription.getExpirationTime() < time)
+			if (subscription.getExpirationTime() <= time)
 			{
 				it.remove();
 				fireSubscriptionExpired(subscription);

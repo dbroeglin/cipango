@@ -18,7 +18,7 @@
       <ocp:other-identity/>
     </cr:conditions>
     <cr:actions>
-      <sub-handling>allow</sub-handling>
+      <sub-handling>confirm</sub-handling>
     </cr:actions>
   </cr:rule>
 </cr:ruleset>

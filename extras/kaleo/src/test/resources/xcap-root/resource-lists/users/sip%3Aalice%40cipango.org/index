@@ -3,7 +3,7 @@
   <list name="rcs">
     <display-name>All Contacts</display-name>
     <entry uri="sip:alice@cipango.org"/>
-    <entry uri="sip:bob@cipango.org"/>
+    <entry uri="sip:allow@cipango.org"/>
   </list>
   <list name="rcs_blockedcontacts">
     <display-name>Blocked Contacts</display-name>

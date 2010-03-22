@@ -31,10 +31,6 @@ public class PublishSession extends AbstractSession
 		
 		try
 		{
-			Request publish = newRequest(Request.PUBLISH, 1, _sipPhone.me);
-			HeaderFactory hf = getHeaderFactory();
-			publish.addHeader(hf.createEventHeader("presence"));
-			publish.addHeader(hf.createExpiresHeader(expires));
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
 			int read;
 			byte[] b = new byte[512];
@@ -42,7 +38,27 @@ public class PublishSession extends AbstractSession
 			{
 				os.write(b, 0, read);
 			}
-			publish.setContent(os.toByteArray(), hf.createContentTypeHeader("application", "pidf+xml"));
+			return newPublish(os.toByteArray(), expires);
+		}
+		catch (Exception e)
+		{
+			if (e instanceof RuntimeException)
+				throw (RuntimeException) e;
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public Request newPublish(byte[] body, int expires)
+	{
+		
+		try
+		{
+			Request publish = newRequest(Request.PUBLISH, 1, _sipPhone.me);
+			HeaderFactory hf = getHeaderFactory();
+			publish.addHeader(hf.createEventHeader("presence"));
+			publish.addHeader(hf.createExpiresHeader(expires));
+
+			publish.setContent(body, hf.createContentTypeHeader("application", "pidf+xml"));
 			return publish;
 		}
 		catch (Exception e)

@@ -240,7 +240,7 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 							holder = (ResourceHolder) _queue.peek();
 							timeout = (holder != null) ? (holder.getValue() - System.currentTimeMillis()) : Long.MAX_VALUE;
 							
-							if (_log.isDebugEnabled() && timeout >= 0)
+							if (_log.isDebugEnabled() && timeout >= 0 && holder != null)
 								_log.debug("next timeout in {} seconds for node {}", timeout / 1000, holder);
 							
 							if (timeout > 0)

@@ -124,7 +124,10 @@ public abstract class AbstractEventPackage<T extends EventResource> extends Abst
 		
 		public void subscriptionExpired(Subscription subscription)
 		{
-			subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
+			if (subscription.getState() == Subscription.State.PENDING)
+				subscription.setState(Subscription.State.WAITING, Reason.TIMEOUT);
+			else
+				subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
 			AbstractEventPackage.this.notify(subscription);
 		}
 		

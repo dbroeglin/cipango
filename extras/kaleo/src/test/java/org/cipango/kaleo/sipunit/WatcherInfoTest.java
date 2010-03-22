@@ -46,13 +46,17 @@ import org.cipango.kaleo.presence.watcherinfo.WatcherinfoDocument.Watcherinfo;
 public class WatcherInfoTest extends UaTestCase
 {
 	
-	private static final String BOB_PRES_RULES_URI = "/org.openmobilealliance.pres-rules/users/sip:bob@cipango.org/pres-rules/~~/cr:ruleset/cr:rule%5b@id=%22wp_prs_allow_own%22%5d/cr:actions";
+	private static final String ALICE_PRES_RULES_URI = 
+		"/org.openmobilealliance.pres-rules/users/sip:alice@cipango.org/pres-rules/~~/cr:ruleset/cr:rule%5b@id=%22wp_prs_allow_own%22%5d/cr:conditions/cr:identity";
+	private static final String BOB_PRES_RULES_URI = 
+		"/org.openmobilealliance.pres-rules/users/sip:bob@cipango.org/pres-rules/~~/cr:ruleset/cr:rule%5b@id=%22wp_prs_allow_own%22%5d/cr:actions";
 	
 	public void setUp() throws Exception
 	{
 		super.setUp();
 		setContent("/org.openmobilealliance.pres-rules/users/" + getAliceUri() + "/pres-rules");
 		setContent("/org.openmobilealliance.pres-rules/users/" + getBobUri() + "/pres-rules");
+		setContent("/resource-lists/users/" + getAliceUri() + "/index");
 	}
 	
 	/**
@@ -317,7 +321,7 @@ public class WatcherInfoTest extends UaTestCase
 	public void testSubscription3() throws Exception
 	{
 		PublishSession publishSession = new PublishSession(getBobPhone());
-        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20); // 1
+        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 60); // 1
         publishSession.sendRequest(publish, SipResponse.OK); // 2
 		
 		SubscribeSession presenceSession = new SubscribeSession(getAlicePhone(), "presence");
@@ -408,8 +412,113 @@ public class WatcherInfoTest extends UaTestCase
 		presenceSession.sendResponse(Response.OK, tx); // 24
 	}
 	
-	
-	
+	/**
+	 * <pre>
+	     Bob                Kaleo                 Alice
+          |                   |(1) PUBLISH          |
+          |                   |<--------------------|
+          |                   |(2) 200 OK           |
+          |                   |-------------------->|
+          |(3) SUBSCRIBE      |                     |
+          |Event:presence     |                     |
+          |Expires: 0         |                     |
+          |------------------>|                     |
+          |(4) 200 OK         |                     |
+          |<------------------|                     |
+          |(5) NOTIFY         |                     | In pending state, so basic status is closed
+          |<------------------|                     |
+          |(6) 200 OK         |                     |
+          |------------------>|                     |
+          |                   |(7) SUBSCRIBE        |
+          |                   |Event:presence.winfo |
+          |                   |<--------------------|
+          |                   |(8) 200 OK           |
+          |                   |-------------------->|
+          |                   |(9) NOTIFY           |
+          |                   |-------------------->|
+          |                   |(10) 200 OK          |
+          |                   |<--------------------|
+          |                   |(11) HTTP PUT        | Change subscription state from 
+          |                   |<--------------------| allow to polite-block
+          |                   |(12) 200 OK          |
+          |                   |-------------------->|
+          |(13) SUBSCRIBE     |                     |
+          |Event:presence     |                     |
+          |Expires: 0         |                     |
+          |------------------>|                     |
+          |(14) 200 OK        |                     |
+          |<------------------|                     |
+          |(15) NOTIFY        |                     |
+          |<------------------|                     |
+          |(16) 200 OK        |                     |
+          |------------------>|                     |
+     * </pre>
+     * Note: Alice and Bob are inverted in this test.
+	 */
+	public void testWaitingState() throws Exception
+	{
+		PublishSession publishSession = new PublishSession(getAlicePhone());
+        Request publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 60); // 1
+        publishSession.sendRequest(publish, SipResponse.OK); // 2
+        
+        SubscribeSession presenceSession = new SubscribeSession(getBobPhone(), "presence");
+		Request subscribe = presenceSession.newInitialSubscribe(0, getAliceUri()); // 3
+		presenceSession.sendRequest(subscribe, Response.OK); // 4
+
+		ServerTransaction tx = presenceSession.waitForNotify(); // 5
+		System.out.println("5:\n" + tx.getRequest());
+		presenceSession.sendResponse(Response.OK, tx); // 6
+		Presence presence = getPresence(tx.getRequest());
+		assertEquals(Basic.CLOSED, presence.getTupleArray()[0].getStatus().getBasic());
+		
+		
+		SubscribeSession winfoSession = new SubscribeSession(getAlicePhone(), "presence.winfo"); // 7
+		subscribe = winfoSession.newInitialSubscribe(60, getAliceUri());
+		winfoSession.sendRequest(subscribe, Response.OK); // 8
+		
+		tx = winfoSession.waitForNotify(); // 9
+		Request notify = tx.getRequest();
+		System.out.println("9:\n" +notify);
+		winfoSession.sendResponse(Response.OK, tx); // 10 
+		SubscriptionStateHeader subState = (SubscriptionStateHeader) notify.getHeader(SubscriptionStateHeader.NAME);
+		assertEquals(SubscriptionStateHeader.ACTIVE.toLowerCase(), subState.getState().toLowerCase());
+		assertEquals(WatcherInfoEventPackage.NAME, ((EventHeader) notify.getHeader(EventHeader.NAME)).getEventType());
+		Watcherinfo watcherinfo = getWatcherinfo(notify);
+		assertEquals(0, watcherinfo.getVersion().intValue());
+		assertEquals(Watcherinfo.State.FULL, watcherinfo.getState());
+		assertEquals(1, watcherinfo.getWatcherListArray().length);
+		WatcherList watcherList = watcherinfo.getWatcherListArray(0);
+		assertEquals(getAliceUri(), watcherList.getResource());
+		assertEquals(PresenceEventPackage.NAME, watcherList.getPackage());
+		assertEquals(1, watcherList.getWatcherArray().length);
+		Watcher watcher = watcherList.getWatcherArray(0);
+		assertEquals(Event.TIMEOUT, watcher.getEvent());
+		assertEquals(getBobUri(), watcher.getStringValue());
+		assertEquals(Status.WAITING, watcher.getStatus());	
+		
+		
+		HttpClient httpClient = new HttpClient();
+		PutMethod put = new PutMethod(getHttpXcapUri() + ALICE_PRES_RULES_URI); // 11
+		
+		InputStream is = WatcherInfoTest.class.getResourceAsStream("/xcap-root/pres-rules/users/put/elementCondAliceBob.xml");
+		RequestEntity entity = new InputStreamRequestEntity(is, "application/xcap-el+xml"); 
+		put.setRequestEntity(entity); 
+		
+		int result = httpClient.executeMethod(put);
+		assertEquals(200, result); // 12
+		put.releaseConnection();
+		
+		presenceSession = new SubscribeSession(getBobPhone(), "presence");
+		subscribe = presenceSession.newInitialSubscribe(0, getAliceUri()); // 13
+		presenceSession.sendRequest(subscribe, Response.OK); // 14
+
+		tx = presenceSession.waitForNotify(); // 15
+		System.out.println("15:\n" + tx.getRequest());
+		presenceSession.sendResponse(Response.OK, tx); // 16
+		presence = getPresence(tx.getRequest());
+		assertEquals(Basic.OPEN, presence.getTupleArray()[0].getStatus().getBasic());
+	}
+		
 	private Watcherinfo getWatcherinfo(Request request)
 	{
 		ContentTypeHeader contentType = (ContentTypeHeader) request.getHeader(ContentTypeHeader.NAME);

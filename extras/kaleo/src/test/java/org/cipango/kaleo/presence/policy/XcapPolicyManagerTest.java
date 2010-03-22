@@ -68,7 +68,7 @@ public class XcapPolicyManagerTest extends AbstractXcapServletTest
 				policy.getXcapResources().get(1).toString());
 		
 		assertEquals(SubHandling.ALLOW, 
-				_policyManager.getPolicy("sip:bob@cipango.org", presentity));
+				_policyManager.getPolicy("sip:allow@cipango.org", presentity));
 				
 		assertEquals(SubHandling.BLOCK,
 				_policyManager.getPolicy("sip:block@cipango.org", presentity));

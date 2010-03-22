@@ -13,6 +13,7 @@
 // ========================================================================
 package org.cipango.kaleo.sipunit;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -67,13 +68,18 @@ public abstract class UaTestCase extends SipTestCase
 		InputStream is = new FileInputStream(sourceFile);
 		File outputFile = new File("target/test-data", doc.replace("@", "%40"));
 		outputFile.getParentFile().mkdirs();
-		FileOutputStream os = new FileOutputStream(outputFile);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();		
+		
 		int read;
 		byte[] buffer = new byte[1024];
 		while ((read = is.read(buffer)) != -1) {
 			os.write(buffer, 0, read);
 		}
-		os.close();
+		String content = new String(os.toByteArray());
+		content = content.replaceAll("http://xcap.cipango.org", getHttpXcapUri());
+		FileOutputStream fos = new FileOutputStream(outputFile);
+		fos.write(content.getBytes());
+		fos.close();
 		is.close();
 	}
 

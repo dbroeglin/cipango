@@ -311,7 +311,10 @@ public class PresenceServlet extends SipServlet
 						_log.debug("removed presence subscription {} to presentity {}", 
 							subscription.getSession().getId(), presentity.getUri());
 				}	
-				subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT);
+				if (subHandling == SubHandling.CONFIRM)
+					subscription.setState(Subscription.State.WAITING, Reason.TIMEOUT, subHandling == SubHandling.ALLOW);
+				else
+					subscription.setState(Subscription.State.TERMINATED, Reason.TIMEOUT, subHandling == SubHandling.ALLOW);
 			}
 			else
 			{

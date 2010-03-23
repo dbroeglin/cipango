@@ -60,7 +60,6 @@
                     <include name="lib/sip-api*.jar"/>
                     <include name="etc/cipango.xml"/>
                     <include name="etc/sipdefault.xml"/>
-                    <include name="bin/cipango.sh"/>
                     <include name="README-CIPANGO.txt"/>
                     <include name="VERSION-CIPANGO.txt"/>
                   </fileset>
@@ -74,7 +73,7 @@
               <tasks if="jetty.home">
                 <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
                 <copy todir="${jetty.home}">
-                  <fileset dir="${basedir}" includes="etc/,bin/"/>
+                  <fileset dir="${basedir}" includes="etc/"/>
                   <fileset dir="${project.build.directory}" includes="lib/"/>
                 </copy>
                 <copy file="${basedir}/../../README.txt" tofile="${jetty.home}/README-CIPANGO.txt"/>

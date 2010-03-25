@@ -1,0 +1,47 @@
+<project name="cipango deb build" basedir="." default="generate-deb-source">
+
+	<target name="build-deb">
+		<echo>Embed another:${jetty.home}</echo>
+
+		<copy todir="${project.build.directory}/cipango-${project.version}">
+			<fileset dir="${jetty.home}">
+				<include name="*-CIPANGO.txt"/>
+				<include name="lib/cipango*.jar"/>
+				<include name="lib/sip-api*.jar"/>
+				<include name="lib/**/cipango*.jar"/>
+				<include name="lib/annotations/asm*.jar"/>
+				<include name="etc/cipango*"/>
+				<include name="etc/sipdefault.xml"/>
+				<include name="etc/dar.properties"/>
+				<include name="sipapps"/>
+			</fileset>
+		</copy>
+		<copy todir="${project.build.directory}/cipango-${project.version}">
+			<fileset dir="src/main">
+				<include name="etc/**"/>
+				<include name="debian/**"/>
+				<exclude name="**/.svn"/>
+			</fileset>
+		</copy>
+		
+		
+		<replace dir="${project.build.directory}/cipango-${project.version}" token="$${PROJECT.VERSION}" value="${project.version}">
+			<include name="debian/**"/>
+		</replace>
+		
+		<chmod perm="755" file="${project.build.directory}/cipango-${project.version}/debian/rules"/>
+				
+		<exec dir="${project.build.directory}/cipango-${project.version}" failifexecutionfails="true" executable="dpkg-buildpackage" >
+			<arg value="-rfakeroot"/>
+		</exec>
+			
+		 <exec dir="${project.build.directory}" failifexecutionfails="true" executable="dpkg-deb">
+			<arg value="-b"/>
+			<arg value="cipango-${project.version}/debian/cipango"/>
+			<arg value="cipango_${project.version}_all.deb"/>
+		 </exec>
+			
+	</target>
+	
+</project>
+

@@ -1,0 +1,27 @@
+#!/bin/bash  
+#
+# Startup script for jetty under *nix systems (it works under NT/cygwin too).
+
+##################################################
+# See if there's a default configuration file
+##################################################
+if [ -f /etc/default/cipango ] ; then 
+  . /etc/default/cipango
+fi
+
+if [ ! -z "$SIP_PORT" ]
+then
+  JETTY_OPTIONS="${JETTY_OPTIONS} -Dsip.port=${SIP_PORT}"
+fi
+
+if [ ! -z "$SIP_HOST" ]
+then
+  JETTY_OPTIONS="${JETTY_OPTIONS} -Dsip.port=${SIP_HOST}"
+fi
+
+DIR=`dirname $0`
+
+. ${DIR}/jetty6 $@
+
+
+

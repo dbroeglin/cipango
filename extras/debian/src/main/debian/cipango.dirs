@@ -1,0 +1,3 @@
+etc/default
+etc/jetty6
+var/lib/jetty6/sipapps

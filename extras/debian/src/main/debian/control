@@ -1,0 +1,13 @@
+Source: cipango
+Section: contrib/web
+Priority: optional
+Maintainer: Nexcom Systems <olivier.lebihan@nexcom.fr>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+
+Package: cipango
+Architecture: any
+Depends: jetty6
+Description: Cipango, sip servlet extension
+ Cipango is a SIP Servlet extension to the popular Jetty HTTP Servlet engine. 
+ Cipango/Jetty is then a convergent SIP/HTTP Application Server compliant with both SIP Servlets and HTTP Servlets standards.

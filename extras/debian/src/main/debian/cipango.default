@@ -1,0 +1,11 @@
+# Defaults for Cipango see /etc/init.d/cipango for more
+
+# Override the default SIP host
+# SIP_HOST=192.168.1.2
+
+#Override the default SIP port
+SIP_PORT=5060
+
+# File containing Cipango configuration files (cipango-jmx.xml, cipango.xml, ...)
+JETTY_CONF=/etc/jetty6/cipango.conf
+

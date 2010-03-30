@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+<Configure class="org.cipango.Server" id="Server">
+  
+  <Set name="sessionManager">
+    <New class="org.cipango.SessionManager">
+      <Set name="callsThreshold">10</Set>
+    </New>
+  </Set>
+
+  <Call name="addLifeCycle">
+    <Arg>
+      <New class="org.cipango.snmp.SnmpAgent" id="SnmpAgent">
+        <Set name="trapReceivers">
+          <Array type="org.snmp4j.smi.UdpAddress">
+            <Item>
+              <New class="org.snmp4j.smi.UdpAddress">
+                <Arg>192.168.2.10/162</Arg>
+              </New>
+            </Item>
+          </Array>
+        </Set>
+      </New>
+    </Arg>
+  </Call>
+  
+  <Call class="org.cipango.log.EventLog" name="setLog">
+    <Arg><New class="org.cipango.log.JmxEventLogger" id="JmxEventLogger"/></Arg>
+  </Call>
+
+</Configure>

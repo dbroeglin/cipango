@@ -1,0 +1,145 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.cipango</groupId>
+    <artifactId>cipango-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>cipango-snmp</artifactId>
+  <name>Cipango SNMP</name>
+  <packaging>jar</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>manifest</goal>
+            </goals>
+            <configuration>
+              <instructions>
+                <Bundle-SymbolicName>org.cipango.management</Bundle-SymbolicName>
+                <Bundle-RequiredExcutionEnvironment>J2SE-1.5</Bundle-RequiredExcutionEnvironment>
+                <Bundle-DocURL>http://cipango.org</Bundle-DocURL>
+                <Import-Package>!org.cipango.snmp,*</Import-Package>
+              </instructions>
+            </configuration>
+           </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true">
+                  <fileset dir="${jetty.home}/lib/ext" includes="${project.build.finalName}.${project.packaging},snmp*.jar"/>
+                  <fileset dir="${jetty.home}/etc" includes="cipango-snmp.xml"/>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <phase>install</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy todir="${jetty.home}/lib/ext">
+                  <fileset dir="${project.build.directory}" includes="${project.build.finalName}.${project.packaging}"/>
+                  <fileset dir="${project.build.directory}/lib/ext"/>
+                </copy>
+                <copy todir="${jetty.home}/etc">
+                  <fileset dir="etc"/>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.snmp4j</groupId>
+                  <artifactId>snmp4j-agent</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.snmp4j</groupId>
+                  <artifactId>snmp4j-agent-jmx</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.snmp4j</groupId>
+                  <artifactId>snmp4j</artifactId>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/lib/ext</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <repositories>
+    <repository>
+      <id>snmp4j-repo</id>
+      <name>SNMP4J</name>
+      <url>https://server.oosnmp.net/dist/release</url>
+    </repository>
+  </repositories>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.snmp4j</groupId>
+      <artifactId>snmp4j-agent</artifactId>
+      <version>1.4</version>
+     </dependency>
+     <dependency>
+      <groupId>org.snmp4j</groupId>
+      <artifactId>snmp4j</artifactId>
+      <version>1.11</version>
+     </dependency>
+     <dependency>
+      <groupId>org.snmp4j</groupId>
+      <artifactId>snmp4j-agent-jmx</artifactId>
+      <version>1.1</version>
+     </dependency>
+  </dependencies>
+</project>

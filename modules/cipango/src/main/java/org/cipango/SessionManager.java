@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.sip.SipSession;
 
+import org.cipango.log.EventLog;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.Session;
 import org.cipango.sip.ClientTransaction;
@@ -66,6 +67,7 @@ public class SessionManager extends AbstractLifeCycle
     private long _statsStartedAt = -1;
     private int _maxCalls;
     private int _minCalls;
+    private int _callsThreshold = 0;
     	
     public SessionManager()
     { /*
@@ -82,7 +84,8 @@ public class SessionManager extends AbstractLifeCycle
     	_queue = new TimerQueue(1024);
     }
     
-    public void doStart() throws Exception
+    @Override
+    protected void doStart() throws Exception
     {
     	if (_storeDir != null)
         {
@@ -96,7 +99,8 @@ public class SessionManager extends AbstractLifeCycle
         super.doStart();
     }
     
-    public void doStop() throws Exception
+    @Override
+    protected void doStop() throws Exception
     {
     	super.doStop();
     	
@@ -129,12 +133,14 @@ public class SessionManager extends AbstractLifeCycle
     			
     			_callSessions.put(callSession.getId(), callSession);
     			
-    			if (_statsStartedAt > 0)
+    			if (_statsStartedAt > 0 || _callsThreshold > 0)
     			{
-    				int nbCalls = _callSessions.size();
+    				int nbCalls = getCalls();
     				
-    				if (nbCalls > _maxCalls)
+    				if (_statsStartedAt > 0 && nbCalls > _maxCalls)
     					_maxCalls = nbCalls;
+    				if (_callsThreshold > 0 && nbCalls == _callsThreshold)
+    					EventLog.log(EventLog.CALLS_THRESHOLD_READCHED, "Calls threashlod reached: " + nbCalls);
     			}
     		}
     	}
@@ -325,7 +331,17 @@ public class SessionManager extends AbstractLifeCycle
     {
     	return _minCalls;
     }
-    
+
+	public int getCallsThreshold()
+	{
+		return _callsThreshold;
+	}
+
+	public void setCallsThreshold(int callsThreshold)
+	{
+		_callsThreshold = callsThreshold;
+	}
+	
     public void statsReset() 
     {
         _statsStartedAt = _statsStartedAt == -1 ? -1 : System.currentTimeMillis();
@@ -433,7 +449,7 @@ public class SessionManager extends AbstractLifeCycle
     	}
     }
     
-    class CSession extends TimerQueue.Node implements CallSession
+    public class CSession extends TimerQueue.Node implements CallSession
     {
     	protected String _id;
     	

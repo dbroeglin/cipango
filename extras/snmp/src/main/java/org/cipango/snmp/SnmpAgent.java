@@ -31,7 +31,6 @@ import org.snmp4j.agent.mo.snmp.SnmpCommunityMIB;
 import org.snmp4j.agent.mo.snmp.SnmpNotificationMIB;
 import org.snmp4j.agent.mo.snmp.SnmpTargetMIB;
 import org.snmp4j.agent.mo.snmp.StorageType;
-import org.snmp4j.agent.mo.snmp.TransportDomains;
 import org.snmp4j.agent.mo.snmp.VacmMIB;
 import org.snmp4j.agent.security.MutableVACM;
 import org.snmp4j.mp.MPv3;
@@ -45,8 +44,12 @@ import org.snmp4j.security.UsmUser;
 import org.snmp4j.smi.Integer32;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
+import org.snmp4j.smi.TcpAddress;
+import org.snmp4j.smi.TransportIpAddress;
 import org.snmp4j.smi.UdpAddress;
 import org.snmp4j.smi.Variable;
+import org.snmp4j.transport.DefaultTcpTransportMapping;
+import org.snmp4j.transport.DefaultUdpTransportMapping;
 
 public class SnmpAgent extends BaseAgent implements LifeCycle
 {
@@ -58,11 +61,12 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 		//LogFactory.setLogFactory(new Log4jLogFactory());
 	}
 
-	private UdpAddress[] _trapReceivers;
+	private SnmpAddress[] _trapReceivers;
+	private SnmpAddress[] _connectors;
 		
 	private CipangoMib _cipangoMIB;
 	private JvmManagementMib _jvmManagementMIB;
-	
+	private Server _server;
 
 
 	public SnmpAgent()
@@ -111,15 +115,7 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 
 		for (int i = 0; i < _trapReceivers.length; i++)
 		{
-			UdpAddress address = _trapReceivers[i];
-			Log.info("Add SNMP trap receiver: " + address);
-			targetMIB.addTargetAddress(new OctetString("notification" + address.toString()),
-					TransportDomains.transportDomainUdpIpv4, 
-					new OctetString(address.getValue()),
-					200, 1, 
-					new OctetString("notify"),
-					new OctetString("v2c"),
-					StorageType.permanent);
+			addTrapHost(_trapReceivers[i]);
 		}
 		
 		targetMIB.addTargetParams(new OctetString("v2c"),
@@ -128,6 +124,34 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
                 new OctetString("public"),
                 SecurityLevel.NOAUTH_NOPRIV,
                 StorageType.permanent);
+	}
+	
+	private void addTrapHost(SnmpAddress address)
+	{
+		try
+		{
+			TransportIpAddress transportIpAddress;
+			if (address.getPort() <= 0)
+				address.setPort(162);
+			if (address.isUdp())
+				transportIpAddress = new UdpAddress(address.getInetAddress(), address.getPort());
+			else
+				transportIpAddress = new TcpAddress(address.getInetAddress(), address.getPort());
+	
+			snmpTargetMIB.addTargetAddress(new OctetString("notification" + address.getHost()),
+					address.getTransportDomain(), 
+					new OctetString(transportIpAddress.getValue()),
+					200, 1, 
+					new OctetString("notify"),
+					new OctetString("v2c"),
+					StorageType.permanent);
+
+			Log.info("Add SNMP trap receiver: " + address);
+		}
+		catch (Exception e) 
+		{
+			Log.warn("Failed to add SNMP trap receiver: " + address, e);
+		}
 	}
 
 	protected void addUsmUser(USM usm)
@@ -234,14 +258,39 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 	{
 	}	
 		
-	public UdpAddress[] getTrapReceivers()
+	public SnmpAddress[] getTrapReceivers()
 	{
 		return _trapReceivers;
 	}
 
-	public void setTrapReceivers(UdpAddress[] trapReceivers)
+	public void setTrapReceivers(SnmpAddress[] trapReceivers)
 	{
+		SnmpAddress[] oldReceivers = _trapReceivers;
 		_trapReceivers = trapReceivers;
+		
+		if (_server != null)
+			_server.getContainer().update(this, oldReceivers, trapReceivers, "trap");
+		
+		if (isStarted())
+		{      
+	        if (oldReceivers!=null)
+	        {
+	            for (int i=oldReceivers.length;i-->0;)
+	            {
+	                if (oldReceivers[i]!=null)
+	                {
+	                	String key = "notification" + oldReceivers[i].getHost();
+	                    snmpTargetMIB.removeTargetAddress(new OctetString(key));
+	                }
+	            }
+	        }
+	        
+	        if (_trapReceivers!=null)
+	        {
+	            for (int i=0;i<_trapReceivers.length;i++)
+	               addTrapHost(_trapReceivers[i]);
+	        }
+		}
 	}
 		
 	@Override
@@ -306,5 +355,54 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 
 	public void removeLifeCycleListener(Listener arg0)
 	{
+	}
+	
+	public SnmpAddress[] getConnectors()
+	{
+		return _connectors;
+	}
+	
+	public void setConnectors(SnmpAddress[] connectors)
+	{
+		if (isStarted())
+			throw new IllegalStateException("already started");
+		if (_server != null)
+			_server.getContainer().update(this, _connectors, connectors, "connectors");
+
+		_connectors = connectors;
+	}
+	
+	@Override
+	protected void initTransportMappings() throws IOException {
+		if (_connectors == null)
+		{
+			SnmpAddress[] connectors = new SnmpAddress[1];
+			connectors[0] = new SnmpAddress();
+			connectors[0].setPort(161);
+			connectors[0].setHost("0.0.0.0");
+			setConnectors(_connectors);
+		}
+
+	    transportMappings = new TransportMapping[_connectors.length];
+	    for (int i = 0; i < _connectors.length; i++)
+	    {
+	    	if (_connectors[i].getPort() <= 0)
+	    		_connectors[i].setPort(161);
+	    	if (_connectors[i].isUdp())
+	    	{
+	    		UdpAddress address = new UdpAddress(_connectors[i].getInetAddress(), _connectors[i].getPort());
+	    		transportMappings[i] = new DefaultUdpTransportMapping(address);
+	    	}
+	    	else
+	    	{
+	    		TcpAddress address = new TcpAddress(_connectors[i].getInetAddress(), _connectors[i].getPort());
+	    		transportMappings[i] = new DefaultTcpTransportMapping(address);
+	    	}
+	    }
+	  }
+
+	public void setServer(Server server)
+	{
+		_server = server;
 	}
 }

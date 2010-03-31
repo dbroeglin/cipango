@@ -18,9 +18,10 @@ public class EventLog
 {
 	private static EventLogger __log;
 	
-	public static final int START 					= 0;
-	public static final int STOP 					= 1;
-	public static final int DEPLOY_FAIL 			= 2;
+	public static final int START 						= 0;
+	public static final int STOP 						= 1;
+	public static final int DEPLOY_FAIL 				= 2;
+	public static final int CALLS_THRESHOLD_READCHED	= 3;
 
 	public static EventLogger getLog()
 	{

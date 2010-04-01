@@ -101,13 +101,17 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	{
 		try
 		{
-			if (_listener instanceof LifeCycle)
+			if (_listener != null  && _listener instanceof LifeCycle)
 				((LifeCycle) _listener).stop();
 		}
 		catch (Exception e)
 		{
 			Log.warn(e);
 		}
+		
+		if (_node != null && _node.getServer() != null)
+			_node.getServer().getContainer().update(this, _listener, listener, "listener");
+		
 		_listener = listener;
 		
 		try

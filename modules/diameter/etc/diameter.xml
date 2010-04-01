@@ -31,7 +31,15 @@
         <Call name="addConnector">
           <Arg>
             <New class="org.cipango.diameter.bio.DiameterSocketConnector">
+              <Set name="host"><SystemProperty  name="diameter.host"/></Set>
               <Set name="port"><SystemProperty default="3868" name="diameter.port"/></Set>
+              <Set name="messageListener">
+                <New class="org.cipango.diameter.log.FileMessageLogger">
+                  <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.diameter.log</Set>
+                  <Set name="append">true</Set>
+                  <Set name="retainDays">31</Set>
+                </New>
+              </Set>
             </New>
           </Arg>
         </Call>

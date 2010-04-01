@@ -1,5 +1,6 @@
 package org.cipango.diameter.log;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Locale;
@@ -14,7 +15,7 @@ import org.mortbay.util.DateCache;
 import org.mortbay.util.RolloverFileOutputStream;
 import org.mortbay.util.StringUtil;
 
-public class FileMessageLog extends AbstractLifeCycle implements DiameterMessageListener
+public class FileMessageLogger extends AbstractLifeCycle implements DiameterMessageListener
 {
 	private enum Direction { IN, OUT }
 	public final static String YYYY_MM_DD="yyyy_mm_dd";
@@ -142,4 +143,36 @@ public class FileMessageLog extends AbstractLifeCycle implements DiameterMessage
 	{
 		doLog(Direction.OUT, message, connection);
 	}
+	
+    public void deleteLogFiles() throws IOException
+    {
+		if (_filename == null)
+			return;
+		
+    	synchronized (_out)
+		{
+    		_out.close();
+			File file= new File(_filename);
+            File dir = new File(file.getParent());
+            String fn=file.getName();
+            int s=fn.toLowerCase().indexOf(YYYY_MM_DD);
+            if (s<0)
+                file.delete();
+            else
+            {
+	            String prefix=fn.substring(0,s);
+	            String suffix=fn.substring(s+YYYY_MM_DD.length());
+	            String[] logList=dir.list();
+	            for (int i=0;i<logList.length;i++)
+	            {
+	                fn = logList[i];
+	                if(fn.startsWith(prefix) && fn.indexOf(suffix,prefix.length())>=0)
+	                {        
+	                    new File(dir,fn).delete();   
+	                }
+	            }
+            }
+            _out = new RolloverFileOutputStream(_filename, _append, _retainDays);
+		}
+    }
 }

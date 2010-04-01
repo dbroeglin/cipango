@@ -64,7 +64,7 @@
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="**/.svn/**" defaultexcludes="no"/>
                 </delete>
                 
-		<echo message="Fixing the patch file for local conventions..." />
+                <echo message="Fixing the patch file for local conventions..." />
                 <fixcrlf srcdir="${basedir}/src/main/patches/" includes="**/*.patch"/>
                 <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config"/>
                 <echo message="Starting to applying patches... " />
@@ -132,11 +132,6 @@
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-annotations</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-diameter</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

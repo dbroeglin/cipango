@@ -6,10 +6,6 @@ import java.util.List;
 import org.cipango.sipapp.SipAppContext;
 import org.mortbay.jetty.plus.webapp.EnvConfiguration;
 import org.mortbay.jetty.webapp.Configuration;
-import org.mortbay.jetty.webapp.JettyWebXmlConfiguration;
-import org.mortbay.jetty.webapp.TagLibConfiguration;
-import org.mortbay.jetty.webapp.WebInfConfiguration;
-import org.mortbay.jetty.webapp.WebXmlConfiguration;
 import org.mortbay.util.LazyList;
 
 public class CipangoPluginSipAppContext extends SipAppContext
@@ -19,30 +15,29 @@ public class CipangoPluginSipAppContext extends SipAppContext
     private File jettyEnvXmlFile;
     private File webXmlFile;
     private boolean annotationsEnabled = true;
-    private EnvConfiguration envConfig =  new EnvConfiguration();
-    private CipangoMavenConfiguration mvnConfig = new CipangoMavenConfiguration();
 
-    private Configuration[] configs = 
-    	new Configuration[]{
-    		new WebInfConfiguration(),
-    		envConfig, 
-    		new WebXmlConfiguration(), 
-    		mvnConfig,  
-    		new JettyWebXmlConfiguration(), 
-    		new TagLibConfiguration()};
+    private String[] configs = 
+    	new String[]{
+    		"org.mortbay.jetty.webapp.WebInfConfiguration",
+    		"org.mortbay.jetty.plus.webapp.EnvConfiguration",
+    		"org.mortbay.jetty.webapp.WebXmlConfiguration",
+    		"org.cipango.plugin.CipangoMavenConfiguration",
+    		"org.mortbay.jetty.webapp.JettyWebXmlConfiguration",
+    		"org.mortbay.jetty.webapp.TagLibConfiguration"
+    };
     
     public CipangoPluginSipAppContext()
     {
         super();
-        setConfigurations(configs);
+        setConfigurationClasses(configs);
     }
     
-    public void addConfiguration(Configuration configuration)
+    public void addConfiguration(String configuration)
     {
     	 if (isRunning())
              throw new IllegalStateException("Running");
-    	 configs = (Configuration[]) LazyList.addToArray(configs, configuration, Configuration.class);
-    	 setConfigurations(configs);
+    	 configs = (String[]) LazyList.addToArray(configs, configuration, String.class);
+    	 setConfigurationClasses(configs);
     }
 
     
@@ -77,20 +72,20 @@ public class CipangoPluginSipAppContext extends SipAppContext
     }
     
     @SuppressWarnings("deprecation")
-	public void configure ()
-    {        
-        setConfigurations(configs);
-        mvnConfig.setClassPathConfiguration (classpathFiles);
- 
-        try
-        {
-            if (this.jettyEnvXmlFile != null)
-                envConfig.setJettyEnvXml(this.jettyEnvXmlFile.toURL());
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e);
-        }
+	public void configure () throws Exception
+    {
+    	loadConfigurations();
+    	Configuration[] configurations = getConfigurations();
+    	for (int i = 0; i < configurations.length; i++)
+    	{
+    		if (configurations[i] instanceof CipangoMavenConfiguration)
+    			((CipangoMavenConfiguration) configurations[i]).setClassPathConfiguration(classpathFiles);
+
+            if (this.jettyEnvXmlFile != null && configurations[i] instanceof  EnvConfiguration)
+            	((EnvConfiguration) configurations[i]).setJettyEnvXml(this.jettyEnvXmlFile.toURL());
+
+	   }
+	        
     }
 
 

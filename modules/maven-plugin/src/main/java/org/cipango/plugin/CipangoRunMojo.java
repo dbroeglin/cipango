@@ -17,25 +17,14 @@ package org.cipango.plugin;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.List;
 import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.cipango.Server;
-import org.cipango.diameter.AbstractDiameterConnector;
-import org.cipango.diameter.DiameterConnector;
-import org.cipango.diameter.Node;
-import org.cipango.diameter.Peer;
-import org.cipango.diameter.app.DiameterConfiguration;
-import org.cipango.diameter.log.FileMessageLog;
 import org.cipango.log.AccessLog;
 import org.cipango.sip.SipConnector;
 import org.mortbay.jetty.plugin.Jetty6RunMojo;
 import org.mortbay.jetty.plugin.util.JettyPluginServer;
-import org.mortbay.jetty.plugin.util.PluginLog;
-import org.mortbay.jetty.webapp.Configuration;
-import org.mortbay.util.LazyList;
 
 /**
  *  <p>
@@ -116,11 +105,6 @@ public class CipangoRunMojo extends Jetty6RunMojo
      */
     protected boolean annotationsEnabled;
     
-    /**
-     * Diameter node
-     * @parameter
-     */
-    protected Node diameterNode;
     
     /**
      * A properties file containing system properties to set.
@@ -171,27 +155,6 @@ public class CipangoRunMojo extends Jetty6RunMojo
         
         plugin.setMessageLogger(messageLog, project.getBuild().getDirectory());
         
-        if (diameterNode != null)
-        {
-        	Server sipServer = plugin.getServer();
-        	diameterNode.setServer(sipServer);
-        	sipServer.setAttribute(Node.class.getName(), diameterNode);
-           	webAppConfig.addConfiguration(new DiameterConfiguration());
-           	DiameterConnector connector = diameterNode.getConnectors()[0];
-        	PluginLog.getLog().info("Diameter port = " + connector.getPort());
-        	if (connector instanceof AbstractDiameterConnector)
-        	{
-        		AbstractDiameterConnector c = (AbstractDiameterConnector) connector;
-        		if (c.getMessageListener() == null)
-        		{
-        			FileMessageLog log = new FileMessageLog();
-        			log.setFilename(project.getBuild().getDirectory() + "/logs/yyyy_mm_dd.diameter.log");
-        			c.setMessageListener(log);
-        		}
-        	}
-        	sipServer.addLifeCycle(diameterNode);
-        }
-
 		super.finishConfigurationBeforeStart();
 	}
 

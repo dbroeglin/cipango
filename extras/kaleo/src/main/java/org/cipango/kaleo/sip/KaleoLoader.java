@@ -17,6 +17,7 @@ package org.cipango.kaleo.sip;
 import java.io.File;
 import java.util.Enumeration;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -54,6 +55,7 @@ public class KaleoLoader implements ServletContextListener
 			else
 				xcapDao.setBaseDir(new File(System.getProperty("jetty.home", ".") + "/data"));
 			xcapService.setDao(xcapDao);
+			presence.setPolicyManager(policyManager);
 			
 			locationService.start();
 			presence.start();
@@ -61,12 +63,13 @@ public class KaleoLoader implements ServletContextListener
 			watcherInfo.start();
 			xcapService.start();
 			
-			event.getServletContext().setAttribute(PresenceEventPackage.class.getName(), presence);
-			event.getServletContext().setAttribute(LocationService.class.getName(), locationService);
-			event.getServletContext().setAttribute(RegEventPackage.class.getName(), regEventPackage);
-			event.getServletContext().setAttribute(WatcherInfoEventPackage.class.getName(), watcherInfo);
-			event.getServletContext().setAttribute(XcapService.class.getName(), xcapService);
-			event.getServletContext().setAttribute(PolicyManager.class.getName(), policyManager);
+			ServletContext sc = event.getServletContext();
+			sc.setAttribute(PresenceEventPackage.class.getName(), presence);
+			sc.setAttribute(LocationService.class.getName(), locationService);
+			sc.setAttribute(RegEventPackage.class.getName(), regEventPackage);
+			sc.setAttribute(WatcherInfoEventPackage.class.getName(), watcherInfo);
+			sc.setAttribute(XcapService.class.getName(), xcapService);
+			sc.setAttribute(PolicyManager.class.getName(), policyManager);
 		}
 		catch (Exception e)
 		{

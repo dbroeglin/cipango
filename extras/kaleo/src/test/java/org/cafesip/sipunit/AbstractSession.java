@@ -24,12 +24,11 @@ import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.URI;
 import javax.sip.header.HeaderFactory;
+import javax.sip.header.SIPETagHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-
-import org.cafesip.sipunit.SipPhone;
 
 public class AbstractSession
 {
@@ -145,7 +144,7 @@ public class AbstractSession
 						+ expectedResponseCode);
 			}
 		}
-
+		
 		return response;
 	}
 

@@ -33,7 +33,6 @@ import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.PresenceEventPackage;
 import org.cipango.kaleo.presence.Presentity;
 import org.cipango.kaleo.presence.SoftState;
-import org.cipango.kaleo.presence.policy.Policy;
 import org.cipango.kaleo.presence.policy.PolicyManager;
 import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
@@ -280,11 +279,8 @@ public class PresenceServlet extends SipServlet
 			subscriberUri = URIUtil.toCanonical(subscribe.getFrom().getURI());
 		
 		try
-		{
-			Policy policy = _policyManager.getPolicy(presentity);
-			policy.addListener(_presence.getPolicyListener());
-			
-			SubHandling subHandling = policy.getPolicy(subscriberUri);
+		{			
+			SubHandling subHandling = _policyManager.getPolicy(subscriberUri, presentity);
 			if (subHandling == SubHandling.BLOCK)
 			{
 				_log.debug("Reject presence subscription from {} to {} due to policy", subscriberUri, presentity.getUri());

@@ -57,7 +57,7 @@ public class XcapPolicyManagerTest extends AbstractXcapServletTest
 		setContent("/org.openmobilealliance.pres-rules/users/sip:alice@cipango.org/pres-rules");
 		setContent("/resource-lists/users/sip:alice@cipango.org/index");
 		Presentity presentity = new Presentity("sip:alice@cipango.org");
-		Policy policy = _policyManager.getPolicy(presentity);
+		XcapPolicy policy = (XcapPolicy) _policyManager.getPolicy(presentity);
 		assertEquals(SubHandling.CONFIRM,
 				_policyManager.getPolicy("sip:unknown@cipango.org", presentity));
 		

@@ -117,41 +117,52 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 	
 	protected void put(ResourceHolder holder)
 	{
-		int holds = holder._lock.getHoldCount();
-    	
-    	if (holds == 1)
-    	{
-			T resource = holder.getResource();
-			long time = resource.nextTimeout();
-			
-			synchronized (_queue)
-			{
-				if (time > 0)
+		try
+		{
+			int holds = holder._lock.getHoldCount();
+	    	
+	    	if (holds == 1)
+	    	{
+				T resource = holder.getResource();
+				long time = resource.nextTimeout();
+				
+				synchronized (_queue)
 				{
-					if (time < System.currentTimeMillis())
-						time = System.currentTimeMillis() + 100;
-					_queue.offer(holder, time);
+					if (time > 0)
+					{
+						if (time < System.currentTimeMillis())
+							time = System.currentTimeMillis() + 100;
+						_queue.offer(holder, time);
+					}
+					else 
+					{
+						_queue.remove(holder);
+					}
+					_queue.notifyAll();
 				}
-				else 
+				
+				if (resource.isDone())
 				{
-					_queue.remove(holder);
+					synchronized (_resources)
+					{
+						_resources.remove(resource.getUri());
+						_log.debug("Remove {} resource {}", resource.getClass().getSimpleName(), resource);
+					}
+					removeResource(resource);
 				}
-				_queue.notifyAll();
-			}
-			
-			if (resource.isDone())
-			{
-				synchronized (_resources)
-				{
-					_resources.remove(resource.getUri());
-					_log.debug("Remove {} resource {}", resource.getClass().getSimpleName(), resource);
-				}
-			}
-    	}
-		holder.unlock();
+	    	}
+		}
+		finally
+		{
+			holder.unlock();
+		}
 	}
 	
 	protected abstract T newResource(String uri);
+	
+	protected void removeResource(T resource)
+	{	
+	}
 	
 	public class ResourceHolder extends PriorityQueue.Node implements Runnable
 	{

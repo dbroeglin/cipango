@@ -17,10 +17,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import javax.sip.header.HeaderFactory;
+import javax.sip.header.SIPETagHeader;
 import javax.sip.message.Request;
+import javax.sip.message.Response;
 
 public class PublishSession extends AbstractSession
 {	
+	
+
+	private String _etag;
+	
 	public PublishSession(SipPhone phone)
 	{
 		super(phone);
@@ -69,4 +75,39 @@ public class PublishSession extends AbstractSession
 		}
 	}
 	
+	public Request newUnpublish()
+	{
+		try
+		{
+			Request publish = newRequest(Request.PUBLISH, 2, _sipPhone.me);
+			HeaderFactory hf = getHeaderFactory();
+			publish.addHeader(hf.createEventHeader("presence"));
+			publish.addHeader(hf.createExpiresHeader(0));
+			if (_etag == null)
+				throw new IllegalStateException("No Etag set");
+			publish.addHeader(hf.createSIPIfMatchHeader(_etag));
+			
+			return publish;
+		}
+		catch (Exception e)
+		{
+			if (e instanceof RuntimeException)
+				throw (RuntimeException) e;
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public Response sendRequest(Request request, String user, String password,
+			int expectedResponseCode)
+	{
+		Response response = super.sendRequest(request, user, password, expectedResponseCode);
+
+		if (response != null)
+		{
+			SIPETagHeader etag = (SIPETagHeader) response.getHeader(SIPETagHeader.NAME);
+			if (etag != null)
+				_etag = etag.getETag();
+		}
+		return response;
+	}
 }

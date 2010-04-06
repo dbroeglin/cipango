@@ -229,7 +229,7 @@ public class WatcherInfoTest extends UaTestCase
 		presenceSession.sendResponse(Response.OK, tx); // 4
 		
 		SubscribeSession winfoSession = new SubscribeSession(getBobPhone(), "presence.winfo"); // 5
-		 subscribe = winfoSession.newInitialSubscribe(0, getBobUri());
+		subscribe = winfoSession.newInitialSubscribe(0, getBobUri());
 		winfoSession.sendRequest(subscribe, Response.OK); // 6
 		
 		tx = winfoSession.waitForNotify(); // 7
@@ -316,6 +316,11 @@ public class WatcherInfoTest extends UaTestCase
           |<------------------|                     |
           |(24) 200 OK        |                     |
           |------------------>|                     |
+          |                   |(25) PUBLISH         |
+          |                   |Expires = 0          |
+          |                   |<--------------------|
+          |                   |(26) 200 OK          |
+          |                   |-------------------->|
      * </pre>
 	 */
 	public void testSubscription3() throws Exception
@@ -410,6 +415,9 @@ public class WatcherInfoTest extends UaTestCase
 				
 		tx = presenceSession.waitForNotify(); // 23
 		presenceSession.sendResponse(Response.OK, tx); // 24
+		
+		publish = publishSession.newUnpublish(); // 25
+		publishSession.sendRequest(publish, Response.OK); // 26
 	}
 	
 	/**
@@ -452,6 +460,11 @@ public class WatcherInfoTest extends UaTestCase
           |<------------------|                     |
           |(16) 200 OK        |                     |
           |------------------>|                     |
+          |                   |(17) PUBLISH         |
+          |                   |Expires = 0          |
+          |                   |<--------------------|
+          |                   |(18) 200 OK          |
+          |                   |-------------------->|
      * </pre>
      * Note: Alice and Bob are inverted in this test.
 	 */
@@ -517,6 +530,9 @@ public class WatcherInfoTest extends UaTestCase
 		presenceSession.sendResponse(Response.OK, tx); // 16
 		presence = getPresence(tx.getRequest());
 		assertEquals(Basic.OPEN, presence.getTupleArray()[0].getStatus().getBasic());
+		
+		publish = publishSession.newUnpublish(); // 25
+		publishSession.sendRequest(publish, Response.OK); // 26
 	}
 		
 	private Watcherinfo getWatcherinfo(Request request)

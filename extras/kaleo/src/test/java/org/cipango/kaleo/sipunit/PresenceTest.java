@@ -79,6 +79,11 @@ public class PresenceTest extends UaTestCase
           |<------------------|                     |
           |(12) 200 OK        |                     |
           |------------------>|                     |
+          |                   |(13) PUBLISH         |
+          |                   |Expires = 0          |
+          |                   |<--------------------|
+          |                   |(14) 200 OK          |
+          |                   |-------------------->|
      * </pre>
 	 */
     public void testBasicSubscription() throws Exception
@@ -173,6 +178,9 @@ public class PresenceTest extends UaTestCase
         assertTrue(s.replyToNotify(reqevent, response));
         
         assertTrue(s.isSubscriptionTerminated());  
+        
+		publish = publishSession.newUnpublish(); // 13
+		publishSession.sendRequest(publish, Response.OK); // 14
     }
 
     public void testMinExpires() throws Exception
@@ -236,6 +244,9 @@ public class PresenceTest extends UaTestCase
          publish = publishSession.newPublish(getClass().getResourceAsStream("publish1.xml"), 20);
          publish.setHeader(hf.createSIPIfMatchHeader(etag)); //Use old etag
          response = publishSession.sendRequest(publish, SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED);
+         
+         publish = publishSession.newUnpublish(); // 25
+ 		 publishSession.sendRequest(publish, Response.OK); // 26
     }
 
 }

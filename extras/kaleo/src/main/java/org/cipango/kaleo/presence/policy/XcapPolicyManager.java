@@ -24,7 +24,7 @@ public class XcapPolicyManager implements PolicyManager
 {
 	
 	private XcapService _xcapService;
-	private Map<String, Policy> _policies = new HashMap<String, Policy>();
+	private Map<String, XcapPolicy> _policies = new HashMap<String, XcapPolicy>();
 	
 	
 	public XcapPolicyManager(XcapService xcapService)
@@ -39,20 +39,20 @@ public class XcapPolicyManager implements PolicyManager
 
 	public Policy getPolicy(Resource resource)
 	{
-		Policy policy;
+		XcapPolicy policy;
 		synchronized (_policies)
 		{
 			policy = _policies.get(resource.getUri());
 			if (policy == null)
 			{
-				policy = new Policy(resource, _xcapService);
+				policy = new XcapPolicy(resource, _xcapService);
 				_policies.put(resource.getUri(), policy);
 			}
 		}
 		return policy;
 	}
 
-	public Collection<Policy> getPolicies()
+	public Collection<XcapPolicy> getPolicies()
 	{
 		return _policies.values();
 	}

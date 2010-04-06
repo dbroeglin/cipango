@@ -26,6 +26,7 @@ import org.cipango.kaleo.event.Subscription.State;
 import org.cipango.kaleo.presence.pidf.PidfHandler;
 import org.cipango.kaleo.presence.policy.Policy;
 import org.cipango.kaleo.presence.policy.PolicyListener;
+import org.cipango.kaleo.presence.policy.PolicyManager;
 import org.cipango.kaleo.presence.policy.PolicyManager.SubHandling;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,8 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	public int _defaultStateExpires = 3600;
 	
 	private PolicyListener _policyListener = new PolicyUpdater();
+	
+	private PolicyManager _policyManager;
 	
 	public PresenceEventPackage()
 	{
@@ -76,7 +79,17 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	{
 		Presentity presentity = new Presentity(uri);
 		presentity.addListener(getEventNotifier());
+		Policy policy = _policyManager.getPolicy(presentity);
+		policy.addListener(_policyListener);
 		return presentity;
+	}
+	
+	@Override
+	protected void removeResource(Presentity presentity)
+	{
+		super.removeResource(presentity);
+		Policy policy = _policyManager.getPolicy(presentity);
+		policy.removeListener(_policyListener);
 	}
 	
 	public List<String> getSupportedContentTypes()
@@ -95,6 +108,16 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 	public PolicyListener getPolicyListener()
 	{
 		return _policyListener;
+	}
+	
+	public PolicyManager getPolicyManager()
+	{
+		return _policyManager;
+	}
+
+	public void setPolicyManager(PolicyManager policyManager)
+	{
+		_policyManager = policyManager;
 	}
 	
 	class PolicyUpdater implements PolicyListener
@@ -147,5 +170,6 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 		}
 		
 	}
+
 
 }

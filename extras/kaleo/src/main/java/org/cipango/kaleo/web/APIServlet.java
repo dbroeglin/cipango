@@ -18,7 +18,7 @@ import org.cipango.kaleo.location.Binding;
 import org.cipango.kaleo.location.LocationService;
 import org.cipango.kaleo.location.Registration;
 import org.cipango.kaleo.presence.PresenceEventPackage;
-import org.cipango.kaleo.presence.policy.Policy;
+import org.cipango.kaleo.presence.policy.XcapPolicy;
 import org.cipango.kaleo.presence.policy.PolicyManager;
 import org.cipango.kaleo.presence.policy.XcapPolicyManager;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
@@ -92,11 +92,11 @@ public class APIServlet extends HttpServlet
 			public Object fromJSON(Map object)  { return null; }
 		});
 		
-		JSON.getDefault().addConvertor(Policy.class, new Convertor()
+		JSON.getDefault().addConvertor(XcapPolicy.class, new Convertor()
 		{
 			public void toJSON(Object obj, Output out) 
 			{
-				Policy policy = (Policy) obj;
+				XcapPolicy policy = (XcapPolicy) obj;
 				out.add("Resource", policy.getResourceUri());
 				out.add("XcapResources", policy.getXcapResources());
 			}

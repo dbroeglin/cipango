@@ -130,7 +130,8 @@ public abstract class AbstractEventResource implements EventResource
 		{
 			subscription = _subscriptions.remove(id);
 		}
-		__log.debug("Remove subscription {} to resource {}", subscription, this);
+		if (subscription != null)
+			__log.debug("Remove subscription {} to resource {}", subscription, this);
 		return subscription;
 	}
 	

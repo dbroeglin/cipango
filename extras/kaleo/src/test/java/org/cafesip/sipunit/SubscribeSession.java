@@ -49,6 +49,8 @@ public class SubscribeSession extends AbstractSession implements RequestListener
 	
 	public Request newInitialSubscribe(int expires, String target)
 	{
+		if (_dialog != null)
+			fail("Dialog already established. Should use newSubsequentSubscribe()");
 		try
 		{
 			Request subscribe = newRequest(Request.SUBSCRIBE, 1, target);

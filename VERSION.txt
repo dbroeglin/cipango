@@ -1,3 +1,29 @@
+cipango-1.0.0M0 - 07 April 2010
+ + CIPANGO-55  B2buaHelper.getPendingMessages(session, UAMode.UAC) does not returns 200/INVITE
+ + CIPANGO-23  Got java.lang.IllegalArgumentException: Multiple getters for attr server when running with JMX
+ + CIPANGO-50  Invalid sipapp version when no deployment descriptor is found
+ + CIPANGO-27  SIP Servlets are no longer instances of ServletHolder
+ + CIPANGO-46  Top route is not removed when remote server use NAPTR
+ + CIPANGO-3   contact is not set in UPDATE request and response
+ + CIPANGO-52  java.lang.NullPointerException when calling org.cipango.B2bHelper.createRequest()
+ + CIPANGO-24  java.lang.NullPointerException when no servlet match on JSR 116 app
+ + CIPANGO-48  local routes must be popped even when the request has been received from an internal application
+ + CIPANGO-53  <servlet-mapping> is not accepted in <servlet-selection>
+ + CIPANGO-35  Default application router returns an address instead of an URI for SipApplicationRouterInfo.getIdentity()
+ + CIPANGO-51  Got ClassCastException on SipMessage.addAddressHeader()
+ + CIPANGO-39  Integrate diameter session with SipApplicationSession
+ + CIPANGO-36  No new TCP Connection is opened if original request TCP connection is closed while sending Responses
+ + CIPANGO-54  Number of UDP acceptors are not configurable
+ + CIPANGO-32  Reliable 1xx Retransmissions in UAC mode are passed to Application
+ + CIPANGO-31  SipApplicationSession are invalidated too early when using invalidate when ready
+ + CIPANGO-33  SipSessionsUtil.getApplicationSessionById() returns null
+ + CIPANGO-37  main-servlet node is not read at the right position in sip.xml
+ + CIPANGO-28  message should not be routed internally when routerInfo.getNextApplicationName() is null
+ + CIPANGO-47  route is popped after application router invocation
+ + CIPANGO-38  sip.xml is required with the annotations
+ + CIPANGO-45  The attribute 'org.cipango.diameter.DiameterFactory" is not set in servlet context when reloading with maven plugin
+ + CIPANGO-11  sipFactory.createURI("sip:user@h space .com"); does not throw ServletParseException
+
 cipango-1.0.0pre1 - 31 August 2009
  + CIPANGO-2 Fixed local and remote parties in proxy mode
  + CIPANGO-4 Subscription-State is of parameterable type

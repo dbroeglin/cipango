@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -262,9 +263,17 @@ public class ClickToDialSipServlet extends SipServlet implements ClickToDialServ
 		List<Call> calls = new ArrayList<Call>();
 		synchronized (_calls)
 		{
-			for (SipApplicationSession session : _calls)
+			Iterator<SipApplicationSession> it = _calls.iterator();
+			while (it.hasNext())
 			{
-				calls.add(new Call(session, _b2bHelper));
+				SipApplicationSession session = (SipApplicationSession) it.next();
+				if (session.isValid())
+					calls.add(new Call(session, _b2bHelper));
+				else
+				{
+					log("Session " + session + " is not valid, so remove it");
+					it.remove();
+				}
 			}
 		}
 		return calls;

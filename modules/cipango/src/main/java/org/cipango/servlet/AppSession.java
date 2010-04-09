@@ -82,22 +82,22 @@ public class AppSession implements AppSessionIf
     private String _appId; 
 	private State _state = State.VALID;
     
-	private List<Session> _sessions = new ArrayList<Session>(1);
+	protected List<Session> _sessions = new ArrayList<Session>(1);
 	private Object _otherSessions;
 	
     private CallSession _callSession;
     private SipAppContext _context;
     
-    private Map<String, Object> _attributes;
+    protected Map<String, Object> _attributes;
 
-    private long _created = System.currentTimeMillis();
-    private long _accessed = _created;
-    private long _expirationTime = 0;
+    protected long _created = System.currentTimeMillis();
+    protected long _accessed = _created;
+    protected long _expirationTime = 0;
     
     private List<ServletTimer> _timers; 
-    private TimerTask _expiryTimer;
+    protected TimerTask _expiryTimer;
     
-    private boolean _invalidateWhenReady = true;
+    protected boolean _invalidateWhenReady = true;
 	
     public AppSession(CallSession callSession, String id)
     {
@@ -195,11 +195,10 @@ public class AppSession implements AppSessionIf
 				
 				if (_timers != null)
 				{
-					Iterator<ServletTimer> it2 = _timers.iterator();
+					Iterator<ServletTimer> it2 = getTimers().iterator();
 					while (it2.hasNext())
 					{
 						it2.next().cancel();
-						it2.remove();
 					}
 				}
 			}
@@ -762,6 +761,7 @@ public class AppSession implements AppSessionIf
         private long _period = -1;
         private TimerTask _timerTask;
         private long _executionTime;
+        private boolean _persistent;
         
         private String _id = ID.newID(4);
         
@@ -780,6 +780,18 @@ public class AppSession implements AppSessionIf
             _period = period;
             _executionTime = System.currentTimeMillis() + delay;
             _timerTask = getCallSession().schedule(this, delay);
+            _persistent = isPersistent;
+        }
+        
+        public Timer(long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info, String id)
+        {
+            addTimer(this);
+            _info = info;
+            _period = period;
+            _executionTime = System.currentTimeMillis() + delay;
+            _timerTask = getCallSession().schedule(this, delay);
+            _persistent = isPersistent;
+            _id = id;
         }
         
         public SipApplicationSession getApplicationSession()
@@ -805,6 +817,16 @@ public class AppSession implements AppSessionIf
 		public long getTimeRemaining()
 		{
 			return _executionTime - System.currentTimeMillis();
+		}
+		
+		public long getPeriod()
+		{
+			return _period;
+		}
+		
+		public boolean isPersistent()
+		{
+			return _persistent;
 		}
 		
         public void cancel()

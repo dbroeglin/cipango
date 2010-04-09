@@ -57,7 +57,6 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     private int _port;
     private String _host;
     private String _name;
-    protected int _type;
     
     private SipURI _sipUri;
     private Via _via;
@@ -77,10 +76,9 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     transient long _connectionsOpenMax;
     transient long _nbParseErrors;
    
-    public AbstractSipConnector(int type) 
+    public AbstractSipConnector() 
     {
-        _type = type;
-        _port = SipConnectors.getDefaultPort(_type);
+        _port = getDefaultPort();
         setHost( __localhost);
         
         updateURI();
@@ -92,7 +90,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     		throw new IllegalStateException("running");
     	
     	if (port == -1)
-    		port = SipConnectors.getDefaultPort(_type);
+    		port = getDefaultPort();
     	
         _port = port;
         
@@ -153,7 +151,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     
     public String getTransport() 
     {
-        return SipConnectors.getName(_type);
+        return SipConnectors.getName(getTransportOrdinal());
     }
     
     protected void updateURI()
@@ -164,11 +162,11 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     protected void doStart() throws Exception 
     {
          if (_transportParam)
-             _sipUri.setTransportParam(SipConnectors.getName(_type).toLowerCase());
+             _sipUri.setTransportParam(getTransport().toLowerCase());
         
         _via = new Via(
                 SipVersions.SIP_2_0,
-                SipConnectors.getName(_type).toUpperCase(),
+                getTransport().toUpperCase(),
                 _host,
                 _port);
         

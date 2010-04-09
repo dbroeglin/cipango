@@ -21,10 +21,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.cipango.SipMessage;
-import org.cipango.SipRequest;
 import org.mortbay.component.LifeCycle;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -47,20 +47,15 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
     private ServerSocket _serverSocket;
     private InetAddress _addr;
     private Map<String, TcpConnection> _connections;
-    
+    private int _connectionTimeout = DEFAULT_SO_TIMEOUT;
     private int _backlogSize = 50;
     
     private ThreadPool _tcpThreadPool;
-    private ArrayList _buffers = new ArrayList();
-	
-	public TcpConnector()
-	{
-		super(SipConnectors.TCP_ORDINAL);
-	}
-	
+    private List<Buffer> _buffers = new ArrayList<Buffer>();
+		
 	protected void doStart() throws Exception 
 	{
-		_connections = new HashMap();
+		_connections = new HashMap<String, TcpConnection>();
 		
         if (_tcpThreadPool == null)
         	_tcpThreadPool = new BoundedThreadPool();
@@ -78,10 +73,10 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		if (_tcpThreadPool instanceof LifeCycle)
             ((LifeCycle)_tcpThreadPool).stop();
 		
-		Iterator it = _connections.values().iterator();
+		Iterator<TcpConnection> it = _connections.values().iterator();
 		while (it.hasNext())
 		{
-			TcpConnection connection = (TcpConnection) it.next();
+			TcpConnection connection = it.next();
 			try
 			{
 				connection.close();
@@ -143,7 +138,23 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 	{
 		Socket socket = _serverSocket.accept();
 		TcpConnection connection = new TcpConnection(socket);
+		addConnection(socket.getInetAddress(), socket.getPort(), connection);
 		connection.dispatch();
+		
+	}
+	
+	protected void addConnection(InetAddress host, int port, TcpConnection connection)
+	{
+		synchronized (_connections)
+		{
+			_connections.put(key(host, port), connection);
+		}
+	}
+	
+	
+	protected ServerSocket getServerSocket()
+	{
+		return _serverSocket;
 	}
 	
 	public Buffer getBuffer(int size) 
@@ -182,6 +193,11 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 	{
 		return RELIABLE;
 	}
+	
+	public boolean isSecure()
+	{
+		return false;
+	}
 
 	public int getTransportOrdinal() 
 	{
@@ -195,13 +211,25 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			TcpConnection cnx = _connections.get(key(addr, port));
 			if (cnx == null) 
 			{
-				cnx = new TcpConnection(new Socket(addr, port));
-				_connections.put(key(addr, port), cnx);
+				cnx = newConnection(addr, port);
+				addConnection(addr, port, cnx);
 				cnx.dispatch();
 			}
 			return cnx;
 		}
 	}
+	
+	
+	protected TcpConnection newConnection(InetAddress addr, int port) throws IOException
+	{
+		return new TcpConnection(new Socket(addr, port));
+	}
+	
+	protected Map<String, TcpConnection> getConnections()
+	{
+		return _connections;
+	}
+	
 	
 	@Override
 	public void send(Buffer buffer, SipEndpoint endpoint) throws IOException
@@ -242,6 +270,26 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		return addr.getHostAddress() + ":" + port;
 	}
 	
+	public int getBacklogSize()
+	{
+		return _backlogSize;
+	}
+
+	public void setBacklogSize(int backlogSize)
+	{
+		_backlogSize = backlogSize;
+	}
+	
+	public int getConnectionTimeout()
+	{
+		return _connectionTimeout;
+	}
+
+	public void setConnectionTimeout(int connectionTimeout)
+	{
+		_connectionTimeout = connectionTimeout;
+	}
+	
 	class TcpConnection extends SocketEndPoint implements SipConnection, Runnable
 	{
 		private InetAddress _local;
@@ -251,7 +299,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		{
 			super(socket);
 			socket.setTcpNoDelay(true);
-			socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
+			socket.setSoTimeout(_connectionTimeout);
 			
 			_local = socket.getLocalAddress();
 			_remote = socket.getInetAddress();
@@ -403,4 +451,6 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 
 
 	}
+
+
 }

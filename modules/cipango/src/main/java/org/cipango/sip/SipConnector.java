@@ -41,6 +41,7 @@ public interface SipConnector extends LifeCycle
     int getTransportOrdinal();
 	int getDefaultPort();
 	boolean isReliable();
+	boolean isSecure();
 	
     SipURI getSipUri();
     Via getVia(); // TODO buffer

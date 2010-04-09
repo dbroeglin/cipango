@@ -78,7 +78,7 @@ public abstract class SipConnectors
 		case TCP_ORDINAL:
 			return TcpConnector.DEFAULT_PORT;
 		case TLS_ORDINAL:
-			return 5061;
+			return TlsConnector.DEFAULT_PORT;
 		default:
 			throw new IllegalArgumentException("Unknown connector: " + ordinal);
 		}

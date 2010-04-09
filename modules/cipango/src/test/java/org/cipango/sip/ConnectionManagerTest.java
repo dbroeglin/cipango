@@ -74,7 +74,6 @@ public class ConnectionManagerTest extends TestCase
 		
 		public TestConnector(String host, String addr, int port) throws UnknownHostException
 		{
-			super(SipConnectors.UDP_ORDINAL);
 			_addr = InetAddress.getByName(addr);
 			setPort(port);
 			setHost(host);
@@ -133,6 +132,11 @@ public class ConnectionManagerTest extends TestCase
 				throws IOException
 		{
 			return null;
+		}
+
+		public boolean isSecure()
+		{
+			return false;
 		}
 	}
 }

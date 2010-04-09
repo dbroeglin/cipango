@@ -41,12 +41,7 @@ public class UdpConnector extends AbstractSipConnector
     private DatagramPacket[] _packets;
     private DatagramSocket _datagramSocket;
     private InetAddress _localAddr;
-    
-	public UdpConnector() 
-	{
-		super(SipConnectors.UDP_ORDINAL);
-	}
-	
+    	
 	protected void doStart() throws Exception 
 	{		
 		_packets = new DatagramPacket[getAcceptors()];
@@ -171,7 +166,7 @@ public class UdpConnector extends AbstractSipConnector
 	
 	public int getTransportOrdinal()
 	{
-		return _type;
+		return  SipConnectors.UDP_ORDINAL;
 	}
 
 	public boolean isReliable()

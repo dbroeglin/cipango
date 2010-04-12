@@ -255,10 +255,17 @@ public class SipStatus
 		}
 	}
 	    
-	 public static Buffer getResponseLine(int status) 
-	 {
-		 if (status >= responseLine.length)
-			 return null;
-	     return responseLine[status];
-	 }
+	public static Buffer getResponseLine(int status)
+	{
+		if (status >= responseLine.length)
+			return null;
+		return responseLine[status];
+	}
+	
+	public static String getReason(int status)
+	{
+		if (status >= responseLine.length)
+			return null;
+		return CACHE.get(status).toString();
+	}
 }

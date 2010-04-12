@@ -95,7 +95,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     private LinkedList _routeSet;
     private boolean _secure = false;
     
-    private int _rseq = 1;
+    protected int _rseq = 0;
     
     private AppSession _appSession;
     private String _linkedSessionId;
@@ -565,12 +565,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         }
         else if (response.isBye())
 			setState(State.TERMINATED);
-        
-        if (response.needsContact()) 
-        {
-            response.setContact(getContact());
-        }
-        
+                
         if (response.isInvite())
         {
             long cseq = response.getCSeq().getNumber();
@@ -584,7 +579,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
             {
                 ServerInvite invite = getServerInvite(cseq, true);
                 
-                int rseq = _rseq++;
+                int rseq = ++_rseq;
                 response.getFields().addString(SipHeaders.REQUIRE, SipParams.REL_100);
                 response.setRSeq(rseq);
                 
@@ -931,7 +926,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         else if (response.isReliable1xx())
         {
         	int rseq = response.getRSeq();
-        	if (_rseq == -1)
+        	if (_rseq == 0)
         		_rseq = rseq;
         	else if (_rseq + 1 != rseq)
         	{

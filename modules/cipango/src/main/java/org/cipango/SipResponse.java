@@ -73,6 +73,8 @@ public class SipResponse extends SipMessage implements SipServletResponse
 		if (status < 300)
 			_fields.copy(reqFields, SipHeaders.RECORD_ROUTE_BUFFER);
         
+		if (needsContact() && _session != null)
+			setContact(_session.getContact());
         // TODO Server
 	}
 	

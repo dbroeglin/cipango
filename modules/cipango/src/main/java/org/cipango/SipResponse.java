@@ -149,11 +149,18 @@ public class SipResponse extends SipMessage implements SipServletResponse
         return _proxy;
 	}
 	
+	public String getReason()
+	{
+		return _reason;
+	}
+	
 	/**
 	 * @see SipServletResponse#getReasonPhrase()
 	 */
 	public String getReasonPhrase() 
     {
+		if (_reason == null)
+			return SipStatus.getReason(_status);
 		return _reason;
 	}
 	
@@ -202,12 +209,12 @@ public class SipResponse extends SipMessage implements SipServletResponse
         if (_status < 101 || _status > 199)
             throw new Rel100Exception(Rel100Exception.NOT_1XX);
     
-        Iterator it = _request.getHeaders(SipHeaders.SUPPORTED);
+        Iterator<String> it = _request.getHeaders(SipHeaders.SUPPORTED);
         boolean supports100rel = false;
         
         while (it.hasNext() && !supports100rel)
         {
-            String s = (String) it.next();
+            String s = it.next();
             if (s.equals(SipParams.REL_100))
                 supports100rel = true;
         }

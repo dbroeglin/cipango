@@ -70,7 +70,7 @@ public class SipGenerator
 	public void generateResponse(Buffer buffer, SipResponse response) 
 	{
 		int status = response.getStatus();
-		String reason = response.getReasonPhrase();
+		String reason = response.getReason();
 		
         Buffer line = SipStatus.getResponseLine(status);
         

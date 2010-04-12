@@ -17,6 +17,8 @@ package org.cipango;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
 
+import org.cipango.util.ReadOnlyAddress;
+
 import junit.framework.TestCase;
 
 public class SipHeaderTest extends TestCase
@@ -45,5 +47,11 @@ public class SipHeaderTest extends TestCase
 		
 		request.addAddressHeader("foo", address, false);
 		assertEquals("foo", ((SipURI) request.getAddressHeader("FOO").getURI()).getHost()); 
+		
+		request.addAddressHeader("bar", new ReadOnlyAddress(address), false);
+		assertEquals("foo", ((SipURI) request.getAddressHeader("Bar").getURI()).getHost()); 
+		
+		request.setAddressHeader("bar", new ReadOnlyAddress(address));
+		assertEquals("foo", ((SipURI) request.getAddressHeader("Bar").getURI()).getHost()); 
 	}
 }

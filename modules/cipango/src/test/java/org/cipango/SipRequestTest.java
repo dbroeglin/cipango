@@ -107,6 +107,7 @@ public class SipRequestTest extends TestCase
 		Address contact = request.getAddressHeader("Contact");
 		assertEquals("<sip:127.0.0.1:5060;transport=TCP>", contact.toString());
 		contact.setDisplayName("Bob");
+		contact.setParameter("isfocus", "");
 		assertEquals("Bob", contact.getDisplayName());
 		SipURI uri = (SipURI) contact.getURI();
 		uri.setUser("bob");
@@ -120,7 +121,7 @@ public class SipRequestTest extends TestCase
 		try { uri.removeParameter("Maddr"); fail(); } catch (IllegalStateException e) {}
 		uri.setParameter("transport", "UDP");
 		assertEquals("UDP", uri.getParameter("transport"));
-		assertEquals("Bob <sip:bob@127.0.0.1:5060;transport=UDP>", contact.toString());
+		assertEquals("Bob <sip:bob@127.0.0.1:5060;transport=UDP>;isfocus", contact.toString());
 		
 		// Full read-only on committed
 		request.setCommitted(true);

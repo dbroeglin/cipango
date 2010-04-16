@@ -74,7 +74,7 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	public SipApplicationRouterInfo getNextApplication(SipServletRequest initialRequest,
 			SipApplicationRoutingRegion region, SipApplicationRoutingDirective directive, SipTargetedRequestInfo toto, Serializable stateInfo)
 	{
-		if (!_matchOnNewOutgoingRequests && initialRequest.getInitialRemoteAddr() == null)
+		if (!_matchOnNewOutgoingRequests && initialRequest.getRemoteAddr() == null)
 			return null;
 		
 		if (_routerInfoMap == null || _routerInfoMap.isEmpty())

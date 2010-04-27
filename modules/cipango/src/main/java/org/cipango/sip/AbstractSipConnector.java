@@ -233,6 +233,9 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     
     public void process(SipMessage message)
     {
+    	if (!isRunning())
+    		return;
+    	
     	if (!getThreadPool().dispatch(new MessageTask(message)))
 		{
     		Log.warn("No threads to dispatch message from {}:{}",

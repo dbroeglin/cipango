@@ -23,6 +23,8 @@ import java.io.Serializable;
 
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
+import javax.servlet.sip.ar.SipApplicationRoutingRegion;
+import javax.servlet.sip.ar.SipRouteModifier;
 
 import org.mortbay.util.TypeUtil;
 
@@ -31,31 +33,68 @@ public class RouterInfoUtil
 	public static final String ROUTER_INFO = "X-Cipango-Router-Info";
 	private static final String NEXT_APPLICATION_NAME = "appName";
 	private static final String STATE_INFO = "stateInfo";
+	private static final String SUBSCRIBER_URI = "subUri";
+	private static final String ROUTING_REGION = "region";
+	private static final String ROUTES = "routes";
+	private static final String ROUTE_MODIFIER = "route-modifier";
 	
 	public static void encode(SipURI uri, SipApplicationRouterInfo routerInfo) throws IOException
 	{
 		uri.setUser(ROUTER_INFO);
 		
 		uri.setParameter(NEXT_APPLICATION_NAME, routerInfo.getNextApplicationName());
+		setParameter(uri, ROUTING_REGION, routerInfo.getRoutingRegion());
+		setParameter(uri, SUBSCRIBER_URI, routerInfo.getSubscriberURI());
+		setParameter(uri, ROUTES, routerInfo.getRoutes());
+		if (routerInfo.getRouteModifier() != null)
+			uri.setParameter(ROUTE_MODIFIER, routerInfo.getRouteModifier().toString());
+		setParameter(uri, STATE_INFO, routerInfo.getStateInfo());
 		
-		Serializable s = routerInfo.getStateInfo();
-		ByteArrayOutputStream bout = new ByteArrayOutputStream();
-		ObjectOutputStream out = new ObjectOutputStream(bout);
-		out.writeObject(s);
-		
-		String stateInfo = TypeUtil.toHexString(bout.toByteArray());
-		uri.setParameter(STATE_INFO, stateInfo);		
+	}
+	
+	private static void setParameter(SipURI uri, String name, String value)
+	{
+		if (value != null)
+			uri.setParameter(name, value);
+	}
+	
+	private static void setParameter(SipURI uri, String name, Serializable value) throws IOException
+	{
+		if (value != null)
+		{
+			ByteArrayOutputStream bout = new ByteArrayOutputStream();
+			ObjectOutputStream out = new ObjectOutputStream(bout);
+			out.writeObject(value);
+			uri.setParameter(name, TypeUtil.toHexString(bout.toByteArray()));
+		}
+	}
+	
+	private static Serializable getSerializable(SipURI uri, String name) throws IOException, ClassNotFoundException
+	{
+		String s = uri.getParameter(name);
+		if (s != null)
+		{
+			byte[] b = TypeUtil.fromHexString(s);
+			ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(b));
+			return (Serializable) in.readObject();
+		}
+		return null;
 	}
 	
 	public static SipApplicationRouterInfo decode(SipURI uri) throws Exception
 	{
 		String appName = uri.getParameter(NEXT_APPLICATION_NAME);
+		String sRouteModifier = uri.getParameter(ROUTE_MODIFIER);
+		SipRouteModifier routeModifier = null;
+		if (sRouteModifier != null)
+			routeModifier = SipRouteModifier.valueOf(sRouteModifier);
 		
-		String s = uri.getParameter(STATE_INFO);
-		byte[] b = TypeUtil.fromHexString(s);
-		ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(b));
-		Serializable stateInfo = (Serializable) in.readObject();
-		
-		return new SipApplicationRouterInfo(appName, null, null, null, null, stateInfo);
+		return new SipApplicationRouterInfo(
+				appName,
+				(SipApplicationRoutingRegion) getSerializable(uri, ROUTING_REGION), 
+				uri.getParameter(SUBSCRIBER_URI),
+				(String[]) getSerializable(uri, ROUTES),
+				routeModifier, 
+				getSerializable(uri, STATE_INFO));
 	}
 }

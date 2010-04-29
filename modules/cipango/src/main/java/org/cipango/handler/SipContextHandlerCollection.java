@@ -25,24 +25,27 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
+import javax.servlet.sip.ar.SipRouteModifier;
 
+import org.cipango.NameAddr;
 import org.cipango.Server;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
 import org.cipango.SipParams;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
+import org.cipango.SipURIImpl;
 import org.cipango.URIFactory;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.servlet.SipSessionHandler;
 import org.cipango.sip.ConnectorManager;
+import org.cipango.sip.SipConnector;
 import org.cipango.sip.TransactionManager;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
 import org.cipango.util.ID;
 import org.mortbay.component.LifeCycle;
 import org.mortbay.jetty.Handler;
-
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.log.Log;
 import org.mortbay.util.LazyList;
@@ -197,6 +200,10 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 				
 				if (routerInfo != null && routerInfo.getNextApplicationName() != null)
 				{
+					boolean handle = handlingRoute(request, routerInfo);
+					if (handle)
+						return;
+					
 					request.setStateInfo(routerInfo.getStateInfo());
 					request.setRegion(routerInfo.getRoutingRegion());
 					
@@ -258,4 +265,60 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 		}		
 		_handler.handle(message);
     }
+	
+	private boolean handlingRoute(SipRequest request, SipApplicationRouterInfo routerInfo)
+	{
+		if (routerInfo.getRouteModifier() == null || SipRouteModifier.NO_ROUTE == routerInfo.getRouteModifier())
+			return false;
+		
+		String[] routes = routerInfo.getRoutes();
+		try
+		{
+			if (SipRouteModifier.ROUTE == routerInfo.getRouteModifier() && routes != null)
+			{
+				Address topRoute = new NameAddr(routes[0]);
+				if (getConnectorManager().isLocalUri(topRoute.getURI()))
+					request.setPoppedRoute(topRoute);
+				else
+				{
+					for (int i = routes.length; i >= 0; --i)
+						request.pushRoute(new NameAddr(routes[i]));
+					request.send();
+					return true;
+				}
+			}
+			else if (SipRouteModifier.ROUTE_BACK == routerInfo.getRouteModifier() && routes != null)
+			{
+				SipConnector defaultConnector = getConnectorManager().getDefaultConnector();
+    			SipURI ownRoute = new SipURIImpl(null, defaultConnector.getHost(), defaultConnector.getPort());
+    			RouterInfoUtil.encode(ownRoute, routerInfo);
+
+    			ownRoute.setLrParam(true);
+				request.pushRoute(ownRoute);
+				for (int i = routes.length; i >= 0; --i)
+					request.pushRoute(new NameAddr(routes[i]));
+				request.send();
+				return true;
+			} 
+			else if (routes == null 
+					&& (SipRouteModifier.ROUTE_BACK == routerInfo.getRouteModifier() || SipRouteModifier.ROUTE == routerInfo.getRouteModifier()))
+			{
+				Log.debug("Router info set route modifier to {} but no route provided, assume NO_ROUTE", routerInfo.getRouteModifier());
+			}
+			return false;
+		}
+		catch (Exception e)
+		{
+			if (!request.isAck())
+			{
+				// Could have ServletParseException or IllegalArgumentException on pushRoute
+				SipResponse response = (SipResponse) request.createResponse(
+	        			SipServletResponse.SC_SERVER_INTERNAL_ERROR,
+	        			"Error in handler: " + e.getMessage());
+				ExceptionUtil.fillStackTrace(response, e);
+				try { getConnectorManager().send(response); } catch (Exception e1) {Log.ignore(e1); }
+			}
+        	return true;
+		}
+	}
 }

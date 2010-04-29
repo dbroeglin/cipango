@@ -20,6 +20,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -75,36 +76,36 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 {	    
 	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
-    private long _created = System.currentTimeMillis();
-    private long _accessed = _created;
-    private String _id;
+	protected long _created = System.currentTimeMillis();
+	protected long _accessed = _created;
+	protected String _id;
     
-    private Role _role = Role.UNDEFINED;
-    private State _state = State.INITIAL;
+	protected Role _role = Role.UNDEFINED;
+	protected State _state = State.INITIAL;
     
     private boolean _valid = true;
-    private boolean _invalidateWhenReady = true;
+    protected boolean _invalidateWhenReady = true;
 
-    private String _callId;
-    private NameAddr _localParty;
-    private NameAddr _remoteParty;
+    protected String _callId;
+    protected NameAddr _localParty;
+    protected NameAddr _remoteParty;
 
-    private URI _remoteTarget;
-    private long _localCSeq = 1;
-    private long _remoteCSeq = -1;
-    private LinkedList _routeSet;
-    private boolean _secure = false;
+    protected URI _remoteTarget;
+    protected long _localCSeq = 1;
+    protected long _remoteCSeq = -1;
+    protected LinkedList _routeSet;
+    protected boolean _secure = false;
     
     protected int _rseq = 0;
     
     private AppSession _appSession;
-    private String _linkedSessionId;
+    protected String _linkedSessionId;
     private SipServletHolder _handler;
     
-    private URI _subscriberURI;
-    private SipApplicationRoutingRegion _region;
+    protected URI _subscriberURI;
+    protected SipApplicationRoutingRegion _region;
     
-    private Map<String, Object> _attributes;
+    protected Map<String, Object> _attributes;
     
     private Object _serverInvites;
     private Object _clientInvites;
@@ -1085,7 +1086,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 			if (listeners.length > 0)
 				context.fire(listeners, AppSession.__sessionReadyToInvalidate, new SipSessionEvent(this));
 			
-			if (getInvalidateWhenReady() && isValid())
+			if (isValid() && getInvalidateWhenReady())
 				invalidate();
 		}
 	}

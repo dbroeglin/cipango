@@ -1,0 +1,45 @@
+<project name="Cipango Source RPM" default="download-if-not-found" basedir=".">
+
+    <target name="zip-if-not-found">
+        <condition property="need.download">
+            <available file="${project.build.directory}/rpm/SOURCES/cipango-${project.version}-src.zip" type="file" property="src.present"/>
+        </condition>
+        <antcall target="dontZip"/>
+        <antcall target="zip"/>
+    </target>
+
+    <target name="dontZip" if="need.zip">
+        <echo>No Need To Zip Source</echo>
+    </target>
+
+    <target name="zip" unless="need.zip">
+      
+      <mkdir dir="${project.build.directory}/cipango"/>
+      <copy todir="${project.build.directory}/cipango">
+        <fileset dir="../..">
+          <include name="pom.xml"/>
+          <include name="modules/**/pom.xml"/>
+        </fileset>
+      </copy>
+
+      <replace dir="${project.build.directory}/cipango" token="1.0-SNAPSHOT" value="${project.version}">
+        <include name="**/pom.xml"/>
+      </replace>
+
+
+      <zip destfile="${project.build.directory}/rpm/SOURCES/cipango-${project.version}-src.zip">
+        <zipfileset dir="${project.build.directory}/cipango" prefix="cipango-${project.version}"/>
+        <zipfileset dir="../.." prefix="cipango-${project.version}">
+          <exclude name="**/target/**"/>
+          <exclude name="**/.*/**"/>
+	  <exclude name="**/pom.xml"/>
+          <include name="LICENSES/**"/>
+          <include name="README.txt"/>
+          <include name="VERSION.txt"/>
+          <include name="modules/**"/>
+        </zipfileset>
+      </zip>
+    </target>
+                
+</project>
+

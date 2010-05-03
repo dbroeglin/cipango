@@ -1,0 +1,1 @@
+JAVA_OPTIONS=" -DSTART=/usr/share/jetty6/etc/start.config.cipango "

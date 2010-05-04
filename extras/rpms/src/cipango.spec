@@ -54,7 +54,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/jetty6/lib/ext
 mkdir -p $RPM_BUILD_ROOT/usr/share/jetty6/lib/management
 cp   %{_topdir}/SOURCES/jetty.conf $RPM_BUILD_ROOT/etc/
 cp   %{_topdir}/SOURCES/jetty $RPM_BUILD_ROOT/etc/default/
-cp   %{_topdir}/SOURCES/start.config.cipango $RPM_BUILD_ROOT/usr/share/jetty6/
+cp   %{_topdir}/SOURCES/start.config.cipango $RPM_BUILD_ROOT/usr/share/jetty6/etc
 mvn -Djetty.home=$RPM_BUILD_ROOT/usr/share/jetty6 clean install
 
 

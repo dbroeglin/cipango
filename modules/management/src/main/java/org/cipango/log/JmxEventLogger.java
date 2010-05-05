@@ -19,7 +19,9 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
-public class JmxEventLogger extends NotificationBroadcasterSupport implements EventLogger, JmxEventLoggerMBean
+import org.cipango.log.event.EventDispatcher;
+
+public class JmxEventLogger extends NotificationBroadcasterSupport implements EventDispatcher, JmxEventLoggerMBean
 {
 
 	private long _sequenceNumber = 0;
@@ -39,7 +41,7 @@ public class JmxEventLogger extends NotificationBroadcasterSupport implements Ev
 	}
 	
 	
-	public void log(int eventType, String message)
+	public void dispatch(int eventType, String message)
 	{
 		Notification notification = new Notification(String.valueOf(eventType), this, _sequenceNumber++, message);
 		sendNotification(notification);

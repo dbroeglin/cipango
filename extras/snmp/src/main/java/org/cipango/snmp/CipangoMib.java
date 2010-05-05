@@ -24,7 +24,7 @@ import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
-import org.cipango.log.EventLog;
+import org.cipango.log.event.Events;
 import org.mortbay.log.Log;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOAccess;
@@ -134,14 +134,14 @@ public class CipangoMib implements MOGroup, NotificationListener
 			int event = Integer.parseInt(notification.getType());
 			switch (event)
 			{
-			case EventLog.START:
+			case Events.START:
 				 _notificationOriginator.notify(new OctetString(), SnmpConstants.coldStart,
 	                     new VariableBinding[0]);
 				break;
-			case EventLog.DEPLOY_FAIL:
+			case Events.DEPLOY_FAIL:
 	
 				break;
-			case EventLog.CALLS_THRESHOLD_READCHED:
+			case Events.CALLS_THRESHOLD_READCHED:
 				_notificationOriginator.notify(new OctetString(), OID_THRESHOLD_SESSIONS,
 	                      new VariableBinding[0]);
 				break;

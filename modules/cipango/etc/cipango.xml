@@ -79,7 +79,7 @@
     </Call>
     <Call name="setAccessLog">
       <Arg>
-        <New class="org.cipango.log.FileMessageLog">
+        <New class="org.cipango.log.FileMessageLog" id="FileMessageLog">
           <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.message.log</Set>
           <Set name="append">true</Set>
           <Set name="retainDays">31</Set>
@@ -104,8 +104,8 @@
     </New>
   </Set -->
 
-  <Call class="org.cipango.log.EventLog" name="setLog">
-    <Arg><New class="org.cipango.log.DefaultEventLogger"/></Arg>
+  <Call class="org.cipango.log.event.Events" name="setDispatcher">
+    <Arg><New class="org.cipango.log.event.LogEventDispatcher"/></Arg>
   </Call>
 
   <Get name="transactionManager">

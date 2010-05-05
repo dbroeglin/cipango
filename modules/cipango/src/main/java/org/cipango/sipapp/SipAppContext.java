@@ -607,7 +607,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	
 	public Server getSipServer()
 	{
-		return (Server) super.getServer();
+		return (Server) getServer();
 	}
     	
     public class Timer implements TimerService
@@ -778,13 +778,13 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			if (i < 0) 
 				return null;
 			
-			String callId = applicationSessionId.substring(0, i);
+			String id = applicationSessionId.substring(0, i);
 			
-			CallSession call = ((Server) getServer()).getSessionManager().get(callId);
-			if (call == null)
+			CallSession callSession = getSipServer().getSessionManager().get(id);
+			if (callSession == null)
 				return null;
 			
-			AppSession appSession = call.getAppSession(applicationSessionId.substring(i+1));
+			AppSession appSession = callSession.getAppSession(applicationSessionId.substring(i+1));
 			if (appSession == null)
 				return null;
 			else
@@ -796,10 +796,25 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			if (key == null)
 				throw new NullPointerException("key is null");
 			
-			String cid = getName() + ";" + key;
-			
-			
-			return null;
+			String id = ID.getIdFromKey(getName(), key);
+
+			SessionTransaction tx = getSipServer().getSessionManager().begin(id);
+			try
+			{
+				AppSession appSession = tx.getCallSession().getAppSession(id);
+				if (appSession == null)
+				{
+					if (create)
+						appSession = tx.getCallSession().createAppSession(SipAppContext.this, id);
+					else 
+						return null;
+				}
+				return new AppSessionLockProxy(appSession);
+			}
+			finally
+			{
+				tx.done();
+			}			
 		}
 
 		public SipSession getCorrespondingSipSession(SipSession session, String headerName)

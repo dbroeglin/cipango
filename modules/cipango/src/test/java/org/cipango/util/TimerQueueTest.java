@@ -1,7 +1,5 @@
 package org.cipango.util;
 
-import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.Random;
 
 import org.cipango.util.TimerQueue;
@@ -12,12 +10,12 @@ import junit.framework.TestCase;
 public class TimerQueueTest extends TestCase
 {
 	private Random _random = new Random();
-	private TimerQueue _queue;
+	private TimerQueue<Node> _queue;
 	
 	@Override
 	protected void setUp()
 	{
-		_queue = new TimerQueue();
+		_queue = new TimerQueue<Node>();
 	}
 	
 	void fillQueue(int nb)
@@ -62,7 +60,7 @@ public class TimerQueueTest extends TestCase
 		{
 			fillQueue(100);
 			
-			Node[] nodes = _queue.asArray();
+			Node[] nodes = _queue.toArray();
 			
 			for (int i = 0; i < 500; i++)
 			{
@@ -87,7 +85,7 @@ public class TimerQueueTest extends TestCase
 		{
 			fillQueue(100);
 			
-			Node[] nodes = _queue.asArray();
+			Node[] nodes = _queue.toArray();
 			
 			for (int i = 0; i < 500; i++)
 			{

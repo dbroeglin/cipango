@@ -12,31 +12,9 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.log;
+package org.cipango.log.event;
 
-public class EventLog
+public interface EventDispatcher
 {
-	private static EventLogger __log;
-	
-	public static final int START 						= 0;
-	public static final int STOP 						= 1;
-	public static final int DEPLOY_FAIL 				= 2;
-	public static final int CALLS_THRESHOLD_READCHED	= 3;
-
-	public static EventLogger getLog()
-	{
-		return __log;
-	}
-
-	public static void setLog(EventLogger log)
-	{
-		__log = log;
-	}
-
-	public static void log(int eventType, String message)
-	{
-		if (__log == null)
-			return;
-		__log.log(eventType, message);
-	}
+	public void dispatch(int eventType, String message);
 }

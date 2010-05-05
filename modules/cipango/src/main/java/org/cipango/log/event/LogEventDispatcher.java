@@ -12,9 +12,30 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.log;
+package org.cipango.log.event;
 
-public interface EventLogger
+import org.mortbay.log.Log;
+import org.mortbay.log.Logger;
+
+public class LogEventDispatcher implements EventDispatcher
 {
-	public void log(int eventType, String message);
+	 private Logger _logger;
+	 
+	 public LogEventDispatcher()
+	 {
+		 _logger = Log.getLogger("cipango.event");
+	 }
+	
+	public void dispatch(int eventType, String message)
+	{
+		switch (eventType)
+		{
+		case Events.START:
+			_logger.info(message, null, null);
+			break;
+		default:
+			_logger.warn(message, null, null);
+			break;
+		}
+	}
 }

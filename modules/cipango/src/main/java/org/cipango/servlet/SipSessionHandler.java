@@ -84,7 +84,7 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 				
 				if (key != null)
 				{
-					String id = ID.getIdFromSessionKey(appContext.getName(), key);
+					String id = ID.getIdFromKey(appContext.getName(), key);
 					appSession = request.getCallSession().getAppSession(id);
 					if (appSession == null)
 						appSession = request.getCallSession().createAppSession(appContext, id);

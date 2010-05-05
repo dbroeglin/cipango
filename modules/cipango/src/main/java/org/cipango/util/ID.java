@@ -186,23 +186,31 @@ public abstract class ID
 	   	return callId.substring(i+1, j);
 	}	
 	
-	public static String getIdFromSessionKey(String applicationName, String sessionKey)
+	public static String getIdFromKey(String applicationName, String sessionKey)
 	{
 		return "skey-" + applicationName + "-" + sessionKey;
 	}
 	
-	public static boolean isFromSessionKey(String id)
+	public static boolean isKey(String id)
 	{
 		return id.startsWith("skey-");
 	}
    
 	public static void main(String[] args) throws Exception 
-    {
+    {/*
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		System.out.println(HexString.toHexString(new byte[] {'1', '.', '1'}));
 			
 		System.out.println(ID.newID(4));
 		
-		System.out.println("1.session-key".hashCode());
+		System.out.println("1.session-key".hashCode());*/
+		long ts = (System.currentTimeMillis() / 1000) * 5;
+		long hi = ts & 0xffffffffL;
+		long id = hi << 32;
+		System.out.println(ts);
+		System.out.println(hi);
+		System.out.println(Long.toHexString(ts));
+		System.out.println(Long.toHexString(hi));
+		
 	}
 }

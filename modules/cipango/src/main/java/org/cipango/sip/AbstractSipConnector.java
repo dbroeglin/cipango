@@ -364,7 +364,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
             
             try 
             {
-                while (isRunning() && getConnection() != null) 
+                while (isRunning() && getConnection() != null)
                 {
                     try 
                     {

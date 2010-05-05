@@ -14,7 +14,7 @@
 
 package org.cipango.util;
 
-public class TimerQueue //<T extends TimerQueue.Node>
+public class TimerQueue<E extends TimerQueue.Node>
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 11;
 	
@@ -36,12 +36,12 @@ public class TimerQueue //<T extends TimerQueue.Node>
 		return _size;
 	}
 	
-	public void offer(Node node)
+	public void offer(E e)
 	{
-		if (node == null)
+		if (e == null)
 			throw new NullPointerException();
-		if (node._index > 0)
-			remove(node);
+		if (e._index > 0)
+			remove(e);
 		if (++_size == _heap.length)
 		{
 			Node[] newHeap = new Node[_heap.length*2];
@@ -49,42 +49,44 @@ public class TimerQueue //<T extends TimerQueue.Node>
 			_heap = newHeap;
 		}
 		if (_size == 1)
-			set(_size, node);
+			set(_size, e);
 		else
-			siftUp(_size, node);
+			siftUp(_size, e);
 		
 		assert invariant();
 	}
 	
-	public void offer(Node node, long value)
+	public void offer(E e, long value)
 	{
-		if (node._index > 0)
+		if (e._index > 0)
 		{
-			if (_heap[node._index] != node)
-				throw new IllegalArgumentException("invalid node: " + node);
-			long oldValue = node._value;
-			node._value = value;
+			if (_heap[e._index] != e)
+				throw new IllegalArgumentException("invalid node: " + e);
+			long oldValue = e._value;
+			e._value = value;
 			
 			if (value > oldValue)
-				siftDown(node._index, node);
+				siftDown(e._index, e);
 			else
-				siftUp(node._index, node);
+				siftUp(e._index, e);
 		}
 		else
 		{
-			node._value = value;
-			offer(node);
+			e._value = value;
+			offer(e);
 		}
 		
 		assert invariant();
 	}
 	
-	public Node peek()
+	@SuppressWarnings("unchecked")
+	public E peek()
 	{
-		return _size > 0 ? _heap[1] : null;
+		return _size > 0 ? (E) _heap[1] : null;
 	}
 	
-	public Node poll()
+	@SuppressWarnings("unchecked")
+	public E poll()
 	{
 		if (_size == 0)
 			return null;
@@ -99,18 +101,18 @@ public class TimerQueue //<T extends TimerQueue.Node>
 		
 		assert invariant();
 		
-		return node;
+		return (E) node;
 	}
 	
-	public void remove(Node node)
+	public void remove(E e)
 	{
-		if (node._index != -1)
+		if (e._index != -1)
 		{
-			if (_heap[node._index] != node)
-				throw new IllegalArgumentException("invalid node: " + node);
-			removeAt(node._index);
+			if (_heap[e._index] != e)
+				throw new IllegalArgumentException("invalid node: " + e);
+			removeAt(e._index);
 		}
-		node._index = -1;
+		e._index = -1;
 		
 		assert invariant();
 	}
@@ -173,7 +175,7 @@ public class TimerQueue //<T extends TimerQueue.Node>
 		node._index = k;
 	}
 	
-	protected Node[] asArray()
+	protected Node[] toArray()
 	{
 		Node[] nodes = new Node[_size];
 		System.arraycopy(_heap, 1, nodes, 0, _size);

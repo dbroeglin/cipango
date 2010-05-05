@@ -29,7 +29,7 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import org.cipango.ar.ApplicationRouterLoader;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.handler.SipContextHandlerCollection;
-import org.cipango.log.EventLog;
+import org.cipango.log.event.Events;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ClientTransactionListener;
 import org.cipango.sip.SipConnector;
@@ -43,7 +43,7 @@ import org.mortbay.thread.ThreadPool;
 import org.mortbay.util.MultiException;
 
 /**
- * Cipango SIP/HTTP Servlet Server.
+ * Cipango SIP/HTTP Server.
  * It extends Jetty HTTP Server to add SIP capabilities.
  */
 public class Server extends org.mortbay.jetty.Server implements SipHandler
@@ -74,7 +74,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 	protected void doStart() throws Exception 
     {
 		Log.info("cipango-" + __sipVersion);
-		SipGenerator.setServerVersion(__sipVersion);
+		//SipGenerator.setServerVersion(__sipVersion);
 
 		MultiException mex = new MultiException();
 		
@@ -127,13 +127,14 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		
 		mex.ifExceptionThrow();
 		
-		EventLog.log(EventLog.START, "Cipango " + __sipVersion + " started");
+		Events.fire(Events.START, "Cipango " + __sipVersion + " started");
 	}
 	
 	@Override
     protected void doStop() throws Exception
     {
-		EventLog.log(EventLog.START, "Stopping Cipango " + __sipVersion);
+		Events.fire(Events.STOP, "Stopping Cipango " + __sipVersion);
+		
     	MultiException mex = new MultiException();
         
         try 

@@ -150,6 +150,7 @@ public class ClientTransaction extends Transaction
 
 			Via via = new Via(SipVersions.SIP_2_0, null, null);
 			via.setBranch(getBranch());
+			customizeVia(via);
 			_request.pushVia(via);
 			
 			SipConnection connection = getServer().getConnectorManager().send(
@@ -158,6 +159,14 @@ public class ClientTransaction extends Transaction
 					address,
 					port);
 			setConnection(connection);
+		}
+	}
+	
+	protected void customizeVia(Via via)
+	{
+		if (ID.isKey(_callSession.getId()))
+		{
+			via.addParameter(ID.APP_SESSION_ID_PARAMETER, _request.appSession().getAppId());
 		}
 	}
 	

@@ -42,7 +42,7 @@ import org.cipango.SipURIImpl;
 import org.cipango.URIFactory;
 import org.cipango.SessionManager.SessionTransaction;
 import org.cipango.http.servlet.ConvergedSessionManager;
-import org.cipango.log.EventLog;
+import org.cipango.log.event.Events;
 import org.cipango.security.AuthInfoImpl;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.AppSessionIf;
@@ -389,7 +389,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		} 
 		catch (Exception e) 
 		{
-			EventLog.log(EventLog.DEPLOY_FAIL, 
+			Events.fire(Events.DEPLOY_FAIL, 
         			"Unable to deploy application " + getName()
         			+ ": " + e.getMessage());
 			throw e;

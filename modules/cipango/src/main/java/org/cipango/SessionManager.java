@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.servlet.sip.SipSession;
 
-import org.cipango.log.EventLog;
+import org.cipango.log.event.Events;
 import org.cipango.servlet.AppSession;
 import org.cipango.servlet.Session;
 import org.cipango.sip.ClientTransaction;
@@ -120,16 +120,16 @@ public class SessionManager extends AbstractLifeCycle
     	_storeDir = storeDir;
     }
     
-    public SessionTransaction begin(String callId)
+    public SessionTransaction begin(String id)
     {
     	CSession callSession = null;
     	
     	synchronized (_callSessions)
     	{
-    		callSession =  _callSessions.get(callId);
+    		callSession =  _callSessions.get(id);
     		if (callSession == null)
     		{
-    			callSession = newCall(callId);
+    			callSession = newCall(id);
     			
     			_callSessions.put(callSession.getId(), callSession);
     			
@@ -140,7 +140,7 @@ public class SessionManager extends AbstractLifeCycle
     				if (_statsStartedAt > 0 && nbCalls > _maxCalls)
     					_maxCalls = nbCalls;
     				if (_callsThreshold > 0 && nbCalls == _callsThreshold)
-    					EventLog.log(EventLog.CALLS_THRESHOLD_READCHED, "Calls threashlod reached: " + nbCalls);
+    					Events.fire(Events.CALLS_THRESHOLD_READCHED, "Calls threashlod reached: " + nbCalls);
     			}
     		}
     	}

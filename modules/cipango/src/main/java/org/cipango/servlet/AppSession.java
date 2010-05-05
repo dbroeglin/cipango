@@ -317,7 +317,7 @@ public class AppSession implements AppSessionIf
 			}
 			return sessions.iterator();
 		}
-		return Collections.emptyList().iterator();
+		throw new IllegalArgumentException("Unknown protocol " + protocol);
 	}
 
 	public synchronized ServletTimer getTimer(String id)
@@ -466,7 +466,7 @@ public class AppSession implements AppSessionIf
 		
 		try {
 			String sUrl = url.toExternalForm();
-			String id= getId();
+			String id= getId().replace(";", "%3B");
 			int prefix=sUrl.indexOf(APP_ID_PREFIX);
 	        if (prefix!=-1)
 	        {
@@ -742,7 +742,7 @@ public class AppSession implements AppSessionIf
     	out.writeUTF(_appId);
     }
     
-    class Expired implements Runnable
+    public class Expired implements Runnable
     {
 		public void run()
     	{

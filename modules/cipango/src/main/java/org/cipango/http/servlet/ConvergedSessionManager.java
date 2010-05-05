@@ -18,11 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.sip.ConvergedHttpSession;
 import javax.servlet.sip.SipApplicationSession;
 
-import org.cipango.servlet.AppSession;
 import org.cipango.servlet.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;
-import org.cipango.util.concurrent.AppSessionLockProxy;
 import org.mortbay.jetty.HttpSchemes;
 import org.mortbay.jetty.Request;
 import org.mortbay.jetty.servlet.AbstractSessionManager;
@@ -71,12 +69,15 @@ public class ConvergedSessionManager extends HashSessionManager
                 }
             }
 			
-			if (appId != null && !appId.trim().equals("")) {
-				AppSession appSession = (AppSession) getSipAppContext().getSipSessionsUtil().getApplicationSessionById(appId);
+			if (appId != null && !appId.trim().equals("")) 
+			{
+				appId = appId.replace("%3B", ";");
+				AppSessionIf appSession = (AppSessionIf) getSipAppContext().getSipSessionsUtil().getApplicationSessionById(appId);
 				if (appSession != null && appSession.isValid())
 				{
-        		   appSession.getAppSession().addSession(this);
-        		   _appSession = new AppSessionLockProxy(appSession);
+					if (isValid() && _appSession == null)
+						appSession.getAppSession().addSession(this);
+					_appSession = appSession;
 				}
 			}
 		}
@@ -144,7 +145,8 @@ public class ConvergedSessionManager extends HashSessionManager
 			if (_appSession == null)
 			{
 				_appSession = (AppSessionIf) getSipAppContext().getSipFactory().createApplicationSession();
-				_appSession.getAppSession().addSession(this);
+				if (isValid())
+					_appSession.getAppSession().addSession(this);
 			}
 			return _appSession;
 		}

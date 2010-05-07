@@ -15,6 +15,7 @@
 
 package org.mortbay.jetty.annotations;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -32,6 +33,7 @@ import java.util.jar.JarEntry;
 import java.util.regex.Pattern;
 
 import org.mortbay.log.Log;
+import org.mortbay.resource.FileResource;
 import org.mortbay.resource.Resource;
 import org.mortbay.util.Loader;
 import org.objectweb.asm.AnnotationVisitor;
@@ -610,6 +612,38 @@ public class AnnotationFinder
                 catch (Exception e)
                 {
                     Log.warn("Problem processing jar entry "+entry, e);
+                }
+            }
+            
+            @Override
+            public void processFile(File directory, File file) {
+                try
+                {
+                    if (file.getName().toLowerCase().endsWith(".class"))
+                    {
+                        String shortName = file.getAbsolutePath().substring(directory.getAbsolutePath().length() + 1);
+                        shortName = shortName.substring(0,shortName.length()-6);
+                        shortName = shortName.replace('/', '.');
+//                        System.out.println("shortName = " + shortName);
+                        if (!resolver.isExcluded(shortName))
+                        {
+                            if ((parsedClasses.get(shortName) == null) || (resolver.shouldOverride(shortName)))
+                            {
+                                parsedClasses.remove(shortName);
+                                Resource clazz = new FileResource(file.toURI().toURL());
+                                InputStream inputStream = clazz.getInputStream();
+                                try {
+                                    scanClass(inputStream);
+                                } finally {
+                                    inputStream.close();
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.warn("Problem processing file entry "+file.getAbsolutePath(), e);
                 }
             }
             

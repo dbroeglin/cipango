@@ -151,6 +151,7 @@ public class Configuration extends org.cipango.plus.sipapp.Configuration
         	//TODO description, icons
         }
         getSipAppContext().setSipApplicationKeyMethod(processor.getSipApplicationKeyMethod());
+        Log.debug("processor.getSipApplicationKeyMethod()={}", processor.getSipApplicationKeyMethod());
         getSipAppContext().setName(processor.getAppName());
         getWebAppContext().setEventListeners((EventListener[])LazyList.toArray(_listeners,EventListener.class));
     }

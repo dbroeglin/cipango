@@ -147,7 +147,7 @@ public class AnnotationProcessor
             }
             holder.setHeldClass(clazz);
             holder.setName(name);
-            Log.debug("Create SIP Servlet holder with name" + holder.getName() + " from annotation");
+            Log.debug("Create SIP Servlet holder with name " + holder.getName() + " from annotation");
             holder.setInitOrder(annotation.loadOnStartup());
             // TODO annotation.description();
             checkAppName(annotation.applicationName(), clazz);
@@ -266,56 +266,68 @@ public class AnnotationProcessor
     private void processPostConstructAnnotations ()
     throws Exception
     {
-        //      TODO: check that the same class does not have more than one
-        for (Method m:_finder.getMethodsForAnnotation(PostConstruct.class))
-        {
-        	if (!isServletType(m.getDeclaringClass()))
-            {
-                Log.debug("Ignoring "+m.getName()+" as non-servlet type");
-                continue;
-            }
-            if (m.getParameterTypes().length != 0)
-                throw new IllegalStateException(m+" has parameters");
-            if (m.getReturnType() != Void.TYPE)
-                throw new IllegalStateException(m+" is not void");
-            if (m.getExceptionTypes().length != 0)
-                throw new IllegalStateException(m+" throws checked exceptions");
-            if (Modifier.isStatic(m.getModifiers()))
-                throw new IllegalStateException(m+" is static");
-
-            PostConstructCallback callback = new PostConstructCallback();
-            callback.setTargetClass(m.getDeclaringClass());
-            callback.setTarget(m);
-            _callbacks.add(callback);
-        }
+    	try 
+    	{
+	        //      TODO: check that the same class does not have more than one
+	        for (Method m:_finder.getMethodsForAnnotation(PostConstruct.class))
+	        {
+	        	if (!isServletType(m.getDeclaringClass()))
+	            {
+	                Log.debug("Ignoring "+m.getName()+" as non-servlet type");
+	                continue;
+	            }
+	            if (m.getParameterTypes().length != 0)
+	                throw new IllegalStateException(m+" has parameters");
+	            if (m.getReturnType() != Void.TYPE)
+	                throw new IllegalStateException(m+" is not void");
+	            if (m.getExceptionTypes().length != 0)
+	                throw new IllegalStateException(m+" throws checked exceptions");
+	            if (Modifier.isStatic(m.getModifiers()))
+	                throw new IllegalStateException(m+" is static");
+	
+	            PostConstructCallback callback = new PostConstructCallback();
+	            callback.setTargetClass(m.getDeclaringClass());
+	            callback.setTarget(m);
+	            _callbacks.add(callback);
+	        }
+    	} catch (ClassNotFoundException e) 
+    	{
+    		// Ignore this exception as we're too eager to look at classes that might not be loaded by the application.
+    	}
     }
 
     public void processPreDestroyAnnotations ()
     throws Exception
     {
-        //TODO: check that the same class does not have more than one
-
-        for (Method m: _finder.getMethodsForAnnotation(PreDestroy.class))
-        {
-        	if (!isServletType(m.getDeclaringClass()))
-            {
-                Log.debug("Ignoring "+m.getName()+" as non-servlet type");
-                continue;
-            }
-            if (m.getParameterTypes().length != 0)
-                throw new IllegalStateException(m+" has parameters");
-            if (m.getReturnType() != Void.TYPE)
-                throw new IllegalStateException(m+" is not void");
-            if (m.getExceptionTypes().length != 0)
-                throw new IllegalStateException(m+" throws checked exceptions");
-            if (Modifier.isStatic(m.getModifiers()))
-                throw new IllegalStateException(m+" is static");
-           
-            PreDestroyCallback callback = new PreDestroyCallback(); 
-            callback.setTargetClass(m.getDeclaringClass());
-            callback.setTarget(m);
-            _callbacks.add(callback);
-        }
+    	try
+    	{
+	        //TODO: check that the same class does not have more than one
+	
+	        for (Method m: _finder.getMethodsForAnnotation(PreDestroy.class))
+	        {
+	        	if (!isServletType(m.getDeclaringClass()))
+	            {
+	                Log.debug("Ignoring "+m.getName()+" as non-servlet type");
+	                continue;
+	            }
+	            if (m.getParameterTypes().length != 0)
+	                throw new IllegalStateException(m+" has parameters");
+	            if (m.getReturnType() != Void.TYPE)
+	                throw new IllegalStateException(m+" is not void");
+	            if (m.getExceptionTypes().length != 0)
+	                throw new IllegalStateException(m+" throws checked exceptions");
+	            if (Modifier.isStatic(m.getModifiers()))
+	                throw new IllegalStateException(m+" is static");
+	           
+	            PreDestroyCallback callback = new PreDestroyCallback(); 
+	            callback.setTargetClass(m.getDeclaringClass());
+	            callback.setTarget(m);
+	            _callbacks.add(callback);
+	        }
+    	} catch (ClassNotFoundException e)
+    	{
+    		// Ignore this exception as we're too eager to look at classes that might not be loaded by the application.
+    	}
     }
     
     

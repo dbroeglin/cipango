@@ -16,11 +16,15 @@
 
 package org.mortbay.jetty.annotations;
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
@@ -45,6 +49,7 @@ public abstract class JarScanner
 
     public abstract void processEntry (URL jarUrl, JarEntry entry);
     
+    public abstract void processFile (File directory, File file);
     
     /**
      * Find jar names from the classloader matching a pattern.
@@ -98,6 +103,11 @@ public abstract class JarScanner
 
                 if (urls!=null)
                 {
+                	Log.debug("URLs in URLClassLoader");
+					for (URL url : urls)
+					{
+						Log.debug("url = {}", url);
+					}
                     if (subPatterns.isEmpty())
                     {
                         processJars(null, urls, isNullInclusive);
@@ -126,7 +136,18 @@ public abstract class JarScanner
     {
         for (int i=0; i<urls.length;i++)
         {
-            if (urls[i].toString().toLowerCase().endsWith(".jar"))
+        	File f = new File(urls[i].getPath()).getAbsoluteFile();
+            // This happens sometimes, not sure why - trygve
+            if(f.getParentFile() == null)
+            {
+                Log.debug("Skipping root directory {}", f);
+            }
+
+            if(f.isDirectory())
+            {
+                processDirectory(f);
+            }
+            else if (urls[i].toString().toLowerCase().endsWith(".jar"))
             {
                 String jar = urls[i].toString();
                 int slash=jar.lastIndexOf('/');
@@ -141,6 +162,55 @@ public abstract class JarScanner
             }
         }
     }
+    
+	protected void processDirectory(File dir) throws Exception
+	{
+		dir = dir.getCanonicalFile();
+		Log.debug("Search of {}", dir);
+
+		processDirectory(dir, dir, new HashSet<File>());
+	}
+
+	protected void processDirectory(File rootDir, File dir, Set<File> seenSet) throws Exception
+	{
+		if (!seenSet.add(dir))
+		{
+			Log.debug("processDirectory skipping: {}", dir.getAbsolutePath());
+			return;
+		}
+
+		String absolutePath = dir.getAbsolutePath();
+		Log.debug("processDirectory {}", absolutePath);
+
+		File[] files = dir.listFiles();
+		// The file list can be null on IO errors which normally would imply
+		// that one should throw an IOException, but
+		// it seems to happen when access is denied. - trygve
+		if (files == null)
+		{
+			Log.warn("Unable to read directory {}", absolutePath);
+			return;
+		}
+		Arrays.sort(files);
+		for (int i = 0; files != null && i < files.length; i++)
+		{
+			File file = files[i].getCanonicalFile();
+			try
+			{
+				if (file.isDirectory())
+					processDirectory(rootDir, file, seenSet);
+				String name = file.getName();
+				if (name.endsWith(".class"))
+				{
+					processFile(rootDir, file);
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.warn(Log.EXCEPTION, ex);
+			}
+		}
+	}
     
     public void processJar (URL url)
     throws Exception

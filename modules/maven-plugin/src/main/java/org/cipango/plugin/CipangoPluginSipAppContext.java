@@ -79,7 +79,11 @@ public class CipangoPluginSipAppContext extends SipAppContext
     	for (int i = 0; i < configurations.length; i++)
     	{
     		if (configurations[i] instanceof CipangoMavenConfiguration)
-    			((CipangoMavenConfiguration) configurations[i]).setClassPathConfiguration(classpathFiles);
+    		{
+    			CipangoMavenConfiguration configuration = (CipangoMavenConfiguration) configurations[i];
+    			configuration.setClassPathConfiguration(classpathFiles);
+    			configuration.setAnnotationsEnabled(annotationsEnabled);
+    		}
 
             if (this.jettyEnvXmlFile != null && configurations[i] instanceof  EnvConfiguration)
             	((EnvConfiguration) configurations[i]).setJettyEnvXml(this.jettyEnvXmlFile.toURL());

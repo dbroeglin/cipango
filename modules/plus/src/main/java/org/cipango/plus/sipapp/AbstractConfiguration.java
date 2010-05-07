@@ -26,7 +26,7 @@ import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlConfiguration;
 import org.mortbay.jetty.plus.annotation.Injection;
 import org.mortbay.jetty.plus.annotation.InjectionCollection;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallback;
+import org.mortbay.jetty.plus.annotation.LifeCycleCallback; 
 import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
 import org.mortbay.jetty.plus.annotation.PostConstructCallback;
 import org.mortbay.jetty.plus.annotation.PreDestroyCallback;
@@ -102,12 +102,12 @@ public abstract class AbstractConfiguration extends SipXmlConfiguration
     throws Exception
     {
         super.configureWebApp();
-        if (findSipXml() == null)
+        /*if (findSipXml() == null)
         {
         	Log.info("No sip.xml found, assume SIP Servlet 1.1 application and parse annotations");
-        	_version = SipAppContext.VERSION_11;
-        }
-        
+        	_version = SipApp.VERSION_11;
+        }*/
+
         if (_version != SipAppContext.VERSION_10)
         {
 	        if (Log.isDebugEnabled()) 

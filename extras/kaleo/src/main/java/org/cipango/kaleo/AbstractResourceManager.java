@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Manage resources, which may be registrations of event resources. 
+ * Manage resources, which may be registrations or event resources. 
  */
 public abstract class AbstractResourceManager<T extends Resource> extends AbstractLifeCycle
 {	
@@ -229,7 +229,6 @@ public abstract class AbstractResourceManager<T extends Resource> extends Abstra
 			return _resource.toString();
 		}
 	}
-	
 	
 	class Scheduler implements Runnable
 	{

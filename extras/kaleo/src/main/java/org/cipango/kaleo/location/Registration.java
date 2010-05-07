@@ -28,7 +28,7 @@ import org.mortbay.util.LazyList;
 public class Registration implements Resource
 {
 	private String _aor;
-	private List<Binding> _bindings = new ArrayList<Binding>();
+	private List<Binding> _bindings = new ArrayList<Binding>(1);
 	private Object _listeners; //LazyList<RegistrationListener>
 	
 	public Registration(String aor)

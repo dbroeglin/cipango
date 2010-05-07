@@ -28,13 +28,18 @@ import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Main Kaleo servlet
+ */
 public class KaleoServlet extends SipServlet
 {
 	private static final long serialVersionUID = 1L;
+	
 	private final Logger _log = LoggerFactory.getLogger(KaleoServlet.class);
 
 	protected void doRequest(SipServletRequest request) // throws ServletException, IOException
 	{
+		_log.info("handling request: {}", request.getMethod() + " " + request.getRequestURI());
 		try
 		{
 			super.doRequest(request);
@@ -79,4 +84,3 @@ public class KaleoServlet extends SipServlet
 		getServletContext().getNamedDispatcher("proxy").forward(invite, null);
 	}
 }
-

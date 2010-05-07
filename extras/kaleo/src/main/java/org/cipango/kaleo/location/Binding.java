@@ -19,11 +19,17 @@ import javax.servlet.sip.URI;
 public class Binding 
 {
 	private static long __id = 0;
-	private long _id = __id++;
+	
+	private long _id = newId();
 	private String _callId;
 	private int _cseq;
 	private URI _contact;
 	private long _expirationTime;
+	
+	public static synchronized long newId() 
+	{
+		return __id++;
+	}
 	
 	public Binding(URI contact, String callId, int cseq, long expirationTime)
 	{

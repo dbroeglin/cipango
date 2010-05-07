@@ -30,6 +30,7 @@ import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.cipango.kaleo.xcap.XcapService;
 import org.cipango.kaleo.xcap.dao.FileXcapDao;
 import org.mortbay.component.LifeCycle;
+import org.mortbay.util.MultiException;
 import org.slf4j.Logger;
 
 public class KaleoLoader implements ServletContextListener
@@ -79,21 +80,32 @@ public class KaleoLoader implements ServletContextListener
 	
 	@SuppressWarnings("unchecked")
 	public void contextDestroyed(ServletContextEvent event)
-	{
-		try
-		{		
-			Enumeration enumeration = event.getServletContext().getAttributeNames();
-			while (enumeration.hasMoreElements())
+	{	
+		Enumeration enumeration = event.getServletContext().getAttributeNames();
+		MultiException mex = new MultiException();
+		
+		while (enumeration.hasMoreElements())
+		{
+			String key = (String) enumeration.nextElement();
+			Object o = event.getServletContext().getAttribute(key);
+			
+			try
 			{
-				String key = (String) enumeration.nextElement();
-				Object o = event.getServletContext().getAttribute(key);
 				if (o instanceof LifeCycle)
 					((LifeCycle) o).stop();
 			}
+			catch (Exception e)
+			{
+				mex.add(e);
+			}
+		}
+		try
+		{
+			mex.ifExceptionThrow();
 		}
 		catch (Exception e)
 		{
-			_log.warn("error while stopping Kaleo application", e);
+			_log.warn("error while stopping kaleo", mex);
 		}
 	}
 }

@@ -61,7 +61,7 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 	
 	protected RegResource newResource(String uri)
 	{
-		Registration registration = _locationService.get(uri);
+		Registration registration = _locationService.begin(uri);
 		try
 		{
 			RegResource regResource = new RegResource(uri, registration);
@@ -103,7 +103,7 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 
 		public void allBindingsRemoved(String aor)
 		{
-			RegResource resource = get(aor);
+			RegResource resource = begin(aor);
 			try
 			{
 				resource.allBindingsRemoved(aor);
@@ -120,7 +120,7 @@ public class RegEventPackage extends AbstractEventPackage<RegResource>
 				Enum event,
 				org.cipango.kaleo.location.event.RegistrationDocument.Registration.State.Enum state)
 		{
-			RegResource resource = get(aor);
+			RegResource resource = begin(aor);
 			try
 			{
 				resource.bindingChanged(aor, binding, event, state);

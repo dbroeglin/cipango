@@ -44,8 +44,6 @@ public abstract class Constants
 	public static final String ID_PARAM 			= "id";
 	public static final String SUBSCRIPTION_ATTRIBUTE = "Subscription-Resource";
 	public static final String VERSION_ATTRIBUTE = "version";
-	
-	
 
 	public static final String WILCARD = "*";
 	

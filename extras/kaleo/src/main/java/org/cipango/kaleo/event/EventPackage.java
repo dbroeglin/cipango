@@ -32,7 +32,7 @@ public interface EventPackage<T extends EventResource>
 
 	List<String> getSupportedContentTypes();
 
-	T get(String uri);
+	T begin(String uri);
 
 	ContentHandler<?> getContentHandler(String contentType);
 }

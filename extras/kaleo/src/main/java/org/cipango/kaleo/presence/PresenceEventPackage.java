@@ -125,7 +125,7 @@ public class PresenceEventPackage extends AbstractEventPackage<Presentity>
 
 		public void policyHasChanged(Policy policy)
 		{
-			
+		
 			Presentity presentity = (Presentity) get(policy.getResourceUri());
 
 			try

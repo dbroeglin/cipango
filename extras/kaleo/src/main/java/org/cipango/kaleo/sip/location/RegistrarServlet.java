@@ -91,7 +91,7 @@ public class RegistrarServlet extends SipServlet
 		long now = System.currentTimeMillis();
 		List<Binding> bindings;
 
-		Registration record = _locationService.get(aor);
+		Registration record = _locationService.begin(aor);
 		
 		record.addListener(_regEventPackage.getRegistrationListener());
 		
@@ -295,7 +295,7 @@ public class RegistrarServlet extends SipServlet
 			}
 		}
 		
-		RegResource regResource = _regEventPackage.get(uri);
+		RegResource regResource = _regEventPackage.begin(uri);
 		
 		try
 		{

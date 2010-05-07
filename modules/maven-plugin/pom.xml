@@ -60,7 +60,7 @@
             <configuration>
               <tasks>
                 <echo message="Removing .svn files ..."/>
-                <delete includeemptydirs="true">
+                <delete includeemptydirs="true" failonerror="false">
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="**/.svn/**" defaultexcludes="no"/>
                 </delete>
                 
@@ -69,9 +69,8 @@
                 <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config"/>
                 <echo message="Starting to applying patches... " />
                 <patch  dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/AbstractJettyMojo.patch" ignorewhitespace="true" strip="0" />
-                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6MavenConfiguration.patch" ignorewhitespace="true" strip="0"/>
                 <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6RunMojo.patch" ignorewhitespace="true" strip="0"/>
-                <delete>
+                <delete  failonerror="false">
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="org/mortbay/jetty/plugin/Jetty6PluginWebAppContext.java"/>
                 </delete>
                 <echo message="Finished applying patches... " />

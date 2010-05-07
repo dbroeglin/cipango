@@ -59,7 +59,7 @@
             </goals>
             <configuration>
               <tasks if="jetty.home">
-                <delete includeemptydirs="true">
+                <delete includeemptydirs="true" failonerror="false">
                   <fileset dir="${jetty.home}/lib" includes="media/${project.build.finalName}.${project.packaging}"/>
                 </delete>
               </tasks>

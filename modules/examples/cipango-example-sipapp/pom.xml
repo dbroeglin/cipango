@@ -45,7 +45,7 @@
             <phase>install</phase>
             <configuration>
               <tasks if="jetty.home">
-                <delete quiet="true" dir="${jetty.home}/sipapps/test"/>
+                <delete quiet="true" dir="${jetty.home}/sipapps/test" failonerror="false"/>
                 <copy todir="${jetty.home}/sipapps/test">
                   <fileset dir="${project.build.directory}/${project.artifactId}" includes="**"/>
                 </copy>

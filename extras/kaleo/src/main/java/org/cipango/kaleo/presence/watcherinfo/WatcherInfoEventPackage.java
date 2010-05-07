@@ -47,7 +47,7 @@ public class WatcherInfoEventPackage extends AbstractEventPackage<WatcherResourc
 	
 	protected WatcherResource newResource(String uri)
 	{
-		Presentity presentity = _presenceEventPackage.begin(uri);
+		Presentity presentity = _presenceEventPackage.get(uri);
 		try
 		{
 			WatcherResource watcherResource = new WatcherResource(uri, presentity);
@@ -101,7 +101,7 @@ public class WatcherInfoEventPackage extends AbstractEventPackage<WatcherResourc
 		public void subscriptionStateChanged(Subscription subscription, 
 				Subscription.State previousState, Subscription.State newState)
 		{
-			WatcherResource resource = begin(subscription.getResource().getUri());
+			WatcherResource resource = get(subscription.getResource().getUri());
 			try
 			{
 				resource.subscriptionStateChanged(subscription, previousState, newState);

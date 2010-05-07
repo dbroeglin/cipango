@@ -138,7 +138,7 @@ public class PresenceServlet extends SipServlet
 			String etag = publish.getHeader(Constants.SIP_IF_MATCH);
 			long now = System.currentTimeMillis();
 	
-			presentity = _presence.begin(uri);
+			presentity = _presence.get(uri);
 		
 
 			if (etag == null)
@@ -270,7 +270,7 @@ public class PresenceServlet extends SipServlet
 			}
 		}
 				
-		Presentity presentity = _presence.begin(uri);
+		Presentity presentity = _presence.get(uri);
 		
 		String subscriberUri = null;
 		if (subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY) != null)
@@ -419,7 +419,7 @@ public class PresenceServlet extends SipServlet
 			}
 		}
 				
-		WatcherResource resource = _watcherInfo.begin(uri);
+		WatcherResource resource = _watcherInfo.get(uri);
 		
 		String subscriberUri = null;
 		if (subscribe.getAddressHeader(Constants.P_ASSERTED_IDENTITY) != null)

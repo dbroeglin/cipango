@@ -38,6 +38,7 @@
 
                         <!-- set version -->
                         <replace file="${project.build.directory}/rpm/SPECS/cipango.spec" token="@@@VERSION@@@" value="${project.version}"/>
+                        <replace file="${project.build.directory}/rpm/SPECS/cipango.spec" token="-SNAPSHOT" value=""/>
                         
                         <!-- zip source code -->
                         <ant antfile="anttasks.xml" target="zip-if-not-found">

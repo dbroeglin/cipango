@@ -1,3 +1,17 @@
+cipango-1.0.0M1 - 12 May 2010
+ + CIPANGO-71 Classpath scanning: Support directories, do not fail on uninstantiable classes
+ + CIPANGO-70 Make the flag to enable annotation scanning work in the Maven plugin
+ + CIPANGO-64 NullPointerException when closing Cipango
+ + CIPANGO-59 TLS support
+ + CIPANGO-61 Unable to modify a contact on a generated response
+ + CIPANGO-62 When setting the system property "org.cipango.dar.matchOnNewOutgoingRequests", the DAR never match
+ + CIPANGO-72 pom.xml adjustments
+ + CIPANGO-60 Got ConcurrentModificationException on SipApplicationSession.invalidate()
+ + CIPANGO-68 Got IllegalStateException after invalidating session in SipSessionListener.sessionReadyToInvalidate() callback
+ + CIPANGO-69 SipApplication.encodeURL(URL) does not work
+ + CIPANGO-66 Some application router parameters like SipRouteModifier are not handled
+ + CIPANGO-43 request.createResponse(200).getReasonPhrase() returns null 
+
 cipango-1.0.0M0 - 07 April 2010
  + CIPANGO-55  B2buaHelper.getPendingMessages(session, UAMode.UAC) does not returns 200/INVITE
  + CIPANGO-23  Got java.lang.IllegalArgumentException: Multiple getters for attr server when running with JMX

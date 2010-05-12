@@ -1,1 +1,1 @@
-update debian/changelog (cipango-version) before building for a new release.
+update src/main/debian/changelog (cipango-version) before building for a new release.

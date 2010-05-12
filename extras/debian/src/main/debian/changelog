@@ -1,8 +1,19 @@
-cipango (1.0) unstable; urgency=low
+cipango (1.0.0M1) unstable; urgency=low
 
-  * Stable version
+  * CIPANGO-71 Classpath scanning: Support directories, do not fail on uninstantiable classes
+  * CIPANGO-70 Make the flag to enable annotation scanning work in the Maven plugin
+  * CIPANGO-64 NullPointerException when closing Cipango
+  * CIPANGO-59 TLS support
+  * CIPANGO-61 Unable to modify a contact on a generated response
+  * CIPANGO-62 When setting the system property "org.cipango.dar.matchOnNewOutgoingRequests", the DAR never match
+  * CIPANGO-72 pom.xml adjustments
+  * CIPANGO-60 Got ConcurrentModificationException on SipApplicationSession.invalidate()
+  * CIPANGO-68 Got IllegalStateException after invalidating session in SipSessionListener.sessionReadyToInvalidate() callback
+  * CIPANGO-69 SipApplication.encodeURL(URL) does not work
+  * CIPANGO-66 Some application router parameters like SipRouteModifier are not handled
+  * CIPANGO-43 request.createResponse(200).getReasonPhrase() returns null  
 
- -- Nexcom Systems <nicolas.trangosi@nexcom.fr>  Wed, 24 Mar 2010 11:53:36 +0200
+ -- Nexcom Systems <nicolas.trangosi@nexcom.fr>  Wed, 12 May 2010 11:53:36 +0200
  
 cipango (1.0.0pre1-1) unstable; urgency=low
 

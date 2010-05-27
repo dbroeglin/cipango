@@ -359,7 +359,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
 	 */
 	public String getLocalName() 
     {
-		return getLocalAddr();
+		return getConnection() != null ? getConnection().getLocalAddress().getHostName() : null;
 	}
 	
 	/**

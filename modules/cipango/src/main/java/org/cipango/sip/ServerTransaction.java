@@ -95,7 +95,7 @@ public class ServerTransaction extends Transaction
                 { 
                     doSend(response);
                 }
-                catch (IOException e) 
+                catch (IOException e)
                 {
                     Log.ignore(e);
                 }
@@ -190,7 +190,7 @@ public class ServerTransaction extends Transaction
 	
 	private void doSend(SipResponse response) throws IOException 
     {
-		getServer().getConnectorManager().send(response);
+		getServer().getConnectorManager().send(response, getConnection());
 	}
 	
 	public void timeout(int id) 

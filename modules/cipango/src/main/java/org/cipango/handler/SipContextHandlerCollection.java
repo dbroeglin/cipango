@@ -193,7 +193,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 								SipServletResponse.SC_SERVER_INTERNAL_ERROR,
 								"Application router error: " + t.getMessage());
 						ExceptionUtil.fillStackTrace(response, t);
-						getConnectorManager().send(response);
+						getConnectorManager().sendResponse(response);
 					}
 					return;
 				}
@@ -251,7 +251,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					{
 						SipResponse response = new SipResponse(request, SipServletResponse.SC_NOT_FOUND, null);
 						response.to().setParameter(SipParams.TAG, ID.newTag());
-						getConnectorManager().send(response);
+						getConnectorManager().sendResponse(response);
 					}
 					return;
 				}			
@@ -316,7 +316,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 	        			SipServletResponse.SC_SERVER_INTERNAL_ERROR,
 	        			"Error in handler: " + e.getMessage());
 				ExceptionUtil.fillStackTrace(response, e);
-				try { getConnectorManager().send(response); } catch (Exception e1) {Log.ignore(e1); }
+				try { getConnectorManager().sendResponse(response); } catch (Exception e1) {Log.ignore(e1); }
 			}
         	return true;
 		}

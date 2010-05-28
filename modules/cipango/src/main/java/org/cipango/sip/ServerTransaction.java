@@ -190,7 +190,7 @@ public class ServerTransaction extends Transaction
 	
 	private void doSend(SipResponse response) throws IOException 
     {
-		getServer().getConnectorManager().send(response, getConnection());
+		getServer().getConnectorManager().sendResponse(response, getConnection());
 	}
 	
 	public void timeout(int id) 

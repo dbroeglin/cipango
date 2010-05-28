@@ -593,7 +593,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         }
         
         if (response.isSendOutsideTx())
-        	getServer().getConnectorManager().send(response);
+        	getServer().getConnectorManager().sendResponse(response);
         else
         	tx.send(response);
 	}
@@ -622,8 +622,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         }
         return null;
 	}
-	
-   
     
 	private void access() 
     {
@@ -1287,7 +1285,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 				{
 					try
 					{
-						getServer().getConnectorManager().send(_2xx);
+						getServer().getConnectorManager().sendResponse(_2xx);
 					}
 					catch (Exception e)
 					{

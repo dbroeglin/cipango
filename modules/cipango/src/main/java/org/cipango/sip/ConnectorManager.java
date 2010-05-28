@@ -350,6 +350,11 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
     	if (request != null)
     		connection = request.getConnection();
     	
+    	send(response, connection);
+    }
+    
+    public void send(SipResponse response, SipConnection connection) throws IOException
+    {
     	if (connection == null || !connection.getConnector().isReliable())
     	{
     		Via via = response.getTopVia();

@@ -91,10 +91,10 @@ public class AppSession implements AppSessionIf
     protected Map<String, Object> _attributes;
 
     protected long _created = System.currentTimeMillis();
-    protected long _accessed = _created;
-    protected long _expirationTime = 0;
+    protected long _lastAccessed;
+    protected int _expiryDelay;
     
-    private List<ServletTimer> _timers; 
+    private List<ServletTimer> _timers;
     protected TimerTask _expiryTimer;
     
     protected boolean _invalidateWhenReady = true;
@@ -119,7 +119,7 @@ public class AppSession implements AppSessionIf
 	 */
 	public long getLastAccessedTime()
 	{
-		return _accessed;
+		return _lastAccessed;
 	}
 
 	/**
@@ -133,7 +133,7 @@ public class AppSession implements AppSessionIf
 	/**
 	 * @see SipApplicationSession#setExpires(int)
 	 */
-	public int setExpires(int deltaMinutes) 
+	public int setExpires(int deltaMinutes)
 	{
 		if (!(_state == State.VALID || _state == State.EXPIRED))
 			throw new IllegalStateException();
@@ -144,19 +144,16 @@ public class AppSession implements AppSessionIf
 			_expiryTimer = null;
 		}
 		
-		if (deltaMinutes > 0)
+		_expiryDelay = deltaMinutes;
+		
+		if (_expiryDelay > 0)
 		{
-			long delayMs = deltaMinutes * 60000l;
-			_expiryTimer = _callSession.schedule(new Expired(), delayMs);
-			_expirationTime = System.currentTimeMillis() + delayMs;
+			long delayMs = _expiryDelay * 60000l;
+			_expiryTimer = _callSession.schedule(new ExpiryTimeout(), delayMs);
+			return _expiryDelay;
 		}
 		else
-		{
-			_expirationTime = 0;
 			return Integer.MAX_VALUE;
-		}
-
-		return deltaMinutes;
 	}
 	
 	/**
@@ -446,7 +443,16 @@ public class AppSession implements AppSessionIf
     
     public void access(long accessed)
     {
-        _accessed = accessed;
+        _lastAccessed = accessed;
+        
+        if (_expiryTimer != null)
+        {
+        	_callSession.cancel(_expiryTimer);
+        	_expiryTimer = null;
+        }
+        
+        if (_expiryDelay > 0)
+        	_expiryTimer = _callSession.schedule(new ExpiryTimeout(), _expiryDelay);
     }
     
 	private void checkValid() 
@@ -499,9 +505,10 @@ public class AppSession implements AppSessionIf
 	public long getExpirationTime()
 	{
 		checkValid();
-		if (_expirationTime <= System.currentTimeMillis())
+		if (_expiryTimer != null)
+			return _expiryTimer.getExecutionTime();
+		else
 			return Long.MIN_VALUE;
-		return _expirationTime;
 	}
 
 	/**
@@ -563,7 +570,7 @@ public class AppSession implements AppSessionIf
 			session.invalidateIfReady();
 		}
 		
-		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate())
+		if (isValid() && getInvalidateWhenReady() && (getLastAccessedTime() > 0) && isReadyToInvalidate())
 		{
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length >0)
@@ -742,7 +749,7 @@ public class AppSession implements AppSessionIf
     	out.writeUTF(_appId);
     }
     
-    public class Expired implements Runnable
+    public class ExpiryTimeout implements Runnable
     {
 		public void run()
     	{

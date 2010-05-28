@@ -153,7 +153,7 @@ public class ClientTransaction extends Transaction
 			customizeVia(via);
 			_request.pushVia(via);
 			
-			SipConnection connection = getServer().getConnectorManager().send(
+			SipConnection connection = getServer().getConnectorManager().sendRequest(
 					_request,
 					transport,
 					address,

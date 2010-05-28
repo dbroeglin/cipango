@@ -322,7 +322,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
     	}
     }
     
-    public SipConnection send(SipRequest request, int transport, InetAddress address, int port) throws IOException
+    public SipConnection sendRequest(SipRequest request, int transport, InetAddress address, int port) throws IOException
     {   
     	SipConnector connector = findConnector(transport, address);
     	
@@ -342,7 +342,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
         return connection;
     }
     
-    public void send(SipResponse response) throws IOException
+    public void sendResponse(SipResponse response) throws IOException
     {
     	SipRequest request = (SipRequest) response.getRequest();
     	SipConnection connection = null;
@@ -350,10 +350,10 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
     	if (request != null)
     		connection = request.getConnection();
     	
-    	send(response, connection);
+    	sendResponse(response, connection);
     }
     
-    public void send(SipResponse response, SipConnection connection) throws IOException
+    public void sendResponse(SipResponse response, SipConnection connection) throws IOException
     {
     	if (connection == null || !connection.getConnector().isReliable())
     	{
@@ -664,7 +664,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
 				// TODO send response stateless
 				SipResponse response = 
 					(SipResponse) ((SipRequest) message).createResponse(SipServletResponse.SC_BAD_REQUEST);
-				send(response);
+				sendResponse(response);
 			}
 		}
 		catch (Exception e) 

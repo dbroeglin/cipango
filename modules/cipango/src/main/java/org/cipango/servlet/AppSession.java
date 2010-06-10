@@ -86,7 +86,7 @@ public class AppSession implements AppSessionIf
 	private Object _otherSessions;
 	
     private CallSession _callSession;
-    private SipAppContext _context;
+    protected SipAppContext _context;
     
     protected Map<String, Object> _attributes;
 
@@ -778,6 +778,7 @@ public class AppSession implements AppSessionIf
             _info = info;
             _executionTime = System.currentTimeMillis() + delay;
             _timerTask = getCallSession().schedule(this, delay);
+            _persistent = persistent;
         }
         
         public Timer(long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)

@@ -77,7 +77,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
 	protected long _created = System.currentTimeMillis();
-	protected long _accessed = _created;
+	protected long _accessed;
 	protected String _id;
     
 	protected Role _role = Role.UNDEFINED;

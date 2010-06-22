@@ -694,6 +694,8 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	
 	public void handleRequest(SipRequest request) throws SipException
     { 
+		access();
+		
 		if (request.isInitial())
 		{
 			_localParty = (NameAddr) request.to().clone(); // TODO clone ?
@@ -713,8 +715,6 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
         {
             if (Log.isDebugEnabled())
                 Log.debug("subsequent request {} for session {}", request.getRequestLine(), this);
-            
-			access();
             
 			Proxy proxy = null;
 			

@@ -451,8 +451,8 @@ public class AppSession implements AppSessionIf
         	_expiryTimer = null;
         }
         
-        if (_expiryDelay > 0)
-        	_expiryTimer = _callSession.schedule(new ExpiryTimeout(), _expiryDelay);
+        if (_expiryDelay > 0) // TODO refactor
+        	_expiryTimer = _callSession.schedule(new ExpiryTimeout(), _expiryDelay * 60000l);
     }
     
 	private void checkValid() 
@@ -505,10 +505,17 @@ public class AppSession implements AppSessionIf
 	public long getExpirationTime()
 	{
 		checkValid();
-		if (_expiryTimer != null)
-			return _expiryTimer.getExecutionTime();
+		
+		if (_expiryTimer == null)
+			return 0;
 		else
-			return Long.MIN_VALUE;
+		{
+			long expirationTime = _expiryTimer.getExecutionTime();
+			if (expirationTime <= System.currentTimeMillis())
+				return Long.MIN_VALUE;
+			else
+				return expirationTime;
+		}
 	}
 
 	/**

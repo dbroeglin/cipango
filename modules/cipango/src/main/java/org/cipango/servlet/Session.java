@@ -1077,7 +1077,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 
 	public void invalidateIfReady()
 	{
-		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate())
+		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate() && (getLastAccessedTime() > 0))
 		{			
 			SipAppContext context = _appSession.getContext();
 			SipSessionListener[] listeners = context.getSipSessionListeners();

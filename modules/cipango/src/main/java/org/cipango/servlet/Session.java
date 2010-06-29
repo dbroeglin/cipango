@@ -77,7 +77,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
 	protected long _created = System.currentTimeMillis();
-	protected long _accessed;
+	protected long _lastAccessed;
 	protected String _id;
     
 	protected Role _role = Role.UNDEFINED;
@@ -225,7 +225,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	 */
 	public long getLastAccessedTime() 
     {
-		return _accessed;
+		return _lastAccessed;
 	}
 
 	/**
@@ -393,6 +393,9 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	{
 		checkValid();
 
+		if (_lastAccessed == 0)
+			return false;
+		
 		if (_state == State.TERMINATED)
 			return true;
 		else if (isUA() && _state == State.INITIAL)
@@ -625,8 +628,8 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
     
 	private void access() 
     {
-        _accessed = System.currentTimeMillis();
-        _appSession.access(_accessed);
+		_lastAccessed = System.currentTimeMillis();
+        _appSession.access(_lastAccessed);
     }
 
 	public void setRole(Role newRole) 
@@ -1077,7 +1080,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 
 	public void invalidateIfReady()
 	{
-		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate() && (getLastAccessedTime() > 0))
+		if (getInvalidateWhenReady() && isValid() && isReadyToInvalidate())
 		{			
 			SipAppContext context = _appSession.getContext();
 			SipSessionListener[] listeners = context.getSipSessionListeners();

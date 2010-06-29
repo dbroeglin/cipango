@@ -560,6 +560,9 @@ public class AppSession implements AppSessionIf
 	{
 		checkValid();
 		
+		if (_lastAccessed == 0)
+			return false;
+		
 		for (int i = 0; i < _sessions.size(); i++)
 		{
 			Session session = _sessions.get(i);
@@ -577,7 +580,7 @@ public class AppSession implements AppSessionIf
 			session.invalidateIfReady();
 		}
 		
-		if (isValid() && getInvalidateWhenReady() && (getLastAccessedTime() > 0) && isReadyToInvalidate())
+		if (isValid() && getInvalidateWhenReady() && isReadyToInvalidate())
 		{
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length >0)

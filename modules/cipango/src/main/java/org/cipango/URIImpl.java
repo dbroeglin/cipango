@@ -105,22 +105,30 @@ public class URIImpl implements URI, Serializable
 		return _scheme;
 	}
 	
+	@Override
 	public boolean equals(Object o)
 	{
 		if (o == null || !(o instanceof URI))
 			return false;
 		URI uri = (URI) o;
-		if (_scheme != uri.getScheme())
+		if (!_scheme.equals(uri.getScheme()))
 			return false;
 		
 		// FIXME improve equals
-		if (toString() != uri.toString())
+		if (!toString().equals(uri.toString()))
 			return false;
 		
 		return true;
 			
 	}
 	
+	@Override
+	public int hashCode()
+	{
+		return toString().hashCode();
+	}
+	
+	@Override
 	public URI clone() 
 	{
 		try 

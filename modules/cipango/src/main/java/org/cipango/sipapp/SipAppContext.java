@@ -164,6 +164,8 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	
 	public void handle(SipServletMessage message) throws ServletException, IOException 
 	{
+		// TODO if (getUnavailableException() != null) send 503 ???
+		
 		ClassLoader oldClassLoader = null;
 		Thread currentThread = null;
 		
@@ -621,6 +623,11 @@ public class SipAppContext extends WebAppContext implements SipHandler
         {
         	return new TimerLockProxy(((AppSessionIf) session).getAppSession(), delay, period, fixedDelay, isPersistent, info);
         }
+    }
+    
+    public boolean isUnavailable()
+    {
+    	return getUnavailableException() != null;
     }
 
     public class Factory implements SipFactory

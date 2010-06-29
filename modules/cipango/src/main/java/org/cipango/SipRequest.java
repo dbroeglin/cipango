@@ -788,7 +788,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
     	return _method + " " + getRequestURI().toString(); 
     }
     
-	class IteratorToEnum  implements Enumeration<String>
+	static class IteratorToEnum  implements Enumeration<String>
 	{
 		private Iterator<String> _it;
 		public IteratorToEnum(Iterator<String> it)

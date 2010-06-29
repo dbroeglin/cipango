@@ -19,7 +19,7 @@ import javax.servlet.sip.ServletParseException;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 
-public class CSeq 
+public class CSeq  implements Cloneable
 {
 	private long _number;
 	private String _method;

@@ -473,7 +473,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
 	
 	public String getRequestLine()
 	{
-		return _status + " " + _status;
+		return _status + " " + _reason;
 	}
 
 	public Object clone()

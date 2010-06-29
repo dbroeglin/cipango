@@ -87,8 +87,8 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
             log.setFilename(buildDirectory + "/logs/yyyy_mm_dd.message.log");
             messageLog = log;
 		}
-        
-        server.getConnectorManager().setAccessLog(messageLog);      
+        if (server.getConnectorManager().getAccessLog() == null)
+        	server.getConnectorManager().setAccessLog(messageLog);      
 	}
 	
 }

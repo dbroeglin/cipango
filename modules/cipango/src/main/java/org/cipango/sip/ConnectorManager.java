@@ -541,13 +541,13 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
     {
 
         if (getServer() != null)
-            getServer().getContainer().update(this, _accessLog, accessLog, "accessLog", true);
+            getServer().getContainer().update(this, _accessLog, accessLog, "accessLog", false);
         
         _accessLog = accessLog;
         
         try
         {
-        	if (_accessLog instanceof LifeCycle)
+        	if (isRunning() && _accessLog instanceof LifeCycle)
         		((LifeCycle) accessLog).start();
         }
         catch (Exception e)
@@ -687,6 +687,11 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
 		if (it.hasNext())
 			Log.info("Received bad message: Duplicate header: " + headerName);
 		return !it.hasNext();
+	}
+
+	public AccessLog getAccessLog()
+	{
+		return _accessLog;
 	}
 
 

@@ -1,3 +1,12 @@
+cipango-1.0.0 - 30 June 2010
+ + CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session
+ + CIPANGO-77 When a response is forwarded in TCP, it does not reuse the initial TCP connection
+ + CIPANGO-81 Message log config specified with maven plugin is not used
+ + CIPANGO-75 SipApplicationSession not started anew when session is lastAccessedTime is refreshed
+ + CIPANGO-80 inconsistency between isReadyToInvalidate state and outcome of invalidateIfReady
+ + CIPANGO-79 On startup, it is not the right version logged
+ + CIPANGO-74 javax.servlet.ServletRequest.getLocalName() returns an IP address instead of a host name 
+
 cipango-1.0.0M1 - 12 May 2010
  + CIPANGO-71 Classpath scanning: Support directories, do not fail on uninstantiable classes
  + CIPANGO-70 Make the flag to enable annotation scanning work in the Maven plugin

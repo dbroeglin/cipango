@@ -1,3 +1,14 @@
+cipango (1.0.0) stable; urgency=low
+ + CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session
+ + CIPANGO-77 When a response is forwarded in TCP, it does not reuse the initial TCP connection
+ + CIPANGO-81 Message log config specified with maven plugin is not used
+ + CIPANGO-75 SipApplicationSession not started anew when session is lastAccessedTime is refreshed
+ + CIPANGO-80 inconsistency between isReadyToInvalidate state and outcome of invalidateIfReady
+ + CIPANGO-79 On startup, it is not the right version logged
+ + CIPANGO-74 javax.servlet.ServletRequest.getLocalName() returns an IP address instead of a host name 
+
+ -- Nexcom Systems <nicolas@cipango.org>  Wed, 30 May 2010 09:42:00 +0200
+
 cipango (1.0.0M1) unstable; urgency=low
 
   * CIPANGO-71 Classpath scanning: Support directories, do not fail on uninstantiable classes
@@ -13,7 +24,7 @@ cipango (1.0.0M1) unstable; urgency=low
   * CIPANGO-66 Some application router parameters like SipRouteModifier are not handled
   * CIPANGO-43 request.createResponse(200).getReasonPhrase() returns null  
 
- -- Nexcom Systems <nicolas.trangosi@nexcom.fr>  Wed, 12 May 2010 11:53:36 +0200
+ -- Nexcom Systems <nicolas@cipango.org>  Wed, 12 May 2010 11:53:36 +0200
  
 cipango (1.0.0pre1-1) unstable; urgency=low
 

@@ -81,9 +81,13 @@
  
   <dependencies>
     <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango</artifactId>
-      <version>${project.version}</version>
+      <groupId>javax.servlet</groupId>
+      <artifactId>sip-api</artifactId>
+      <!-- <version>${project.version}</version> -->
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
     </dependency>
   </dependencies>
 </project>

@@ -1,0 +1,6 @@
+==============================================================
+ Cipango SIP Container
+ Copyright 2008-2010 NEXCOM Systems
+==============================================================
+
+The Cipango SIP Server is copyright NEXCOM Systems and distributed under Apache 2.0 licence. 

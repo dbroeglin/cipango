@@ -1,0 +1,25 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>javax.servlet</groupId>
+  <artifactId>sip-api</artifactId>
+  <version>1.1</version>
+  <name>SIP Servlet API</name>
+  <description>
+    The SIP Servlet API defines a high-level extension API for SIP servers. It enables SIP applications to be deployed and managed based on the servlet model. 
+  </description>
+  <url>http://www.jcp.org/en/jsr/detail?id=289</url>
+
+  <distributionManagement>
+    <downloadUrl>http://jcp.org/aboutJava/communityprocess/final/jsr289/index.html</downloadUrl>
+  </distributionManagement>
+      
+  <dependencies>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>
+

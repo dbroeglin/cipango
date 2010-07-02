@@ -98,7 +98,7 @@
     <dependencies>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty</artifactId>
+        <artifactId>jetty-server</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -123,7 +123,7 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-naming</artifactId>
+        <artifactId>jetty-jndi</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

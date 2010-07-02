@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.log;
+package org.cipango.jmx.log.event;
 
 import java.lang.management.ManagementFactory;
 
@@ -19,14 +19,14 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
-import org.cipango.log.event.EventDispatcher;
+import org.cipango.jmx.log.event.event.EventDispatcher;
 
-public class JmxEventLogger extends NotificationBroadcasterSupport implements EventDispatcher, JmxEventLoggerMBean
+public class JmxEventDispatcher extends NotificationBroadcasterSupport implements EventDispatcher, JmxEventDispatcherMBean
 {
 
 	private long _sequenceNumber = 0;
 	
-	public JmxEventLogger()
+	public JmxEventDispatcher()
 	{
 		try
 		{

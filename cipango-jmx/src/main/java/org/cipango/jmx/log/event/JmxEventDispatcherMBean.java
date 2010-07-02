@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2007-2008 NEXCOM Systems
+// Copyright 2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,29 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
+package org.cipango.jmx.log.event;
 
-package org.cipango.util;
+import javax.management.NotificationBroadcaster;
 
-import java.rmi.registry.LocateRegistry;
-
-import org.mortbay.log.Log;
-
-public class RmiRegistryHelper {
-	
-	public static void createRegistry() {
-		try {
-			LocateRegistry.createRegistry(1099);
-		} catch (Exception e) {
-			Log.warn("Unable to create RMI registry", e);
-		}
-	}
-	
-	public static void createRegistry(String sPort) {
-		try {
-			int port = Integer.parseInt(sPort);
-			LocateRegistry.createRegistry(port);
-		} catch (Exception e) {
-			Log.warn("Unable to create RMI registry on port " + sPort, e);
-		}
-	}
+public interface JmxEventDispatcherMBean extends NotificationBroadcaster
+{
+	public long getSequenceNumber();
 }

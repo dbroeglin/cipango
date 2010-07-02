@@ -61,9 +61,9 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 		init();
 	}
 
-	public void applicationUndeployed(List<String> toRemove)
+	public void applicationUndeployed(List<String> undeployedApplicationNames)
 	{
-		_applicationNames.removeAll(toRemove);
+		_applicationNames.removeAll(undeployedApplicationNames);
 		init();
 	}
 

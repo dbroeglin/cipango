@@ -20,9 +20,7 @@ import org.cipango.dar.DefaultApplicationRouter;
 
 public class DefaultApplicationRouterProvider extends SipApplicationRouterProvider
 {
-	public DefaultApplicationRouterProvider()
-	{
-	}
+	public DefaultApplicationRouterProvider() {}
 	
 	public javax.servlet.sip.ar.SipApplicationRouter getSipApplicationRouter()
 	{

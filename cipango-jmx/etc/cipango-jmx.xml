@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
+
+
+<!-- =============================================================== -->
+<!-- Configure the JVM JMX Server                                    -->
+<!-- this configuration file should be used in combination with      -->
+<!-- other configuration files.  e.g.                                -->
+<!--    java -jar start.jar etc/cipango-jmx.xml etc/cipango.xml      -->
+<!-- =============================================================== -->
+<Configure id="Server" class="org.cipango.Server">
+
+    <!-- =========================================================== -->
+    <!-- Initialize mbean server                                     -->
+    <!-- =========================================================== -->
+    <!-- Use the jdk 1.5 platformMBeanServer -->
+    <Call id="MBeanServer" class="java.lang.management.ManagementFactory" name="getPlatformMBeanServer"/>
+    
+    <!-- =========================================================== -->
+    <!-- Initialize the Cipango MBean container                      -->
+    <!-- =========================================================== -->
+    <Get id="Container" name="container">
+      <Call name="addEventListener">
+        <Arg>
+          <New class="org.mortbay.management.MBeanContainer">
+            <Arg><Ref id="MBeanServer"/></Arg>
+            <Call name="start" />
+          </New>
+        </Arg>
+      </Call>
+    </Get>
+
+    <!-- ================================================================== -->
+    <!-- Get or Create RMI registry                                         -->
+    <!-- ================================================================== -->
+    <!-- Get an already existing registry
+    <Call class="java.rmi.registry.LocateRegistry" name="getRegistry"/>
+    -->
+    <!-- Create registry
+    <Call class="java.lang.System" name="setProperty">
+      <Arg>java.naming.factory.initial</Arg>
+      <Arg>com.sun.jndi.rmi.registry.RegistryContextFactory</Arg>
+    </Call>
+    <Call class="org.cipango.util.RmiRegistryHelper" name="createRegistry">
+      <Arg>1099</Arg>
+    </Call> 
+    -->
+
+    <!-- ================================================================== -->
+    <!-- Set authentication in RMI using entries with role rmi in           -->
+    <!-- realm.properties                                                   -->
+    <!-- ================================================================== -->
+    <!--
+    <New id="rmiEnvironment" class="java.util.HashMap">
+      <Call name="put">
+        <Arg>jmx.remote.authenticator</Arg>
+        <Arg>
+          <New class="org.cipango.util.HashAuthenticator">
+            <Set name="config"><SystemProperty name="jetty.home" default="."/>/etc/realm.properties</Set>
+            <Set name="role">rmi</Set>
+          </New>
+        </Arg>
+      </Call>
+    </New>
+    -->
+
+    <!-- ================================================================== -->
+    <!-- add a remote JMX connector                                         -->
+    <!-- ================================================================== -->
+    <!--
+    <Call id="jmxConnector" class="javax.management.remote.JMXConnectorServerFactory" name="newJMXConnectorServer">
+      <Arg>
+        <New class="javax.management.remote.JMXServiceURL">
+          <Arg>service:jmx:rmi:///jndi/rmi:///cipangombeanserver</Arg>
+        </New>
+      </Arg>
+      <Arg><Ref id="rmiEnvironment"/></Arg>
+      <Arg><Ref id="MBeanServer"/></Arg>
+      <Call name="start"/>
+    </Call>
+    -->
+
+</Configure>
+

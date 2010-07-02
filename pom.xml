@@ -78,6 +78,8 @@
 
   <modules>
     <module>cipango-sip-api-1.1</module>
+    <module>cipango-jmx</module>
+    <module>cipango-dar</module>
   </modules>
 <!--  <modules>
     <module>modules/repository</module>
@@ -106,7 +108,12 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-management</artifactId>
+        <artifactId>jetty-xml</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-jmx</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

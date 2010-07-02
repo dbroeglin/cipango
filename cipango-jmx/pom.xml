@@ -5,7 +5,7 @@
     <version>2.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>cipango-management</artifactId>
+  <artifactId>cipango-jmx</artifactId>
   <name>Cipango :: Management</name>
   <packaging>jar</packaging>
 

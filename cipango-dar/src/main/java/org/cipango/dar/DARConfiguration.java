@@ -30,8 +30,6 @@ import java.util.Properties;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 import javax.servlet.sip.ar.SipRouteModifier;
 
-import org.mortbay.util.LazyList;
-
 public class DARConfiguration
 {
 	private Properties _properties;
@@ -96,7 +94,7 @@ public class DARConfiguration
 						name, identity, region, uri, routeModifier);
 				list.add(sri);
 			}
-			infoMap.put(key, (RouterInfo[]) LazyList.toArray(list, RouterInfo.class));
+			infoMap.put(key, list.toArray(new RouterInfo[0]));
 		}
 		dar.setRouterInfos(infoMap);
 	}

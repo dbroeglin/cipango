@@ -22,7 +22,7 @@
     <Get id="Container" name="container">
       <Call name="addEventListener">
         <Arg>
-          <New class="org.mortbay.management.MBeanContainer">
+          <New class="org.eclipse.jetty.jmx.MBeanContainer">
             <Arg><Ref id="MBeanServer"/></Arg>
             <Call name="start" />
           </New>
@@ -41,28 +41,11 @@
       <Arg>java.naming.factory.initial</Arg>
       <Arg>com.sun.jndi.rmi.registry.RegistryContextFactory</Arg>
     </Call>
-    <Call class="org.cipango.util.RmiRegistryHelper" name="createRegistry">
+    <Call class="java.rmi.registry.LocateRegistry" name="createRegistry">
       <Arg>1099</Arg>
     </Call> 
     -->
 
-    <!-- ================================================================== -->
-    <!-- Set authentication in RMI using entries with role rmi in           -->
-    <!-- realm.properties                                                   -->
-    <!-- ================================================================== -->
-    <!--
-    <New id="rmiEnvironment" class="java.util.HashMap">
-      <Call name="put">
-        <Arg>jmx.remote.authenticator</Arg>
-        <Arg>
-          <New class="org.cipango.util.HashAuthenticator">
-            <Set name="config"><SystemProperty name="jetty.home" default="."/>/etc/realm.properties</Set>
-            <Set name="role">rmi</Set>
-          </New>
-        </Arg>
-      </Call>
-    </New>
-    -->
 
     <!-- ================================================================== -->
     <!-- add a remote JMX connector                                         -->
@@ -74,7 +57,7 @@
           <Arg>service:jmx:rmi:///jndi/rmi:///cipangombeanserver</Arg>
         </New>
       </Arg>
-      <Arg><Ref id="rmiEnvironment"/></Arg>
+      <Arg></Arg>
       <Arg><Ref id="MBeanServer"/></Arg>
       <Call name="start"/>
     </Call>

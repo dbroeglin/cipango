@@ -18,8 +18,8 @@ package org.cipango.plus.servlet;
 import javax.servlet.Filter;
 import javax.servlet.Servlet;
 
-import org.mortbay.jetty.plus.annotation.InjectionCollection;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
+import org.eclipse.jetty.plus.annotation.InjectionCollection;
+import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
 
 /**
  * ServletHandler

@@ -29,8 +29,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
 
-import org.mortbay.log.Log;
-import org.mortbay.resource.Resource;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.resource.Resource;
 
 /**
  * JarScannerConfiguration

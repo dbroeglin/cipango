@@ -20,13 +20,13 @@ import javax.naming.InitialContext;
 import javax.naming.InvalidNameException;
 import javax.naming.NameNotFoundException;
 
-import org.mortbay.jetty.plus.naming.EnvEntry;
-import org.mortbay.jetty.plus.naming.Link;
-import org.mortbay.jetty.plus.naming.NamingEntry;
-import org.mortbay.jetty.plus.naming.NamingEntryUtil;
-import org.mortbay.jetty.plus.naming.Transaction;
-import org.mortbay.log.Log;
-import org.mortbay.naming.NamingUtil;
+import org.eclipse.jetty.jndi.NamingUtil;
+import org.eclipse.jetty.plus.jndi.EnvEntry;
+import org.eclipse.jetty.plus.jndi.Link;
+import org.eclipse.jetty.plus.jndi.NamingEntry;
+import org.eclipse.jetty.plus.jndi.NamingEntryUtil;
+import org.eclipse.jetty.plus.jndi.Transaction;
+import org.eclipse.jetty.util.log.Log;
 
 
 /**
@@ -49,7 +49,7 @@ public class Configuration extends AbstractConfiguration
     
     
     /** 
-     * @see org.mortbay.jetty.plus.webapp.AbstractConfiguration#bindEnvEntry(java.lang.String, java.lang.String)
+     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindEnvEntry(java.lang.String, java.lang.String)
      * @param name
      * @param value
      * @throws Exception
@@ -90,7 +90,7 @@ public class Configuration extends AbstractConfiguration
      * If a resource reference with the same name is in a jetty-env.xml
      * file, it will already have been bound.
      * 
-     * @see org.mortbay.jetty.plus.webapp.AbstractConfiguration#bindResourceRef(java.lang.String)
+     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindResourceRef(java.lang.String)
      * @param name
      * @throws Exception
      */
@@ -101,7 +101,7 @@ public class Configuration extends AbstractConfiguration
     }
 
     /** 
-     * @see org.mortbay.jetty.plus.webapp.AbstractConfiguration#bindResourceEnvRef(java.lang.String)
+     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindResourceEnvRef(java.lang.String)
      * @param name
      * @throws Exception
      */

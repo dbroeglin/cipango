@@ -23,8 +23,8 @@ import org.cipango.plus.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.mortbay.jetty.annotations.AnnotationFinder;
 import org.mortbay.jetty.annotations.ClassNameResolver;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
 
 /**
  * Configuration

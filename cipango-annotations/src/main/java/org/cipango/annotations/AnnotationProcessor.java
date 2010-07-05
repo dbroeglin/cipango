@@ -41,15 +41,16 @@ import org.cipango.plus.sipapp.Configuration;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
 import org.mortbay.jetty.annotations.AnnotationFinder;
-import org.mortbay.jetty.plus.annotation.Injection;
-import org.mortbay.jetty.plus.annotation.InjectionCollection;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
-import org.mortbay.jetty.plus.annotation.PostConstructCallback;
-import org.mortbay.jetty.plus.annotation.PreDestroyCallback;
-import org.mortbay.jetty.plus.annotation.RunAsCollection;
-import org.mortbay.log.Log;
-import org.mortbay.util.IntrospectionUtil;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.plus.annotation.Injection;
+import org.eclipse.jetty.plus.annotation.InjectionCollection;
+import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
+import org.eclipse.jetty.plus.annotation.PostConstructCallback;
+import org.eclipse.jetty.plus.annotation.PreDestroyCallback;
+import org.eclipse.jetty.plus.annotation.RunAsCollection;
+import org.eclipse.jetty.plus.jndi.NamingEntryUtil;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.IntrospectionUtil;
+import org.eclipse.jetty.util.LazyList;
 
 
 
@@ -246,7 +247,7 @@ public class AnnotationProcessor
                 String role = runAs.value();
                 if (role != null)
                 {
-                    org.mortbay.jetty.plus.annotation.RunAs ra = new org.mortbay.jetty.plus.annotation.RunAs();
+                    org.eclipse.jetty.plus.annotation.RunAs ra = new org.eclipse.jetty.plus.annotation.RunAs();
                     ra.setTargetClass(clazz);
                     ra.setRoleName(role);
                     _runAs.add(ra);
@@ -368,8 +369,8 @@ public class AnnotationProcessor
                 {
                     //TODO don't ignore the shareable, auth etc etc
 
-                       if (!org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp, name, mappedName))
-                           if (!org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName))
+                       if (!NamingEntryUtil.bindToENC(_sipApp, name, mappedName))
+                           if (!NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName))
                                throw new IllegalStateException("No resource bound at "+(mappedName==null?name:mappedName));
                 }
                 catch (NamingException e)
@@ -421,8 +422,8 @@ public class AnnotationProcessor
                try
                {
                    //TODO don't ignore the shareable, auth etc etc
-                   if (!org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp, name,mappedName))
-                       if (!org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp.getServer(), name,mappedName))
+                   if (!NamingEntryUtil.bindToENC(_sipApp, name,mappedName))
+                       if (!NamingEntryUtil.bindToENC(_sipApp.getServer(), name,mappedName))
                            throw new IllegalStateException("No resource at "+(mappedName==null?name:mappedName));
                }
                catch (NamingException e)
@@ -522,15 +523,15 @@ public class AnnotationProcessor
                 {
                     //try binding name to environment
                     //try the webapp's environment first
-                    boolean bound = org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp, name, mappedName);
+                    boolean bound = NamingEntryUtil.bindToENC(_sipApp, name, mappedName);
                     
                     //try the server's environment
                     if (!bound)
-                        bound = org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName);
+                        bound = NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName);
                     
                     //try the jvm's environment
                     if (!bound)
-                        bound = org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(null, name, mappedName);
+                        bound = NamingEntryUtil.bindToENC(null, name, mappedName);
                     
                     //TODO if it is an env-entry from web.xml it can be injected, in which case there will be no
                     //NamingEntry, just a value bound in java:comp/env
@@ -716,11 +717,11 @@ public class AnnotationProcessor
                 	
                 	if (checkJndiEntry)
                 	{
-	                    bound = org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp, name, mappedName);
+	                    bound = NamingEntryUtil.bindToENC(_sipApp, name, mappedName);
 	                    if (!bound)
-	                        bound = org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName);
+	                        bound = NamingEntryUtil.bindToENC(_sipApp.getServer(), name, mappedName);
 	                    if (!bound)
-	                        bound =  org.mortbay.jetty.plus.naming.NamingEntryUtil.bindToENC(null, name, mappedName); 
+	                        bound =  NamingEntryUtil.bindToENC(null, name, mappedName); 
 	                    if (!bound)
 	                    {
 	                        //see if there is an env-entry value been bound from web.xml

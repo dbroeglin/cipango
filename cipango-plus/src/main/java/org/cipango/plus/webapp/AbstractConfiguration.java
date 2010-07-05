@@ -23,24 +23,24 @@ import javax.servlet.UnavailableException;
 
 
 import org.cipango.plus.servlet.SipServletHandler;
-import org.mortbay.jetty.plus.annotation.Injection;
-import org.mortbay.jetty.plus.annotation.InjectionCollection;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallback;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
-import org.mortbay.jetty.plus.annotation.PostConstructCallback;
-import org.mortbay.jetty.plus.annotation.PreDestroyCallback;
-import org.mortbay.jetty.plus.annotation.RunAsCollection;
-import org.mortbay.jetty.plus.servlet.ServletHandler;
-import org.mortbay.jetty.security.SecurityHandler;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.jetty.servlet.FilterMapping;
-import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.servlet.ServletMapping;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.jetty.webapp.WebXmlConfiguration;
-import org.mortbay.log.Log;
-import org.mortbay.util.TypeUtil;
-import org.mortbay.xml.XmlParser;
+import org.eclipse.jetty.plus.annotation.Injection;
+import org.eclipse.jetty.plus.annotation.InjectionCollection;
+import org.eclipse.jetty.plus.annotation.LifeCycleCallback;
+import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
+import org.eclipse.jetty.plus.annotation.PostConstructCallback;
+import org.eclipse.jetty.plus.annotation.PreDestroyCallback;
+import org.eclipse.jetty.plus.annotation.RunAsCollection;
+import org.eclipse.jetty.plus.servlet.ServletHandler;
+import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebXmlConfiguration;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.TypeUtil;
+import org.eclipse.jetty.xml.XmlParser;
 
 
 
@@ -76,7 +76,7 @@ public abstract class AbstractConfiguration extends WebXmlConfiguration
         //set up our special ServletHandler to remember injections and lifecycle callbacks
         SipServletHandler servletHandler = new SipServletHandler();
         SecurityHandler securityHandler = getWebAppContext().getSecurityHandler();        
-        org.mortbay.jetty.servlet.ServletHandler existingHandler = getWebAppContext().getServletHandler();       
+        org.eclipse.jetty.servlet.ServletHandler existingHandler = getWebAppContext().getServletHandler();       
         servletHandler.setFilterMappings(existingHandler.getFilterMappings());
         servletHandler.setFilters(existingHandler.getFilters());
         servletHandler.setServlets(existingHandler.getServlets());

@@ -32,10 +32,10 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.regex.Pattern;
 
-import org.mortbay.log.Log;
-import org.mortbay.resource.FileResource;
-import org.mortbay.resource.Resource;
-import org.mortbay.util.Loader;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.resource.FileResource;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.Loader;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.FieldVisitor;

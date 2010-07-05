@@ -8,7 +8,9 @@
   <artifactId>cipango-dar</artifactId>
   <name>Cipango :: DAR</name>
   <description>Default Application Router</description>
-
+  <properties>
+    <bundle-symbolic-name>${project.groupId}.dar</bundle-symbolic-name>
+  </properties>
   <build>
     <plugins>
       <plugin>
@@ -20,14 +22,6 @@
             <goals>
               <goal>manifest</goal>
             </goals>
-            <configuration>
-              <instructions>
-                <Bundle-SymbolicName>org.cipango.dar</Bundle-SymbolicName>
-                <Bundle-RequiredExcutionEnvironment>J2SE-1.5</Bundle-RequiredExcutionEnvironment>
-                <Bundle-DocURL>http://cipango.org</Bundle-DocURL>
-                <Import-Package>!org.cipango.dar.*,*</Import-Package>
-              </instructions>
-            </configuration>
            </execution>
         </executions>
       </plugin>
@@ -43,39 +37,23 @@
       </plugin>
       
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks if="jetty.home">
-                <delete includeemptydirs="true">
-                  <fileset dir="${jetty.home}/lib/ext" includes="${project.build.finalName}.${project.packaging}"/>
-                  <fileset dir="${jetty.home}/etc" includes="dar.properties"/>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
             <phase>package</phase>
-            <configuration>
-              <tasks if="jetty.home">
-                <copy todir="${jetty.home}/etc">
-                  <fileset dir="etc"/>
-                </copy>
-                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/ext"/>
-              </tasks>
-            </configuration>
             <goals>
-              <goal>run</goal>
+              <goal>single</goal>
             </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>config.xml</descriptor>
+              </descriptors>
+            </configuration>
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
  
@@ -83,7 +61,6 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>sip-api</artifactId>
-      <!-- <version>${project.version}</version> -->
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>

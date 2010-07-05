@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure class="org.cipango.deployer.SipAppDeployer" id="SipAppDeployer">
+
+ 
+<Array id="annotationConfig" type="java.lang.String">
+  <Item>org.eclipse.jetty.webapp.WebInfConfiguration</Item>
+  <Item>org.eclipse.jetty.webapp.WebXmlConfiguration</Item>
+  <Item>org.eclipse.jetty.plus.webapp.EnvConfiguration</Item>
+  <Item>org.cipango.annotations.Configuration</Item> <!-- Enables annotation support -->
+  <Item>org.eclipse.jetty.webapp.JettyWebXmlConfiguration</Item>
+  <Item>org.eclipse.jetty.webapp.TagLibConfiguration</Item>
+</Array>
+ 
+  <Set name="configurationClasses"><Ref id="annotationConfig"/></Set>
+
+  
+</Configure>

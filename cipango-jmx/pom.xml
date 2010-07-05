@@ -8,7 +8,10 @@
   <artifactId>cipango-jmx</artifactId>
   <name>Cipango :: Management</name>
   <packaging>jar</packaging>
-
+  <properties>
+    <bundle-symbolic-name>${project.groupId}.jmx</bundle-symbolic-name>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
@@ -20,14 +23,6 @@
             <goals>
               <goal>manifest</goal>
             </goals>
-            <configuration>
-              <instructions>
-                <Bundle-SymbolicName>org.cipango.management</Bundle-SymbolicName>
-                <Bundle-RequiredExcutionEnvironment>J2SE-1.5</Bundle-RequiredExcutionEnvironment>
-                <Bundle-DocURL>http://cipango.org</Bundle-DocURL>
-                <Import-Package>!org.cipango.management.*,!org.cipango.*.management.*,*</Import-Package>
-              </instructions>
-            </configuration>
            </execution>
         </executions>
       </plugin>
@@ -43,38 +38,19 @@
       </plugin>
       
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks if="jetty.home">
-                <delete includeemptydirs="true" failonerror="false">
-                  <fileset dir="${jetty.home}/lib/management" includes="${project.build.finalName}.${project.packaging}"/>
-                  <fileset dir="${jetty.home}/etc" includes="cipango-jmx.xml"/>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
             <phase>package</phase>
-            <configuration>
-              <tasks if="jetty.home">
-                <mkdir dir="${jetty.home}/lib/management"/>
-                <mkdir dir="${jetty.home}/etc"/>
-                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib/management"/>
-                <copy todir="${jetty.home}/etc">
-                  <fileset dir="etc"/>
-                </copy>
-              </tasks>
-            </configuration>
             <goals>
-              <goal>run</goal>
+              <goal>single</goal>
             </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>config.xml</descriptor>
+              </descriptors>
+            </configuration>
           </execution>
         </executions>
       </plugin>

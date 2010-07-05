@@ -72,6 +72,18 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.2</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.eclipse.jetty.toolchain</groupId>
+              <artifactId>jetty-assembly-descriptors</artifactId>
+              <version>1.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
@@ -80,6 +92,8 @@
     <module>cipango-sip-api-1.1</module>
     <module>cipango-jmx</module>
     <module>cipango-dar</module>
+    <module>cipango-plus</module>
+    <module>cipango-annotations</module>
   </modules>
 <!--  <modules>
     <module>modules/repository</module>
@@ -124,6 +138,11 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-jndi</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-deploy</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

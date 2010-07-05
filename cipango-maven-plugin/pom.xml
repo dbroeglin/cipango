@@ -2,13 +2,12 @@
   <parent>
     <groupId>org.cipango</groupId>
     <artifactId>cipango-project</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+    <version>2.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>maven-cipango-plugin</artifactId>
+  <artifactId>cipango-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <name>Maven Cipango Plugin</name>
+  <name>Cipango :: Cipango Maven Plugin</name>
 
   <build>
     <plugins>
@@ -24,7 +23,7 @@
           </execution>
         </executions>
         <configuration>
-          <connectionUrl>scm:svn:http://svn.codehaus.org/jetty/jetty/tags/jetty-${jetty.version}/modules/maven-plugin/src/main/java</connectionUrl>
+          <connectionUrl>scm:svn:http://svn.codehaus.org/jetty/jetty/tags/jetty-${jetty.version}/jetty-maven-plugin/src/main/java</connectionUrl>
           <checkoutDirectory>${project.build.directory}/jetty-maven-plugin</checkoutDirectory>
           <skipCheckoutIfExists>true</skipCheckoutIfExists>
         </configuration>
@@ -94,6 +93,30 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-plus</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-jmx</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-dar</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-annotations</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-jsp-2.1</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-project</artifactId>
       <version>${maven.version}</version>
@@ -113,41 +136,6 @@
       <artifactId>maven-plugin-tools-api</artifactId>
       <version>2.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-plus</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-management</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-dar</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-annotations</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-2.1-jetty</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jetty-annotations</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>start</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>        
   </dependencies>
   
   <properties>

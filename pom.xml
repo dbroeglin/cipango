@@ -90,10 +90,12 @@
 
   <modules>
     <module>cipango-sip-api-1.1</module>
+    <module>cipango-server</module>
     <module>cipango-jmx</module>
     <module>cipango-dar</module>
     <module>cipango-plus</module>
     <module>cipango-annotations</module>
+    <module>cipango-distribution</module>
   </modules>
 <!--  <modules>
     <module>modules/repository</module>
@@ -143,6 +145,11 @@
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-deploy</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-jsp-2.1</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>

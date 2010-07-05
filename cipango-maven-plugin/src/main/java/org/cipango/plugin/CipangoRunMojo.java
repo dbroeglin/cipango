@@ -23,8 +23,8 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.cipango.log.AccessLog;
 import org.cipango.sip.SipConnector;
-import org.mortbay.jetty.plugin.Jetty6RunMojo;
-import org.mortbay.jetty.plugin.util.JettyPluginServer;
+import org.eclipse.jetty.plugin.Jetty6RunMojo;
+import org.eclipse.jetty.plugin.util.JettyPluginServer;
 
 /**
  *  <p>

@@ -17,19 +17,19 @@ package org.cipango.plugin;
 
 
 import org.cipango.Server;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.RequestLog;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.jetty.handler.DefaultHandler;
-import org.mortbay.jetty.handler.HandlerCollection;
-import org.mortbay.jetty.handler.RequestLogHandler;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.plugin.util.JettyPluginServer;
-import org.mortbay.jetty.plugin.util.PluginLog;
-import org.mortbay.jetty.security.UserRealm;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.resource.Resource;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.RequestLog;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.plugin.util.JettyPluginServer;
+import org.eclipse.jetty.plugin.util.PluginLog;
+import org.eclipse.jetty.security.UserRealm;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.util.resource.Resource;
 
 /**
  * Jetty6PluginServer

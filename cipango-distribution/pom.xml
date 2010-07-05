@@ -17,6 +17,28 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy file="../VERSION.txt" tofile="${assembly-directory}/VERSION-CIPANGO.txt" />
+                <copy file="../README.txt" tofile="${assembly-directory}/README-CIPANGO.txt" />
+                <copy file="../NOTICE.txt" tofile="${assembly-directory}/NOTICE-CIPANGO.txt" />
+                <copy file="../LICENSE-APACHE-1.0.txt" todir="${assembly-directory}" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
           <execution>
@@ -38,6 +60,7 @@
           </execution>
         </executions>
       </plugin>
+      
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>2.1</version>
@@ -76,7 +99,6 @@
                   <classifier>config</classifier>
                 </artifactItem>
               </artifactItems>
-              
               <outputDirectory>${assembly-directory}</outputDirectory>
               <overWriteReleases>true</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>
@@ -93,7 +115,6 @@
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
-                  <outputDirectory>${assembly-directory}/lib</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
@@ -103,25 +124,28 @@
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-deploy</artifactId>
-                  <outputDirectory>${assembly-directory}/lib</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-jmx</artifactId>
-                  <outputDirectory>${assembly-directory}/lib</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-plus</artifactId>
-                  <outputDirectory>${assembly-directory}/lib</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>javax.servlet</groupId>
+                  <artifactId>sip-api</artifactId>
                 </artifactItem>
               </artifactItems>
+              <outputDirectory>${assembly-directory}/lib</outputDirectory>
               <overWriteReleases>true</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </execution>
         </executions>
       </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

@@ -21,9 +21,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.cipango.annotations.Configuration;
-import org.mortbay.jetty.webapp.WebAppClassLoader;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
 
 public class CipangoMavenConfiguration extends Configuration 
 {

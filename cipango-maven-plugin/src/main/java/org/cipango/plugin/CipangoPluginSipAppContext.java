@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.List;
 
 import org.cipango.sipapp.SipAppContext;
-import org.mortbay.jetty.plus.webapp.EnvConfiguration;
-import org.mortbay.jetty.webapp.Configuration;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.plus.webapp.EnvConfiguration;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.util.LazyList;
 
 public class CipangoPluginSipAppContext extends SipAppContext
 {

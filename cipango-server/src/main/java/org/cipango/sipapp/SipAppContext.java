@@ -55,16 +55,13 @@ import org.cipango.util.ID;
 import org.cipango.util.ReadOnlySipURI;
 import org.cipango.util.concurrent.AppSessionLockProxy;
 import org.cipango.util.concurrent.TimerLockProxy;
-import org.mortbay.jetty.handler.ErrorHandler;
-import org.mortbay.jetty.security.SecurityHandler;
-import org.mortbay.jetty.servlet.Context;
-import org.mortbay.jetty.servlet.ErrorPageErrorHandler;
-import org.mortbay.jetty.servlet.ServletHandler;
-import org.mortbay.jetty.servlet.ServletMapping;
-import org.mortbay.jetty.servlet.SessionHandler;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.servlet.*;
+
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.log.Log;
 
 public class SipAppContext extends WebAppContext implements SipHandler
 {
@@ -830,7 +827,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		}
     }
     
-    class SContext extends Context.SContext
+    class SContext extends WebAppContext.Context 
     {
 		public RequestDispatcher getNamedDispatcher(String name)
         {

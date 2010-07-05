@@ -34,13 +34,16 @@ import org.cipango.SipHandler;
 import org.cipango.SipMessage;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipServletMapping;
-import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.jetty.handler.ContextHandler.SContext;
-import org.mortbay.jetty.servlet.ServletHandler;
-import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
-import org.mortbay.util.MultiException;
+
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandler.Context;
+import org.eclipse.jetty.servlet.ServletHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.MultiException;
 
 public class SipServletHandler extends ServletHandler implements SipHandler
 {
@@ -86,21 +89,22 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 			holder.handle(null, (ServletResponse) baseMessage);
 	}
 	
-    public void handle(String target, HttpServletRequest request,HttpServletResponse response, int type) throws IOException, ServletException
+	@Override
+	public void doHandle(String target, Request baseRequest, HttpServletRequest request,HttpServletResponse response) throws IOException, ServletException
     {
     	int semi = request.getRequestURI().lastIndexOf(';');
         if (semi>=0)
  		{
  			((org.cipango.http.servlet.ConvergedSessionManager.Session) request.getSession(true)).updateSession(request);
  		}
-    	super.handle(target, request, response, type);
+    	super.handle(target, baseRequest, request, response);
     }
 	
 	protected void doStart() throws Exception 
 	{    
 		super.doStart();
         
-        SContext servletContext = ContextHandler.getCurrentContext();
+        Context servletContext = ContextHandler.getCurrentContext();
         _context = servletContext == null ? null: (SipAppContext) servletContext.getContextHandler();
         
         if (_context == null)

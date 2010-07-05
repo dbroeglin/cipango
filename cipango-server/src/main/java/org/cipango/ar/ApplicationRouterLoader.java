@@ -20,7 +20,7 @@ import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.spi.SipApplicationRouterProvider;
 
 import org.cipango.Server;
-import org.mortbay.util.Loader;
+import org.eclipse.jetty.util.Loader;
 
 import sun.misc.Service;
 

@@ -29,12 +29,13 @@ import javax.servlet.sip.Parameterable;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletMessage.HeaderForm;
 
-import org.mortbay.io.Buffer;
-import org.mortbay.io.BufferUtil;
-import org.mortbay.io.View;
-import org.mortbay.io.BufferCache.CachedBuffer;
-import org.mortbay.jetty.HttpFields;
-import org.mortbay.util.StringUtil;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.BufferUtil;
+import org.eclipse.jetty.io.View;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+
+import org.eclipse.jetty.util.StringUtil;
+import org.eclipse.jetty.http.HttpFields;
 
 public class SipFields implements Cloneable
 {    

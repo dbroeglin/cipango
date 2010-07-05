@@ -16,8 +16,8 @@ package org.cipango;
 
 import javax.servlet.sip.ServletParseException;
 
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 public class CSeq  implements Cloneable
 {

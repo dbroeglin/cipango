@@ -38,8 +38,9 @@ import org.cipango.util.ID;
 import org.cipango.util.TimerList;
 import org.cipango.util.TimerQueue;
 import org.cipango.util.TimerTask;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.log.Log;
 
 /**
  * Holds and manages all SIP related sessions.

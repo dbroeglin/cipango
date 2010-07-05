@@ -30,9 +30,10 @@ import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;
-import org.mortbay.jetty.handler.HandlerWrapper;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+
+import org.eclipse.jetty.server.handler.HandlerWrapper;
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.log.Log;
 
 /**
  * Performs call lock for received messages. 

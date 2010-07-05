@@ -28,8 +28,8 @@ import javax.servlet.SingleThreadModel;
 import javax.servlet.UnavailableException;
 import javax.servlet.sip.SipServlet;
 
-import org.mortbay.jetty.servlet.Holder;
-import org.mortbay.log.Log;
+import org.eclipse.jetty.servlet.Holder;
+import org.eclipse.jetty.util.log.Log;
 
 public class SipServletHolder extends Holder implements Comparable
 {
@@ -166,29 +166,22 @@ public class SipServletHolder extends Holder implements Comparable
     /* ------------------------------------------------------------ */
     public void doStop()
     {
-        try
-        {
-            if (_servlet!=null)
-            {                  
-                try
-                {
-                    destroyInstance(_servlet);
-                }
-                catch (Exception e)
-                {
-                    Log.warn(e);
-                }
+        if (_servlet!=null)
+        {                  
+            try
+            {
+                destroyInstance(_servlet);
             }
-            
-            if (!_extInstance)
-                _servlet=null;
-           
-            _config=null;
+            catch (Exception e)
+            {
+                Log.warn(e);
+            }
         }
-        finally
-        {
-            super.doStop();
-        }
+        
+        if (!_extInstance)
+            _servlet=null;
+       
+        _config=null;   
     }
 
     /* ------------------------------------------------------------ */

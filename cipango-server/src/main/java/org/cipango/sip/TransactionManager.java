@@ -27,8 +27,9 @@ import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.servlet.Session;
-import org.mortbay.jetty.handler.HandlerWrapper;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.server.handler.HandlerWrapper;
+import org.eclipse.jetty.util.log.Log;
 
 public class TransactionManager extends HandlerWrapper implements SipHandler
 {   

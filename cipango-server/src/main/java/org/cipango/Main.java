@@ -20,9 +20,10 @@ import org.cipango.sip.SipConnector;
 import org.cipango.sip.TcpConnector;
 import org.cipango.sip.UdpConnector;
 import org.cipango.sipapp.SipAppContext;
-import org.mortbay.jetty.Connector;
-import org.mortbay.jetty.bio.SocketConnector;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.bio.SocketConnector;
+import org.eclipse.jetty.util.log.Log;
 
 public class Main 
 {

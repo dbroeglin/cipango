@@ -18,9 +18,6 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-
 /**
  * Base interface for all SIP handlers. 
  * 
@@ -37,6 +34,6 @@ public interface SipHandler
 	 */
 	void handle(SipServletMessage message) throws IOException, ServletException;
 	
-    void setServer(Server server);
-    Server getServer();
+    void setServer(org.eclipse.jetty.server.Server server);
+    org.eclipse.jetty.server.Server getServer();
 }

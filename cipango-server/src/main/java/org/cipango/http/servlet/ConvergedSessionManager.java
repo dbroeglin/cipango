@@ -21,12 +21,13 @@ import javax.servlet.sip.SipApplicationSession;
 import org.cipango.servlet.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;
-import org.mortbay.jetty.HttpSchemes;
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.servlet.AbstractSessionManager;
-import org.mortbay.jetty.servlet.HashSessionManager;
-import org.mortbay.log.Log;
-import org.mortbay.util.URIUtil;
+
+import org.eclipse.jetty.http.HttpSchemes;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.session.AbstractSessionManager;
+import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.URIUtil;
 
 public class ConvergedSessionManager extends HashSessionManager
 {

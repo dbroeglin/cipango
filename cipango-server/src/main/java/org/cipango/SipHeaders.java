@@ -14,9 +14,9 @@
 
 package org.cipango;
 
-import org.mortbay.io.Buffer;
-import org.mortbay.io.BufferCache;
-import org.mortbay.io.BufferCache.CachedBuffer;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.BufferCache;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class SipHeaders 
 {

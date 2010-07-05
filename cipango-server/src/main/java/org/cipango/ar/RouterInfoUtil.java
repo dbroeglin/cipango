@@ -26,7 +26,7 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 import javax.servlet.sip.ar.SipRouteModifier;
 
-import org.mortbay.util.TypeUtil;
+import org.eclipse.jetty.util.TypeUtil;
 
 public class RouterInfoUtil 
 {

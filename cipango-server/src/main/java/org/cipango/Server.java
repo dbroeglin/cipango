@@ -36,17 +36,16 @@ import org.cipango.sip.SipConnector;
 import org.cipango.sip.TransactionManager;
 import org.cipango.sip.ConnectorManager;
 import org.cipango.sipapp.SipAppContext;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.log.Log;
-import org.mortbay.thread.BoundedThreadPool;
-import org.mortbay.thread.ThreadPool;
-import org.mortbay.util.MultiException;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.thread.*;
+import org.eclipse.jetty.util.MultiException;
 
 /**
  * Cipango SIP/HTTP Server.
  * It extends Jetty HTTP Server to add SIP capabilities.
  */
-public class Server extends org.mortbay.jetty.Server implements SipHandler
+public class Server extends org.eclipse.jetty.server.Server implements SipHandler
 {
 	private static String __sipVersion = (Server.class.getPackage() != null && Server.class.getPackage().getImplementationVersion() != null)
     	?Server.class.getPackage().getImplementationVersion() : "1.0.x";
@@ -79,7 +78,7 @@ public class Server extends org.mortbay.jetty.Server implements SipHandler
 		MultiException mex = new MultiException();
 		
 		if (_sipThreadPool == null) 
-			setSipThreadPool(new BoundedThreadPool());
+			setSipThreadPool(new QueuedThreadPool());
 
 		try
 		{

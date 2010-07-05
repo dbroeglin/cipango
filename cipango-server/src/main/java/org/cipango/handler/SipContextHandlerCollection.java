@@ -44,11 +44,12 @@ import org.cipango.sip.TransactionManager;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
 import org.cipango.util.ID;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.log.Log;
 
 /**
  * Handler responsible for application selection based on application router result. In addition, it also 
@@ -87,7 +88,7 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 	}
 	
 	@Override
-	public void setServer(org.mortbay.jetty.Server server)
+	public void setServer(org.eclipse.jetty.server.Server server)
 	{
 		_handler.setServer(server);
 		super.setServer(server);

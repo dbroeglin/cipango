@@ -36,8 +36,10 @@ import org.cipango.sip.ServerTransaction;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
 import org.cipango.util.ID;
-import org.mortbay.jetty.handler.AbstractHandler;
-import org.mortbay.log.Log;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.log.Log;
+
+
 
 /**
  * Handles incoming messages in the appropriate SipSession context.

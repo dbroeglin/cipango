@@ -43,7 +43,7 @@ import org.cipango.sip.ServerTransaction;
 import org.cipango.sip.Transaction;
 import org.cipango.util.ContactAddress;
 import org.cipango.util.ID;
-import org.mortbay.io.BufferCache.CachedBuffer;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class B2bHelper implements B2buaHelper
 {

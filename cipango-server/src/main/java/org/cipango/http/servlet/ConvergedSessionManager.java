@@ -90,7 +90,7 @@ public class ConvergedSessionManager extends HashSessionManager
 
 		public String encodeURL(String url)
 		{
-			String sessionURLPrefix = getSessionURLPrefix();
+			String sessionURLPrefix = getSessionIdPathParameterNamePrefix();
 			String id= getNodeId();
 			int prefix=url.indexOf(sessionURLPrefix);
 	        if (prefix!=-1)

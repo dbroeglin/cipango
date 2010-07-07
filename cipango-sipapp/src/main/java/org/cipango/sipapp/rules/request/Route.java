@@ -14,7 +14,7 @@
 
 package org.cipango.sipapp.rules.request;
 
-import org.cipango.SipRequest;
+import javax.servlet.sip.SipServletRequest;
 
 public class Route implements Extractor
 {
@@ -26,7 +26,7 @@ public class Route implements Extractor
     
     public Object extract(Object input)
     {
-        SipRequest request = (SipRequest) input;
+        SipServletRequest request = (SipServletRequest) input;
         return request.getPoppedRoute();
     }
 }

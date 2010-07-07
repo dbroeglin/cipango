@@ -5,7 +5,7 @@
     <version>2.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>cipango</artifactId>
+  <artifactId>cipango-server</artifactId>
   <packaging>jar</packaging>
   <name>Cipango :: Server</name>
 

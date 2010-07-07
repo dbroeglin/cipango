@@ -126,10 +126,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 
 	public SipAppContext() 
 	{
-		super(null,
-				new SessionHandler(new ConvergedSessionManager()),
-				new SipServletHandler(),
-				new ErrorPageErrorHandler());
+		super();
 		setConfigurationClasses((String[]) LazyList.addToArray(
 				getConfigurationClasses(),
 				SIP_CONFIGURATION_CLASS,

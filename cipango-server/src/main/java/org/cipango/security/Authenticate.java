@@ -18,8 +18,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.cipango.LazyParsingException;
-import org.mortbay.io.BufferCache;
-import org.mortbay.io.BufferCache.CachedBuffer;
+
+import org.eclipse.jetty.io.BufferCache;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 /**
  * Parser for WWW-Authenticate or Proxy-Authenticate headers

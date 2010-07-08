@@ -16,26 +16,12 @@ package org.cipango.sipapp;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.EventListener;
-import java.util.Iterator;
-
-import javax.servlet.Servlet;
-import javax.servlet.UnavailableException;
-
-import org.cipango.servlet.SipServletHandler;
-import org.cipango.servlet.SipServletHolder;
-import org.cipango.sipapp.rules.*;
 
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
-import org.eclipse.jetty.webapp.WebXmlProcessor;
 
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.LazyList;
-import org.eclipse.jetty.xml.XmlParser;
 
 public class SipXmlConfiguration implements Configuration 
 {	
@@ -44,21 +30,23 @@ public class SipXmlConfiguration implements Configuration
 		if (!(context instanceof SipAppContext))
 			throw new IllegalArgumentException("!sip context: " + context.getClass());
 		
-		if (context.isStarted())
+		SipAppContext sipContext = (SipAppContext) context;
+		
+		if (sipContext.isStarted())
 		{
 			if (Log.isDebugEnabled()) 
 				Log.debug("Cannot configure sipapp after it is started");
 			return;
 		}
 		
-		SipXmlProcessor processor = (SipXmlProcessor) context.getAttribute(SipXmlProcessor.SIP_PROCESSOR);
+		SipXmlProcessor processor = (SipXmlProcessor) sipContext.getAttribute(SipXmlProcessor.SIP_PROCESSOR);
 		if (processor == null)
 		{
-			processor = new SipXmlProcessor(context);
-			context.setAttribute(SipXmlProcessor.SIP_PROCESSOR, processor);
+			processor = new SipXmlProcessor(sipContext);
+			sipContext.setAttribute(SipXmlProcessor.SIP_PROCESSOR, processor);
 		}
 		
-		String defaultsSipDescriptor = ((SipAppContext) context).getDefaultsSipDescriptor();
+		String defaultsSipDescriptor = sipContext.getDefaultsSipDescriptor();
 		if (defaultsSipDescriptor != null && defaultsSipDescriptor.length() > 0)
 		{
 			Resource dftSipResource = Resource.newSystemResource(defaultsSipDescriptor);
@@ -67,8 +55,8 @@ public class SipXmlConfiguration implements Configuration
 			processor.parseDefaults(dftSipResource);
 			processor.processDefaults();
 		}
-		Resource sipxml = findSipXml(context);
-		if (sipxml != null)
+		Resource sipXml = findSipXml(context);
+		if (sipXml != null)
 			processor.parseSipXml(sipXml);
 	}
 	
@@ -105,6 +93,18 @@ public class SipXmlConfiguration implements Configuration
 		}
 	}
 	
+	public void deconfigure(WebAppContext context) throws Exception 
+	{
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void postConfigure(WebAppContext context) throws Exception 
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
 	protected Resource findSipXml(WebAppContext context) throws IOException, MalformedURLException 
 	{
 		// TODO sip descriptor
@@ -118,7 +118,4 @@ public class SipXmlConfiguration implements Configuration
 		}
 		return null;
 	}
-	
-	public void deconfigureWebApp() throws Exception {}
-
 }

@@ -16,7 +16,7 @@ package org.cipango.security;
 
 import javax.servlet.sip.AuthInfo;
 
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 
 public class AuthInfoImpl implements AuthInfo
 {

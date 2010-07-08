@@ -20,8 +20,9 @@ import java.util.*;
 import javax.servlet.sip.ServletParseException;
 
 import org.cipango.SipHeaders.HeaderInfo;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 public class Via implements Serializable, Cloneable
 {	

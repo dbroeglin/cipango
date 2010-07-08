@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 import javax.servlet.sip.SipServletMessage.HeaderForm;
 
-import org.mortbay.io.Buffer;
+import org.eclipse.jetty.io.Buffer;
 
 public class SipGenerator 
 {

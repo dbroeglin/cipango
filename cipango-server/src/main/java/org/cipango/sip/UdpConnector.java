@@ -27,10 +27,11 @@ import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.URIFactory;
 import org.cipango.util.HexString;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.View;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.View;
+import org.eclipse.jetty.util.log.Log;
 
 public class UdpConnector extends AbstractSipConnector
 {

@@ -34,7 +34,8 @@ import javax.servlet.sip.SipServletResponse;
 import org.cipango.SessionManager.SessionScope;
 import org.cipango.security.Authenticate;
 import org.cipango.sip.ServerTransaction;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.util.log.Log;
 
 public class SipResponse extends SipMessage implements SipServletResponse
 {

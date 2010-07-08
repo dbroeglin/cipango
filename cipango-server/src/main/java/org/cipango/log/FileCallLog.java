@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URLEncoder;
 
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.log.Log;
-import org.mortbay.util.DateCache;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.DateCache;
 
 public class FileCallLog extends AbstractLifeCycle implements CallLog
 {	

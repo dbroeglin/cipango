@@ -29,13 +29,14 @@ import org.cipango.SipURIImpl;
 import org.cipango.SipVersions;
 import org.cipango.Via;
 import org.cipango.io.SipBuffer;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.BufferCache.CachedBuffer;
-import org.mortbay.log.Log;
-import org.mortbay.thread.ThreadPool;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.thread.ThreadPool;
 
 public abstract class AbstractSipConnector extends AbstractLifeCycle implements SipConnector 
 {

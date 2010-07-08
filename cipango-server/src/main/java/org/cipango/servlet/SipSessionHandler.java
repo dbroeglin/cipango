@@ -36,10 +36,9 @@ import org.cipango.sip.ServerTransaction;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
 import org.cipango.util.ID;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.log.Log;
-
-
 
 /**
  * Handles incoming messages in the appropriate SipSession context.
@@ -47,8 +46,8 @@ import org.eclipse.jetty.util.log.Log;
  */
 public class SipSessionHandler extends AbstractHandler implements SipHandler
 {
-	public void handle(String target, HttpServletRequest request,
-			HttpServletResponse response, int dispatch) throws IOException, ServletException 
+	public void handle(String target, Request baseRequest, HttpServletRequest request,
+			HttpServletResponse response) throws IOException, ServletException 
 	{
 		throw new UnsupportedOperationException("sip-only handler");
 	}
@@ -161,4 +160,6 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 	        }
 		}
 	}
+
+	
 }

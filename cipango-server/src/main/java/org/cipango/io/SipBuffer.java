@@ -16,8 +16,8 @@ package org.cipango.io;
 
 import java.io.UnsupportedEncodingException;
 
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.util.StringUtil;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.StringUtil;
 
 public class SipBuffer extends ByteArrayBuffer
 {

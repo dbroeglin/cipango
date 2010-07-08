@@ -158,11 +158,6 @@ public class SipXmlProcessor
 		_sipOverrideRoot.process();
 	}
 	
-	
-	// --------
-	
-	
-	
 	@SuppressWarnings("unchecked")
 	public void process(XmlParser.Node config) throws Exception
 	{

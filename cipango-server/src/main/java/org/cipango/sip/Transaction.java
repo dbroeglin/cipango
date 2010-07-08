@@ -14,13 +14,12 @@
 
 package org.cipango.sip;
 
-import java.io.Serializable;
-
 import org.cipango.CallSession;
 import org.cipango.SipRequest;
 import org.cipango.Server;
 import org.cipango.util.TimerTask;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.util.log.Log;
 
 public abstract class Transaction
 {

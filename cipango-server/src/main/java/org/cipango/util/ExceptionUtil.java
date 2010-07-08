@@ -20,7 +20,7 @@ import java.io.UnsupportedEncodingException;
 
 import javax.servlet.sip.SipServletMessage;
 
-import org.mortbay.log.Log;
+import org.eclipse.jetty.util.log.Log;
 
 public class ExceptionUtil 
 {

@@ -16,7 +16,7 @@ package org.cipango.util;
 
 import java.util.Random;
 
-import org.mortbay.util.TypeUtil;
+import org.eclipse.jetty.util.TypeUtil;
 
 public class HexString 
 {

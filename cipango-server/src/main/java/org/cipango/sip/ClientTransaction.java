@@ -28,7 +28,8 @@ import org.cipango.SipResponse;
 import org.cipango.SipVersions;
 import org.cipango.Via;
 import org.cipango.util.ID;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.util.log.Log;
 
 public class ClientTransaction extends Transaction 
 {

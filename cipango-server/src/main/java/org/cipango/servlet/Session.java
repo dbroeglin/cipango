@@ -69,8 +69,9 @@ import org.cipango.util.ID;
 import org.cipango.util.ReadOnlyAddress;
 import org.cipango.util.TimerTask;
 import org.cipango.util.concurrent.AppSessionLockProxy;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
 
 public class Session implements SessionIf, ClientTransactionListener, ServerTransactionListener, Cloneable
 {	    

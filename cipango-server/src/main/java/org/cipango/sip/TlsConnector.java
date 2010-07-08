@@ -46,9 +46,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.cipango.SipMessage;
-import org.mortbay.jetty.security.Password;
-import org.mortbay.log.Log;
-import org.mortbay.resource.Resource;
+
+import org.eclipse.jetty.http.security.Password;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.resource.Resource;
 
 public class TlsConnector extends TcpConnector
 {

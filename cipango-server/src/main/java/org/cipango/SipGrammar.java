@@ -15,8 +15,6 @@
 package org.cipango;
 
 import org.cipango.util.HexString;
-import org.mortbay.util.URIUtil;
-
 
 public class SipGrammar 
 {

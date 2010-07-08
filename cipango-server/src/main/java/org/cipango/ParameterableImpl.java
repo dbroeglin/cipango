@@ -24,8 +24,9 @@ import javax.servlet.sip.Parameterable;
 import javax.servlet.sip.ServletParseException;
 
 import org.cipango.SipHeaders.HeaderInfo;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 public class ParameterableImpl implements Parameterable
 {

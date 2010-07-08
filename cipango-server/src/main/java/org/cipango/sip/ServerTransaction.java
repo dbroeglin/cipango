@@ -19,7 +19,8 @@ import java.io.IOException;
 import org.cipango.SipHeaders;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.util.log.Log;
 
 public class ServerTransaction extends Transaction
 {	

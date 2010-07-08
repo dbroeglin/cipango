@@ -12,7 +12,6 @@
 // limitations under the License.
 // ========================================================================
 
-
 package org.cipango.sip;
 
 import java.io.IOException;
@@ -23,7 +22,8 @@ import javax.servlet.sip.SipURI;
 import org.cipango.SipHandler;
 import org.cipango.Server;
 import org.cipango.Via;
-import org.mortbay.component.LifeCycle;
+
+import org.eclipse.jetty.util.component.LifeCycle;
 
 public interface SipConnector extends LifeCycle
 {    

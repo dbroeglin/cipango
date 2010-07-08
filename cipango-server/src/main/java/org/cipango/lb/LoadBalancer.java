@@ -22,8 +22,9 @@ import javax.servlet.sip.SipServletMessage;
 
 import org.cipango.SipHandler;
 import org.cipango.sip.UdpConnector;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.thread.BoundedThreadPool;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 public class LoadBalancer extends AbstractLifeCycle implements SipHandler
 {
@@ -32,7 +33,7 @@ public class LoadBalancer extends AbstractLifeCycle implements SipHandler
 	protected void doStart() throws Exception 
 	{
 		connector = new UdpConnector();
-		connector.setThreadPool(new BoundedThreadPool());
+		connector.setThreadPool(new QueuedThreadPool());
 		//connector.setHandler(this);
 		connector.start();
 	}
@@ -68,12 +69,12 @@ public class LoadBalancer extends AbstractLifeCycle implements SipHandler
         + "MyHeader: toto\r\n"
         + "Content-Length: 0\r\n\r\n";
 
-	public org.mortbay.jetty.Server getServer() {
+	public Server getServer() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public void setServer(org.mortbay.jetty.Server server) {
+	public void setServer(Server server) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -14,7 +14,7 @@
 
 package org.cipango.util;
 
-import org.mortbay.log.Log;
+import org.eclipse.jetty.util.log.Log;
 
 public class SystemUtil 
 {

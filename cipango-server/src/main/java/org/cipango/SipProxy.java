@@ -42,8 +42,9 @@ import org.cipango.sip.ServerTransactionListener;
 import org.cipango.sip.SipConnector;
 import org.cipango.util.ID;
 import org.cipango.util.TimerTask;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
+
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
 
 public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 {    

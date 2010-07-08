@@ -14,8 +14,8 @@
 
 package org.cipango.log.event;
 
-import org.mortbay.log.Log;
-import org.mortbay.log.Logger;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.log.Logger;
 
 public class LogEventDispatcher implements EventDispatcher
 {

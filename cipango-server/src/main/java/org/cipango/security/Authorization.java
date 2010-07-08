@@ -19,12 +19,12 @@ import java.util.StringTokenizer;
 
 import org.cipango.util.DigestAuthenticator;
 import org.cipango.util.ID;
-import org.mortbay.io.BufferCache;
-import org.mortbay.io.BufferCache.CachedBuffer;
+
+import org.eclipse.jetty.io.BufferCache;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class Authorization
 {
-
 	public static BufferCache CACHE = new BufferCache();
 	
 	public static final String

@@ -20,10 +20,11 @@ import java.io.OutputStream;
 
 import org.cipango.SipMessage;
 import org.cipango.sip.SipConnection;
-import org.mortbay.io.Buffer;
-import org.mortbay.log.Log;
-import org.mortbay.util.RolloverFileOutputStream;
-import org.mortbay.util.StringUtil;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.RolloverFileOutputStream;
+import org.eclipse.jetty.util.StringUtil;
 
 public class FileMessageLog extends AbstractMessageLog implements AccessLog 
 {

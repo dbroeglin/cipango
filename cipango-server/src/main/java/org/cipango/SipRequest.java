@@ -53,8 +53,9 @@ import org.cipango.servlet.Session;
 import org.cipango.sip.ClientTransaction;
 import org.cipango.sip.ServerTransaction;
 import org.cipango.util.LazyMap;
-import org.mortbay.io.Buffer;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.util.log.Log;
 
 public class SipRequest extends SipMessage implements SipServletRequest
 {

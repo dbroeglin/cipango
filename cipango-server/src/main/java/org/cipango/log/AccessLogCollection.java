@@ -15,16 +15,16 @@ package org.cipango.log;
 
 import org.cipango.SipMessage;
 import org.cipango.sip.SipConnection;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.jetty.Server;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
-import org.mortbay.util.MultiException;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.MultiException;
 
 public class AccessLogCollection extends AbstractLifeCycle implements AccessLog
 {
-
 	private AccessLog[] _loggers;
 	private Server _server;
 

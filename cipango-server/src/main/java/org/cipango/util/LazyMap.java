@@ -14,7 +14,7 @@
 
 package org.cipango.util;
 
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 
 /**
  * Extension to {@see LazyList} to offer a map-like interface

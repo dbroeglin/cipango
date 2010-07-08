@@ -25,14 +25,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.cipango.SipMessage;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.bio.SocketEndPoint;
-import org.mortbay.jetty.EofException;
-import org.mortbay.log.Log;
-import org.mortbay.thread.BoundedThreadPool;
-import org.mortbay.thread.ThreadPool;
+
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.bio.SocketEndPoint;
+import org.eclipse.jetty.io.EofException;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 
 public class TcpConnector extends AbstractSipConnector //implements Buffers
 {
@@ -58,7 +59,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		_connections = new HashMap<String, TcpConnection>();
 		
         if (_tcpThreadPool == null)
-        	_tcpThreadPool = new BoundedThreadPool();
+        	_tcpThreadPool = new QueuedThreadPool();
         
 		if (_tcpThreadPool instanceof LifeCycle)
 			((LifeCycle) _tcpThreadPool).start();

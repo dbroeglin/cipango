@@ -14,7 +14,7 @@
 
 package org.cipango.log;
 
-import org.mortbay.component.LifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 
 public interface CallLog extends LifeCycle
 {

@@ -57,6 +57,8 @@ import org.cipango.util.concurrent.AppSessionLockProxy;
 import org.cipango.util.concurrent.TimerLockProxy;
 
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.security.SecurityHandler;
+import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.*;
 
@@ -126,15 +128,16 @@ public class SipAppContext extends WebAppContext implements SipHandler
 
 	public SipAppContext() 
 	{
-		super(null,
-				new SessionHandler(new ConvergedSessionManager()),
+		super(new SessionHandler(new ConvergedSessionManager()),
+				null,
 				new SipServletHandler(),
 				new ErrorPageErrorHandler());
+		
 		setConfigurationClasses((String[]) LazyList.addToArray(
 				getConfigurationClasses(),
 				SIP_CONFIGURATION_CLASS,
 				String.class));
-        _scontext = new SContext();
+        _scontext = new Context();
         setSystemClasses((String[]) LazyList.addToArray(getSystemClasses(), "org.cipango.", String.class));
 	}
 	
@@ -146,10 +149,10 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		setContextPath(contextPath);
 	}
 	
-    public SipAppContext(SecurityHandler securityHandler,SessionHandler sessionHandler, ServletHandler servletHandler, ErrorHandler errorHandler) 
+    public SipAppContext(SessionHandler sessionHandler, SecurityHandler securityHandler, ServletHandler servletHandler, ErrorHandler errorHandler) 
     {
-    	super(securityHandler, sessionHandler, servletHandler, errorHandler);
-    	_scontext = new SContext();
+    	super(sessionHandler, securityHandler, servletHandler, errorHandler);
+    	_scontext = new Context();
     	setSystemClasses((String[]) LazyList.addToArray(getSystemClasses(), "org.cipango.", String.class));
     	// FIXME do more???
     }
@@ -827,7 +830,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		}
     }
     
-    class SContext extends WebAppContext.Context 
+    class Context extends WebAppContext.Context 
     {
 		public RequestDispatcher getNamedDispatcher(String name)
         {

@@ -23,14 +23,15 @@ import org.cipango.SipGrammar;
 import org.cipango.SipHeaders;
 import org.cipango.SipMethods;
 import org.cipango.SipVersions;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.BufferUtil;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.EndPoint;
-import org.mortbay.io.View;
-import org.mortbay.io.BufferCache.CachedBuffer;
-import org.mortbay.jetty.EofException;
-import org.mortbay.log.Log;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.BufferUtil;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.io.View;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+import org.eclipse.jetty.io.EofException;
+import org.eclipse.jetty.util.log.Log;
 
 /**
  * @author gregw

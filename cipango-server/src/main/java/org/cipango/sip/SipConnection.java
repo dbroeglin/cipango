@@ -3,7 +3,7 @@ package org.cipango.sip;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import org.mortbay.io.Buffer;
+import org.eclipse.jetty.io.Buffer;
 
 public interface SipConnection 
 {

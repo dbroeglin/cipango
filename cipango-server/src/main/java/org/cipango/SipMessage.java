@@ -46,13 +46,15 @@ import org.cipango.util.ListIteratorProxy;
 import org.cipango.util.ReadOnlyAddress;
 import org.cipango.util.ReadOnlyParameterable;
 import org.cipango.util.concurrent.SessionLockProxy;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.BufferCache.CachedBuffer;
-import org.mortbay.jetty.HttpFields;
-import org.mortbay.util.LazyList;
-import org.mortbay.util.QuotedStringTokenizer;
-import org.mortbay.util.StringUtil;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+
+import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.QuotedStringTokenizer;
+import org.eclipse.jetty.util.StringUtil;
 
 public abstract class SipMessage implements SipServletMessage, Cloneable
 {
@@ -209,7 +211,8 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
         if (LazyList.size(langs) == 0)
             return __defaultLocale.iterator();
         
-        return LazyList.getList(langs).iterator();
+        List<Locale> l = LazyList.getList(langs);
+        return l.iterator();
 	}
 	
 	/**

@@ -14,7 +14,6 @@
 
 package org.cipango;
 
-import org.cipango.deployer.SipAppDeployer;
 import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.sip.SipConnector;
 import org.cipango.sip.TcpConnector;
@@ -27,6 +26,7 @@ import org.eclipse.jetty.util.log.Log;
 
 public class Main 
 {
+	/*
 	public static void main(String[] args) throws Exception
 	{
 		if (args.length != 3)
@@ -41,13 +41,13 @@ public class Main
 			Server server = new Server();
 			
 			
-			/*
-			MBeanServer mbean = MBeanServerFactory.createMBeanServer();
-	        MBeanContainer mBeanContainer = new MBeanContainer(mbean);
-	        mBeanContainer.setManagementPort(8082);
-	        mBeanContainer.start();
-	        server.getContainer().addEventListener(mBeanContainer);
-	        */
+			
+//			MBeanServer mbean = MBeanServerFactory.createMBeanServer();
+//	        MBeanContainer mBeanContainer = new MBeanContainer(mbean);
+//	        mBeanContainer.setManagementPort(8082);
+//	        mBeanContainer.start();
+//	        server.getContainer().addEventListener(mBeanContainer);
+	        
 			
 			SipContextHandlerCollection contexts = new SipContextHandlerCollection();
 			server.setHandler(contexts);
@@ -99,4 +99,5 @@ public class Main
 			Log.warn(Log.EXCEPTION, e);
 		}
 	}
+	*/
 }

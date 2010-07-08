@@ -21,12 +21,13 @@ import java.util.TimeZone;
 import org.cipango.SipGenerator;
 import org.cipango.SipMessage;
 import org.cipango.sip.SipConnection;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.log.Log;
-import org.mortbay.util.DateCache;
-import org.mortbay.util.StringUtil;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.DateCache;
+import org.eclipse.jetty.util.StringUtil;
 
 public abstract class AbstractMessageLog extends AbstractLifeCycle implements AccessLog
 {

@@ -39,14 +39,15 @@ import org.cipango.SipResponse;
 import org.cipango.Via;
 import org.cipango.log.AccessLog;
 import org.cipango.util.SystemUtil;
-import org.mortbay.component.AbstractLifeCycle;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.Buffers;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
-import org.mortbay.util.MultiException;
+
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.Buffers;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.MultiException;
 
 public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipHandler
 {
@@ -112,7 +113,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
         _connectors = connectors;
     }
     
-    public void setServer(org.mortbay.jetty.Server server)
+    public void setServer(org.eclipse.jetty.server.Server server)
     {
     	_server = (Server) server;
     }
@@ -692,6 +693,16 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
 	public AccessLog getAccessLog()
 	{
 		return _accessLog;
+	}
+
+	public Buffer getBuffer() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Buffer getHeader() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

@@ -73,11 +73,11 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
+                <!-- artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
                   <classifier>config</classifier>
-                </artifactItem>
+                </artifactItem -->
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-dar</artifactId>
@@ -93,16 +93,11 @@
                   <artifactId>cipango-jmx</artifactId>
                   <classifier>config</classifier>
                 </artifactItem>
-                <artifactItem>
+                <!-- artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-plus</artifactId>
                   <classifier>config</classifier>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.cipango</groupId>
-                  <artifactId>cipango-sipapp</artifactId>
-                  <classifier>config</classifier>
-                </artifactItem>
+                </artifactItem -->
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-server</artifactId>
@@ -122,10 +117,10 @@
             </goals>
             <configuration>
               <artifactItems>
-                <artifactItem>
+                <!-- artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
-                </artifactItem>
+                </artifactItem -->
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-dar</artifactId>
@@ -139,17 +134,13 @@
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-jmx</artifactId>
                 </artifactItem>
-                <artifactItem>
+                <!-- artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-plus</artifactId>
-                </artifactItem>
+                </artifactItem -->
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-server</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.cipango</groupId>
-                  <artifactId>cipango-sipapp</artifactId>
                 </artifactItem>
                 <artifactItem>
                   <groupId>javax.servlet</groupId>
@@ -185,11 +176,11 @@
     </plugins>
   </build>
   <dependencies>
-    <dependency>
+    <!-- dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-annotations</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency -->
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-dar</artifactId>
@@ -205,16 +196,11 @@
       <artifactId>cipango-jmx</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
+    <!-- dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-plus</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.cipango</groupId>
-      <artifactId>cipango-sipapp</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    </dependency -->
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-server</artifactId>

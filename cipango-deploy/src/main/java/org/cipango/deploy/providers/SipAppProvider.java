@@ -15,6 +15,7 @@ package org.cipango.deploy.providers;
 
 import java.io.File;
 
+import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.deploy.App;
 import org.eclipse.jetty.deploy.providers.WebAppProvider;
 import org.eclipse.jetty.deploy.util.FileID;

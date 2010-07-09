@@ -12,29 +12,28 @@
 //limitations under the License.
 //========================================================================
 
-package org.cipango.deployer;
+package org.cipango.deploy;
 
 import java.util.ArrayList;
 
 import org.cipango.sipapp.SipAppContext;
 
 import org.eclipse.jetty.server.Handler;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.deployer.WebAppDeployer;
-import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.jetty.handler.ContextHandlerCollection;
-import org.mortbay.resource.Resource;
-import org.mortbay.util.MultiException;
-import org.mortbay.util.URIUtil;
+import org.eclipse.jetty.deploy.WebAppDeployer;
+import org.eclipse.jetty.server.handler.ContextHandler;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.MultiException;
+import org.eclipse.jetty.util.URIUtil;
 
 public class SipAppDeployer extends WebAppDeployer 
 {
-    private ArrayList _deployed;
+    private ArrayList<SipAppContext> _deployed;
     private String _defaultsSipDescriptor;
     
     public void doStart() throws Exception 
     {
-		_deployed = new ArrayList();
+		_deployed = new ArrayList<SipAppContext>();
         scan();
     }
     
@@ -48,6 +47,7 @@ public class SipAppDeployer extends WebAppDeployer
         _defaultsSipDescriptor = defaultsDescriptor;
     }
     
+    @Override
     public void scan() throws Exception
     {
     	MultiException mex = new MultiException();
@@ -171,6 +171,7 @@ public class SipAppDeployer extends WebAppDeployer
         mex.ifExceptionThrow();
     }
     
+    @Override
     public void doStop() throws Exception 
     {
     	MultiException mex = new MultiException();

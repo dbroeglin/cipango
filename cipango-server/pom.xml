@@ -8,7 +8,10 @@
   <artifactId>cipango-server</artifactId>
   <packaging>jar</packaging>
   <name>Cipango :: Server</name>
-
+  <properties>
+    <bundle-symbolic-name>${project.groupId}.server</bundle-symbolic-name>
+  </properties>
+  
   <build>
     <plugins>
       <plugin>
@@ -20,15 +23,7 @@
             <goals>
               <goal>manifest</goal>
             </goals>
-            <configuration>
-              <instructions>
-                <Bundle-SymbolicName>org.cipango.server</Bundle-SymbolicName>
-                <Bundle-RequiredExcutionEnvironment>J2SE-1.5</Bundle-RequiredExcutionEnvironment>
-                <Bundle-DocURL>http://cipango.org</Bundle-DocURL>
-                <Import-Package>!org.cipango.*,*</Import-Package>
-              </instructions>
-            </configuration>
-           </execution>
+          </execution>
         </executions>
       </plugin>
       
@@ -41,69 +36,20 @@
           </archive>
         </configuration>
       </plugin>
-      
+     
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks if="jetty.home">
-                <delete includeemptydirs="true" failonerror="false">
-                  <fileset dir="${jetty.home}">
-                    <include name="lib/${project.build.finalName}.${project.packaging}"/>
-                    <include name="lib/sip-api*.jar"/>
-                    <include name="etc/cipango.xml"/>
-                    <include name="etc/sipdefault.xml"/>
-                    <include name="README-CIPANGO.txt"/>
-                    <include name="VERSION-CIPANGO.txt"/>
-                  </fileset>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
-            <phase>install</phase>
-            <configuration>
-              <tasks if="jetty.home">
-                <mkdir dir="${jetty.home}/lib"/>
-                <copy file="${project.build.directory}/${project.build.finalName}.${project.packaging}" todir="${jetty.home}/lib"/>
-                <copy todir="${jetty.home}">
-                  <fileset dir="${basedir}" includes="etc/"/>
-                  <fileset dir="${project.build.directory}" includes="lib/"/>
-                </copy>
-                <copy file="${basedir}/../../README.txt" tofile="${jetty.home}/README-CIPANGO.txt"/>
-                <copy file="${basedir}/../../VERSION.txt" tofile="${jetty.home}/VERSION-CIPANGO.txt"/>
-                <mkdir dir="${jetty.home}/sipapps"/>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
             <phase>package</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>single</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>javax.servlet</groupId>
-                  <artifactId>sip-api</artifactId>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <descriptors>
+                <descriptor>config.xml</descriptor>
+              </descriptors>
             </configuration>
           </execution>
         </executions>

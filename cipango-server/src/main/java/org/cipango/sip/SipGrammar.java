@@ -12,9 +12,8 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.sip;
 
-import org.cipango.sip.SipCharset;
 import org.cipango.util.HexString;
 
 public class SipGrammar 

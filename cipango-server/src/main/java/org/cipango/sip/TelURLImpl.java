@@ -22,7 +22,6 @@ import java.util.StringTokenizer;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.TelURL;
 
-import org.cipango.SipGrammar;
 
 // TODO extends from URIImpl
 public class TelURLImpl implements TelURL, Serializable 

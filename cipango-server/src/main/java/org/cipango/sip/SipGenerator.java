@@ -18,7 +18,6 @@ import java.util.Iterator;
 
 import javax.servlet.sip.SipServletMessage.HeaderForm;
 
-import org.cipango.SipGrammar;
 import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;

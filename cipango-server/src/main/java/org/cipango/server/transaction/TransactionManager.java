@@ -21,12 +21,12 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.SipProxy;
-import org.cipango.SipGrammar;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
 import org.cipango.server.session.Session;
+import org.cipango.sip.SipGrammar;
 
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.util.log.Log;

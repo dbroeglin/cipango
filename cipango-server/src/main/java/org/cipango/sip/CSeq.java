@@ -16,7 +16,6 @@ package org.cipango.sip;
 
 import javax.servlet.sip.ServletParseException;
 
-import org.cipango.SipGrammar;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 

@@ -23,7 +23,6 @@ import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipGrammar;
 
 public class SipURIImpl extends URIImpl implements SipURI 
 {	

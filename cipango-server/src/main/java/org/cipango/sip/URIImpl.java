@@ -22,7 +22,6 @@ import java.util.StringTokenizer;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipGrammar;
 
 public class URIImpl implements URI, Serializable 
 {	

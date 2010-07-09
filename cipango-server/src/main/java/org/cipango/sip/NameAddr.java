@@ -25,7 +25,6 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipGrammar;
 import org.cipango.sip.SipHeaders.HeaderInfo;
 
 public class NameAddr implements Address, Serializable

@@ -14,7 +14,6 @@
 
 package org.cipango.sip;
 
-import org.cipango.SipGrammar;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.BufferCache;
 import org.eclipse.jetty.io.ByteArrayBuffer;

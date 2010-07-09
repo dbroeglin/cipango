@@ -19,7 +19,6 @@ import java.util.*;
 
 import javax.servlet.sip.ServletParseException;
 
-import org.cipango.SipGrammar;
 import org.cipango.sip.SipHeaders.HeaderInfo;
 
 import org.eclipse.jetty.io.Buffer;

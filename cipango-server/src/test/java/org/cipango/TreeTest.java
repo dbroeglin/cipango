@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 
 public class TreeTest 
 {

@@ -17,7 +17,6 @@ package org.cipango;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.URI;
 
-import org.mortbay.util.UrlEncoded;
 
 import junit.framework.TestCase;
 

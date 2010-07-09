@@ -23,7 +23,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.Parameterable;
 import javax.servlet.sip.SipURI;
 
-import org.mortbay.jetty.HttpFields;
+import org.eclipse.jetty.http.HttpFields;
 
 import junit.framework.TestCase;
 

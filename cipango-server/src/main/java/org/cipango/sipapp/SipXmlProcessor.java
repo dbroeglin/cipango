@@ -66,7 +66,7 @@ public class SipXmlProcessor
 		
 		private void processVersion()
 		{
-			String version = _root.getAttribute("version", "unknown");
+			String version = _root.getAttribute("version", "DTD");
 			if ("1.0".equals(version))
 				_version = SipAppContext.VERSION_10;
 			else if ("1.1".equals(version))

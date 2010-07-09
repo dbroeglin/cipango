@@ -18,7 +18,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.cipango.SipURIImpl;
-import org.mortbay.io.Buffer;
+import org.eclipse.jetty.io.Buffer;
 
 import junit.framework.TestCase;
 

@@ -28,8 +28,9 @@ import javax.servlet.sip.SipURI;
 import junit.framework.TestCase;
 
 import org.cipango.SipHandler;
-import org.mortbay.jetty.Server;
-import org.mortbay.thread.BoundedThreadPool;
+
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 public class UdpConnectorTest extends TestCase
 {
@@ -40,7 +41,7 @@ public class UdpConnectorTest extends TestCase
 	{
 		_connector = new UdpConnector();
 		_connector.setPort(5040);
-		_connector.setThreadPool(new BoundedThreadPool());
+		_connector.setThreadPool(new QueuedThreadPool());
 		_connector.setHandler(new TestHandler());
 		_connector.start();
 		_message = null;
@@ -58,7 +59,7 @@ public class UdpConnectorTest extends TestCase
 		UdpConnector connector = new UdpConnector();
 		connector.setHost("localhost");
 		connector.setPort(5070);
-		connector.setThreadPool(new BoundedThreadPool());
+		connector.setThreadPool(new QueuedThreadPool());
 		for (int i = 0; i < 10; i++)
 		{
 			connector.start();

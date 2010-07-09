@@ -18,9 +18,9 @@ import java.io.IOException;
 
 import junit.framework.TestCase;
 
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.io.bio.StringEndPoint;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.io.bio.StringEndPoint;
 
 public class StreamParserTest extends TestCase
 {

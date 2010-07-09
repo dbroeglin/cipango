@@ -28,7 +28,8 @@ import junit.framework.TestCase;
 
 import org.cipango.sip.SipParser;
 import org.cipango.sip.AbstractSipConnector.EventHandler;
-import org.mortbay.io.ByteArrayBuffer;
+
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 public class SipRequestTest extends TestCase
 {

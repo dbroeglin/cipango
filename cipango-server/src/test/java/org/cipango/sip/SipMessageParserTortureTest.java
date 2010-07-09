@@ -35,7 +35,8 @@ import org.cipango.SipRequest;
 import org.cipango.SipURIImpl;
 import org.cipango.Via;
 import org.cipango.sip.AbstractSipConnector.EventHandler;
-import org.mortbay.io.ByteArrayBuffer;
+
+import org.eclipse.jetty.io.ByteArrayBuffer;
 
 /**
  * Test based on <a href="http://tools.ietf.org/html/rfc4475"> Session

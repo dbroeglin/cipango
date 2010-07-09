@@ -6,7 +6,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 
 public class ListTest extends TestCase
 {

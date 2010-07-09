@@ -17,10 +17,11 @@ package org.cipango.sip;
 
 import java.io.IOException;
 import junit.framework.TestCase;
-import org.mortbay.io.Buffer;
-import org.mortbay.io.ByteArrayBuffer;
-import org.mortbay.util.StringUtil;
-import org.mortbay.util.TypeUtil;
+
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.eclipse.jetty.util.StringUtil;
+import org.eclipse.jetty.util.TypeUtil;
 
 public class SipParserTest extends TestCase
 {

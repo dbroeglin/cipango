@@ -13,8 +13,8 @@
 // ========================================================================
 package org.cipango.server.log;
 
-import org.cipango.SipMessage;
 import org.cipango.server.SipConnection;
+import org.cipango.server.SipMessage;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;

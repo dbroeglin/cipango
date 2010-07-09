@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server;
 
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -33,8 +33,8 @@ import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
+import org.cipango.SessionManager;
 import org.cipango.SessionManager.SessionScope;
-import org.cipango.server.SipConnector;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.transaction.ClientTransaction;

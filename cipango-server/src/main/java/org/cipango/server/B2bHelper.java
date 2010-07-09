@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +35,6 @@ import javax.servlet.sip.UAMode;
 import javax.servlet.sip.SipSession.State;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.server.SipParams;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;

@@ -18,8 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.cipango.SipMessage;
 import org.cipango.server.SipConnection;
+import org.cipango.server.SipMessage;
 
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.util.log.Log;

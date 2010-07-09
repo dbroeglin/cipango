@@ -22,11 +22,11 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.server.SipConnection;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMethods;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.sip.SipVersions;
 import org.cipango.sip.Via;
 import org.cipango.util.ID;

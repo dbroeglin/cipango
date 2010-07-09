@@ -20,7 +20,7 @@ import java.net.InetAddress;
 
 import javax.servlet.sip.SipServletMessage;
 
-import org.cipango.SipHandler;
+import org.cipango.server.SipHandler;
 import org.cipango.server.bio.UdpConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;

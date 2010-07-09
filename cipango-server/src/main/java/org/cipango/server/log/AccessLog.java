@@ -14,8 +14,8 @@
 
 package org.cipango.server.log;
 
-import org.cipango.SipMessage;
 import org.cipango.server.SipConnection;
+import org.cipango.server.SipMessage;
 
 public interface AccessLog
 {

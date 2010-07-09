@@ -22,11 +22,11 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
 import org.cipango.SessionManager.*;
-import org.cipango.SipHandler;
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.server.Server;
+import org.cipango.server.SipHandler;
+import org.cipango.server.SipMessage;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.server.session.CallSession;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;

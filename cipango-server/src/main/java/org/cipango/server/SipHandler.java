@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server;
 
 import java.io.IOException;
 import javax.servlet.ServletException;

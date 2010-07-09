@@ -45,8 +45,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.cipango.SipMessage;
 import org.cipango.server.SipConnectors;
+import org.cipango.server.SipMessage;
 
 import org.eclipse.jetty.http.security.Password;
 import org.eclipse.jetty.util.log.Log;

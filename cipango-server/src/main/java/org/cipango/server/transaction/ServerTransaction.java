@@ -16,8 +16,8 @@ package org.cipango.server.transaction;
 
 import java.io.IOException;
 
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.sip.SipHeaders;
 
 import org.eclipse.jetty.util.log.Log;

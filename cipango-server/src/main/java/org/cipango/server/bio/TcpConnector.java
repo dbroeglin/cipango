@@ -24,11 +24,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.cipango.SipMessage;
 import org.cipango.server.AbstractSipConnector;
 import org.cipango.server.SipConnection;
 import org.cipango.server.SipConnector;
 import org.cipango.server.SipConnectors;
+import org.cipango.server.SipMessage;
 import org.cipango.server.transaction.Transaction;
 import org.cipango.sip.BufferOverflowException;
 import org.cipango.sip.SipParser;

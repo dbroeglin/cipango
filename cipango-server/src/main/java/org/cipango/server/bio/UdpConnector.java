@@ -21,13 +21,13 @@ import java.net.InetAddress;
 
 import javax.servlet.sip.URI;
 
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.server.AbstractSipConnector;
 import org.cipango.server.SipConnection;
 import org.cipango.server.SipConnector;
 import org.cipango.server.SipConnectors;
+import org.cipango.server.SipMessage;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipParser;
 import org.cipango.sip.URIFactory;

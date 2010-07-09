@@ -20,11 +20,11 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.SipProxy;
-import org.cipango.SipHandler;
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
+import org.cipango.server.SipHandler;
+import org.cipango.server.SipMessage;
+import org.cipango.server.SipProxy;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.server.session.Session;
 import org.cipango.sip.SipGrammar;
 

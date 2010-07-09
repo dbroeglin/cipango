@@ -19,10 +19,6 @@ import java.net.InetAddress;
 
 import javax.servlet.sip.SipURI;
 
-import org.cipango.SipHandler;
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.io.SipBuffer;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipParser;

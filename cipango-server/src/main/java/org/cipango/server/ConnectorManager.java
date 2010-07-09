@@ -28,10 +28,6 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipHandler;
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.server.log.AccessLog;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipGenerator;

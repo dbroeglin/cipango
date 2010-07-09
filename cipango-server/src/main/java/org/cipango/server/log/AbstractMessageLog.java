@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.cipango.SipMessage;
 import org.cipango.server.SipConnection;
+import org.cipango.server.SipMessage;
 import org.cipango.sip.SipGenerator;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;

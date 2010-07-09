@@ -18,10 +18,10 @@ import java.util.Iterator;
 
 import javax.servlet.sip.SipServletMessage.HeaderForm;
 
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
+import org.cipango.server.SipMessage;
 import org.cipango.server.SipMethods;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.eclipse.jetty.io.Buffer;
 
 public class SipGenerator 

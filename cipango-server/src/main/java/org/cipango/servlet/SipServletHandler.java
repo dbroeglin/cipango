@@ -29,9 +29,9 @@ import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 
-import org.cipango.SipHandler;
-import org.cipango.SipMessage;
 import org.cipango.server.Server;
+import org.cipango.server.SipHandler;
+import org.cipango.server.SipMessage;
 import org.cipango.server.session.Session;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipServletMapping;

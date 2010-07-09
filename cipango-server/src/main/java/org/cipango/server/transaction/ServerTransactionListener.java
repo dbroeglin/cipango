@@ -15,7 +15,7 @@
 
 package org.cipango.server.transaction;
 
-import org.cipango.SipRequest;
+import org.cipango.server.SipRequest;
 
 public interface ServerTransactionListener
 {

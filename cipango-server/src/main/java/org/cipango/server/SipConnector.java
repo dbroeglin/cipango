@@ -19,7 +19,6 @@ import java.net.InetAddress;
 
 import javax.servlet.sip.SipURI;
 
-import org.cipango.SipHandler;
 import org.cipango.sip.Via;
 
 import org.eclipse.jetty.util.component.LifeCycle;

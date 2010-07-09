@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,8 +44,8 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
+import org.cipango.SessionManager;
 import org.cipango.SessionManager.SessionScope;
-import org.cipango.server.SipMethods;
 import org.cipango.server.session.Session;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;

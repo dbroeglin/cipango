@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
@@ -34,10 +34,6 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipSession;
 
-import org.cipango.server.SipConnection;
-import org.cipango.server.SipConnectors;
-import org.cipango.server.SipMethods;
-import org.cipango.server.SipParams;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;

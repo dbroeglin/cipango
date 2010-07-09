@@ -28,15 +28,15 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.*;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.SipHandler;
-import org.cipango.SipRequest;
 import org.cipango.SessionManager.SessionScope;
 import org.cipango.http.servlet.ConvergedSessionManager;
 import org.cipango.log.event.Events;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnector;
+import org.cipango.server.SipHandler;
 import org.cipango.server.SipMethods;
 import org.cipango.server.SipParams;
+import org.cipango.server.SipRequest;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;

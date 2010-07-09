@@ -31,7 +31,7 @@ import javax.servlet.http.HttpSession;
 
 import javax.servlet.sip.*;
 
-import org.cipango.SipMessage;
+import org.cipango.server.SipMessage;
 import org.cipango.sip.NameAddr;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;

@@ -18,9 +18,9 @@ import java.util.List;
 
 import javax.servlet.sip.SipSession;
 
-import org.cipango.SipRequest;
-import org.cipango.SipResponse;
 import org.cipango.server.Server;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.sipapp.SipAppContext;

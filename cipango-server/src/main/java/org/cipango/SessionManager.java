@@ -28,11 +28,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.sip.SipSession;
 
 import org.cipango.log.event.Events;
-import org.cipango.servlet.AppSession;
-import org.cipango.servlet.Session;
-import org.cipango.sip.ClientTransaction;
-import org.cipango.sip.ServerTransaction;
-import org.cipango.sip.Transaction;
+import org.cipango.server.Server;
+import org.cipango.server.session.AppSession;
+import org.cipango.server.session.CallSession;
+import org.cipango.server.session.Session;
+import org.cipango.server.transaction.ClientTransaction;
+import org.cipango.server.transaction.ServerTransaction;
+import org.cipango.server.transaction.Transaction;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;
 import org.cipango.util.TimerList;

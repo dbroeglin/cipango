@@ -17,7 +17,7 @@ package org.cipango.util;
 import java.net.InetAddress;
 import java.util.Random;
 
-import org.cipango.Via;
+import org.cipango.sip.Via;
 
 /**
  * Groups all SIP ids generation and parsing (call, session, transaction ...)

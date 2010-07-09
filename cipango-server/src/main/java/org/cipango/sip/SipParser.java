@@ -20,9 +20,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.SipException;
 import org.cipango.SipGrammar;
-import org.cipango.SipHeaders;
-import org.cipango.SipMethods;
-import org.cipango.SipVersions;
+import org.cipango.server.SipMethods;
 
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.BufferUtil;

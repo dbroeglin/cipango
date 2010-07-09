@@ -45,13 +45,18 @@ import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
 import org.cipango.SessionManager.SessionScope;
-import org.cipango.security.AuthInfoImpl;
-import org.cipango.security.Authenticate;
-import org.cipango.security.Authorization;
-import org.cipango.security.AuthInfoImpl.AuthElement;
-import org.cipango.servlet.Session;
-import org.cipango.sip.ClientTransaction;
-import org.cipango.sip.ServerTransaction;
+import org.cipango.server.SipMethods;
+import org.cipango.server.session.Session;
+import org.cipango.server.transaction.ClientTransaction;
+import org.cipango.server.transaction.ServerTransaction;
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipHeaders;
+import org.cipango.sip.URIFactory;
+import org.cipango.sip.Via;
+import org.cipango.sip.security.AuthInfoImpl;
+import org.cipango.sip.security.Authenticate;
+import org.cipango.sip.security.Authorization;
+import org.cipango.sip.security.AuthInfoImpl.AuthElement;
 import org.cipango.util.LazyMap;
 
 import org.eclipse.jetty.io.Buffer;

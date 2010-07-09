@@ -21,13 +21,13 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
-import org.cipango.CallSession;
 import org.cipango.SessionManager.*;
-import org.cipango.Server;
 import org.cipango.SipHandler;
 import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
+import org.cipango.server.Server;
+import org.cipango.server.session.CallSession;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;
 

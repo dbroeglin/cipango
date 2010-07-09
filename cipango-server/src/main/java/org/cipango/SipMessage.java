@@ -34,18 +34,29 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipSession;
 
-import org.cipango.SipHeaders.HeaderInfo;
-import org.cipango.servlet.AppSession;
-import org.cipango.servlet.Session;
+import org.cipango.server.SipConnection;
+import org.cipango.server.SipConnectors;
+import org.cipango.server.SipMethods;
+import org.cipango.server.SipParams;
+import org.cipango.server.session.AppSession;
+import org.cipango.server.session.CallSession;
+import org.cipango.server.session.Session;
+import org.cipango.server.session.lock.SessionLockProxy;
+import org.cipango.server.transaction.Transaction;
+import org.cipango.sip.CSeq;
+import org.cipango.sip.LazyParsingException;
+import org.cipango.sip.ParameterableImpl;
+import org.cipango.sip.SipFields;
+import org.cipango.sip.SipGenerator;
+import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipVersions;
+import org.cipango.sip.Via;
+import org.cipango.sip.SipHeaders.HeaderInfo;
 
-import org.cipango.sip.SipConnection;
-import org.cipango.sip.SipConnectors;
-import org.cipango.sip.Transaction;
 import org.cipango.util.ContactAddress;
 import org.cipango.util.ListIteratorProxy;
 import org.cipango.util.ReadOnlyAddress;
 import org.cipango.util.ReadOnlyParameterable;
-import org.cipango.util.concurrent.SessionLockProxy;
 
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;

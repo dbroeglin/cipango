@@ -21,7 +21,7 @@ import java.util.Map.Entry;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.URI;
 
-import org.cipango.NameAddr;
+import org.cipango.sip.NameAddr;
 
 public class AddressProxy implements Address
 {

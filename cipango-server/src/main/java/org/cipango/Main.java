@@ -15,9 +15,9 @@
 package org.cipango;
 
 import org.cipango.handler.SipContextHandlerCollection;
-import org.cipango.sip.SipConnector;
-import org.cipango.sip.TcpConnector;
-import org.cipango.sip.UdpConnector;
+import org.cipango.server.SipConnector;
+import org.cipango.server.bio.TcpConnector;
+import org.cipango.server.bio.UdpConnector;
 import org.cipango.sipapp.SipAppContext;
 
 import org.eclipse.jetty.server.Connector;

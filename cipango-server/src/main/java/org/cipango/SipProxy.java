@@ -34,12 +34,15 @@ import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import org.cipango.SessionManager.SessionScope;
-import org.cipango.servlet.AppSession;
-import org.cipango.sip.ClientTransaction;
-import org.cipango.sip.ClientTransactionListener;
-import org.cipango.sip.ServerTransaction;
-import org.cipango.sip.ServerTransactionListener;
-import org.cipango.sip.SipConnector;
+import org.cipango.server.SipConnector;
+import org.cipango.server.session.AppSession;
+import org.cipango.server.session.CallSession;
+import org.cipango.server.transaction.ClientTransaction;
+import org.cipango.server.transaction.ClientTransactionListener;
+import org.cipango.server.transaction.ServerTransaction;
+import org.cipango.server.transaction.ServerTransactionListener;
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipHeaders;
 import org.cipango.util.ID;
 import org.cipango.util.TimerTask;
 

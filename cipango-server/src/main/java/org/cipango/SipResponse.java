@@ -32,8 +32,15 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.SessionManager.SessionScope;
-import org.cipango.security.Authenticate;
-import org.cipango.sip.ServerTransaction;
+import org.cipango.server.SipMethods;
+import org.cipango.server.SipParams;
+import org.cipango.server.transaction.ServerTransaction;
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipFields;
+import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipStatus;
+import org.cipango.sip.Via;
+import org.cipango.sip.security.Authenticate;
 
 import org.eclipse.jetty.util.log.Log;
 

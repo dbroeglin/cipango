@@ -18,7 +18,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipURIImpl;
+import org.cipango.sip.SipURIImpl;
 
 public class ContactAddress extends AddressProxy
 {

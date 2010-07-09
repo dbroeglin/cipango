@@ -19,7 +19,7 @@ import java.util.Iterator;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.spi.SipApplicationRouterProvider;
 
-import org.cipango.Server;
+import org.cipango.server.Server;
 import org.eclipse.jetty.util.Loader;
 
 import sun.misc.Service;

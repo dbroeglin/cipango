@@ -14,6 +14,7 @@
 
 package org.cipango;
 
+import org.cipango.sip.SipCharset;
 import org.cipango.util.HexString;
 
 public class SipGrammar 

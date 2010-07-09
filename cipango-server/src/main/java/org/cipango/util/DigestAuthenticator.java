@@ -18,7 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import org.cipango.security.Authorization;
+import org.cipango.sip.security.Authorization;
 
 public class DigestAuthenticator
 {

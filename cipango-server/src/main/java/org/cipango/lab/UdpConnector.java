@@ -22,11 +22,13 @@ import java.util.LinkedList;
 
 import javax.servlet.sip.URI;
 
-import org.cipango.SipHeaders;
 import org.cipango.SipMessage;
 import org.cipango.SipRequest;
 import org.cipango.SipResponse;
-import org.cipango.URIFactory;
+import org.cipango.server.AbstractSipConnector;
+import org.cipango.server.SipConnection;
+import org.cipango.server.SipConnector;
+import org.cipango.server.SipConnectors;
 import org.cipango.sip.*;
 import org.cipango.util.HexString;
 

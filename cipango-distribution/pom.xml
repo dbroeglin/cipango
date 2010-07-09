@@ -21,6 +21,31 @@
         <version>1.4</version>
         <executions>
           <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks if="jetty.home">
+                <delete includeemptydirs="true" failonerror="false">
+                  <fileset dir="${jetty.home}">
+                    <include name="lib/sip-api*.jar"/>
+                    <include name="etc/cipango*.xml"/>
+                    <include name="etc/dar.properties"/>
+                    <include name="etc/sipdefault.xml"/>
+                    <include name="*-CIPANGO.txt"/>
+                    <include name="start-cipango.ini"/>
+                    <include name="lib/sip-api*.jar"/>
+                    <include name="lib/cipango-*.jar"/>
+                    <include name="lib/ext/cipango-*.jar"/>
+                  </fileset>
+                </delete>
+              </tasks>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-resources</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>run</goal>
@@ -30,9 +55,27 @@
                 <copy file="../VERSION.txt" tofile="${assembly-directory}/VERSION-CIPANGO.txt" />
                 <copy file="../README.txt" tofile="${assembly-directory}/README-CIPANGO.txt" />
                 <copy file="../NOTICE.txt" tofile="${assembly-directory}/NOTICE-CIPANGO.txt" />
-                <copy file="../LICENSE-APACHE-1.0.txt" todir="${assembly-directory}" />
+                <copy todir="${assembly-directory}">
+                  <fileset dir="..">
+                    <include name="LICENSE-*"/>
+                  </fileset>
+                </copy>
               </tasks>
             </configuration>
+          </execution>
+           <execution>
+            <id>install</id>
+            <phase>install</phase>
+            <configuration>
+              <tasks if="jetty.home">
+                <copy todir="${jetty.home}">
+                  <fileset dir="${assembly-directory}"/>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>

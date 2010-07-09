@@ -29,6 +29,8 @@ import javax.servlet.sip.SipSession;
 
 import org.cipango.log.event.Events;
 import org.cipango.server.Server;
+import org.cipango.server.SipRequest;
+import org.cipango.server.SipResponse;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;

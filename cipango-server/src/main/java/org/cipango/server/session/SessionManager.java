@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.server.session;
 
 import java.io.DataInputStream;
 import java.io.File;

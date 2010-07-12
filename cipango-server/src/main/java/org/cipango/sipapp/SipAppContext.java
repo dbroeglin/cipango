@@ -28,7 +28,7 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.*;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.SessionManager.SessionScope;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.http.servlet.ConvergedSessionManager;
 import org.cipango.log.event.Events;
 import org.cipango.server.Server;

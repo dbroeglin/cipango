@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
-import org.cipango.SessionManager.*;
+import org.cipango.server.session.SessionManager.*;
 import org.cipango.server.Server;
 import org.cipango.server.SipHandler;
 import org.cipango.server.SipMessage;

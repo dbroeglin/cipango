@@ -26,7 +26,7 @@ import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 
-import org.cipango.SessionManager;
+import org.cipango.server.session.SessionManager;
 import org.cipango.ar.ApplicationRouterLoader;
 import org.cipango.ar.RouterInfoUtil;
 import org.cipango.handler.SipContextHandlerCollection;

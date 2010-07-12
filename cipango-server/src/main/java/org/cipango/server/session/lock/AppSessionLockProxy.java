@@ -25,8 +25,8 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.URI;
 
-import org.cipango.SessionManager;
-import org.cipango.SessionManager.SessionScope;
+import org.cipango.server.session.SessionManager;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.Session;

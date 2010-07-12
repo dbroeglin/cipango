@@ -31,8 +31,9 @@ import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.SessionManager;
-import org.cipango.SessionManager.SessionScope;
+
+import org.cipango.server.session.SessionManager;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipFields;

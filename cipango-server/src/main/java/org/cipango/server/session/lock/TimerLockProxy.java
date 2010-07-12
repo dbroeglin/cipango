@@ -19,8 +19,8 @@ import java.io.Serializable;
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 
-import org.cipango.SessionManager;
-import org.cipango.SessionManager.SessionScope;
+import org.cipango.server.session.SessionManager;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 
 public class TimerLockProxy implements ServletTimer

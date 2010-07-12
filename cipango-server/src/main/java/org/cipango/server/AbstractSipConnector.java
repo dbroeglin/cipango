@@ -68,11 +68,11 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
 
     private boolean _transportParam = false;
     
-    Object _statsLock = new Object();
-    transient long _statsStartedAt = -1;
-    transient long _connectionsOpen;
-    transient long _connectionsOpenMax;
-    transient long _nbParseErrors;
+    protected Object _statsLock = new Object();
+    protected transient long _statsStartedAt = -1;
+    protected transient long _connectionsOpen;
+    protected transient long _connectionsOpenMax;
+    protected transient long _nbParseErrors;
    
     public AbstractSipConnector() 
     {

@@ -19,7 +19,7 @@ import javax.management.Notification;
 import javax.management.NotificationBroadcasterSupport;
 import javax.management.ObjectName;
 
-import org.cipango.jmx.log.event.event.EventDispatcher;
+import org.cipango.log.event.EventDispatcher;
 
 public class JmxEventDispatcher extends NotificationBroadcasterSupport implements EventDispatcher, JmxEventDispatcherMBean
 {

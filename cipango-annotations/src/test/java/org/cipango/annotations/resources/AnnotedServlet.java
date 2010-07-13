@@ -1,4 +1,4 @@
-package org.cipango.annotations;
+package org.cipango.annotations.resources;
 
 import javax.annotation.Resource;
 import javax.servlet.sip.ServletTimer;
@@ -11,8 +11,8 @@ import javax.servlet.sip.TimerService;
 import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.annotation.SipListener;
 
-@javax.servlet.sip.annotation.SipServlet (applicationName="org.cipango.kaleo")
-@SipListener (applicationName="org.cipango.kaleo")
+@javax.servlet.sip.annotation.SipServlet
+@SipListener
 public class AnnotedServlet extends SipServlet implements TimerListener
 {
 	@Resource

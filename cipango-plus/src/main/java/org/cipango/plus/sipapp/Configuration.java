@@ -17,16 +17,15 @@ package org.cipango.plus.sipapp;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import javax.naming.InvalidNameException;
-import javax.naming.NameNotFoundException;
 
-import org.eclipse.jetty.jndi.NamingUtil;
-import org.eclipse.jetty.plus.jndi.EnvEntry;
-import org.eclipse.jetty.plus.jndi.Link;
-import org.eclipse.jetty.plus.jndi.NamingEntry;
-import org.eclipse.jetty.plus.jndi.NamingEntryUtil;
-import org.eclipse.jetty.plus.jndi.Transaction;
+import org.cipango.sipapp.SipAppContext;
+import org.cipango.sipapp.SipXmlProcessor;
+import org.cipango.sipapp.SipXmlProcessor.Descriptor;
+import org.eclipse.jetty.plus.annotation.InjectionCollection;
+import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
+import org.eclipse.jetty.plus.servlet.ServletHandler;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 
 /**
@@ -34,210 +33,77 @@ import org.eclipse.jetty.util.log.Log;
  *
  *
  */
-public class Configuration extends AbstractConfiguration
+public class Configuration extends org.cipango.plus.webapp.Configuration
 {
-
     public static final String JNDI_SIP_PREFIX = "sip/";
     public static final String JNDI_SIP_FACTORY_POSTFIX = "/SipFactory";
     public static final String JNDI_TIMER_SERVICE_POSTFIX = "/TimerService";
     public static final String JNDI_SIP_SESSIONS_UTIL_POSTFIX = "/SipSessionsUtil";
     
-    public Configuration ()
-    {
-
-    }
-    
-    
-    /** 
-     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindEnvEntry(java.lang.String, java.lang.String)
-     * @param name
-     * @param value
-     * @throws Exception
+    @Override
+    /**
+     * Same as super.configure() but process sipXml instead of webXml
      */
-    public void bindEnvEntry(String name, Object value) throws Exception
-    {    
-        InitialContext ic = null;
-        boolean bound = false;
-        //check to see if we bound a value and an EnvEntry with this name already
-        //when we processed the server and the webapp's naming environment
-        //@see EnvConfiguration.bindEnvEntries()
-        ic = new InitialContext();
-        try
-        {
-            NamingEntry ne = (NamingEntry)ic.lookup("java:comp/env/"+NamingEntryUtil.makeNamingEntryName(ic.getNameParser(""), name));
-            if (ne!=null && ne instanceof EnvEntry)
-            {
-                EnvEntry ee = (EnvEntry)ne;
-                bound = ee.isOverrideWebXml();
-            }
-        }
-        catch (NameNotFoundException e)
-        {
-            bound = false;
-        }
-
-        if (!bound)
-        {
-            //either nothing was bound or the value from web.xml should override
-            Context envCtx = (Context)ic.lookup("java:comp/env");
-            NamingUtil.bind(envCtx, name, value);
-        }
-    }
-
-    /** 
-     * Bind a resource reference.
-     * 
-     * If a resource reference with the same name is in a jetty-env.xml
-     * file, it will already have been bound.
-     * 
-     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindResourceRef(java.lang.String)
-     * @param name
-     * @throws Exception
-     */
-    public void bindResourceRef(String name, Class typeClass)
+    public void configure (WebAppContext context)
     throws Exception
     {
-        bindEntry(name, typeClass);
-    }
+        bindUserTransaction(context);
+        
+        SipXmlProcessor sipXmlProcessor = (SipXmlProcessor)context.getAttribute(SipXmlProcessor.SIP_PROCESSOR); 
+        if (sipXmlProcessor == null)
+           throw new IllegalStateException ("No processor for sip xml");
 
-    /** 
-     * @see org.eclipse.jetty.plus.webapp.AbstractConfiguration#bindResourceEnvRef(java.lang.String)
-     * @param name
-     * @throws Exception
-     */
-    public void bindResourceEnvRef(String name, Class typeClass)
-    throws Exception
-    {
-        bindEntry(name, typeClass);
-    }
-    
-    
-    public void bindMessageDestinationRef(String name, Class typeClass)
-    throws Exception
-    {
-        bindEntry(name, typeClass);
-    }
-    
-    public void bindUserTransaction ()
-    throws Exception
-    {
-        try
-        {
-           Transaction.bindToENC();
-        }
-        catch (NameNotFoundException e)
-        {
-            Log.info("No Transaction manager found - if your webapp requires one, please configure one.");
-        }
-        catch (InvalidNameException e) 
-        {
-			Log.info("Could not bind to Transaction manager");
-			Log.debug("Could not bind to Transaction manager", e);
-		}
-    }
-    
-    public void configureClassLoader ()
-    throws Exception
-    {      
-        super.configureClassLoader();
-    }
+        //TODO: When webdefaults.xml, web.xml, fragments and web-override.xml are merged into an effective web.xml this 
+        //will change
+        PlusSipXmlProcessor plusProcessor = new PlusSipXmlProcessor(context);
+        plusProcessor.process(sipXmlProcessor.getSipDefaults());
+        plusProcessor.process(sipXmlProcessor.getSipXml());
 
-    
-    public void configureDefaults ()
-    throws Exception
-    {
-        super.configureDefaults();
+        //process the override-web.xml descriptor
+        plusProcessor.process(sipXmlProcessor.getSipOverride());
+        
+        
+        //configure injections and callbacks to be called by the FilterHolder and ServletHolder
+        //when they lazily instantiate the Filter/Servlet.
+        ((ServletHandler)context.getServletHandler()).setInjections((InjectionCollection)context.getAttribute(InjectionCollection.INJECTION_COLLECTION));
+        ((ServletHandler)context.getServletHandler()).setCallbacks((LifeCycleCallbackCollection)context.getAttribute(LifeCycleCallbackCollection.LIFECYCLE_CALLBACK_COLLECTION));
+        
+        //do any injects on the listeners that were created and then
+        //also callback any postConstruct lifecycle methods
+        injectAndCallPostConstructCallbacks(context);
+        
+        bindSipResources((SipAppContext) context);
     }
-
-
-    /** 
-     * @see org.cipango.plus.sipapp.AbstractConfiguration#parseAnnotations()
-     */
-    protected void parseAnnotations() throws Exception
-    {
-        Log.info(getClass().getName()+" does not support annotations on source. Use org.cipango.annotations.Configuration instead");
-    }
-
-	@Override
-	public void bindSipResources() throws Exception
+	
+	public void bindSipResources(SipAppContext appContext) throws Exception
 	{
 		ClassLoader oldLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(getWebAppContext().getClassLoader());
+        Thread.currentThread().setContextClassLoader(appContext.getClassLoader());
         Context context = new InitialContext();
         Context compCtx = (Context) context.lookup("java:comp/env");
-        compCtx.createSubcontext("sip").createSubcontext(getSipAppContext().getName());
-        compCtx.bind(JNDI_SIP_PREFIX + getSipAppContext().getName() + JNDI_SIP_FACTORY_POSTFIX, getSipAppContext().getSipFactory());
-        compCtx.bind(JNDI_SIP_PREFIX + getSipAppContext().getName() + JNDI_TIMER_SERVICE_POSTFIX, getSipAppContext().getTimerService());
-        compCtx.bind(JNDI_SIP_PREFIX + getSipAppContext().getName() + JNDI_SIP_SESSIONS_UTIL_POSTFIX, getSipAppContext().getSipSessionsUtil());
-        Log.debug("Bind SIP Resources on app " + getSipAppContext().getName());
+        String name = appContext.getName();
+        compCtx.createSubcontext("sip").createSubcontext(name);
+        compCtx.bind(JNDI_SIP_PREFIX + name + JNDI_SIP_FACTORY_POSTFIX, appContext.getSipFactory());
+        compCtx.bind(JNDI_SIP_PREFIX + name + JNDI_TIMER_SERVICE_POSTFIX, appContext.getTimerService());
+        compCtx.bind(JNDI_SIP_PREFIX + name + JNDI_SIP_SESSIONS_UTIL_POSTFIX, appContext.getSipSessionsUtil());
+        Log.debug("Bind SIP Resources on app " + name);
         Thread.currentThread().setContextClassLoader(oldLoader);
 	}
 	
-    /**
-     * Bind a resource with the given name from web.xml of the given type
-     * with a jndi resource from either the server or the webapp's naming 
-     * environment.
-     * 
-     * As the servlet spec does not cover the mapping of names in web.xml with
-     * names from the execution environment, jetty uses the concept of a Link, which is
-     * a subclass of the NamingEntry class. A Link defines a mapping of a name
-     * from web.xml with a name from the execution environment (ie either the server or the
-     * webapp's naming environment).
-     * 
-     * @param name name of the resource from web.xml
-     * @param typeClass 
-     * @throws Exception
-     */
-    private void bindEntry (String name, Class typeClass)
-    throws Exception
-    {
-        String nameInEnvironment = name;
-        boolean bound = false;
-        
-        //check if the name in web.xml has been mapped to something else
-        //check a context-specific naming environment first
-        Object scope = getWebAppContext();
-        NamingEntry ne = NamingEntryUtil.lookupNamingEntry(scope, name);
-    
-        if (ne!=null && (ne instanceof Link))
+	public class PlusSipXmlProcessor extends PlusWebXmlProcessor
+	{
+
+		public PlusSipXmlProcessor(WebAppContext context)
+		{
+			super(context);
+		}
+		
+		public void process (Descriptor d)
+        throws Exception
         {
-            //if we found a mapping, get out name it is mapped to in the environment
-            nameInEnvironment = (String)((Link)ne).getObjectToBind();
-            Link l = (Link)ne;
+            if (d != null)
+                process(d.getRoot());
         }
-
-        //try finding that mapped name in the webapp's environment first
-        scope = getWebAppContext();
-        bound = NamingEntryUtil.bindToENC(scope, name, nameInEnvironment);
-        
-        if (bound)
-            return;
-
-        //try the server's environment
-        scope = getWebAppContext().getServer();
-        bound = NamingEntryUtil.bindToENC(scope, name, nameInEnvironment);
-        if (bound)
-            return;
-
-        //try the jvm environment
-        bound = NamingEntryUtil.bindToENC(null, name, nameInEnvironment);
-        if (bound)
-            return;
-
-
-        //There is no matching resource so try a default name.
-        //The default name syntax is: the [res-type]/default
-        //eg       javax.sql.DataSource/default
-        nameInEnvironment = typeClass.getName()+"/default";
-        //First try the server scope
-        NamingEntry defaultNE = NamingEntryUtil.lookupNamingEntry(getWebAppContext().getServer(), nameInEnvironment);
-        if (defaultNE==null)
-            defaultNE = NamingEntryUtil.lookupNamingEntry(null, nameInEnvironment);
-        
-        if (defaultNE!=null)
-            defaultNE.bindToENC(name);
-        else
-            throw new IllegalStateException("Nothing to bind for name "+nameInEnvironment);
-    }
-    
+		
+	}
 }

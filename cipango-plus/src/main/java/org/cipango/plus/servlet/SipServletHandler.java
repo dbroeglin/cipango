@@ -75,6 +75,7 @@ public class SipServletHandler extends org.cipango.servlet.SipServletHandler
     /** 
      * @see org.mortbay.jetty.servlet.ServletHandler#customizeFilter(javax.servlet.Filter)
      */
+    @Override
     public Filter customizeFilter(Filter filter) throws Exception
     {
         if (_injections != null)
@@ -90,6 +91,7 @@ public class SipServletHandler extends org.cipango.servlet.SipServletHandler
     /** 
      * @see org.mortbay.jetty.servlet.ServletHandler#customizeServlet(javax.servlet.Servlet)
      */
+    @Override
     public Servlet customizeServlet(Servlet servlet) throws Exception
     {      
         if (_injections != null)
@@ -104,6 +106,7 @@ public class SipServletHandler extends org.cipango.servlet.SipServletHandler
     /** 
      * @see org.mortbay.jetty.servlet.ServletHandler#cusomizeFilterDestroy(javax.servlet.Filter)
      */
+    @Override
     public Filter customizeFilterDestroy(Filter filter) throws Exception
     {
         if (_callbacks != null)
@@ -116,6 +119,7 @@ public class SipServletHandler extends org.cipango.servlet.SipServletHandler
     /** 
      * @see org.mortbay.jetty.servlet.ServletHandler#customizeServletDestroy(javax.servlet.Servlet)
      */
+    @Override
     public Servlet customizeServletDestroy(Servlet servlet) throws Exception
     {
         if (_callbacks != null)

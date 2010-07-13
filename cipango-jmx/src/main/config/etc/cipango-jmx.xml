@@ -8,7 +8,7 @@
 <!-- other configuration files.  e.g.                                -->
 <!--    java -jar start.jar etc/cipango-jmx.xml etc/cipango.xml      -->
 <!-- =============================================================== -->
-<Configure id="Server" class="org.cipango.Server">
+<Configure id="Server" class="org.cipango.server.Server">
 
     <!-- =========================================================== -->
     <!-- Initialize mbean server                                     -->

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
 
-<Configure class="org.cipango.Server" id="Server">
+<Configure class="org.cipango.server.Server" id="Server">
     <!-- =========================================================== -->
     <!-- Server Thread Pool                                          -->
     <!-- =========================================================== -->
     <Set name="ThreadPool">
       <!-- Default queued blocking threadpool -->
       <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-        <Set name="minThreads">10</Set>
-        <Set name="maxThreads">200</Set>
+        <Set name="minThreads">5</Set>
+        <Set name="maxThreads">100</Set>
       </New>
     </Set>
 
@@ -35,13 +35,13 @@
 
   
   <Set name="handler">
-     <New class="org.cipango.handler.SipContextHandlerCollection" id="Contexts"/>
+     <New class="org.cipango.server.handler.SipContextHandlerCollection" id="Contexts"/>
   </Set>
  
   <Get name="connectorManager">
     <Call name="addConnector">
       <Arg>
-        <New class="org.cipango.sip.UdpConnector">
+        <New class="org.cipango.server.bio.UdpConnector">
           <Set name="port"><SystemProperty default="5060" name="sip.port"/></Set>
           <Set name="host"><SystemProperty name="sip.host"/></Set>
           <Set name="acceptors">4</Set>
@@ -50,7 +50,7 @@
     </Call>
     <Call name="addConnector">
       <Arg>
-        <New class="org.cipango.sip.TcpConnector">
+        <New class="org.cipango.server.bio.TcpConnector">
           <Set name="port"><SystemProperty default="5060" name="sip.port"/></Set>
           <Set name="host"><SystemProperty name="sip.host"/></Set>
         </New>
@@ -58,7 +58,7 @@
     </Call>
     <Call name="setAccessLog">
       <Arg>
-        <New class="org.cipango.log.FileMessageLog" id="FileMessageLog">
+        <New class="org.cipango.server.log.FileMessageLog" id="FileMessageLog">
           <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.message.log</Set>
           <Set name="append">true</Set>
           <Set name="retainDays">31</Set>
@@ -98,9 +98,8 @@
   
   <Set name="SipThreadPool">
     <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-      <Set name="minThreads">10</Set>
-      <Set name="lowThreads">50</Set>
-      <Set name="maxThreads">250</Set>
+      <Set name="minThreads">5</Set>
+      <Set name="maxThreads">100</Set>
     </New>
   </Set>
   

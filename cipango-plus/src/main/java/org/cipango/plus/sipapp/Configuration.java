@@ -18,6 +18,7 @@ package org.cipango.plus.sipapp;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 
+import org.cipango.plus.servlet.SipServletHandler;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlProcessor;
 import org.cipango.sipapp.SipXmlProcessor.Descriptor;
@@ -61,12 +62,11 @@ public class Configuration extends org.cipango.plus.webapp.Configuration
 
         //process the override-web.xml descriptor
         plusProcessor.process(sipXmlProcessor.getSipOverride());
-        
-        
+             
         //configure injections and callbacks to be called by the FilterHolder and ServletHolder
         //when they lazily instantiate the Filter/Servlet.
-        ((ServletHandler)context.getServletHandler()).setInjections((InjectionCollection)context.getAttribute(InjectionCollection.INJECTION_COLLECTION));
-        ((ServletHandler)context.getServletHandler()).setCallbacks((LifeCycleCallbackCollection)context.getAttribute(LifeCycleCallbackCollection.LIFECYCLE_CALLBACK_COLLECTION));
+        ((SipServletHandler)context.getServletHandler()).setInjections((InjectionCollection)context.getAttribute(InjectionCollection.INJECTION_COLLECTION));
+        ((SipServletHandler)context.getServletHandler()).setCallbacks((LifeCycleCallbackCollection)context.getAttribute(LifeCycleCallbackCollection.LIFECYCLE_CALLBACK_COLLECTION));
         
         //do any injects on the listeners that were created and then
         //also callback any postConstruct lifecycle methods

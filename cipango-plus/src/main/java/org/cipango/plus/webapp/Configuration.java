@@ -45,7 +45,8 @@ public class Configuration extends org.eclipse.jetty.plus.webapp.Configuration
         servletHandler.setServlets(existingHandler.getServlets());
         servletHandler.setServletMappings(existingHandler.getServletMappings());
         context.setServletHandler(servletHandler);
-        securityHandler.setHandler(servletHandler);  
+        if (securityHandler != null)
+        	securityHandler.setHandler(servletHandler);  
         
         LifeCycleCallbackCollection callbacks = new LifeCycleCallbackCollection();
         context.setAttribute(LifeCycleCallbackCollection.LIFECYCLE_CALLBACK_COLLECTION, callbacks);

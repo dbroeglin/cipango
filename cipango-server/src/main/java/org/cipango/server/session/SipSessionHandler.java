@@ -25,7 +25,6 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
-import org.cipango.SipException;
 import org.cipango.server.Server;
 import org.cipango.server.SipHandler;
 import org.cipango.server.SipMessage;
@@ -35,6 +34,7 @@ import org.cipango.server.SipResponse;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
+import org.cipango.sip.SipException;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
 import org.cipango.util.ID;

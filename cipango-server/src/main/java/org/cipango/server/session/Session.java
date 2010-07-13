@@ -48,7 +48,6 @@ import javax.servlet.sip.UAMode;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.SipException;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
@@ -64,6 +63,7 @@ import org.cipango.server.transaction.ServerTransactionListener;
 import org.cipango.server.transaction.Transaction;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipException;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ID;

@@ -18,7 +18,6 @@ import java.io.IOException;
 
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.SipException;
 import org.cipango.server.SipMethods;
 
 import org.eclipse.jetty.io.Buffer;

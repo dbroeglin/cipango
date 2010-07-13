@@ -12,12 +12,12 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.util;
 
-import org.cipango.handler.SipContextHandlerCollection;
 import org.cipango.server.SipConnector;
 import org.cipango.server.bio.TcpConnector;
 import org.cipango.server.bio.UdpConnector;
+import org.cipango.server.handler.SipContextHandlerCollection;
 import org.cipango.sipapp.SipAppContext;
 
 import org.eclipse.jetty.server.Connector;

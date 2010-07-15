@@ -84,6 +84,11 @@ public class SipServletHolder extends Holder implements Comparable
         _initOnStartup=true;
         _initOrder = order;
     }
+    
+	public boolean isInitOnStartup()
+	{
+		return _initOnStartup;
+	}
 
     /* ------------------------------------------------------------ */
     /** Comparitor by init order.
@@ -482,6 +487,7 @@ public class SipServletHolder extends Holder implements Comparable
             }
         }
     }
+
 }
 
 

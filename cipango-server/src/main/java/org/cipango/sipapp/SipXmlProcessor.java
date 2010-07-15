@@ -89,6 +89,11 @@ public class SipXmlProcessor
 			SipXmlProcessor.this.process(_root);
 		}
 		
+		public XmlParser.Node getRoot()
+		{
+			return _root;
+		}
+		
 	}
 	
 	public static XmlParser sipXmlParser() throws ClassNotFoundException
@@ -417,6 +422,11 @@ public class SipXmlProcessor
 	public void initListener(XmlParser.Node node) 
 	{
 		String className = node.getString("listener-class", false, true);
+		addListenerClass(className);
+	}
+	
+	public void addListenerClass(String className)
+	{
 		_listenerClasses = LazyList.add(_listenerClasses, className);
 	}
 	
@@ -505,6 +515,21 @@ public class SipXmlProcessor
 		throws InstantiationException, IllegalAccessException 
 	{	
 		return clazz.newInstance();
+	}
+
+	public Descriptor getSipDefaults()
+	{
+		return _sipDefaultsRoot;
+	}
+
+	public Descriptor getSipXml()
+	{
+		return _sipXmlRoot;
+	}
+
+	public Descriptor getSipOverride()
+	{
+		return _sipOverrideRoot;
 	}
 	
 }

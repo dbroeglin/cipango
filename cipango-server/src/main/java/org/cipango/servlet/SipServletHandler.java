@@ -149,6 +149,25 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 		}
         mx.ifExceptionThrow();  
 	}
+	
+	@Override
+	public void setServer(org.eclipse.jetty.server.Server server)
+    {
+        if (getServer()!=null && getServer()!=server)
+        {
+            getServer().getContainer().update(this, _sipServlets, null, "sipServlets",true);
+            getServer().getContainer().update(this, _sipServletMappings, null, "sipServletMappings",true);
+            getServer().getContainer().update(this, _mainServlet, null, "mainServlet",true);
+        }
+        if (server!=null && getServer()!=server)
+        {
+            server.getContainer().update(this, null, _sipServlets, "sipServlets",true);
+            server.getContainer().update(this, null, _sipServletMappings, "sipServletMappings",true);
+            server.getContainer().update(this, null, _mainServlet, "mainServlet",true);
+        }
+        super.setServer(server);
+    }
+
     
 	protected void servletInitialized(SipServlet servlet)
 	{
@@ -316,7 +335,7 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 	public void setSipServlets(SipServletHolder[] holders) 
 	{
 		if (getServer() != null) 
-			getServer().getContainer().update(this, _sipServlets, holders, "sipServlet", true);
+			getServer().getContainer().update(this, _sipServlets, holders, "sipServlets", true);
 	
 		_sipServlets = holders;
 		updateSipMappings();

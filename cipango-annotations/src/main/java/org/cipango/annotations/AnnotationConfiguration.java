@@ -47,7 +47,7 @@ public class AnnotationConfiguration extends AbstractConfiguration
         
 
         SipAppContext sac = (SipAppContext) context;
-        if (sac.getSpecVersion() != SipAppContext.VERSION_10)
+        if (sac.getSpecVersion() == SipAppContext.VERSION_10)
         	return;
         
         if (Log.isDebugEnabled()) 

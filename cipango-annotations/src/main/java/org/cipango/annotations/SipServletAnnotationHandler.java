@@ -58,8 +58,7 @@ public class SipServletAnnotationHandler implements AnnotationHandler
 		if (holder.getName() == null)
 			holder.setName(className.substring(className.lastIndexOf('.') + 1));
 		holder.setClassName(className);
-		SipServletHandler handler = (SipServletHandler) _sac.getServletHandler();
-		handler.addSipServlet(holder);
+		_sac.addSipServlet(holder);
 	}
 
 	public void handleMethod(String className, String methodName, int access, String desc, String signature,

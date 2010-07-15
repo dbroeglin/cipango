@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango;
+package org.cipango.sip.security;
 
-import org.cipango.security.Authenticate;
+import org.cipango.sip.security.Authenticate;
 
 import junit.framework.TestCase;
 

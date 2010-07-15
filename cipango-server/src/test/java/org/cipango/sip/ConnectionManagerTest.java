@@ -17,7 +17,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.cipango.SipURIImpl;
+import org.cipango.server.AbstractSipConnector;
+import org.cipango.server.ConnectorManager;
+import org.cipango.server.SipConnection;
 import org.eclipse.jetty.io.Buffer;
 
 import junit.framework.TestCase;
@@ -126,12 +128,6 @@ public class ConnectionManagerTest extends TestCase
 		public int getLocalPort()
 		{
 			return 0;
-		}
-
-		public SipEndpoint send(Buffer buffer, InetAddress address, int port)
-				throws IOException
-		{
-			return null;
 		}
 
 		public boolean isSecure()

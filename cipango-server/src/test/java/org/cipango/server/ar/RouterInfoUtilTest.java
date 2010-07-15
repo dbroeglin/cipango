@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.ar;
+package org.cipango.server.ar;
 
 import java.io.Serializable;
 
@@ -23,7 +23,8 @@ import javax.servlet.sip.ar.SipRouteModifier;
 
 import junit.framework.TestCase;
 
-import org.cipango.SipURIImpl;
+import org.cipango.server.ar.RouterInfoUtil;
+import org.cipango.sip.SipURIImpl;
 
 public class RouterInfoUtilTest extends TestCase
 {

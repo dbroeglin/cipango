@@ -27,7 +27,8 @@ import javax.servlet.sip.SipURI;
 
 import junit.framework.TestCase;
 
-import org.cipango.SipHandler;
+import org.cipango.server.SipHandler;
+import org.cipango.server.bio.UdpConnector;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;

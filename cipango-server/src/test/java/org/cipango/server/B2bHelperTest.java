@@ -11,29 +11,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
+package org.cipango.server;
 
-package org.cipango;
+import javax.servlet.sip.Address;
 
-import javax.servlet.sip.TelURL;
+import org.cipango.server.B2bHelper;
+import org.cipango.sip.NameAddr;
 
 import junit.framework.TestCase;
 
-public class TelURLTest extends TestCase
+public class B2bHelperTest extends TestCase
 {
-
-	public void testSetPhoneNumber() throws Exception
+	public void testMergeContact() throws Exception
 	{
-		TelURL url = (TelURL) URIFactory.parseURI("tel:+1-212-555-0101");
-		assertEquals("1-212-555-0101", url.getPhoneNumber());
-		assertNull(url.getPhoneContext());
-		url.setPhoneNumber("+123-456");
-		assertEquals("123-456", url.getPhoneNumber());
-		url.setPhoneNumber("123-456", "atlanta.com");
-		assertEquals("123-456", url.getPhoneNumber());
-		assertEquals("atlanta.com", url.getPhoneContext());
-		try	{ url.setPhoneNumber("+1/3"); fail();} catch (IllegalArgumentException e) {	}
-		try	{ url.setPhoneNumber("1-212-555-0101"); fail();} catch (IllegalArgumentException e) {}
-		try	{ url.setPhoneNumber("+1-212-555-0101", "atlanta.com"); fail();} catch (IllegalArgumentException e) {}
-	}	
-	
+		Address destination = new NameAddr("<sip:127.0.0.1:5060>");
+		new B2bHelper(null).mergeContact("Bob <sip:bob@127.0.0.22:5070;transport=UDP;ttl=1>;p=2", destination);
+		assertEquals("Bob <sip:bob@127.0.0.1:5060;transport=UDP>;p=2", destination.toString());
+	}
 }

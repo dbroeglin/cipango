@@ -12,13 +12,15 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.sip;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
+
+import org.cipango.sip.SipURIImpl;
 
 import junit.framework.TestCase;
 

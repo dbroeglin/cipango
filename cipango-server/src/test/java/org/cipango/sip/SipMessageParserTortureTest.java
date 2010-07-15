@@ -29,12 +29,10 @@ import javax.servlet.sip.SipURI;
 
 import junit.framework.TestCase;
 
-import org.cipango.SipGrammar;
-import org.cipango.SipMessage;
-import org.cipango.SipRequest;
-import org.cipango.SipURIImpl;
-import org.cipango.Via;
-import org.cipango.sip.AbstractSipConnector.EventHandler;
+import org.cipango.server.ConnectorManager;
+import org.cipango.server.SipMessage;
+import org.cipango.server.SipRequest;
+import org.cipango.server.AbstractSipConnector.EventHandler;
 
 import org.eclipse.jetty.io.ByteArrayBuffer;
 

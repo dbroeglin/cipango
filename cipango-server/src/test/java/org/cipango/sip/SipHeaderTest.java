@@ -12,11 +12,13 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.sip;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
 
+import org.cipango.server.SipRequest;
+import org.cipango.sip.NameAddr;
 import org.cipango.util.ReadOnlyAddress;
 
 import junit.framework.TestCase;

@@ -12,10 +12,13 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.sip;
 
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.URI;
+
+import org.cipango.sip.SipGrammar;
+import org.cipango.sip.URIFactory;
 
 
 import junit.framework.TestCase;

@@ -1,4 +1,4 @@
-package org.cipango;
+package org.cipango.server;
 
 import java.util.ArrayList;
 import java.util.Iterator;

@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango;
+package org.cipango.sip;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -26,8 +26,11 @@ import javax.servlet.sip.SipURI;
 
 import junit.framework.TestCase;
 
+import org.cipango.server.SipMessage;
+import org.cipango.server.SipRequest;
+import org.cipango.server.AbstractSipConnector.EventHandler;
+import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipParser;
-import org.cipango.sip.AbstractSipConnector.EventHandler;
 
 import org.eclipse.jetty.io.ByteArrayBuffer;
 

@@ -22,12 +22,12 @@ import javax.servlet.sip.URI;
 
 import junit.framework.TestCase;
 
-import org.cipango.NameAddr;
-import org.cipango.ParameterableImpl;
-import org.cipango.SipURIImpl;
 
-import org.cipango.TelURLImpl;
-import org.cipango.URIImpl;
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.ParameterableImpl;
+import org.cipango.sip.SipURIImpl;
+import org.cipango.sip.TelURLImpl;
+import org.cipango.sip.URIImpl;
 
 public class TestReadOnly extends TestCase
 {

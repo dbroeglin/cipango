@@ -1,8 +1,8 @@
-package org.cipango;
+package org.cipango.server;
 
 import junit.framework.TestCase;
 
-import org.cipango.util.ID;
+import org.cipango.server.ID;
 
 public class IDTest extends TestCase
 {

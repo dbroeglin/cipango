@@ -11,11 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango;
+package org.cipango.sip;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
+
+import org.cipango.sip.NameAddr;
 
 import junit.framework.TestCase;
 

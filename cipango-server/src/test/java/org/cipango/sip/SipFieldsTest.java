@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango;
+package org.cipango.sip;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,6 +23,11 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.Parameterable;
 import javax.servlet.sip.SipURI;
 
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.ParameterableImpl;
+import org.cipango.sip.SipFields;
+import org.cipango.sip.SipHeaders;
+import org.cipango.sip.Via;
 import org.eclipse.jetty.http.HttpFields;
 
 import junit.framework.TestCase;

@@ -42,8 +42,8 @@ import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
-import org.cipango.server.session.scope.AppSessionScopeProxy;
-import org.cipango.server.session.scope.TimerLockProxy;
+import org.cipango.server.session.scope.ScopedAppSession;
+import org.cipango.server.session.scope.ScopedTimer;
 import org.cipango.servlet.SipDispatcher;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
@@ -616,12 +616,12 @@ public class SipAppContext extends WebAppContext implements SipHandler
     {
         public ServletTimer createTimer(SipApplicationSession session, long delay, boolean isPersistent, Serializable info) 
         {
-            return new TimerLockProxy(((AppSessionIf) session).getAppSession(), delay, isPersistent, info);
+            return new ScopedTimer(((AppSessionIf) session).getAppSession(), delay, isPersistent, info);
         }
 
         public ServletTimer createTimer(SipApplicationSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info) 
         {
-        	return new TimerLockProxy(((AppSessionIf) session).getAppSession(), delay, period, fixedDelay, isPersistent, info);
+        	return new ScopedTimer(((AppSessionIf) session).getAppSession(), delay, period, fixedDelay, isPersistent, info);
         }
     }
     
@@ -750,7 +750,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	        try
 	        {
 	        	AppSession session = scope.getCallSession().createAppSession(SipAppContext.this, ID.newAppSessionId());
-	        	return new AppSessionScopeProxy(session);
+	        	return new ScopedAppSession(session);
 	        }
 	        finally
 	        {
@@ -795,7 +795,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			if (appSession == null)
 				return null;
 			else
-				return new AppSessionScopeProxy(appSession);
+				return new ScopedAppSession(appSession);
 		}
 
 		public SipApplicationSession getApplicationSessionByKey(String key, boolean create)
@@ -816,7 +816,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 					else 
 						return null;
 				}
-				return new AppSessionScopeProxy(appSession);
+				return new ScopedAppSession(appSession);
 			}
 			finally
 			{

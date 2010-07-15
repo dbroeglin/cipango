@@ -31,11 +31,11 @@ import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;
 
-public class SessionScopeProxy extends ScopedObject implements SessionIf
+public class ScopedSession extends ScopedObject implements SessionIf
 {
 	private Session _session;
 
-	public SessionScopeProxy(Session session)
+	public ScopedSession(Session session)
 	{
 		_session = session;
 	}
@@ -47,7 +47,7 @@ public class SessionScopeProxy extends ScopedObject implements SessionIf
 
 	public SipApplicationSession getApplicationSession()
 	{
-		return new AppSessionScopeProxy(_session.appSession());
+		return new ScopedAppSession(_session.appSession());
 	}
 
 	public Object getAttribute(String name)

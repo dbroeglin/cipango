@@ -23,26 +23,26 @@ import org.cipango.server.session.CallSession;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 
-public class TimerLockProxy extends ScopedObject implements ServletTimer
+public class ScopedTimer extends ScopedObject implements ServletTimer
 {
 	private ServletTimer _timer;
 	private AppSession _appSession;
 	
-	public TimerLockProxy(AppSession session, long delay, boolean isPersistent, Serializable info)
+	public ScopedTimer(AppSession session, long delay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
-		SessionScope workUnit = openScope();
+		SessionScope scope = openScope();
 		try
 		{
 			_timer = _appSession.newTimer(delay, isPersistent, info);
 		}
 		finally
 		{
-			workUnit.close();
+			scope.close();
 		}
 	}
 	
-	public TimerLockProxy(AppSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)
+	public ScopedTimer(AppSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
 		SessionScope scope = openScope();
@@ -56,7 +56,7 @@ public class TimerLockProxy extends ScopedObject implements ServletTimer
 		}
 	}
 	
-	public TimerLockProxy(ServletTimer timer)
+	public ScopedTimer(ServletTimer timer)
 	{
 		_timer = timer;
 		_appSession = (AppSession) timer.getApplicationSession();
@@ -82,7 +82,7 @@ public class TimerLockProxy extends ScopedObject implements ServletTimer
 
 	public SipApplicationSession getApplicationSession()
 	{
-		return new AppSessionScopeProxy((AppSession) _timer.getApplicationSession());
+		return new ScopedAppSession((AppSession) _timer.getApplicationSession());
 	}
 
 	public String getId()

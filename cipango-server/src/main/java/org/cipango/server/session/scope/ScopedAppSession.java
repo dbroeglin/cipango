@@ -31,11 +31,11 @@ import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
 
-public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
+public class ScopedAppSession extends ScopedObject implements AppSessionIf
 {
 	protected AppSession _appSession;
 
-	public AppSessionScopeProxy(AppSession appSession)
+	public ScopedAppSession(AppSession appSession)
 	{
 		_appSession = appSession;
 	}
@@ -99,7 +99,7 @@ public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 	{
 		Object session = _appSession.getSession(id, protocol);
 		if (session instanceof Session)
-			return new SessionScopeProxy((Session) session);
+			return new ScopedSession((Session) session);
 		return session;
 	}
 
@@ -113,7 +113,7 @@ public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 		{
 			Object session = (Object) it.next();
 			if (session instanceof Session)
-				list.add(new SessionScopeProxy((Session) session));
+				list.add(new ScopedSession((Session) session));
 			else
 				list.add(session);
 		}
@@ -127,11 +127,11 @@ public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 		Iterator<?> it = _appSession.getSessions(protocol);
 		if (Protocol.SIP.toString().equalsIgnoreCase(protocol))
 		{
-			List<SessionScopeProxy> list = new ArrayList<SessionScopeProxy>();
+			List<ScopedSession> list = new ArrayList<ScopedSession>();
 			while (it.hasNext())
 			{
 				Session session = (Session) it.next();
-				list.add(new SessionScopeProxy(session));
+				list.add(new ScopedSession(session));
 			}
 			return list.iterator();
 		}
@@ -142,14 +142,14 @@ public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 		// TODO returns SipSessionInterceptor ?
 		Session session = (Session) _appSession.getSipSession(id);
 		if (session != null)
-			return new SessionScopeProxy(session);
+			return new ScopedSession(session);
 		return null;
 	}
 
 	public ServletTimer getTimer(String id) {
 		ServletTimer timer = _appSession.getTimer(id);
 		if (timer != null)
-			return new TimerLockProxy(timer);
+			return new ScopedTimer(timer);
 		return null;
 	}
 
@@ -159,7 +159,7 @@ public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 			return Collections.emptyList();
 		Collection<ServletTimer> timers = new ArrayList<ServletTimer>();
 		while (it.hasNext())
-			timers.add(new TimerLockProxy(it.next()));
+			timers.add(new ScopedTimer(it.next()));
 		return timers;
 	}
 

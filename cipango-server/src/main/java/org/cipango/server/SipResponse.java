@@ -381,7 +381,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         
         SessionManager csm = getCallSession().getServer().getSessionManager();
         
-        SessionScope workUnit = csm.begin(getCallSession());
+        SessionScope workUnit = csm.openScope(getCallSession());
         
         try 
         {

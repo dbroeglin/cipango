@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.server.session.lock;
+package org.cipango.server.session.scope;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,33 +25,24 @@ import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.URI;
 
-import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
+import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
 
-public class AppSessionLockProxy implements AppSessionIf
+public class AppSessionScopeProxy extends ScopedObject implements AppSessionIf
 {
 	protected AppSession _appSession;
 
-	public AppSessionLockProxy(AppSession appSession)
+	public AppSessionScopeProxy(AppSession appSession)
 	{
 		_appSession = appSession;
 	}
 	
-	private transient SessionManager _callManager;
-	
-	protected SessionManager getCallManager()
+	public CallSession getCallSession()
 	{
-		if (_callManager == null)
-			_callManager = _appSession.getCallSession().getServer().getSessionManager();
-		return _callManager;
-	}
-	
-	private SessionScope begin()
-	{	
-		return getCallManager().begin(_appSession.getCallSession());
+		return _appSession.getCallSession();
 	}
 	
 	public void encodeURI(URI uri) 
@@ -108,7 +99,7 @@ public class AppSessionLockProxy implements AppSessionIf
 	{
 		Object session = _appSession.getSession(id, protocol);
 		if (session instanceof Session)
-			return new SessionLockProxy((Session) session);
+			return new SessionScopeProxy((Session) session);
 		return session;
 	}
 
@@ -122,7 +113,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		{
 			Object session = (Object) it.next();
 			if (session instanceof Session)
-				list.add(new SessionLockProxy((Session) session));
+				list.add(new SessionScopeProxy((Session) session));
 			else
 				list.add(session);
 		}
@@ -136,11 +127,11 @@ public class AppSessionLockProxy implements AppSessionIf
 		Iterator<?> it = _appSession.getSessions(protocol);
 		if (Protocol.SIP.toString().equalsIgnoreCase(protocol))
 		{
-			List<SessionLockProxy> list = new ArrayList<SessionLockProxy>();
+			List<SessionScopeProxy> list = new ArrayList<SessionScopeProxy>();
 			while (it.hasNext())
 			{
 				Session session = (Session) it.next();
-				list.add(new SessionLockProxy(session));
+				list.add(new SessionScopeProxy(session));
 			}
 			return list.iterator();
 		}
@@ -151,7 +142,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		// TODO returns SipSessionInterceptor ?
 		Session session = (Session) _appSession.getSipSession(id);
 		if (session != null)
-			return new SessionLockProxy(session);
+			return new SessionScopeProxy(session);
 		return null;
 	}
 
@@ -174,14 +165,14 @@ public class AppSessionLockProxy implements AppSessionIf
 
 	public void invalidate()
 	{
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_appSession.invalidate();
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 
@@ -197,53 +188,53 @@ public class AppSessionLockProxy implements AppSessionIf
 
 	public void removeAttribute(String name)
 	{
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_appSession.removeAttribute(name);
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 
 	public void setAttribute(String name, Object value) 
 	{
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_appSession.setAttribute(name, value);
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 
 	public int setExpires(int deltaMinutes) 
 	{
-		SessionScope workUnit = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			return _appSession.setExpires(deltaMinutes);
 		}
 		finally
 		{
-			workUnit.close();
+			scope.close();
 		}
 	}
 
 	public void setInvalidateWhenReady(boolean invalidateWhenReady)
 	{
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_appSession.setInvalidateWhenReady(invalidateWhenReady);
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 	

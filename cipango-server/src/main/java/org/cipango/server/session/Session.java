@@ -56,7 +56,7 @@ import org.cipango.server.SipMethods;
 import org.cipango.server.SipParams;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
-import org.cipango.server.session.lock.AppSessionLockProxy;
+import org.cipango.server.session.scope.AppSessionScopeProxy;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
 import org.cipango.server.transaction.ServerTransaction;
@@ -150,7 +150,7 @@ public class Session implements SessionIf, ClientTransactionListener, ServerTran
 	 */
 	public SipApplicationSession getApplicationSession()
     {
-		return new AppSessionLockProxy(_appSession);
+		return new AppSessionScopeProxy(_appSession);
 	}
 	
 	/**

@@ -42,8 +42,8 @@ import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
-import org.cipango.server.session.lock.AppSessionLockProxy;
-import org.cipango.server.session.lock.TimerLockProxy;
+import org.cipango.server.session.scope.AppSessionScopeProxy;
+import org.cipango.server.session.scope.TimerLockProxy;
 import org.cipango.servlet.SipDispatcher;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
@@ -750,7 +750,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	        try
 	        {
 	        	AppSession session = scope.getCallSession().createAppSession(SipAppContext.this, ID.newAppSessionId());
-	        	return new AppSessionLockProxy(session);
+	        	return new AppSessionScopeProxy(session);
 	        }
 	        finally
 	        {
@@ -795,7 +795,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			if (appSession == null)
 				return null;
 			else
-				return new AppSessionLockProxy(appSession);
+				return new AppSessionScopeProxy(appSession);
 		}
 
 		public SipApplicationSession getApplicationSessionByKey(String key, boolean create)
@@ -816,7 +816,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 					else 
 						return null;
 				}
-				return new AppSessionLockProxy(appSession);
+				return new AppSessionScopeProxy(appSession);
 			}
 			finally
 			{

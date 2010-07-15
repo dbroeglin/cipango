@@ -287,7 +287,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
     	
     	SessionManager csm = getCallSession().getServer().getSessionManager();
     	
-    	SessionScope workUnit = csm.begin(getCallSession());
+    	SessionScope workUnit = csm.openScope(getCallSession());
     	try
     	{
 	    	if (isCancel())

@@ -140,14 +140,14 @@ public class SessionManager extends AbstractLifeCycle
     	return new SessionScope(callSession._lock.tryLock() ? callSession : null);
     }
     
-    public SessionScope begin(CallSession callSession)
+    public SessionScope openScope(CallSession callSession)
     {
     	CSession csession = (CSession) callSession;
     	csession._lock.lock();
     	return new SessionScope(csession);
     }
     
-    public void commit(CSession callSession)
+    public void close(CSession callSession)
     {
     	int holds = callSession._lock.getHoldCount();
     	
@@ -221,7 +221,7 @@ public class SessionManager extends AbstractLifeCycle
 		}
 		finally
 		{
-			commit(csession);
+			close(csession);
 		}
 	}
     
@@ -376,7 +376,7 @@ public class SessionManager extends AbstractLifeCycle
 		public void close()
 		{
 			if (_csession != null)
-				SessionManager.this.commit(_csession);
+				SessionManager.this.close(_csession);
 		}
 	}
 	

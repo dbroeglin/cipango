@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.server.session.lock;
+package org.cipango.server.session.scope;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -26,17 +26,16 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
+import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;
 
-public class SessionLockProxy implements SessionIf
+public class SessionScopeProxy extends ScopedObject implements SessionIf
 {
 	private Session _session;
-	private transient SessionManager _callManager;
 
-	public SessionLockProxy(Session session)
+	public SessionScopeProxy(Session session)
 	{
 		_session = session;
 	}
@@ -48,7 +47,7 @@ public class SessionLockProxy implements SessionIf
 
 	public SipApplicationSession getApplicationSession()
 	{
-		return new AppSessionLockProxy(_session.appSession());
+		return new AppSessionScopeProxy(_session.appSession());
 	}
 
 	public Object getAttribute(String name)
@@ -118,14 +117,14 @@ public class SessionLockProxy implements SessionIf
 
 	public void invalidate()
 	{
-		SessionScope workUnit = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_session.invalidate();
 		}
 		finally
 		{
-			workUnit.close();
+			scope.close();
 		}
 	}
 
@@ -174,16 +173,10 @@ public class SessionLockProxy implements SessionIf
 		return _session;
 	}
 
-	protected SessionManager getCallSessionManager()
+	protected CallSession getCallSession()
 	{
-		if (_callManager == null)
-			_callManager = _session.getServer().getSessionManager();
-		return _callManager;
-	}
-
-	protected SessionScope begin()
-	{
-		return getCallSessionManager().begin(_session.getCallSession());
+		return _session.getCallSession();
+		
 	}
 
 	@Override

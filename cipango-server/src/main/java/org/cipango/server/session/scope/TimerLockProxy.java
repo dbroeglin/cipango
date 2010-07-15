@@ -12,27 +12,26 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.server.session.lock;
+package org.cipango.server.session.scope;
 
 import java.io.Serializable;
 
 import javax.servlet.sip.ServletTimer;
 import javax.servlet.sip.SipApplicationSession;
 
-import org.cipango.server.session.SessionManager;
+import org.cipango.server.session.CallSession;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 
-public class TimerLockProxy implements ServletTimer
+public class TimerLockProxy extends ScopedObject implements ServletTimer
 {
-	private SessionManager _callManager;
 	private ServletTimer _timer;
 	private AppSession _appSession;
 	
 	public TimerLockProxy(AppSession session, long delay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
-		SessionScope workUnit = begin();
+		SessionScope workUnit = openScope();
 		try
 		{
 			_timer = _appSession.newTimer(delay, isPersistent, info);
@@ -46,14 +45,14 @@ public class TimerLockProxy implements ServletTimer
 	public TimerLockProxy(AppSession session, long delay, long period, boolean fixedDelay, boolean isPersistent, Serializable info)
 	{
 		_appSession = session;
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_timer = _appSession.newTimer(delay, period, fixedDelay, isPersistent, info);
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 	
@@ -63,34 +62,27 @@ public class TimerLockProxy implements ServletTimer
 		_appSession = (AppSession) timer.getApplicationSession();
 	}
 	
-	protected SessionManager getCallSessionManager()
+	protected CallSession getCallSession()
 	{
-		if (_callManager == null)
-			_callManager = _appSession.getCallSession().getServer().getSessionManager();
-		return _callManager;
-	}
-	
-	protected SessionScope begin()
-	{
-		return getCallSessionManager().begin(_appSession.getCallSession());
+		return _appSession.getCallSession();
 	}
 	
 	public void cancel()
 	{
-		SessionScope transaction = begin();
+		SessionScope scope = openScope();
 		try
 		{
 			_timer.cancel();
 		}
 		finally
 		{
-			transaction.close();
+			scope.close();
 		}
 	}
 
 	public SipApplicationSession getApplicationSession()
 	{
-		return new AppSessionLockProxy((AppSession) _timer.getApplicationSession());
+		return new AppSessionScopeProxy((AppSession) _timer.getApplicationSession());
 	}
 
 	public String getId()

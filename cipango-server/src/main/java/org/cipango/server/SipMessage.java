@@ -37,7 +37,7 @@ import javax.servlet.sip.SipSession;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
-import org.cipango.server.session.lock.SessionLockProxy;
+import org.cipango.server.session.scope.SessionScopeProxy;
 import org.cipango.server.transaction.Transaction;
 import org.cipango.sip.CSeq;
 import org.cipango.sip.LazyParsingException;
@@ -538,7 +538,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public SipSession getSession() 
 	{
-		return new SessionLockProxy(_session);
+		return new SessionScopeProxy(_session);
 	}
 	
 	/**

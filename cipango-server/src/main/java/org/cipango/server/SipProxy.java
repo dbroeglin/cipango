@@ -404,7 +404,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 		CallSession callSession = _tx.getRequest().getCallSession();
 		SessionManager cm = callSession.getServer().getSessionManager();
     	
-    	SessionScope work = cm.begin(callSession);
+    	SessionScope work = cm.openScope(callSession);
     	try
     	{
     	// End patch 

@@ -17,8 +17,8 @@ package org.cipango.sip.security;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
+import org.cipango.server.ID;
 import org.cipango.util.DigestAuthenticator;
-import org.cipango.util.ID;
 
 import org.eclipse.jetty.io.BufferCache;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;

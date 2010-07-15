@@ -12,15 +12,16 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.util;
+package org.cipango.server;
 
 import java.net.InetAddress;
 import java.util.Random;
 
 import org.cipango.sip.Via;
+import org.cipango.util.HexString;
 
 /**
- * Groups all SIP ids generation and parsing (call, session, transaction ...)
+ * All SIP-related IDs generation and parsing (call, session, transaction ...)
  */
 public abstract class ID 
 {

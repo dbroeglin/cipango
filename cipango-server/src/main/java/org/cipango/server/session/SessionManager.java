@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.servlet.sip.SipSession;
 
 import org.cipango.log.event.Events;
+import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
@@ -38,7 +39,6 @@ import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.server.transaction.Transaction;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.util.ID;
 import org.cipango.util.TimerList;
 import org.cipango.util.TimerQueue;
 import org.cipango.util.TimerTask;
@@ -113,7 +113,7 @@ public class SessionManager extends AbstractLifeCycle
     	_storeDir = storeDir;
     }
     
-    public SessionScope begin(String id)
+    public SessionScope openScope(String id)
     {
     	CSession callSession = null;
     	
@@ -373,7 +373,7 @@ public class SessionManager extends AbstractLifeCycle
 			return _csession;
 		}
 		
-		public void complete()
+		public void close()
 		{
 			if (_csession != null)
 				SessionManager.this.commit(_csession);

@@ -18,9 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.sip.ConvergedHttpSession;
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.server.ID;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.util.ID;
 
 import org.eclipse.jetty.http.HttpSchemes;
 import org.eclipse.jetty.server.Request;

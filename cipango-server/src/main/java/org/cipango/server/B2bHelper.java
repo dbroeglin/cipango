@@ -45,7 +45,6 @@ import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipFields;
 import org.cipango.sip.SipHeaders;
 import org.cipango.util.ContactAddress;
-import org.cipango.util.ID;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class B2bHelper implements B2buaHelper

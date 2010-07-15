@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.server.handler;
+package org.cipango.server.session;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,14 +22,12 @@ import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
 
 import org.cipango.server.session.SessionManager.*;
+import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipHandler;
 import org.cipango.server.SipMessage;
 import org.cipango.server.SipRequest;
-import org.cipango.server.SipResponse;
-import org.cipango.server.session.CallSession;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.util.ID;
 
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.util.LazyList;
@@ -102,48 +100,9 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 			}
 			queue.add(baseMessage);
 		}
-		queue.handleAll();
+		queue.handle();
 	}
 	
-	/*
-	public void handle(SipServletMessage message) throws IOException, ServletException
-	{
-		SipMessage baseMessage = (SipMessage) message;
-		
-		String callSessionId = getCallSessionId(baseMessage); 
-		
-		if (Log.isDebugEnabled())
-			Log.debug("handling message {} for call session: {}", baseMessage.getRequestLine(), callSessionId);
-		
-		CallSession callSession = null;
-		SessionTransaction transaction = null;
-		
-		while (callSession == null)
-		{	
-			transaction = _server.getSessionManager().begin(callSessionId);
-			if (transaction == null)
-				try { Thread.sleep(500); } catch (InterruptedException e) { }
-			
-			callSession = transaction.getCallSession();
-		}
-		
-		if (Log.isDebugEnabled())
-			Log.debug("started transaction for call session {}", callSession);
-		
-		try
-		{
-			baseMessage.setCallSession(callSession);
-			((SipHandler) getHandler()).handle(message);
-		}
-		finally
-		{
-			transaction.done(); 
-			
-			if (Log.isDebugEnabled())
-				Log.debug("transaction done for call session {}", callSession);
-		}
-	}
-	*/
 	class Queue
 	{
 		private static final int INITIAL = 0;
@@ -190,7 +149,8 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 			}
 			return false;
 		}
-		public void handleAll()
+		
+		public void handle()
 		{
 			synchronized (this)
 			{
@@ -201,16 +161,16 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 			}
 			
 			CallSession callSession = null;
-			SessionScope transaction = null;
+			SessionScope scope = null;
 			
 			while (callSession == null)
 			{	
-				transaction = _server.getSessionManager().begin(_id);
+				scope = _server.getSessionManager().openScope(_id);
 				
-				callSession = transaction.getCallSession();
+				callSession = scope.getCallSession();
 				
 				if (callSession == null)
-					try { Thread.sleep(500); } catch (InterruptedException e) { }
+					try { Thread.sleep(500); } catch (InterruptedException e) { } // TODO
 			}
 			
 			try
@@ -235,7 +195,7 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 			}
 			finally 
 			{
-				transaction.complete();
+				scope.close();
 			}
 		}
 	}

@@ -181,7 +181,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 
@@ -204,7 +204,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 
@@ -217,7 +217,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 
@@ -230,7 +230,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		}
 		finally
 		{
-			workUnit.complete();
+			workUnit.close();
 		}
 	}
 
@@ -243,7 +243,7 @@ public class AppSessionLockProxy implements AppSessionIf
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 	

@@ -397,7 +397,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         }
         finally
         {
-        	workUnit.complete();
+        	workUnit.close();
         }
     }
 	

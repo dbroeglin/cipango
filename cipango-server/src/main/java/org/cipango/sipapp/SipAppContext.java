@@ -31,6 +31,7 @@ import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.http.servlet.ConvergedSessionManager;
 import org.cipango.log.event.Events;
+import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnector;
 import org.cipango.server.SipHandler;
@@ -53,7 +54,6 @@ import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.URIFactory;
 import org.cipango.sip.security.AuthInfoImpl;
-import org.cipango.util.ID;
 import org.cipango.util.ReadOnlySipURI;
 
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -746,7 +746,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
         {
         	Server server = getSipServer();
         	
-        	SessionScope scope = server.getSessionManager().begin(ID.newCallId());
+        	SessionScope scope = server.getSessionManager().openScope(ID.newCallId());
 	        try
 	        {
 	        	AppSession session = scope.getCallSession().createAppSession(SipAppContext.this, ID.newAppSessionId());
@@ -754,7 +754,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	        }
 	        finally
 	        {
-	        	scope.complete();
+	        	scope.close();
 	        }
         }
 
@@ -805,7 +805,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			
 			String id = ID.getIdFromKey(getName(), key);
 
-			SessionScope tx = getSipServer().getSessionManager().begin(id);
+			SessionScope tx = getSipServer().getSessionManager().openScope(id);
 			try
 			{
 				AppSession appSession = tx.getCallSession().getAppSession(id);
@@ -820,7 +820,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			}
 			finally
 			{
-				tx.complete();
+				tx.close();
 			}			
 		}
 

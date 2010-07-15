@@ -297,7 +297,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
     	} 
     	finally
     	{
-    		workUnit.complete();
+    		workUnit.close();
     	}
     }
     

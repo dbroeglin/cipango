@@ -59,6 +59,8 @@ import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.util.Attributes;
+import org.eclipse.jetty.util.AttributesMap;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.QuotedStringTokenizer;
 import org.eclipse.jetty.util.StringUtil;
@@ -84,7 +86,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	
 	private boolean _committed = false;
 	
-	private Map<String, Object> _attributes;
+	private Attributes _attributes;
 	
 	private HeaderForm _headerForm = HeaderForm.DEFAULT;
 
@@ -308,9 +310,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public Object getAttribute(String name) 
 	{
-		if (_attributes != null) 
-			return _attributes.get(name);
-		return null;
+		return _attributes == null ? null : _attributes.getAttribute(name);
 	}
 	
 	/**
@@ -318,9 +318,8 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	 */
 	public void removeAttribute(String name)
 	{
-		if (_attributes == null)
-			return;
-		_attributes.remove(name);
+		if (_attributes != null)
+			_attributes.removeAttribute(name);
 	}
 	
 	/**
@@ -329,10 +328,10 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	@SuppressWarnings("unchecked")
 	public Enumeration<String> getAttributeNames() 
 	{
-		if (_attributes != null) 
-			return Collections.enumeration(_attributes.keySet());
+		if (_attributes == null) 
+			return Collections.enumeration(Collections.EMPTY_LIST);
 		
-		return Collections.enumeration(Collections.EMPTY_LIST);
+		return AttributesMap.getAttributeNamesCopy(_attributes);
 	}
 	
 	/**
@@ -645,15 +644,14 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	/**
 	 * @see SipServletMessage#setAttribute(java.lang.String, java.lang.Object)
 	 */
-	public void setAttribute(String name, Object o) 
+	public void setAttribute(String name, Object value) 
 	{
-		if (o == null || name == null) 
+		if (value == null || name == null) 
 			throw new NullPointerException("name or value is null");
 		
 		if (_attributes == null) 
-			_attributes = new HashMap<String, Object>();
-
-		_attributes.put(name, o);
+			_attributes = new AttributesMap();
+		_attributes.setAttribute(name, value);
 	}
 	
 	/**

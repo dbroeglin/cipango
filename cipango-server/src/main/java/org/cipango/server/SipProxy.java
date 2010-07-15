@@ -44,7 +44,6 @@ import org.cipango.server.transaction.ServerTransactionListener;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipGrammar;
 import org.cipango.sip.SipHeaders;
-import org.cipango.util.ID;
 import org.cipango.util.TimerTask;
 
 import org.eclipse.jetty.util.log.Log;
@@ -425,7 +424,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
     	} 
     	finally
     	{
-    		work.complete();
+    		work.close();
     	}
     	// End patch 
 	}

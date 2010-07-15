@@ -39,7 +39,7 @@ public class TimerLockProxy implements ServletTimer
 		}
 		finally
 		{
-			workUnit.complete();
+			workUnit.close();
 		}
 	}
 	
@@ -53,7 +53,7 @@ public class TimerLockProxy implements ServletTimer
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 	
@@ -84,7 +84,7 @@ public class TimerLockProxy implements ServletTimer
 		}
 		finally
 		{
-			transaction.complete();
+			transaction.close();
 		}
 	}
 

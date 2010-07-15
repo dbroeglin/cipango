@@ -125,7 +125,7 @@ public class SessionLockProxy implements SessionIf
 		}
 		finally
 		{
-			workUnit.complete();
+			workUnit.close();
 		}
 	}
 

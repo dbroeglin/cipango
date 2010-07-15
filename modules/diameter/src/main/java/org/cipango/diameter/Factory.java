@@ -1,6 +1,6 @@
 package org.cipango.diameter;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
 public class Factory 
 {
@@ -11,7 +11,7 @@ public class Factory
 	
 	public static <T> Type<T> newType(String name, int code, DataFormat<T> dataFormat)
 	{
-		return newType(name, Base.IETF_VENDOR_ID, code, dataFormat);
+		return newType(name, Common.IETF_VENDOR_ID, code, dataFormat);
 	}
 	
 	public static DiameterCommand newCommand(boolean request, int code, String name, boolean proxiable)
@@ -31,7 +31,7 @@ public class Factory
 	
 	public static ResultCode newResultCode(int code, String name)
 	{
-		return new ResultCode(Base.IETF_VENDOR_ID, code, name);
+		return new ResultCode(Common.IETF_VENDOR_ID, code, name);
 	}
 	
 	public static ResultCode newResultCode(int vendorId, int code, String name)

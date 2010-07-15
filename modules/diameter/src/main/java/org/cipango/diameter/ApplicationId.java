@@ -17,9 +17,9 @@ package org.cipango.diameter;
 import java.util.Collections;
 import java.util.List;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
-public class ApplicationId implements Convertible
+public class ApplicationId
 {
 	public static enum Type { Acct, Auth }
 	
@@ -59,20 +59,30 @@ public class ApplicationId implements Convertible
 		return (_type == Type.Acct);
 	}
 	
+	public boolean isVendorSpecific()
+	{
+		return _vendors != null && _vendors.size() != 0;
+	}
+	
+	public List<Integer> getVendors()
+	{
+		return _vendors;
+	}
+	
 	public AVP<?> getAVP()
 	{
 		AVP<Integer> appId;
 		if (_type == Type.Auth)
-			appId = new AVP<Integer>(Base.AUTH_APPLICATION_ID, _id);
+			appId = new AVP<Integer>(Common.AUTH_APPLICATION_ID, _id);
 		else 
-			appId = new AVP<Integer>(Base.ACCT_APPLICATION_ID, _id);
+			appId = new AVP<Integer>(Common.ACCT_APPLICATION_ID, _id);
 		
 		if (_vendors != null && _vendors.size() > 0)
 		{
-			AVP<AVPList> vsai = new AVP<AVPList>(Base.VENDOR_SPECIFIC_APPLICATION_ID, new AVPList());
+			AVP<AVPList> vsai = new AVP<AVPList>(Common.VENDOR_SPECIFIC_APPLICATION_ID, new AVPList());
 			for (Integer vendorId : _vendors)
 			{
-				vsai.getValue().add(Base.VENDOR_ID, vendorId);
+				vsai.getValue().add(Common.VENDOR_ID, vendorId);
 			}
 			vsai.getValue().add(appId);
 			return vsai;
@@ -80,6 +90,12 @@ public class ApplicationId implements Convertible
 		else
 			return appId;
 	}
+	
+	public String toString()
+	{
+		return _id + _vendors.toString();
+	}
+	
 	/*
 	public static ApplicationId ofAVP(DiameterMessage message)
 	{

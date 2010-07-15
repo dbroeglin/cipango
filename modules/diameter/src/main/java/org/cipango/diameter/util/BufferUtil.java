@@ -15,6 +15,7 @@
 package org.cipango.diameter.util;
 
 import org.mortbay.io.Buffer;
+import org.mortbay.io.ByteArrayBuffer;
 
 public abstract class BufferUtil 
 {
@@ -42,5 +43,17 @@ public abstract class BufferUtil
 		buffer.poke(index+2, (byte)  (value >> 8 & 0xff));
 		buffer.poke(index+3, (byte)  (value & 0xff));
 		return buffer;
+	}
+	
+	public static Buffer ensureSpace(Buffer buffer, int space)
+	{
+		if (buffer.space() < space)
+		{
+			ByteArrayBuffer largerBuffer = new ByteArrayBuffer(buffer.capacity() + 100);
+			largerBuffer.put(buffer);
+			return largerBuffer;
+		}
+		else
+			return buffer;
 	}
 }

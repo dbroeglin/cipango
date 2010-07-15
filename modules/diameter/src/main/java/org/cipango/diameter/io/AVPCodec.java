@@ -6,7 +6,7 @@ import org.cipango.diameter.AVP;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.Factory;
 import org.cipango.diameter.Type;
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.View;
 
@@ -58,7 +58,7 @@ public class AVPCodec extends AbstractCodec<AVP<?>>
 		Type type = Dictionary.getInstance().getType(vendorId, code);
 		
 		if (type == null)
-			type = Factory.newType("Unknown", vendorId, code, Base.__octetString);
+			type = Factory.newType("Unknown", vendorId, code, Common.__octetString);
 		
 		AVP avp = new AVP(type);
 		// TODO flags

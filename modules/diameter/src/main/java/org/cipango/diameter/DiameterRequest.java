@@ -16,7 +16,7 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
 public class DiameterRequest extends DiameterMessage
 {
@@ -40,12 +40,12 @@ public class DiameterRequest extends DiameterMessage
 	
 	public String getDestinationRealm()
 	{
-		return get(Base.DESTINATION_REALM);
+		return get(Common.DESTINATION_REALM);
 	}
 	
 	public String getDestinationHost()
 	{
-		return get(Base.DESTINATION_HOST);
+		return get(Common.DESTINATION_HOST);
 	}
 	
 	public DiameterAnswer createAnswer(ResultCode resultCode)

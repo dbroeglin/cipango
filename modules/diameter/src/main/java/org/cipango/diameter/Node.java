@@ -16,12 +16,23 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
@@ -42,12 +53,15 @@ import org.mortbay.util.MultiException;
  */
 public class Node extends AbstractLifeCycle implements DiameterHandler
 {
-	public static String[] __dictionaryClasses = {
-		"org.cipango.diameter.base.Base", 
+	public static String[] __dictionaryClasses = 
+	{
+		"org.cipango.diameter.base.Common", 
+		"org.cipango.diameter.base.Accounting",
 		"org.cipango.diameter.ims.IMS", 
 		"org.cipango.diameter.ims.Cx", 
 		"org.cipango.diameter.ims.Sh",
-		"org.cipango.diameter.ims.Zh"};
+		"org.cipango.diameter.ims.Zh"
+	};
 	
 	public static final String DEFAULT_REALM = "cipango.org";
 	public static final String DEFAULT_PRODUCT_NAME = "cipango";
@@ -67,13 +81,15 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private long _tc = DEFAULT_TC;
 	
 	private DiameterConnector[] _connectors;
-	private DiameterRouter _router;
 	
+	private Peer[] _peers;
+		
 	private DiameterHandler _handler;
 	private SessionManager _sessionManager;
 	
-	private Timer _timer = new Timer("Diameter-watchdog");
-	private Random _random = new Random();
+	private ScheduledExecutorService _scheduler;
+
+	private Set<ApplicationId> _supportedApplications = new HashSet<ApplicationId>();
 		
 	public Node()
 	{
@@ -120,6 +136,18 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
         setConnectors((DiameterConnector[])LazyList.addToArray(getConnectors(), connector, DiameterConnector.class));
     }
 	
+	public synchronized void addPeer(Peer peer)
+	{
+		peer.setNode(this);
+		
+		Peer[] peers = (Peer[]) LazyList.addToArray(_peers, peer, Peer.class);
+		
+		if (_server != null)
+			_server.getContainer().update(this, _peers, peers, "peers");
+		
+		_peers = peers;
+	}
+	
 	@Override
 	protected void doStart() throws Exception 
 	{
@@ -131,61 +159,61 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		if (_identity == null) 
 			_identity = InetAddress.getLocalHost().getHostName();
 		
-		/*
-		if (_server != null)
-		{
-			System.out.println("Waiting for server to be started");
-			_server.addLifeCycleListener(new BaseLifeCycleListener()
-			{
-				public void lifeCycleStarted(LifeCycle event)
-				{
-					System.out.println("lifecycle " + event + " started");
-				}
-			});
-		}
-		*/
 		_sessionManager = new SessionManager();
 		_sessionManager.setNode(this);
-		
-		MultiException mex = new MultiException();
 		
 		if (_connectors != null)
 		{
 			for (int i = 0; i < _connectors.length; i++)
 			{
-				try { _connectors[i].start(); }
-				catch (Throwable t)
+				_connectors[i].start();
+			}
+		}
+		
+		_scheduler = new ScheduledThreadPoolExecutor(1);
+		
+		synchronized (this)
+		{
+			if (_peers != null)
+			{
+				for (Peer peer : _peers)
 				{
-					mex.add(t);
+					try 
+					{
+						peer.start(); 
+					}
+					catch (Exception e) 
+					{ 
+						Log.warn("failed to start peer: " + peer, e);
+					}
 				}
 			}
 		}
-		mex.ifExceptionThrow();
 		
-		if (_router == null)
-			_router = new Router();
-		
-		_router.setNode(this);
-		
-		if (_router instanceof LifeCycle)
-			((LifeCycle) _router).start();
-		
-		_timer.schedule(new WatchdogTask(), _tw, 1000);
-		
+		_scheduler.scheduleAtFixedRate(new WatchdogTimeout(), 5000, 5000, TimeUnit.MILLISECONDS);
 		Log.info("Started {}", this);
 	}
 	
 	@Override
 	protected void doStop() throws Exception 
-	{
-		if (_router instanceof LifeCycle)
-			((LifeCycle) _router).stop();
-		
+	{	
+		MultiException mex = new MultiException();
+
 		for (int i = 0; i < _connectors.length; i++)
 		{
-			if (_connectors[i] instanceof LifeCycle) 		
-				((LifeCycle) _connectors[i]).stop();
+			if (_connectors[i] instanceof LifeCycle) 	
+			{
+				try
+				{
+					((LifeCycle) _connectors[i]).stop();
+				}
+				catch (Exception e)
+				{
+					mex.add(e);
+				}
+			}
 		}
+		mex.ifExceptionThrow();
 	}
 	
 	public void setIdentity(String identity)
@@ -233,29 +261,34 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		return _connectors[0].getConnection(peer);
 	}
 	
-
+	public Peer getPeer(String host)
+	{
+		synchronized (this)
+		{
+			if (_peers != null)
+			{
+				for (Peer peer : _peers)
+				{
+					if (peer.getHost().equals(host))
+						return peer;
+				}
+			}
+		}
+		return null;
+	}
 	
 	public void send(DiameterRequest request) throws IOException
 	{
-		Peer peer = _router.getRoute(request);
+		String host = request.getDestinationHost();
+		Peer peer = null;
+		
+		if (host != null)
+			peer = getPeer(host);
+		
 		if (peer == null)
-			throw new IOException("No peer for destination host " + request.getDestinationHost()
-					+ " and destination realm " + request.getDestinationRealm());
+			throw new IOException("No peer for destination host " + request.getDestinationHost());
 		else
 			peer.send(request);
-	}
-	
-	public void setPeers(Peer[] peers)
-	{
-		if (isRunning())
-			throw new IllegalArgumentException("Could not set peers while running");
-		if (_router == null)
-		{
-			_router = new Router();
-			_router.setNode(this);
-		}
-		for (Peer peer: peers)
-			_router.addPeer(peer);
 	}
 	
 	public void receive(DiameterMessage message) throws IOException
@@ -264,13 +297,13 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		if (peer == null)
 		{
-			if (message.getCommand() != Base.CER)
+			if (message.getCommand() != Common.CER)
 			{
 				Log.debug("non CER as first message: " + message.getCommand());
 				message.getConnection().stop();
 				return;
 			}
-			if (message.getCommand() == Base.CER)
+			if (message.getCommand() == Common.CER)
 			{
 				String originHost = message.getOriginHost();
 				
@@ -288,14 +321,14 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 					return;
 				}
 				
-				peer = _router.getPeer(realm, originHost);
+				peer = getPeer(originHost);
 				
 				if (peer == null)
 				{
 					Log.warn("Unknown peer " + originHost);
 					peer = new Peer(originHost);
 					peer.setNode(this);
-					_router.addPeer(peer);
+					addPeer(peer);
 				}
 				message.getConnection().setPeer(peer);
 				peer.rConnCER((DiameterRequest) message);
@@ -344,19 +377,19 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		if (message instanceof DiameterAnswer)
 		{
 			DiameterAnswer answer = (DiameterAnswer) message;
-			if (Base.DIAMETER_REDIRECT_INDICATION.equals(answer.getResultCode()))
+			if (Common.DIAMETER_REDIRECT_INDICATION.equals(answer.getResultCode()))
 			{
 				try 
                 {
-                    String redirectHost = answer.get(Base.REDIRECT_HOST);
-                    Peer peer = _router.getPeer(answer.getRequest().getDestinationRealm(), redirectHost);
+                    String redirectHost = answer.get(Common.REDIRECT_HOST);
+                    Peer peer = getPeer(redirectHost);
                     if (peer != null) 
                     {
                         Log.debug("Redirecting request to: " + peer);
                         peer.send(answer.getRequest());
                     }
                     else
-                    	Log.warn("Unknwon peer {} indicating in redirect-host AVP", redirectHost);
+                    	Log.warn("Unknown peer {} indicating in redirect-host AVP", redirectHost);
                     return;
                 } 
                 catch (Exception e)
@@ -371,27 +404,43 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		//System.out.println("Got message: " + message.getAVPs());
 	}
 	
+	public void addSupportedApplication(ApplicationId id)
+	{
+		_supportedApplications.add(id);
+	}
+	
 	public void addCapabilities(DiameterMessage message)
 	{	
 		for (DiameterConnector connector : _connectors)
 		{
-			message.add(Base.HOST_IP_ADDRESS, connector.getLocalAddress());
-			System.out.println(connector.getLocalAddress());
+			message.add(Common.HOST_IP_ADDRESS, connector.getLocalAddress());
 		}
 		
-		message.add(Base.VENDOR_ID, getVendorId());
-		message.add(Base.PRODUCT_NAME, getProductName());
+		message.add(Common.VENDOR_ID, getVendorId());
+		message.add(Common.PRODUCT_NAME, getProductName());
+				
+		for (ApplicationId id : _supportedApplications)
+		{
+			if (id.isVendorSpecific())
+			{
+				for (Integer i : id.getVendors())
+				{
+					message.add(Common.SUPPORTED_VENDOR_ID, i);
+				}
+			}
+		}
 		
-		AVPList vsai = new AVPList();
-		vsai.add(Base.VENDOR_ID, IMS.IMS_VENDOR_ID);
-		vsai.add(Base.AUTH_APPLICATION_ID, Cx.CX_APPLICATION);
+		for (ApplicationId id : _supportedApplications)
+		{
+			message.getAVPs().add(id.getAVP());
+		}
 		
-		message.add(Base.VENDOR_SPECIFIC_APPLICATION_ID, vsai);
+		message.add(Common.FIRMWARE_REVISION, 1);
 	}
 	
 	public String toString()
 	{
-		return _identity;
+		return _identity + "(" + _supportedApplications + ")";
 	}
 	
 	public long getTw()
@@ -416,43 +465,53 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		_tc = tc;
 	}
 	
-	public void scheduleReconnect(TimerTask task)
+	public ScheduledFuture<?> schedule(Runnable runnable, long ms)
 	{
-		_timer.schedule(task, _tc);
+		return _scheduler.schedule(runnable, ms, TimeUnit.MILLISECONDS);
 	}
 	
-	public DiameterRouter getRouter()
+	public void scheduleReconnect(Peer peer)
 	{
-		return _router;
+		schedule(new ConnectPeerTimeout(peer), _tc);
 	}
-
-	public void setRouter(DiameterRouter router)
+	
+	class ConnectPeerTimeout implements Runnable
 	{
-		if (_server != null)
-			_server.getContainer().update(this, _router, router, "router");
-		_router = router;
-		if (_router != null)
-			_router.setNode(this);
-
-	}
-
-
-    class WatchdogTask extends TimerTask
-    {
-
+		private Peer _peer;
+		
+		public ConnectPeerTimeout(Peer peer)
+		{
+			_peer = peer;
+		}
+		
 		public void run()
 		{
-			if (!isRunning())
+			try
 			{
-				cancel();
-				return;
+				if (isStarted())
+				{
+					if (!_peer.isStopped())
+					{
+						Log.debug("restarting peer: " + _peer);
+						_peer.start();
+					}
+				}
 			}
-			// Jitter is between -2 and 2 seconds
-			long twJitter = _random.nextInt(4000) - 2000;
-			Iterator<Peer> it = _router.getPeers().iterator();
-			while (it.hasNext())
-				it.next().sendDWRIfNeeded(_tw + twJitter);
+			catch (Exception e)
+			{
+				Log.warn("failed to reconnect to peer {} : {}", _peer, e);
+			}
 		}
-    }
-
+	}
+	
+	class WatchdogTimeout implements Runnable
+	{
+		public void run()
+		{
+			for (Peer peer: _peers)
+			{
+				peer.watchdog();
+			}
+		}
+	}
 }

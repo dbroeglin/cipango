@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>org.cipango</groupId>
+    <artifactId>cipango-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>maven-cipango-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+  <name>Maven Cipango Plugin</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-scm-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>checkout-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>checkout</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <connectionUrl>scm:svn:http://svn.codehaus.org/jetty/jetty/tags/jetty-${jetty.version}/modules/maven-plugin/src/main/java</connectionUrl>
+          <checkoutDirectory>${project.build.directory}/jetty-maven-plugin</checkoutDirectory>
+          <skipCheckoutIfExists>true</skipCheckoutIfExists>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/jetty-maven-plugin</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+
+          <execution>
+            <id>generate-sources</id>
+            <phase>process-sources</phase>  
+            <configuration>
+              <tasks>
+                <echo message="Removing .svn files ..."/>
+                <delete includeemptydirs="true">
+                  <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="**/.svn/**" defaultexcludes="no"/>
+                </delete>
+                
+                <echo message="Fixing the patch file for local conventions..." />
+                <fixcrlf srcdir="${basedir}/src/main/patches/" includes="**/*.patch"/>
+                <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config"/>
+                <echo message="Starting to applying patches... " />
+                <patch  dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/AbstractJettyMojo.patch" ignorewhitespace="true" strip="0" />
+                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6MavenConfiguration.patch" ignorewhitespace="true" strip="0"/>
+                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6RunMojo.patch" ignorewhitespace="true" strip="0"/>
+                <delete>
+                  <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="org/mortbay/jetty/plugin/Jetty6PluginWebAppContext.java"/>
+                </delete>
+                <echo message="Finished applying patches... " />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-tools-api</artifactId>
+      <version>2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-plus</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-management</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-dar</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-annotations</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-2.1-jetty</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jetty-annotations</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>start</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>        
+  </dependencies>
+  
+  <properties>
+    <maven.version>2.0.9</maven.version>
+  </properties>
+
+</project>

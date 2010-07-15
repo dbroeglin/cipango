@@ -9,7 +9,7 @@ import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Node;
 import org.cipango.diameter.Peer;
 import org.cipango.diameter.SessionManager;
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
 public class SCSCF 
 {

@@ -10,8 +10,8 @@ import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.ResultCode;
 import org.cipango.diameter.Type;
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.base.Base.EnumDataFormat;
+import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.EnumDataFormat;
 
 /**
  * Sh is defined in 
@@ -300,7 +300,7 @@ public class Sh
      * @see Sh#MSISDN
 	 */
 	public static final Type<AVPList> USER_IDENTITY = IMS.newIMSType("User-Identity", 
-			USER_IDENTITY_ORDINAL, Base.__grouped);
+			USER_IDENTITY_ORDINAL, Common.__grouped);
 	
 	/**
 	 * The MSISDN AVP is of type OctetString. This AVP contains an MSISDN, in international number 
@@ -309,7 +309,7 @@ public class Sh
 	 * of octet n encode digit 2n; bits 4 to 1 of octet n encode digit 2(n-1)+1.
 	 */
 	public static final Type<byte[]> MSISDN = IMS.newIMSType("MSISDN", 
-			MSISDN_ORDINAL, Base.__octetString);
+			MSISDN_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The User-Data AVP is of type OctetString. This AVP contains the user data requested 
@@ -318,9 +318,9 @@ public class Sh
 	 * TS 29.328 [1] Annex C as Sh-Data.
 	 */
 	public static final Type<byte[]> USER_DATA = IMS.newIMSType("User-Data",
-			USER_DATA_ORDINAL, Base.__octetString);
+			USER_DATA_ORDINAL, Common.__octetString);
 	
-	public static enum DataReference implements Base.CustomEnumValues
+	public static enum DataReference implements Common.CustomEnumValues
 	{
 		RepositoryData(0), 
 		IMSPublicIdentity(10),
@@ -344,8 +344,8 @@ public class Sh
 	 * The Data-Reference AVP is of type Enumerated, and indicates the type of the requested user 
 	 * data in the operation UDR and SNR.
 	 */
-	public static Type<DataReference> DATA_REFERENCE = IMS.newIMSType("Data-Reference", 
-			DATA_REFERENCE_ORDINAL, new Base.CustomEnumDataFormat<DataReference>(DataReference.class));
+	public static final Type<DataReference> DATA_REFERENCE = IMS.newIMSType("Data-Reference", 
+			DATA_REFERENCE_ORDINAL, new Common.CustomEnumDataFormat<DataReference>(DataReference.class));
 	
 	/**
 	 * The Service-Indication AVP is of type OctetString. This AVP contains the Service Indication 
@@ -355,7 +355,7 @@ public class Sh
 	 * in 3GPP TS 29.364 [10].
 	 */
 	public static final Type<byte[]> SERVICE_INDICATION = IMS.newIMSType("Service-Indication",
-			SERVICE_INDICATION_ORDINAL, Base.__octetString);
+			SERVICE_INDICATION_ORDINAL, Common.__octetString);
 	
 	public static enum IdentitySet
 	{
@@ -421,7 +421,7 @@ public class Sh
 	 * notifications in the HSS.
 	 */
 	public static final Type<Date> EXPIRY_TIME = IMS.newIMSType("Expiry-Time", 
-			EXPIRY_TIME_ORDINAL, Base.__date);
+			EXPIRY_TIME_ORDINAL, Common.__date);
 	
 	public static enum SendDataIndication
 	{
@@ -442,7 +442,7 @@ public class Sh
 	 * Identity.
 	 */
 	public static final Type<byte[]> DSAI_TAG = IMS.newIMSType("DSAI-Tag",
-			DSAI_TAG_ORDINAL, Base.__octetString);
+			DSAI_TAG_ORDINAL, Common.__octetString);
 	
 	
 	//-------------------------------------------------------------------------

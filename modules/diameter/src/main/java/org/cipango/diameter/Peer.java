@@ -18,10 +18,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimerTask;
 
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.base.Base.DisconnectCause;
+import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.DisconnectCause;
 import org.mortbay.log.Log;
 
 /**
@@ -36,15 +35,15 @@ public class Peer
 	private InetAddress _address;
 	private int _port;
 	
-	private State _state;
+	private volatile State _state;
 	
 	private DiameterConnection _rConnection;
 	private DiameterConnection _iConnection;
 	
 	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
 	
-	private long _lastReceivedTime;
-	private boolean _waitForDwa = false;
+	private long _lastAccessed;
+	private volatile boolean _pending;
 	
 	// indicate whether the peer has been explicitly stopped
 	private boolean _stopped;
@@ -121,6 +120,11 @@ public class Peer
 	{
 		return _state == CLOSED;
 	}
+	
+	public boolean isStopped()
+	{
+		return _stopped;
+	}
 		
 	public DiameterConnection getConnection()
 	{
@@ -146,7 +150,11 @@ public class Peer
 	
 	public void receive(DiameterMessage message) throws IOException
 	{
-		_lastReceivedTime = System.currentTimeMillis();
+		synchronized (this)
+		{	
+			_lastAccessed = System.currentTimeMillis();
+			_pending = false; 
+		}
 		
 		if (message.isRequest())
 			receiveRequest((DiameterRequest) message);
@@ -160,13 +168,13 @@ public class Peer
 		{
 			switch (request.getCommand().getCode()) 
 			{
-			case Base.DWR_ORDINAL:
+			case Common.DWR_ORDINAL:
 				receiveDWR(request);
 				return;
-			case Base.CER_ORDINAL:
+			case Common.CER_ORDINAL:
 				rConnCER(request);
 				return;
-			case Base.DPR_ORDINAL:
+			case Common.DPR_ORDINAL:
 				_state.rcvDPR(request);
 				return;
 			default:
@@ -182,13 +190,12 @@ public class Peer
 		{
 			switch (answer.getCommand().getCode()) 
 			{
-			case Base.CEA_ORDINAL:
+			case Common.CEA_ORDINAL:
 				_state.rcvCEA(answer);
 				return;
-			case Base.DWA_ORDINAL:
-				_waitForDwa = false;
+			case Common.DWA_ORDINAL:
 				return;
-			case Base.DPA_ORDINAL:
+			case Common.DPA_ORDINAL:
 				_state.rcvDPA(answer);
 				return;
 			}
@@ -207,7 +214,7 @@ public class Peer
 	
 	protected void receiveDWR(DiameterRequest dwr)
 	{
-		DiameterAnswer dwa = dwr.createAnswer(Base.DIAMETER_SUCCESS);
+		DiameterAnswer dwa = dwr.createAnswer(Common.DIAMETER_SUCCESS);
 		try
 		{
 			dwr.getConnection().write(dwa);
@@ -220,40 +227,41 @@ public class Peer
 	
 	// --
 	
-	protected void setState(State state)
+	private void setState(State state)
 	{
 		Log.debug(this + " " + _state + " > " + state);
 		_state = state;
 	}
 	
-    
-    
-    public void sendDWRIfNeeded(long tw)
+    public void watchdog()
     {
-    	if (isOpen() && _lastReceivedTime + tw  <= System.currentTimeMillis())
+    	if (isOpen())
     	{
-	    	if (_waitForDwa)
-			{
-				Log.warn("Close " + this + " as no DWA received");
-				close();
-			}
-	    	else
-			{
-				try
+    		if ((System.currentTimeMillis() - _lastAccessed) > 2*_node.getTw())
+    		{
+    			Log.warn("closing peer {} since watchdog timer expires", this);
+    			close();
+    		}
+    		else if (((System.currentTimeMillis() - _lastAccessed) > _node.getTw()) && !_pending)
+    		{
+    			Log.debug("sending DWR");
+    			try
 				{
-					DiameterRequest request = new DiameterRequest(_node, Base.DWR, 0, null);
+					DiameterRequest request = new DiameterRequest(_node, Common.DWR, 0, null);
 			    	DiameterConnection connection = getConnection();
 					if (connection == null || !connection.isOpen())
 						throw new IOException("connection not open");
 					
 					connection.write(request);
+					
+					_pending = true;
 				} 
 				catch (IOException e)
 				{
 					// Ignore exception as 
 					Log.ignore(e);
 				}
-			}
+    		}
     	}
     }
     	
@@ -307,8 +315,8 @@ public class Peer
 			{
 				setState(CLOSING);
 				
-				DiameterRequest dpr = new DiameterRequest(_node, Base.DPR, 0, null);
-				dpr.add(Base.DISCONNECT_CAUSE, DisconnectCause.REBOOTING);
+				DiameterRequest dpr = new DiameterRequest(_node, Common.DPR, 0, null);
+				dpr.add(Common.DISCONNECT_CAUSE, DisconnectCause.REBOOTING);
 				getConnection().write(dpr);	
 			} 
 			catch (IOException e) 
@@ -322,10 +330,15 @@ public class Peer
 	
 	protected void close() 
 	{
+		if (_rConnection != null)
+			_rConnection.stop();
+		else if (_iConnection != null)
+			_iConnection.stop();
+		
 		_rConnection = _iConnection = null;
 		setState(CLOSED);
 		if (!_stopped)
-			_node.scheduleReconnect(new ReconnectTask());
+			_node.scheduleReconnect(this);
 	}
 	
 	/**
@@ -378,7 +391,7 @@ public class Peer
     
     protected void sendCER()
     {
-    	DiameterRequest cer = new DiameterRequest(getNode(), Base.CER, 0, null);
+    	DiameterRequest cer = new DiameterRequest(getNode(), Common.CER, 0, null);
 		getNode().addCapabilities(cer);
 		
 		try
@@ -413,7 +426,7 @@ public class Peer
     
     protected void sendCEA(DiameterRequest cer)
     {
-    	DiameterAnswer cea = cer.createAnswer(Base.DIAMETER_SUCCESS);
+    	DiameterAnswer cea = cer.createAnswer(Common.DIAMETER_SUCCESS);
 		try
 		{
 			cea.send();
@@ -683,7 +696,7 @@ public class Peer
 		public synchronized void rcvDPR(DiameterRequest dpr)
 		{
 			try {
-				DiameterAnswer dpa = dpr.createAnswer(Base.DIAMETER_SUCCESS);
+				DiameterAnswer dpa = dpr.createAnswer(Common.DIAMETER_SUCCESS);
 				dpr.getConnection().write(dpa);
 			} catch (IOException e) {
 				Log.warn("Unable to send DPA");
@@ -693,9 +706,9 @@ public class Peer
 			_rConnection = _iConnection = null;
 			
 			// Start reconnect task if Disconnect cause is rebooting
-			if (dpr.get(Base.DISCONNECT_CAUSE) == DisconnectCause.REBOOTING)
+			if (dpr.get(Common.DISCONNECT_CAUSE) == DisconnectCause.REBOOTING)
 			{
-				_node.scheduleReconnect(new ReconnectTask());
+				_node.scheduleReconnect(Peer.this);
 			}
 		}	
 	};
@@ -722,32 +735,5 @@ public class Peer
 		{
 			setState(CLOSED);
 		}
-		
 	};
-	
-	class ReconnectTask extends TimerTask
-	{
-        public ReconnectTask()
-        {
-            Log.debug("Create new reconnect Task for " + Peer.this);
-        }
-        
-        public void run()
-        {
-            try
-            {
-            	if (_node.isStarted())
-            	{
-            		Log.debug("Restarting peer: " + this);
-            		 if (!_stopped)
-            			 start();
-            	}
-            }
-            catch (Exception e)
-            {
-                Log.warn("Failed to reconnect to peer: " + Peer.this);
-            }
-        }
-    }
-
 }

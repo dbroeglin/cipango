@@ -5,8 +5,8 @@ import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.ResultCode;
 import org.cipango.diameter.Type;
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.base.Base.EnumDataFormat;
+import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.EnumDataFormat;
 
 
 /**
@@ -460,7 +460,7 @@ public class Cx
 	 * The Visited-Network-Identifier AVP is of type OctetString. This AVP contains an identifier that helps the home network to identify the visited network (e.g. the visited network domain name)
 	 */
 	public static final Type<byte[]> VISITED_NETWORK_IDENTIFIER = IMS.newIMSType("Visited-Network-Identifier", 
-			VISITED_NETWORK_IDENTIFIER_ORDINAL, Base.__octetString);
+			VISITED_NETWORK_IDENTIFIER_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The Supported-Features AVP is of type Grouped. If this AVP is present it may inform the destination host about 
@@ -488,7 +488,7 @@ public class Cx
 	 * } </pre>
 	 */
 	public static final Type<AVPList> SUPPORTED_FEATURES = IMS.newIMSType("Supported-Features", 
-			SUPPORTED_FEATURES_ORDINAL, Base.__grouped);
+			SUPPORTED_FEATURES_ORDINAL, Common.__grouped);
 		
 	/**
 	 * The Server-Capabilities AVP is of type Grouped. This AVP contains information to assist the 
@@ -503,7 +503,7 @@ public class Cx
 	 * </pre>
 	 */
 	public static final Type<AVPList> SERVER_CAPABILITIES = IMS.newIMSType("Server-Capabilities", 
-			SERVER_CAPABILITIES_ORDINAL, Base.__grouped);
+			SERVER_CAPABILITIES_ORDINAL, Common.__grouped);
 	
 	/**
 	 * The Mandatory-Capability AVP is of type Unsigned32. The value included in this AVP can be used
@@ -512,7 +512,7 @@ public class Cx
 	 * of these values to individual capabilities is an operator issue.
 	 */
 	public static final Type<Integer> MANDATORY_CAPABILITIES = IMS.newIMSType("Mandatory-Capability", 
-			MANDATORY_CAPABILITIES_ORDINAL, Base.__unsigned32);
+			MANDATORY_CAPABILITIES_ORDINAL, Common.__unsigned32);
 	
 	/**
 	 * The Optional-Capability AVP is of type Unsigned32. The value included in this AVP can be used 
@@ -521,7 +521,7 @@ public class Cx
 	 * of these values to individual capabilities is an operator issue.
 	 */
 	public static final Type<Integer> OPTIONAL_CAPABILITIES = IMS.newIMSType("Optional-Capability", 
-			OPTIONAL_CAPABILITY_ORDINAL, Base.__unsigned32);
+			OPTIONAL_CAPABILITY_ORDINAL, Common.__unsigned32);
 	
 	/**
 	 * The SIP-Number-Auth-Items AVP is of type Unsigned32.
@@ -531,14 +531,14 @@ public class Cx
 	 * AVP indicates the actual number of SIP-Auth-Data-Item AVPs provided by the Diameter server.
 	 */
 	public static final Type<Integer> SIP_NUMBER_AUTH_ITEMS = IMS.newIMSType("SIP-Number-Auth-Items", 
-			SIP_NUMBER_AUTH_ITEMS_ORDINAL, Base.__unsigned32);
+			SIP_NUMBER_AUTH_ITEMS_ORDINAL, Common.__unsigned32);
 	
 	/**
 	 * The Authentication-Scheme AVP is of type UTF8String and indicates the authentication scheme used
 	 * in the authentication of SIP messages. 
 	 */
 	public static final Type<String> SIP_AUTHENTICATION_SCHEME = IMS.newIMSType("Authentication-Scheme", 
-			SIP_AUTHENTICATION_SCHEME_ORDINAL, Base.__utf8String);
+			SIP_AUTHENTICATION_SCHEME_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The SIP-Authenticate AVP is of type OctetString and contains specific parts of the data portion 
@@ -546,7 +546,7 @@ public class Cx
 	 * response. The identification and encoding of the specific parts are defined in 3GPP TS 29.228 [1].
 	 */
 	public static final Type<byte[]> SIP_AUTHENTICATE = IMS.newIMSType("SIP-Authenticate",
-			SIP_AUTHENTICATE_ORDINAL, Base.__octetString);
+			SIP_AUTHENTICATE_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The SIP-Authorization AVP is of type OctetString and contains specific parts of the data portion 
@@ -554,7 +554,7 @@ public class Cx
 	 * The identification and encoding of the specific parts are defined in 3GPP TS 29.228 [1]. 
 	 */
 	public static final Type<byte[]> SIP_AUTHORIZATION = IMS.newIMSType("SIP-Authorization",
-			SIP_AUTHORIZATION_ORDINAL, Base.__octetString);
+			SIP_AUTHORIZATION_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The SIP-Authentication-Context AVP is of type OctectString, and contains authentication-related
@@ -567,7 +567,7 @@ public class Cx
 	 * SIP-Authentication-Context AVP would be carrying such information.
 	 */
 	public static final Type<byte[]> SIP_AUTHENTICATION_CONTEXT = IMS.newIMSType("SIP-Authentication-Context",
-			SIP_AUTHENTICATION_CONTEXT_ORDINAL, Base.__octetString);
+			SIP_AUTHENTICATION_CONTEXT_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The SIP-Auth-Data-Item is of type Grouped, and contains the authentication and/or authorization
@@ -591,7 +591,7 @@ public class Cx
 	 * </pre>
 	 */
 	public static final Type<AVPList> SIP_AUTH_DATA_ITEM = IMS.newIMSType("SIP-Auth-Data-Item", 
-			SIP_AUTH_DATA_ITEM_ORDINAL, Base.__grouped);
+			SIP_AUTH_DATA_ITEM_ORDINAL, Common.__grouped);
 	
 	/**
 	 * The SIP-Item-Number AVP is of type Unsigned32, and is included in a
@@ -602,7 +602,7 @@ public class Cx
 	 * SIP-Auth-Data-Items AVPs with a high SIP-Item-Number value.
 	 */
 	public static final Type<Integer> SIP_ITEM_NUMBER = IMS.newIMSType("SIP-Item-Number", 
-			SIP_ITEM_NUMBER_ORDINAL, Base.__unsigned32);
+			SIP_ITEM_NUMBER_ORDINAL, Common.__unsigned32);
 	
 	public static enum ServerAssignmentType
 	{
@@ -682,7 +682,7 @@ public class Cx
 	 * </pre>
 	 */
 	public static final Type<AVPList> DERISTRATION_REASON = IMS.newIMSType("Deregistration-Reason", 
-			DERISTRATION_REASON_ORDINAL, Base.__grouped);
+			DERISTRATION_REASON_ORDINAL, Common.__grouped);
 	
 	public static enum ReasonCode
 	{
@@ -704,7 +704,7 @@ public class Cx
 	 * information to inform the user about the reason for a de-registration.
 	 */
 	public static final Type<String> REASON_INFO = IMS.newIMSType("Reason-Info", 
-			REASON_INFO_ORDINAL, Base.__utf8String);
+			REASON_INFO_ORDINAL, Common.__utf8String);
 	
 	public static enum UserAuthorizationType
 	{
@@ -760,13 +760,13 @@ public class Cx
 	 * The Confidentiality-Key is of type OctetString, and contains the Confidentiality Key (CK).
 	 */
 	public static final Type<byte[]> CONFIDENTIALITY_KEY = IMS.newIMSType("Confidentiality-Key",
-			CONFIDENTIALITY_KEY_ORDINAL, Base.__octetString);
+			CONFIDENTIALITY_KEY_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The Integrity-Key is of type OctetString, and contains the Integrity Key (IK).
 	 */
 	public static final Type<byte[]> INTEGRITY_KEY = IMS.newIMSType("Integrity-Key",
-			INTEGRITY_KEY_ORDINAL, Base.__octetString);
+			INTEGRITY_KEY_ORDINAL, Common.__octetString);
 	
 	/**
 	 * The Associated-Identities AVP is of type Grouped and it contains the
@@ -779,7 +779,7 @@ public class Cx
 	 * </pre>
 	 */
 	public static final Type<AVPList> ASSOCIATED_IDENTITIES = IMS.newIMSType("SIP-Digest-Authenticate", 
-			ASSOCIATED_IDENTITIES_ORDINAL, Base.__grouped);
+			ASSOCIATED_IDENTITIES_ORDINAL, Common.__grouped);
 	
 	public static enum OriginatingRequest
 	{
@@ -812,7 +812,7 @@ public class Cx
 	 * </pre>
 	 */
 	public static final Type<AVPList> SIP_DIGEST_AUTHENTICATE = IMS.newIMSType("SIP-Digest-Authenticate", 
-			SIP_DIGEST_AUTHENTICATE_ORDINAL, Base.__grouped);
+			SIP_DIGEST_AUTHENTICATE_ORDINAL, Common.__grouped);
 	
 	/**
 	 * The Wildcarded-PSI AVP is of type UTF8String. This AVP contains a
@@ -820,7 +820,7 @@ public class Cx
 	 * is described in 3GPP TS 23.003 [13].
 	 */
 	public static final Type<String> WILCARDED_PSI = IMS.newIMSType("Wildcarded-PSI", 
-			WILCARDED_PSI_ORDINAL, Base.__utf8String);
+			WILCARDED_PSI_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The Public-Identity AVP is of type UTF8String. This AVP contains the
@@ -830,7 +830,7 @@ public class Cx
 	 * [8])
 	 */
 	public static final Type<String> PUBLIC_IDENTITY = IMS.newIMSType("Public-Identity", 
-			PUBLIC_IDENTITY_ORDINAL, Base.__utf8String);
+			PUBLIC_IDENTITY_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The Wildcarded-IMPU AVP is of type UTF8String. This AVP contains a
@@ -838,7 +838,7 @@ public class Cx
 	 * contents of this AVP is described in 3GPP TS 23.003 [13].
 	 */
 	public static final Type<String> WILCARDED_IMPU = IMS.newIMSType("Wildcarded-IMPU", 
-			WILCARDED_IMPU_ORDINAL, Base.__utf8String);
+			WILCARDED_IMPU_ORDINAL, Common.__utf8String);
 
 	/**
 	 * The UAR-Flags AVP is of type Unsigned32 and it contains a bit mask. The
@@ -851,14 +851,14 @@ public class Cx
 	 * I-CSCF and discarded by the receiving HSS.
 	 */
 	public static final Type<Integer> UAR_FLAGS = IMS.newIMSType("UAR-Flags", 
-			UAR_FLAGS_ORDINAL, Base.__unsigned32);
+			UAR_FLAGS_ORDINAL, Common.__unsigned32);
 	
 	/**
 	 * The Server-Name AVP is of type UTF8String. This AVP contains a SIP-URL (as defined in IETF 
 	 * RFC 3261 [3] and IETF RFC 2396 [4]), used to identify a SIP server (e.g. S-CSCF name).
 	 */
 	public static final Type<String> SERVER_NAME = IMS.newIMSType("Server-Name", 
-			SERVER_NAME_ORDINAL, Base.__utf8String);
+			SERVER_NAME_ORDINAL, Common.__utf8String);
 	
 	
 	

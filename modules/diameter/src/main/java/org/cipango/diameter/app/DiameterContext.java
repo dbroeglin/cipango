@@ -11,19 +11,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.diameter.util;
+
+package org.cipango.diameter.app;
 
 import java.io.IOException;
 
+import org.cipango.diameter.DiameterHandler;
 import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.app.DiameterListener;
 
-public class DiameterHolder implements DiameterListener
+public class DiameterContext implements DiameterHandler
 {
 	private DiameterListener _diameterListener;
 	private ClassLoader _classLoader;
 	
-	public DiameterHolder(DiameterListener diameterListener, ClassLoader classLoader)
+	public DiameterContext(DiameterListener diameterListener, ClassLoader classLoader)
 	{
 		_diameterListener = diameterListener;
 		_classLoader = classLoader;
@@ -50,7 +51,4 @@ public class DiameterHolder implements DiameterListener
 				currentThread.setContextClassLoader(oldClassLoader);
 		}
 	}
-
-
-	
 }

@@ -30,7 +30,7 @@ import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.Factory;
 import org.cipango.diameter.Peer;
 import org.cipango.diameter.ResultCode;
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.cipango.diameter.io.Codecs;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
@@ -188,18 +188,18 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					if (!message.isRequest())
 					{
 						int code;
-						int vendorId = Base.IETF_VENDOR_ID;
+						int vendorId = Common.IETF_VENDOR_ID;
 						
-						AVP<Integer> avp = message.getAVPs().get(Base.RESULT_CODE);
+						AVP<Integer> avp = message.getAVPs().get(Common.RESULT_CODE);
 						if (avp != null)
 						{
 							code = avp.getValue();
 						}
 						else
 						{
-							AVPList expRc = message.get(Base.EXPERIMENTAL_RESULT);
-							code = expRc.getValue(Base.EXPERIMENTAL_RESULT_CODE);
-							vendorId = expRc.getValue(Base.VENDOR_ID);
+							AVPList expRc = message.get(Common.EXPERIMENTAL_RESULT);
+							code = expRc.getValue(Common.EXPERIMENTAL_RESULT_CODE);
+							vendorId = expRc.getValue(Common.VENDOR_ID);
 						}
 						
 						ResultCode rc = Dictionary.getInstance().getResultCode(vendorId, code);

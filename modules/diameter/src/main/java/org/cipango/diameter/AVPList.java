@@ -18,11 +18,12 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.cipango.diameter.base.Common;
 import org.mortbay.util.LazyList;
 
 /**
  * A list of AVPs. Used for diameter messages and AVP of Grouped type.
- *
+ * @see Common#__grouped
  */
 public class AVPList extends AbstractList<AVP<?>>
 {
@@ -70,7 +71,6 @@ public class AVPList extends AbstractList<AVP<?>>
 		return _avps.size();
 	}	
 	
-	
 	@SuppressWarnings("unchecked")
 	public <T> Iterator<AVP<T>> getAVPs(Type<T> type)
 	{
@@ -83,5 +83,4 @@ public class AVPList extends AbstractList<AVP<?>>
 		}
 		return LazyList.iterator(avps);
 	}	
-
 }

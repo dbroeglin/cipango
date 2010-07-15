@@ -16,8 +16,7 @@ public class NodeTest extends TestCase
 		Peer peer = new Peer("server");
 		peer.setAddress(InetAddress.getLocalHost());
 		peer.setPort(3869);
-		client.setRouter(new Router());
-		client.getRouter().addPeer(peer);
+		client.addPeer(peer);
 		
 		Node server = new Node(3869);
 		server.setIdentity("server");

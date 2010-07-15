@@ -14,6 +14,8 @@
 
 package org.cipango.diameter;
 
+import javax.servlet.sip.SipApplicationSession;
+
 /**
  * Factory interface for Diameter abstractions. 
  * An instance this class is available to applications through the <code>org.cipango.diameter.DiameterFactory</code>
@@ -23,9 +25,21 @@ public class DiameterFactory
 {
 	private Node _node;
 	
+	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id, DiameterCommand command, String destinationRealm)
+	{
+		String suffix = "appid-" + appSession.getId();
+		DiameterSession session = _node.getSessionManager().createSession(suffix);
+		return null;
+	}
+	
+	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm)
+	{
+		return createRequest(id, command, destinationRealm, null);
+	}
+	
 	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
 	{
-		DiameterSession session = _node.getSessionManager().newSession();
+		DiameterSession session = _node.getSessionManager().createSession();
 		session.setNode(_node);
 		session.setApplicationId(id);
 		session.setDestinationRealm(destinationRealm);

@@ -19,13 +19,21 @@ import java.util.Map;
 
 public class SessionManager 
 {
+	private long _startTimestamp = ((System.currentTimeMillis() / 1000) & 0xffffffffl);
+	private long _id;
+	
 	private Node _node;
 	private Map<String, DiameterSession> _sessions = new HashMap<String, DiameterSession>();
 	
-	public DiameterSession newSession()
+	public DiameterSession createSession(String appSessionId)
 	{
-		String sessionId = _node.getIdentity() + ';' + System.currentTimeMillis();
+		String sessionId = newSessionId() + ";" + appSessionId;
 		return new DiameterSession(sessionId);
+	}
+	
+	public DiameterSession createSession()
+	{
+		return new DiameterSession(newSessionId());
 	}
 	
 	public DiameterSession getSession(String id)
@@ -34,6 +42,11 @@ public class SessionManager
 		{
 			return _sessions.get(id);
 		}
+	}
+	
+	protected synchronized String newSessionId()
+	{
+		return _node.getIdentity() + ";" + _startTimestamp + ";" + (++_id);
 	}
 	
 	public void setNode(Node node)

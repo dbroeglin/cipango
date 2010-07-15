@@ -8,7 +8,7 @@ import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.Factory;
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.cipango.diameter.util.BufferUtil;
 import org.mortbay.io.Buffer;
 
@@ -65,7 +65,7 @@ public class MessageCodec extends AbstractCodec<DiameterMessage>
 		message.setEndToEndId(getInt(buffer));
 		message.setCommand(command);
 		
-		message.setAVPList(Base.__grouped.decode(buffer));
+		message.setAVPList(Common.__grouped.decode(buffer));
 		return message;
 	}
 	
@@ -88,7 +88,7 @@ public class MessageCodec extends AbstractCodec<DiameterMessage>
 		putInt(buffer, message.getHopByHopId());
 		putInt(buffer, message.getEndToEndId());
 		
-		buffer = Base.__grouped.encode(buffer, message.getAVPs());
+		buffer = Common.__grouped.encode(buffer, message.getAVPs());
 		pokeInt(buffer, start, DIAMETER_VERSION_1 << 24 | (buffer.putIndex() - start) & 0xffffff);
 		
 		return buffer;

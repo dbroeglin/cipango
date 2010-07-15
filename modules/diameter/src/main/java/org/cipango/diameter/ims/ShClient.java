@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 
+import javax.net.SocketFactory;
+
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
 import org.cipango.diameter.ApplicationId;
@@ -13,9 +15,8 @@ import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Node;
 import org.cipango.diameter.Peer;
-import org.cipango.diameter.Router;
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.base.Base.AuthSessionState;
+import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.AuthSessionState;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.log.BasicMessageLog;
 import org.cipango.diameter.sh.data.ShDataDocument;
@@ -26,6 +27,9 @@ public class ShClient implements DiameterHandler
 {
 	public static void main(String[] args) throws Exception
 	{
+		
+		System.out.println(SocketFactory.getDefault());
+		
 		Log.getLog().setDebugEnabled(true);
 		
 		ApplicationId sh = Sh.SH_APPLICATION_ID;
@@ -45,8 +49,7 @@ public class ShClient implements DiameterHandler
 		peer.setAddress(InetAddress.getByName("192.168.2.10"));
 		peer.setPort(3869);
 		
-		node.setRouter(new Router());
-		node.getRouter().addPeer(peer);
+		node.addPeer(peer);
 		
 		node.start();
 		
@@ -58,12 +61,12 @@ public class ShClient implements DiameterHandler
 		
 		DiameterRequest request = new DiameterRequest(node, Sh.UDR, sh.getId(), "123456789");
 		
-		request.getAVPs().add(Base.DESTINATION_REALM, destinationRealm);
+		request.getAVPs().add(Common.DESTINATION_REALM, destinationRealm);
 		if (destinationHost != null)
-			request.getAVPs().add(Base.DESTINATION_HOST, destinationHost);
+			request.getAVPs().add(Common.DESTINATION_HOST, destinationHost);
 		
 		request.getAVPs().add(sh.getAVP());
-		request.getAVPs().add(Base.AUTH_SESSION_STATE, AuthSessionState.NO_STATE_MAINTAINED);
+		request.getAVPs().add(Common.AUTH_SESSION_STATE, AuthSessionState.NO_STATE_MAINTAINED);
 		
 		AVP<AVPList> userIdentity = new AVP<AVPList>(Sh.USER_IDENTITY, new AVPList());
 		userIdentity.getValue().add(Cx.PUBLIC_IDENTITY, "sip:thomas@cipango.org");

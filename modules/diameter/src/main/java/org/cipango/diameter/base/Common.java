@@ -37,9 +37,11 @@ import org.mortbay.util.Utf8StringBuffer;
 import static org.cipango.diameter.Factory.*;
 
 /**
- * Defines all data formats, commands and AVPs specified in Diameter Base (RFC3588).
+ * Defines all data formats, commands and AVPs specified in Diameter Base.
+ * 
+ * @see <a href="http://www.rfc-editor.org/rfc/rfc3588.txt">RFC 3588</a>
  */
-public abstract class Base// extends Factory
+public abstract class Common
 {	
 	public static final int IETF_VENDOR_ID = 0;
 
@@ -190,26 +192,33 @@ public abstract class Base// extends Factory
 	public static class EnumDataFormat<E extends Enum<E>> extends DataFormat<E>
 	{
 		private E[] enums;
+		private int _offset;
 		
 		@SuppressWarnings("unchecked")
 		public EnumDataFormat(Class<E> clazz)
 		{
 			super("Enumerated " + clazz.getSimpleName());
 			EnumSet<E> values = EnumSet.allOf(clazz);
-			System.out.println(values);
+			//System.out.println(values);
 			enums = (E[]) Array.newInstance(clazz, values.size());
 			values.toArray(enums);
+		}
+		
+		public EnumDataFormat(Class<E> clazz, int offset)
+		{
+			this(clazz);
+			_offset = offset;
 		}
 		
 		public E decode(Buffer buffer) throws IOException
 		{
 			int i = __unsigned32.decode(buffer);
-			return enums[i];
+			return enums[i-_offset];
 		}
 		
 		public Buffer encode(Buffer buffer, E value) throws IOException
 		{
-			return __unsigned32.encode(buffer, value.ordinal());
+			return __unsigned32.encode(buffer, value.ordinal() + _offset);
 		}
 	}
 	
@@ -222,7 +231,6 @@ public abstract class Base// extends Factory
 	{
 		private Map<Integer, E> enums = new HashMap<Integer, E>();
 		
-		@SuppressWarnings("unchecked")
 		public CustomEnumDataFormat(Class<E> clazz)
 		{
 			super("Enumerated " + clazz.getSimpleName());
@@ -236,13 +244,13 @@ public abstract class Base// extends Factory
 		
 		public E decode(Buffer buffer) throws IOException
 		{
-			int i = Base.__unsigned32.decode(buffer);
+			int i = Common.__unsigned32.decode(buffer);
 			return enums.get(i);
 		}
 		
 		public Buffer encode(Buffer buffer, E value) throws IOException
 		{
-			return Base.__unsigned32.encode(buffer, value.getValue());
+			return Common.__unsigned32.encode(buffer, value.getValue());
 		}
 	}
 	
@@ -269,6 +277,11 @@ public abstract class Base// extends Factory
 	public static Type<Date> newDateType(String name, int code)
 	{
 		return newType(name, code, __date);
+	}
+	
+	public static Type<byte[]> newOctetStringType(String name, int code)
+	{
+		return newType(name, code, __octetString);
 	}
 	
 	public static <T extends Enum<T>> Type<T> newEnumType(String name,
@@ -801,7 +814,8 @@ public abstract class Base// extends Factory
      * transmitting Diameter messages.
      * 
      * Message Format 
-     * 
+     * <pre>
+     * {@code
      *  <CEA> ::= < Diameter Header: 257 >
      *          { Result-Code }
      *          { Origin-Host }
@@ -819,6 +833,8 @@ public abstract class Base// extends Factory
      *        * [ Vendor-Specific-Application-Id ]
      *          [ Firmware-Revision ]
      *        * [ AVP ]
+     *  }
+     *  </pre>
 	 */
 	public static final DiameterCommand CEA = newAnswer(CEA_ORDINAL, "Capabilities-Exchange-Answer");
 	
@@ -830,9 +846,9 @@ public abstract class Base// extends Factory
      * 		[ Origin-State-Id ] 
      * } </pre>
      * 
-     * @see Base#ORIGIN_HOST
-     * @see Base#ORIGIN_REALM
-     * @see Base#ORIGIN_STATE_ID
+     * @see Common#ORIGIN_HOST
+     * @see Common#ORIGIN_REALM
+     * @see Common#ORIGIN_STATE_ID
      */
 	public static final DiameterCommand DWR = newRequest(DWR_ORDINAL, "Device-Watchdog-Request");
 	
@@ -1003,15 +1019,13 @@ public abstract class Base// extends Factory
 	 * response. When set, the Redirect-Host AVP MUST be present.
 	 */
 	public static final ResultCode DIAMETER_REDIRECT_INDICATION = newResultCode(
-			DIAMETER_REDIRECT_INDICATION_ORDINAL,
-			"DIAMETER_REDIRECT_INDICATION");
+			DIAMETER_REDIRECT_INDICATION_ORDINAL, "DIAMETER_REDIRECT_INDICATION");
 
 	/**
 	 * A request was sent for an application that is not supported.
 	 */
 	public static final ResultCode DIAMETER_APPLICATION_UNSUPPORTED = newResultCode(
-			DIAMETER_APPLICATION_UNSUPPORTED_ORDINAL,
-			"DIAMETER_APPLICATION_UNSUPPORTED");
+			DIAMETER_APPLICATION_UNSUPPORTED_ORDINAL, "DIAMETER_APPLICATION_UNSUPPORTED");
 
 	/**
 	 * A request was received whose bits in the Diameter header were either set
@@ -1043,8 +1057,7 @@ public abstract class Base// extends Factory
 	 * after prompting the user for a new password.
 	 */
 	public static final ResultCode DIAMETER_AUTHENTICATION_REJECTED = newResultCode(
-			DIAMETER_AUTHENTICATION_REJECTED_ORDINAL,
-			"DIAMETER_AUTHENTICATION_REJECTED");
+			DIAMETER_AUTHENTICATION_REJECTED_ORDINAL, "DIAMETER_AUTHENTICATION_REJECTED");
 
 	/**
 	 * A Diameter node received the accounting request but was unable to commit
@@ -1136,24 +1149,21 @@ public abstract class Base// extends Factory
 	 * exceeded the maximum number of occurrences
 	 */
 	public static final ResultCode DIAMETER_AVP_OCCURS_TOO_MANY_TIMES = newResultCode(
-			DIAMETER_AVP_OCCURS_TOO_MANY_TIMES_ORDINAL,
-			"DIAMETER_AVP_OCCURS_TOO_MANY_TIMES");
+			DIAMETER_AVP_OCCURS_TOO_MANY_TIMES_ORDINAL, "DIAMETER_AVP_OCCURS_TOO_MANY_TIMES");
 
 	/**
 	 * This error is returned when a CER message is received, and there are no
 	 * common applications supported between the peers.
 	 */
 	public static final ResultCode DIAMETER_NO_COMMON_APPLICATION = newResultCode(
-			DIAMETER_NO_COMMON_APPLICATION_ORDINAL,
-			"DIAMETER_NO_COMMON_APPLICATION");
+			DIAMETER_NO_COMMON_APPLICATION_ORDINAL, "DIAMETER_NO_COMMON_APPLICATION");
 
 	/**
 	 * This error is returned when a request was received, whose version number
 	 * is unsupported.
 	 */
 	public static final ResultCode DIAMETER_UNSUPPORTED_VERSION = newResultCode(
-			DIAMETER_UNSUPPORTED_VERSION_ORDINAL,
-			"DIAMETER_UNSUPPORTED_VERSION");
+			DIAMETER_UNSUPPORTED_VERSION_ORDINAL, "DIAMETER_UNSUPPORTED_VERSION");
 	
 	/**
 	 * This error is returned when a request is rejected for unspecified
@@ -1167,8 +1177,7 @@ public abstract class Base// extends Factory
 	 * set to one (1).
 	 */
 	public static final ResultCode DIAMETER_INVALID_BIT_IN_HEADER = newResultCode(
-			DIAMETER_INVALID_BIT_IN_HEADER_ORDINAL,
-			"DIAMETER_INVALID_BIT_IN_HEADER");
+			DIAMETER_INVALID_BIT_IN_HEADER_ORDINAL, "DIAMETER_INVALID_BIT_IN_HEADER");
 
 	/**
 	 * The request contained an AVP with an invalid length. A Diameter message
@@ -1183,8 +1192,7 @@ public abstract class Base// extends Factory
 	 * length.
 	 */
 	public static final ResultCode DIAMETER_INVALID_MESSAGE_LENGTH = newResultCode(
-			DIAMETER_INVALID_MESSAGE_LENGTH_ORDINAL,
-			"DIAMETER_INVALID_MESSAGE_LENGTH");
+			DIAMETER_INVALID_MESSAGE_LENGTH_ORDINAL, "DIAMETER_INVALID_MESSAGE_LENGTH");
 
 	/**
 	 * The request contained an AVP with which is not allowed to have the given
@@ -1192,8 +1200,7 @@ public abstract class Base// extends Factory
 	 * MUST include the offending AVPs within a Failed-AVP AVP.
 	 */
 	public static final ResultCode DIAMETER_INVALID_AVP_BIT_COMBO = newResultCode(
-			DIAMETER_INVALID_AVP_BIT_COMBO_ORDINAL,
-			"DIAMETER_INVALID_AVP_BIT_COMBO");
+			DIAMETER_INVALID_AVP_BIT_COMBO_ORDINAL, "DIAMETER_INVALID_AVP_BIT_COMBO");
 
 	/**
 	 * This error is returned when a CER message is received, and there are no
@@ -1203,5 +1210,4 @@ public abstract class Base// extends Factory
 	 */
 	public static final ResultCode DIAMETER_NO_COMMON_SECURITY = newResultCode(
 			DIAMETER_NO_COMMON_SECURITY_ORDINAL, "DIAMETER_NO_COMMON_SECURITY");
-		
 }

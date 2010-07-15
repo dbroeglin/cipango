@@ -20,10 +20,15 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.cipango.diameter.util.CommandUtil;
+import org.cipango.diameter.util.DiameterVisitor;
+import org.cipango.diameter.util.Visitable;
 
-public abstract class DiameterMessage
+/**
+ * Base class for diameter requests and answers.
+ */
+public abstract class DiameterMessage implements Visitable
 {
 	protected DiameterCommand _command;
 	
@@ -66,9 +71,9 @@ public abstract class DiameterMessage
 		_avps = new AVPList();
 		
 		if (sessionId != null)
-			_avps.add(Base.SESSION_ID, sessionId);
-		_avps.add(Base.ORIGIN_HOST, node.getIdentity());
-		_avps.add(Base.ORIGIN_REALM, node.getRealm());
+			_avps.add(Common.SESSION_ID, sessionId);
+		_avps.add(Common.ORIGIN_HOST, node.getIdentity());
+		_avps.add(Common.ORIGIN_REALM, node.getRealm());
 	}
 	
 	public DiameterMessage(DiameterMessage message)
@@ -143,17 +148,17 @@ public abstract class DiameterMessage
 	
 	public String getOriginHost()
 	{
-		return get(Base.ORIGIN_HOST);
+		return get(Common.ORIGIN_HOST);
 	}
 	
 	public String getOriginRealm()
 	{
-		return get(Base.ORIGIN_REALM);
+		return get(Common.ORIGIN_REALM);
 	}
 	
 	public String getSessionId()
 	{
-		return get(Base.SESSION_ID);
+		return get(Common.SESSION_ID);
 	}
 	
 	public int size()
@@ -184,9 +189,19 @@ public abstract class DiameterMessage
 	public abstract boolean isRequest();
 	public abstract void send() throws IOException;
 	
+	public void accept(DiameterVisitor visitor)
+	{
+		visitor.visit(this);
+		
+		for (AVP<?> avp : _avps)
+		{
+			avp.accept(visitor);
+		}
+	}
+	
 	public String toString()
 	{
-		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command + " : " + _avps;
+		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command;
 	}
 	
 	public Object getAttribute(String name) 

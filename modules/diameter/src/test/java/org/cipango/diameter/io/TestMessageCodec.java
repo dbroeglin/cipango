@@ -8,9 +8,10 @@ import org.cipango.diameter.AVPList;
 import org.cipango.diameter.DiameterAnswer;
 import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.Dictionary;
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
+import org.cipango.diameter.util.PrettyPrinter;
 import org.mortbay.io.Buffer;
 import org.mortbay.io.ByteArrayBuffer;
 
@@ -20,7 +21,7 @@ public class TestMessageCodec extends TestCase
 {
 	protected void setUp()
 	{
-		Dictionary.getInstance().load(Base.class);
+		Dictionary.getInstance().load(Common.class);
 		Dictionary.getInstance().load(IMS.class);
 		Dictionary.getInstance().load(Cx.class);
 		Dictionary.getInstance().load(IMS.class);
@@ -43,12 +44,12 @@ public class TestMessageCodec extends TestCase
 
 		assertTrue(message.isRequest());
 		assertEquals(Cx.SAR, message.getCommand());
-		assertEquals("scscf1.home1.net", message.get(Base.ORIGIN_HOST));
-		assertEquals("home1.net", message.get(Base.ORIGIN_REALM));
+		assertEquals("scscf1.home1.net", message.get(Common.ORIGIN_HOST));
+		assertEquals("home1.net", message.get(Common.ORIGIN_REALM));
 		
-		AVPList vsai = message.get(Base.VENDOR_SPECIFIC_APPLICATION_ID);
-		assertEquals(IMS.IMS_VENDOR_ID, (int) vsai.getValue(Base.VENDOR_ID));
-		assertEquals(Cx.CX_APPLICATION_ID.getId(), (int) vsai.getValue(Base.AUTH_APPLICATION_ID));	
+		AVPList vsai = message.get(Common.VENDOR_SPECIFIC_APPLICATION_ID);
+		assertEquals(IMS.IMS_VENDOR_ID, (int) vsai.getValue(Common.VENDOR_ID));
+		assertEquals(Cx.CX_APPLICATION_ID.getId(), (int) vsai.getValue(Common.AUTH_APPLICATION_ID));	
 	}
 	
 	public void testDecodeLIA() throws Exception
@@ -60,14 +61,21 @@ public class TestMessageCodec extends TestCase
 	public void testEncodeCEA() throws Exception
 	{
 		DiameterAnswer answer = new DiameterAnswer();
-		answer.setCommand(Base.CEA);
+		answer.setCommand(Common.CEA);
 		answer.setAVPList(new AVPList());
-		answer.setResultCode(Base.DIAMETER_SUCCESS);
+		answer.setResultCode(Common.DIAMETER_SUCCESS);
 		
 		Buffer buffer = new ByteArrayBuffer(512);
 		DiameterMessage message = Codecs.__message.decode(Codecs.__message.encode(buffer, answer));
 		assertFalse(message.isRequest());
-		assertEquals(Base.CEA, message.getCommand());
+		assertEquals(Common.CEA, message.getCommand());
+	}
+	
+	
+	public void testCER() throws Exception
+	{
+		DiameterMessage message = Codecs.__message.decode(load("cer.dat"));
+		System.out.println(message.getAVPs());
 	}
 	
 	/*

@@ -14,7 +14,10 @@
 
 package org.cipango.diameter;
 
-public class AVP<T>
+import org.cipango.diameter.util.DiameterVisitor;
+import org.cipango.diameter.util.Visitable;
+
+public class AVP<T> implements Visitable
 {
 	public Type<T> _type;
 	public T _value;
@@ -45,52 +48,23 @@ public class AVP<T>
 		return _value;
 	}
 	
+	public void accept(DiameterVisitor visitor)
+	{
+		if (_value instanceof AVPList)
+		{
+			visitor.visitEnter((AVP<AVPList>) this);
+			for (AVP<?> avp : (AVPList) _value)
+			{
+				avp.accept(visitor);
+			}
+			visitor.visitLeave((AVP<AVPList>) this);
+		}
+		else
+			visitor.visit(this);
+	}
+	
 	public String toString()
 	{
 		return _type + " = " + _value;
 	}
-/*	
-	public InetAddress getAddress()
-	{
-		int type = (_buffer.peek() & 0xff) << 8 | (_buffer.peek(_buffer.getIndex() + 1) & 0xff);
-		byte[] addr;
-		switch (type)
-		{
-		case TYPE_IPV4:
-			addr = new byte[4];
-			break;
-		case TYPE_IPV6:
-			addr = new byte[16];
-			break;
-		default:
-			return null;
-		}
-		_buffer.peek(_buffer.getIndex() + 2, addr, 0, addr.length);
-		try
-		{
-			return InetAddress.getByAddress(addr);
-		}
-		catch (UnknownHostException e)
-		{
-			return null;
-		}
-	}
-	*/
-	
-	/*
-	public static AVP ofAddress(int vendorId, int code, InetAddress address)
-	{
-		
-		Buffer buffer;
-		if (address instanceof Inet4Address)
-			buffer = new ByteArrayBuffer(6);
-		else
-			buffer = new ByteArrayBuffer(18);
-		buffer.put((byte) 0);
-		buffer.put((byte) (address instanceof Inet4Address ? TYPE_IPV4 : TYPE_IPV6));
-		buffer.put(address.getAddress());
-		
-		return new AVP(vendorId, code, buffer);
-	}
-	*/
 }

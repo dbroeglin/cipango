@@ -14,7 +14,7 @@
 
 package org.cipango.diameter;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
 public class ResultCode 
 {
@@ -70,11 +70,11 @@ public class ResultCode
 	}
 	
 	/**
-	 * Returns <code>true</code> if the AVP is an {@link Base#EXPERIMENTAL_RESULT_CODE}.
+	 * Returns <code>true</code> if the AVP is an {@link Common#EXPERIMENTAL_RESULT_CODE}.
 	 */
 	public boolean isExperimentalResultCode()
 	{
-		return _vendorId != Base.IETF_VENDOR_ID;
+		return _vendorId != Common.IETF_VENDOR_ID;
 	}
 	
 	@Override
@@ -90,14 +90,14 @@ public class ResultCode
 	
 	public AVP<?> getAVP()
 	{
-		if (_vendorId == Base.IETF_VENDOR_ID)
-			return new AVP<Integer>(Base.RESULT_CODE, _code);
+		if (_vendorId == Common.IETF_VENDOR_ID)
+			return new AVP<Integer>(Common.RESULT_CODE, _code);
 		else
 		{
 			AVPList expRc = new AVPList();
-			expRc.add(Base.EXPERIMENTAL_RESULT_CODE, _code);
-			expRc.add(Base.VENDOR_ID, _vendorId);
-			return new AVP<AVPList>(Base.EXPERIMENTAL_RESULT, expRc);
+			expRc.add(Common.EXPERIMENTAL_RESULT_CODE, _code);
+			expRc.add(Common.VENDOR_ID, _vendorId);
+			return new AVP<AVPList>(Common.EXPERIMENTAL_RESULT, expRc);
 		}
 	}
 }

@@ -19,8 +19,8 @@ import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.ResultCode;
 import org.cipango.diameter.Type;
-import org.cipango.diameter.base.Base;
-import org.cipango.diameter.base.Base.EnumDataFormat;
+import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.EnumDataFormat;
 
 /**
  * Zh and Zn is defined in
@@ -29,11 +29,10 @@ import org.cipango.diameter.base.Base.EnumDataFormat;
  *      Zh and Zn Interfaces based on the Diameter protocol;</li>
  * </ul>
  *  
- * @see http://www.3gpp.org/ftp/Specs/html-info/29109.htm
+ * @see <a href="http://www.3gpp.org/ftp/Specs/html-info/29109.htm">TS 29.109</a>
  */
 public class Zh
 {
-
 	public static final int ZH_APPLICATION = 16777221;
 	public static final int ZN_APPLICATION = 16777220;
 
@@ -169,14 +168,14 @@ public class Zh
 	 * element for the Zn interface. The XML schema is defined in annex A.
 	 */
 	public static final Type<String> GBA_USER_SEC_SETTINGS = IMS.newIMSType(
-			"GBA-UserSecSettings", GBA_USER_SEC_SETTINGS_ORDINAL, Base.__utf8String);
+			"GBA-UserSecSettings", GBA_USER_SEC_SETTINGS_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The Transaction-Identifier AVP (AVP code 401) is of type OctetString.
 	 * This AVP contains the Bootstrapping Transaction Identifier (B-TID).
 	 */
 	public static final Type<String> TRANSACTION_IDENTIFIER = IMS.newIMSType(
-			"Transaction-Identifier", TRANSACTION_IDENTIFIER_ORDINAL, Base.__utf8String);
+			"Transaction-Identifier", TRANSACTION_IDENTIFIER_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The NAF-Id AVP (AVP code 402) is of type OctetString. This AVP contains
@@ -186,7 +185,7 @@ public class Zh
 	 * a different domain name that with which the BSF knows the NAF.
 	 */
 	public static final Type<String> NAF_ID = IMS.newIMSType(
-			"NAF-Id", NAF_ID_ORDINAL, Base.__utf8String);
+			"NAF-Id", NAF_ID_ORDINAL, Common.__utf8String);
 
 	/**
 	 * The GAA-Service-identifier AVP (AVP code 403) is of type OctedString.
@@ -207,14 +206,14 @@ public class Zh
 	 * services.
 	 */
 	public static final Type<String> GAA_SERVICE_IDENTIFIER = IMS.newIMSType(
-			"GAA-Service-identifier", GAA_SERVICE_IDENTIFIER_ORDINAL, Base.__utf8String);
+			"GAA-Service-identifier", GAA_SERVICE_IDENTIFIER_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The Key-ExpiryTime AVP (AVP code 404) is of type Time. This AVP informs
 	 * the NAF about the expiry time of the key.
 	 */
 	public static final Type<Date> KEY_EXPIRY_TIME = IMS.newIMSType(
-			"Key-ExpiryTime", KEY_EXPIRY_TIME_ORDINAL, Base.__date);
+			"Key-ExpiryTime", KEY_EXPIRY_TIME_ORDINAL, Common.__date);
 	
 	/**
 	 * The required ME-Key-Material AVP (AVP code 405) is of type OctetString.
@@ -222,7 +221,7 @@ public class Zh
 	 * Ks_ext_NAF in the case of GBA_U) with the Mobile Equipment (ME).
 	 */
 	public static final Type<String> ME_KEY_MATERIAL = IMS.newIMSType(
-			"ME-Key-Material", ME_KEY_MATERIAL_ORDINAL, Base.__utf8String);
+			"ME-Key-Material", ME_KEY_MATERIAL_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The condition UICC-Key-Material AVP (AVP code 406) is of type
@@ -231,7 +230,7 @@ public class Zh
 	 * Only some GAA applications use this conditional AVP.
 	 */
 	public static final Type<String> UICC_KEY_MATERIAL = IMS.newIMSType(
-			"UICC-Key-Material", UICC_KEY_MATERIAL_ORDINAL, Base.__utf8String);
+			"UICC-Key-Material", UICC_KEY_MATERIAL_ORDINAL, Common.__utf8String);
 	
 	public static enum GbaUAwarenessIndicator
 	{
@@ -263,7 +262,7 @@ public class Zh
 	 * AVP informs the NAF about the bootstrapinfo creation time of the key.
 	 */
 	public static final Type<Date> BOOTSTRAP_INFO_CREATION_TIME = IMS.newIMSType(
-			"BootstrapInfoCreationTime", BOOTSTRAP_INFO_CREATION_TIME_ORDINAL, Base.__date);
+			"BootstrapInfoCreationTime", BOOTSTRAP_INFO_CREATION_TIME_ORDINAL, Common.__date);
 	
 	/**
 	 * The GUSS-Timestamp AVP (AVP code 409) is of type Time. If transmitted
@@ -271,7 +270,7 @@ public class Zh
 	 * BSF.
 	 */
 	public static final Type<Date> GUSS_TIMESTAMP = IMS.newIMSType(
-			"GUSS-Timestamp", GUSS_TIMESTAMP_ORDINAL, Base.__date);
+			"GUSS-Timestamp", GUSS_TIMESTAMP_ORDINAL, Common.__date);
 	
 	
 	public enum GbaType
@@ -303,7 +302,7 @@ public class Zh
 	 * The UE-Id AVP (AVP code 411) is of type OctedString. The AVP informs the BSF the identity of the user. 
 	 */
 	public static final Type<String> UE_ID = IMS.newIMSType(
-			"UE-Id", UE_ID_ORDINAL, Base.__utf8String);
+			"UE-Id", UE_ID_ORDINAL, Common.__utf8String);
 	
 	public enum UeIdType
 	{
@@ -327,7 +326,7 @@ public class Zh
 	 * informs the BSF the UICC application to be used for GBA push.
 	 */
 	public static final Type<String> UICC_APP_LABEL = IMS.newIMSType(
-			"UICC-App-Label", UICC_APP_LABEL_ORDINAL, Base.__utf8String);
+			"UICC-App-Label", UICC_APP_LABEL_ORDINAL, Common.__utf8String);
 	
 	public enum UiccMe
 	{
@@ -357,7 +356,7 @@ public class Zh
 	 * informs the BSF about the requested lifetime for the NAF keys.
 	 */
 	public static final Type<Date> REQUESTED_KEY_LIFETIME = IMS.newIMSType(
-			"Requested-Key-Lifetime", REQUESTED_KEY_LIFETIME_ORDINAL, Base.__date);
+			"Requested-Key-Lifetime", REQUESTED_KEY_LIFETIME_ORDINAL, Common.__date);
 	
 	public enum PrivateIdentityRequest
 	{
@@ -381,13 +380,13 @@ public class Zh
 	 * includes the GBA-Push-Info as defined in 3GPP TS 33.223 [23].
 	 */
 	public static final Type<String> GBA_PUSH_INFO = IMS.newIMSType(
-			"GBA-Push-Info", GBA_PUSH_INFO_ORDINAL, Base.__utf8String);
+			"GBA-Push-Info", GBA_PUSH_INFO_ORDINAL, Common.__utf8String);
 	
 	/**
 	 * The NAF-SA-Identifier AVP (AVP code 418) is of type OctetString. The AVP
 	 * contains the NAF-SA-Identifier (P-TID). See 3GPP TS 33.223 [23].
 	 */
 	public static final Type<String> NAF_SA_IDENTIFIER = IMS.newIMSType(
-			"NAF-SA-Identifier", NAF_SA_IDENTIFIER_ORDINAL, Base.__utf8String);
+			"NAF-SA-Identifier", NAF_SA_IDENTIFIER_ORDINAL, Common.__utf8String);
 	
 }

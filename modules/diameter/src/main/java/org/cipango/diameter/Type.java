@@ -1,6 +1,6 @@
 package org.cipango.diameter;
 
-import org.cipango.diameter.base.Base;
+import org.cipango.diameter.base.Common;
 
 /**
  * AVP type. It contains the AVP name, vendorId, code and AVP data format.
@@ -29,7 +29,7 @@ public class Type<T>
 	
 	public boolean isVendorSpecific()
 	{
-		return _vendorId != Base.IETF_VENDOR_ID;
+		return _vendorId != Common.IETF_VENDOR_ID;
 	}
 	
 	public int getCode()

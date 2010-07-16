@@ -60,7 +60,7 @@
   <dependencies>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-xml</artifactId>
+      <artifactId>jetty-jmx</artifactId>
     </dependency>
     <dependency>
       <groupId>org.cipango</groupId>

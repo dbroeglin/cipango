@@ -36,8 +36,7 @@
                     <include name="etc/sipdefault.xml"/>
                     <include name="*-CIPANGO.txt"/>
                     <include name="start-cipango.ini"/>
-                    <include name="lib/sip-api*.jar"/>
-                    <include name="lib/cipango-*.jar"/>
+                    <include name="lib/sip"/>
                     <include name="lib/ext/cipango-*.jar"/>
                   </fileset>
                 </delete>
@@ -116,11 +115,11 @@
             </goals>
             <configuration>
               <artifactItems>
-                <!-- artifactItem>
+                <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
                   <classifier>config</classifier>
-                </artifactItem -->
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-dar</artifactId>
@@ -133,14 +132,19 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
+                  <artifactId>cipango-diameter</artifactId>
+                  <classifier>config</classifier>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cipango</groupId>
                   <artifactId>cipango-jmx</artifactId>
                   <classifier>config</classifier>
                 </artifactItem>
-                <!-- artifactItem>
+                <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-plus</artifactId>
                   <classifier>config</classifier>
-                </artifactItem -->
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-server</artifactId>
@@ -160,10 +164,10 @@
             </goals>
             <configuration>
               <artifactItems>
-                <!-- artifactItem>
+                <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
-                </artifactItem -->
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-dar</artifactId>
@@ -175,12 +179,17 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
+                  <artifactId>cipango-diameter</artifactId>
+                  <outputDirectory>${assembly-directory}/lib/diameter</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cipango</groupId>
                   <artifactId>cipango-jmx</artifactId>
                 </artifactItem>
-                <!-- artifactItem>
+                <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-plus</artifactId>
-                </artifactItem -->
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-server</artifactId>
@@ -189,8 +198,26 @@
                   <groupId>javax.servlet</groupId>
                   <artifactId>sip-api</artifactId>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>org.apache.geronimo.specs</groupId>
+                  <artifactId>geronimo-annotation_1.0_spec</artifactId>
+                  <version>1.1.1</version>
+                  <outputDirectory>${assembly-directory}/lib/annotations</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>asm</groupId>
+                  <artifactId>asm-commons</artifactId>
+                  <version>3.1</version>
+                  <outputDirectory>${assembly-directory}/lib/annotations</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>asm</groupId>
+                  <artifactId>asm</artifactId>
+                  <version>3.1</version>
+                  <outputDirectory>${assembly-directory}/lib/annotations</outputDirectory>
+                </artifactItem>
               </artifactItems>
-              <outputDirectory>${assembly-directory}/lib</outputDirectory>
+              <outputDirectory>${assembly-directory}/lib/sip</outputDirectory>
               <overWriteReleases>true</overWriteReleases>
               <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
@@ -219,11 +246,11 @@
     </plugins>
   </build>
   <dependencies>
-    <!-- dependency>
+    <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-annotations</artifactId>
       <version>${project.version}</version>
-    </dependency -->
+    </dependency>
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-dar</artifactId>
@@ -236,14 +263,19 @@
     </dependency>
     <dependency>
       <groupId>org.cipango</groupId>
+      <artifactId>cipango-diameter</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
       <artifactId>cipango-jmx</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- dependency>
+    <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-plus</artifactId>
       <version>${project.version}</version>
-    </dependency -->
+    </dependency>
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>cipango-server</artifactId>

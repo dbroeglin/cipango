@@ -24,7 +24,6 @@ import org.cipango.sipapp.SipXmlProcessor;
 import org.cipango.sipapp.SipXmlProcessor.Descriptor;
 import org.eclipse.jetty.plus.annotation.InjectionCollection;
 import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
-import org.eclipse.jetty.plus.servlet.ServletHandler;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -48,6 +47,7 @@ public class Configuration extends org.cipango.plus.webapp.Configuration
     public void configure (WebAppContext context)
     throws Exception
     {
+        bindSipResources((SipAppContext) context);
         bindUserTransaction(context);
         
         SipXmlProcessor sipXmlProcessor = (SipXmlProcessor)context.getAttribute(SipXmlProcessor.SIP_PROCESSOR); 
@@ -72,7 +72,6 @@ public class Configuration extends org.cipango.plus.webapp.Configuration
         //also callback any postConstruct lifecycle methods
         injectAndCallPostConstructCallbacks(context);
         
-        bindSipResources((SipAppContext) context);
     }
 	
 	public void bindSipResources(SipAppContext appContext) throws Exception

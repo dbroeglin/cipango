@@ -13,7 +13,6 @@
     <servlet.version>2.5-20081211</servlet.version>
     <sip-api.version>1.1</sip-api.version>
     <junit.version>3.8</junit.version>
-    <asm.version>3.1</asm.version>
   </properties>
   <build>
     <plugins>
@@ -96,6 +95,7 @@
     <module>cipango-deploy</module>
     <module>cipango-plus</module>
     <module>cipango-annotations</module>
+    <module>cipango-diameter</module>
     <module>cipango-distribution</module>
   </modules>
 <!--  <modules>
@@ -182,21 +182,6 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>asm</groupId>
-        <artifactId>asm-commons</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>asm</groupId>
-        <artifactId>asm</artifactId>
-        <version>${asm.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.geronimo.specs</groupId>
-        <artifactId>geronimo-annotation_1.0_spec</artifactId>
-        <version>1.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

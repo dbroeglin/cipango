@@ -13,6 +13,7 @@
 // ========================================================================
 package org.cipango.annotations;
 
+import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 
@@ -105,8 +106,10 @@ public class AnnotedServletTest extends TestCase
 				fail("Unexpected name: " + name);
 		}
         
-        
-        
+        _processor.initListeners();
+        EventListener[] listeners = _processor.getListeners();
+        assertEquals(1, listeners.length);
+        assertEquals(AnnotedServlet.class, listeners[0].getClass());
 	}
 
 	

@@ -486,6 +486,11 @@ public class SipXmlProcessor
 		}
 	}
 	
+	public EventListener[] getListeners()
+	{
+		return (EventListener[]) LazyList.toArray(_listeners, EventListener.class);
+	}
+	
 	public void initServletSelection(XmlParser.Node node)
 	{
 		XmlParser.Node mainServlet = node.get("main-servlet");

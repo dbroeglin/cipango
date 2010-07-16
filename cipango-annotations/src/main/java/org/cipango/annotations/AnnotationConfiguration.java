@@ -13,6 +13,8 @@
 // ========================================================================
 package org.cipango.annotations;
 
+import java.util.EventListener;
+
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AbstractConfiguration;
@@ -22,6 +24,7 @@ import org.eclipse.jetty.annotations.PostConstructAnnotationHandler;
 import org.eclipse.jetty.annotations.PreDestroyAnnotationHandler;
 import org.eclipse.jetty.annotations.ResourcesAnnotationHandler;
 import org.eclipse.jetty.annotations.RunAsAnnotationHandler;
+import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -72,6 +75,7 @@ public class AnnotationConfiguration extends AbstractConfiguration
        
         resourceAnnotationHandler.normalizeSipInjections();
         sipXmlProcessor.initListeners();
+        sac.setEventListeners(sipXmlProcessor.getListeners());
     }
     
     public void deconfigure(WebAppContext context) throws Exception

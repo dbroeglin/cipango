@@ -180,16 +180,7 @@ public class SessionManager extends AbstractLifeCycle
         	}
         	if (callSession.isDone())
         	{
-        		if (Log.isDebugEnabled())
-        			Log.debug("CallSession " + callSession.getId() + " is done.");
-        		
-        		synchronized (_callSessions)
-            	{
-            		_callSessions.remove(callSession.getId());
-            	}
-        		int nbCalls = getCalls();
-        		if (nbCalls < _minCalls)
-					_minCalls = nbCalls;
+        		removeSession(callSession);
         	}
         	else
         	{
@@ -197,6 +188,20 @@ public class SessionManager extends AbstractLifeCycle
         	}
     	}
     	callSession._lock.unlock();
+    }
+    
+    protected void removeSession(CSession callSession)
+    {
+    	if (Log.isDebugEnabled())
+			Log.debug("CallSession " + callSession.getId() + " is done.");
+		
+		synchronized (_callSessions)
+    	{
+    		_callSessions.remove(callSession.getId());
+    	}
+		int nbCalls = getCalls();
+		if (nbCalls < _minCalls)
+			_minCalls = nbCalls;
     }
     
     protected CSession newCall(String id)
@@ -705,6 +710,11 @@ public class SessionManager extends AbstractLifeCycle
     	{
     		if (!_lock.isHeldByCurrentThread())
     			throw new IllegalStateException("CallSession " + _id + " is not locked by thread " + Thread.currentThread());
+    	}
+    	
+    	protected ReentrantLock getLock()
+    	{
+    		return _lock;
     	}
 
     	@SuppressWarnings("unchecked")

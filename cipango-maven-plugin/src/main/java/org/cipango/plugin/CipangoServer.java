@@ -15,24 +15,18 @@
 
 package org.cipango.plugin;
 
-import org.cipango.handler.SipContextHandlerCollection;
-import org.cipango.log.AccessLog;
-import org.cipango.log.FileMessageLog;
-import org.cipango.sip.AbstractSipConnector;
-import org.cipango.sip.SipConnector;
-import org.cipango.sip.TcpConnector;
-import org.cipango.sip.UdpConnector;
-import org.mortbay.jetty.plugin.util.PluginLog;
+import org.cipango.server.AbstractSipConnector;
+import org.cipango.server.SipConnector;
+import org.cipango.server.bio.TcpConnector;
+import org.cipango.server.bio.UdpConnector;
+import org.cipango.server.handler.SipContextHandlerCollection;
+import org.cipango.server.log.AccessLog;
+import org.cipango.server.log.FileMessageLog;
+import org.mortbay.jetty.plugin.PluginLog;
 
 
 
-/**
- * Jetty6PluginServer
- * 
- * Jetty6 version of a wrapper for the Server class.
- * 
- */
-public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer implements CipangoPluginServerIf
+public class CipangoServer extends org.cipango.plugin.JettyServer
 {
 
 	public static int DEFAULT_SIP_PORT = 5060;
@@ -56,7 +50,7 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
 
 	public SipConnector[] getSipConnectors()
 	{
-		return server.getConnectorManager().getConnectors();
+		return getConnectorManager().getConnectors();
 	}
 
 	public void setSipConnectors(SipConnector[] connectors) throws Exception
@@ -68,14 +62,13 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
         {
             PluginLog.getLog().debug("Setting SIP Connector: " + connectors[i].getClass().getName()
             		+ " on port "+connectors[i].getPort());
-            server.getConnectorManager().addConnector(connectors[i]);
+            getConnectorManager().addConnector(connectors[i]);
         }
 	} 
 	
 	public void configureHandlers () throws Exception 
 	{
-		this.contexts = new SipContextHandlerCollection();
-		server.setHandler(contexts);
+		setHandler(new SipContextHandlerCollection());
 		super.configureHandlers();
 	}
 
@@ -87,8 +80,8 @@ public class CipangoPluginServer extends org.cipango.plugin.Jetty6PluginServer i
             log.setFilename(buildDirectory + "/logs/yyyy_mm_dd.message.log");
             messageLog = log;
 		}
-        if (server.getConnectorManager().getAccessLog() == null)
-        	server.getConnectorManager().setAccessLog(messageLog);      
+        if (getConnectorManager().getAccessLog() == null)
+        	getConnectorManager().setAccessLog(messageLog);      
 	}
 	
 }

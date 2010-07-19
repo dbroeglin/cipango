@@ -291,7 +291,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 		_connectionTimeout = connectionTimeout;
 	}
 	
-	class TcpConnection extends SocketEndPoint implements SipConnection, Runnable
+	public class TcpConnection extends SocketEndPoint implements SipConnection, Runnable
 	{
 		private InetAddress _local;
 		private InetAddress _remote;

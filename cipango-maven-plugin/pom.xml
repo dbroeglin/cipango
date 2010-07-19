@@ -68,7 +68,8 @@
                 <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config"/>
                 <echo message="Starting to applying patches... " />
                 <patch  dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/AbstractJettyMojo.patch" ignorewhitespace="true" strip="0" />
-                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/Jetty6RunMojo.patch" ignorewhitespace="true" strip="0"/>
+                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/JettyRunMojo.patch" ignorewhitespace="true" strip="0"/>
+                <patch dir="${project.build.directory}/jetty-maven-plugin/" patchfile="${basedir}/src/main/patches/MavenWebInfConfiguration.patch" ignorewhitespace="true" strip="0"/>
                 <delete  failonerror="false">
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="org/mortbay/jetty/plugin/Jetty6PluginWebAppContext.java"/>
                 </delete>
@@ -89,7 +90,7 @@
   <dependencies>
     <dependency>
       <groupId>org.cipango</groupId>
-      <artifactId>cipango</artifactId>
+      <artifactId>cipango-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -119,27 +120,28 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-project</artifactId>
-      <version>${maven.version}</version>
+      <version>${mavenVersion}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>${maven.version}</version>
+      <version>${mavenVersion}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
-      <version>${maven.version}</version>
+      <version>${mavenVersion}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven</groupId>
+      <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-tools-api</artifactId>
-      <version>2.0</version>
+      <version>${pluginToolsVersion}</version>
     </dependency>
   </dependencies>
   
   <properties>
-    <maven.version>2.0.9</maven.version>
+    <mavenVersion>2.2.1</mavenVersion>
+    <pluginToolsVersion>2.5.1</pluginToolsVersion>
   </properties>
 
 </project>

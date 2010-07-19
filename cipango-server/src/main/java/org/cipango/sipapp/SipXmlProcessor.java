@@ -323,7 +323,7 @@ public class SipXmlProcessor
 		_servletMappings = LazyList.add(_servletMappings, mapping);
 	}
 	
-	private MatchingRule initRule(XmlParser.Node node) 
+	protected MatchingRule initRule(XmlParser.Node node) 
 	{
 		String name = node.getTag();
 		if ("and".equals(name)) 

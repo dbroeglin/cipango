@@ -7,26 +7,33 @@ import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.plus.webapp.EnvConfiguration;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.resource.Resource;
 
-public class CipangoPluginSipAppContext extends SipAppContext
+public class CipangoSipAppContext extends SipAppContext
 {
 
     private List<File> classpathFiles;
     private File jettyEnvXmlFile;
     private File webXmlFile;
-    private boolean annotationsEnabled = true;
 
     private String[] configs = 
     	new String[]{
-    		"org.mortbay.jetty.webapp.WebInfConfiguration",
-    		"org.mortbay.jetty.plus.webapp.EnvConfiguration",
-    		"org.mortbay.jetty.webapp.WebXmlConfiguration",
-    		"org.cipango.plugin.CipangoMavenConfiguration",
-    		"org.mortbay.jetty.webapp.JettyWebXmlConfiguration",
-    		"org.mortbay.jetty.webapp.TagLibConfiguration"
+    		"org.mortbay.jetty.plugin.MavenWebInfConfiguration",
+    		"org.eclipse.jetty.webapp.WebXmlConfiguration",
+    		"org.eclipse.jetty.webapp.MetaInfConfiguration",
+    		"org.eclipse.jetty.webapp.FragmentConfiguration",
+    		"org.eclipse.jetty.plus.webapp.EnvConfiguration",
+    		"org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+    		"org.eclipse.jetty.webapp.TagLibConfiguration",
+    		"org.cipango.sipapp.SipXmlConfiguration",
+    		"org.cipango.plus.sipapp.Configuration"
     };
     
-    public CipangoPluginSipAppContext()
+    private String jettyEnvXml;
+    private List<Resource> overlays;
+    private boolean unpackOverlays;
+    
+    public CipangoSipAppContext()
     {
         super();
         setConfigurationClasses(configs);
@@ -71,20 +78,12 @@ public class CipangoPluginSipAppContext extends SipAppContext
         return this.jettyEnvXmlFile;
     }
     
-    @SuppressWarnings("deprecation")
 	public void configure () throws Exception
     {
     	loadConfigurations();
     	Configuration[] configurations = getConfigurations();
     	for (int i = 0; i < configurations.length; i++)
     	{
-    		if (configurations[i] instanceof CipangoMavenConfiguration)
-    		{
-    			CipangoMavenConfiguration configuration = (CipangoMavenConfiguration) configurations[i];
-    			configuration.setClassPathConfiguration(classpathFiles);
-    			configuration.setAnnotationsEnabled(annotationsEnabled);
-    		}
-
             if (this.jettyEnvXmlFile != null && configurations[i] instanceof  EnvConfiguration)
             	((EnvConfiguration) configurations[i]).setJettyEnvXml(this.jettyEnvXmlFile.toURL());
 
@@ -109,11 +108,45 @@ public class CipangoPluginSipAppContext extends SipAppContext
 
 	public boolean isAnnotationsEnabled()
 	{
-		return annotationsEnabled;
+		for (int i = 0; i < configs.length; i++)
+			if (configs[i].equals("org.cipango.plugin.MavenAnnotationConfiguration"))
+				return true;
+		return false;
 	}
 
 	public void setAnnotationsEnabled(boolean annotationsEnabled)
 	{
-		this.annotationsEnabled = annotationsEnabled;
+		if (annotationsEnabled)
+			addConfiguration("org.cipango.plugin.MavenAnnotationConfiguration");
 	}
+	
+	public boolean getUnpackOverlays()
+    {
+        return unpackOverlays;
+    }
+
+    public void setUnpackOverlays(boolean unpackOverlays)
+    {
+        this.unpackOverlays = unpackOverlays;
+    }
+	
+    public void setOverlays (List<Resource> overlays)
+    {
+        this.overlays = overlays;
+    }
+    
+    public List<Resource> getOverlays ()
+    {
+        return this.overlays;
+    }
+    
+    public void setJettyEnvXml (String jettyEnvXml)
+    {
+        this.jettyEnvXml = jettyEnvXml;
+    }
+    
+    public String getJettyEnvXml()
+    {
+        return this.jettyEnvXml;
+    }
 }

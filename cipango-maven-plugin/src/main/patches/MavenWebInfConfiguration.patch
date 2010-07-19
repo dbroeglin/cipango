@@ -1,0 +1,48 @@
+Index: org/mortbay/jetty/plugin/MavenWebInfConfiguration.java
+===================================================================
+--- org/mortbay/jetty/plugin/MavenWebInfConfiguration.java	(revision 6087)
++++ org/mortbay/jetty/plugin/MavenWebInfConfiguration.java	(working copy)
+@@ -22,6 +22,7 @@
+ import java.util.Iterator;
+ import java.util.List;
+ 
++import org.cipango.plugin.CipangoSipAppContext;
+ import org.eclipse.jetty.util.IO;
+ import org.eclipse.jetty.util.LazyList;
+ import org.eclipse.jetty.util.log.Log;
+@@ -39,7 +40,7 @@
+     
+     public void configure(WebAppContext context) throws Exception
+     {
+-        JettyWebAppContext jwac = (JettyWebAppContext)context;
++        CipangoSipAppContext jwac = (CipangoSipAppContext) context;
+         if (jwac.getClassPathFiles() != null)
+         {
+             if (Log.isDebugEnabled()) Log.debug("Setting up classpath ...");
+@@ -67,7 +68,7 @@
+     public void preConfigure(WebAppContext context) throws Exception
+     {
+         _originalResourceBase = context.getBaseResource();
+-        JettyWebAppContext jwac = (JettyWebAppContext)context;
++        CipangoSipAppContext jwac = (CipangoSipAppContext) context;
+ 
+         //Add in any overlaid wars as base resources
+         if (jwac.getOverlays() != null && !jwac.getOverlays().isEmpty())
+@@ -153,7 +154,7 @@
+ 
+     public void deconfigure(WebAppContext context) throws Exception
+     {
+-        JettyWebAppContext jwac = (JettyWebAppContext)context;
++    	CipangoSipAppContext jwac = (CipangoSipAppContext) context;
+         
+         //remove the unpacked wars
+         if (jwac.getUnpackOverlays() && _unpackedOverlays != null && _unpackedOverlays.length>0)
+@@ -188,7 +189,7 @@
+     throws Exception
+     {
+         List<Resource> list = new ArrayList<Resource>();
+-        JettyWebAppContext jwac = (JettyWebAppContext)context;
++        CipangoSipAppContext jwac = (CipangoSipAppContext) context;
+         if (jwac.getClassPathFiles() != null)
+         {
+             for (File f: jwac.getClassPathFiles())

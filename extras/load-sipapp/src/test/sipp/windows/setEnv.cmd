@@ -10,8 +10,6 @@
 
 @set AS=192.168.2.10:5060
 
-@set SIPP_HOST=192.168.2.10
-
 @rem The tester UAS port (default 5062)
 @set SIPP_UAS_PORT=5062
 

@@ -21,10 +21,10 @@ import java.util.Properties;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.cipango.log.AccessLog;
-import org.cipango.sip.SipConnector;
-import org.eclipse.jetty.plugin.Jetty6RunMojo;
-import org.eclipse.jetty.plugin.util.JettyPluginServer;
+import org.cipango.server.SipConnector;
+import org.cipango.server.log.AccessLog;
+import org.mortbay.jetty.plugin.JettyRunMojo;
+import org.mortbay.jetty.plugin.JettyServer;
 
 /**
  *  <p>
@@ -54,15 +54,12 @@ import org.eclipse.jetty.plugin.util.JettyPluginServer;
  * @execute phase="test-compile"
  * @description Runs Cipango directly from a maven project
  */
-public class CipangoRunMojo extends Jetty6RunMojo
+public class CipangoRunMojo extends JettyRunMojo
 {
 	
 	public static final String SIP_PORT_PROPERTY = "sip.port";
 	public static final String SIP_HOST_PROPERTY = "sip.host";
-	
-
-	protected CipangoPluginServerIf plugin;
-	
+		
     /**
      * List of sip connectors to use. If none are configured
      * then UDP and TCP connectors at port 5060 and on first public address. 
@@ -113,17 +110,9 @@ public class CipangoRunMojo extends Jetty6RunMojo
      * @parameter
      */
     protected File systemPropertiesFile;
+            
     
-    /**
-     * @see org.cipango.plugin.AbstractJettyRunMojo#createServer()
-     */
-    public JettyPluginServer createServer()
-    {
-    	plugin = new CipangoPluginServer();
-        return plugin;
-    }
-        
-    
+    @Override
     public void execute() throws MojoExecutionException, MojoFailureException
     {
         super.execute();
@@ -141,19 +130,19 @@ public class CipangoRunMojo extends Jetty6RunMojo
 			System.setProperties(properties);
 		}
 		
-        plugin.setSipConnectors(sipConnectors);
-        SipConnector[] connectors = plugin.getSipConnectors();
+        server.setSipConnectors(sipConnectors);
+        SipConnector[] connectors = server.getSipConnectors();
 
         if (connectors == null|| connectors.length == 0)
         {
             //if a SystemProperty -Dsip.port=<portnum> has been supplied, use that as the default port
-        	sipConnectors = plugin.createDefaultSipConnectors(
+        	sipConnectors = server.createDefaultSipConnectors(
             		System.getProperty(SIP_HOST_PROPERTY, null),
             		System.getProperty(SIP_PORT_PROPERTY, null));
-            plugin.setSipConnectors(sipConnectors);
+        	server.setSipConnectors(sipConnectors);
         }
         
-        plugin.setMessageLogger(messageLog, project.getBuild().getDirectory());
+        server.setMessageLogger(messageLog, project.getBuild().getDirectory());
         
 		super.finishConfigurationBeforeStart();
 	}

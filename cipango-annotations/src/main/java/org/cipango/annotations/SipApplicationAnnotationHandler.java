@@ -26,6 +26,7 @@ public class SipApplicationAnnotationHandler implements AnnotationHandler
 {
 	private SipAppContext _sac;
 	private String _className;
+	private String _mainServletName;
 	
 	public SipApplicationAnnotationHandler(SipAppContext context)
 	{
@@ -57,7 +58,7 @@ public class SipApplicationAnnotationHandler implements AnnotationHandler
 			if ("displayName".equals(value.getName()))
 				_sac.setDisplayName((String) value.getValue());
 			if ("mainServlet".equals(value.getName()))
-				((SipServletHandler) _sac.getServletHandler()).setMainServletName((String) value.getValue());
+				_mainServletName = (String) value.getValue();
 			if ("proxyTimeout".equals(value.getName()))
 				_sac.setProxyTimeout((Integer) value.getValue());
 			if ("sessionTimeout".equals(value.getName()))
@@ -76,6 +77,11 @@ public class SipApplicationAnnotationHandler implements AnnotationHandler
 			String signature, Object value, String annotation, List<Value> values)
 	{
 		Log.warn ("@SipApplication annotation not applicable for fields: "+className+"."+fieldName);
+	}
+
+	public String getMainServletName()
+	{
+		return _mainServletName;
 	}
 
 }

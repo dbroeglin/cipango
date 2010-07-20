@@ -26,23 +26,17 @@ import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AnnotationParser;
-import org.eclipse.jetty.annotations.DeclareRolesAnnotationHandler;
-import org.eclipse.jetty.annotations.PostConstructAnnotationHandler;
-import org.eclipse.jetty.annotations.PreDestroyAnnotationHandler;
-import org.eclipse.jetty.annotations.ResourcesAnnotationHandler;
-import org.eclipse.jetty.annotations.RunAsAnnotationHandler;
 import org.eclipse.jetty.plus.annotation.Injection;
 import org.eclipse.jetty.plus.annotation.InjectionCollection;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.util.resource.FileResource;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 public class AnnotedServletTest extends TestCase
 {
 	private SipAppContext _sac;
-	private AnnotationParser _parser;
 	private SipXmlProcessor _processor;
-	private ResourceAnnotationHandler _resourceAnnotationHandler;
 	
 	@Override
 	protected void setUp() throws Exception
@@ -56,26 +50,33 @@ public class AnnotedServletTest extends TestCase
 		
 		Configuration plusConfig = new Configuration();
 		plusConfig.preConfigure(_sac);
-		_parser = new AnnotationParser();
-		_resourceAnnotationHandler = new ResourceAnnotationHandler(_sac);
-		_parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipApplication", new SipApplicationAnnotationHandler(_sac));
-		_parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipApplicationKey", new SipApplicationKeyAnnotationHandler(_sac));
-		_parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipListener", new SipListenerAnnotationHandler(_sac, _processor));
-		_parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet", new SipServletAnnotationHandler(_sac));
-        
-		_parser.registerAnnotationHandler("javax.annotation.Resource", _resourceAnnotationHandler);
-		_parser.registerAnnotationHandler("javax.annotation.Resources", new ResourcesAnnotationHandler (_sac));
-		_parser.registerAnnotationHandler("javax.annotation.PostConstruct", new PostConstructAnnotationHandler(_sac));
-		_parser.registerAnnotationHandler("javax.annotation.PreDestroy", new PreDestroyAnnotationHandler(_sac));
-		_parser.registerAnnotationHandler("javax.annotation.security.RunAs", new RunAsAnnotationHandler(_sac));
-		_parser.registerAnnotationHandler("javax.annotation.security.DeclareRoles", new DeclareRolesAnnotationHandler(_sac));
 	}
 	
 	public void testAnnotedServlet() throws Exception
 	{		
-		Resource r = new FileResource(AnnotedServletTest.class.getResource("resources"));
-        _parser.parse(r , new SimpleResolver());
-        _resourceAnnotationHandler.normalizeSipInjections();
+        AnnotationConfiguration annotConfiguration = new AnnotationConfiguration()
+        {
+        	@Override
+    		public void parseContainerPath(WebAppContext arg0, AnnotationParser arg1) throws Exception
+    		{
+
+    		}
+
+    		@Override
+    		public void parseWebInfClasses(WebAppContext context, AnnotationParser parser) throws Exception
+    		{
+    			Resource r = new FileResource(AnnotedServletTest.class.getResource("resources"));
+    	        parser.parse(r , new SimpleResolver());
+    		}
+
+    		@Override
+    		public void parseWebInfLib(WebAppContext arg0, AnnotationParser arg1) throws Exception
+    		{
+    		}
+        };
+        annotConfiguration.preConfigure(_sac);
+        annotConfiguration.configure(_sac);
+        
         
         assertEquals("org.cipango.kaleo", _sac.getName());
         assertEquals("Kaleo", _sac.getDisplayName());
@@ -112,6 +113,4 @@ public class AnnotedServletTest extends TestCase
         assertEquals(AnnotedServlet.class, listeners[0].getClass());
 	}
 
-	
-	
 }

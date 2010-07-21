@@ -117,7 +117,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		return _serverSocket.getInetAddress();
 	}
 	
-	class Connection extends SocketEndPoint implements Runnable, DiameterConnection
+	public class Connection extends SocketEndPoint implements Runnable, DiameterConnection
 	{
 		private Peer _peer;
 		

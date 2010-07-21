@@ -15,6 +15,7 @@
 package org.cipango.diameter;
 
 import java.io.IOException;
+import java.util.Random;
 
 import org.cipango.diameter.base.Common;
 
@@ -26,6 +27,15 @@ public class DiameterRequest extends DiameterMessage
 	private static synchronized int nextHopId() { return __hopId++; }
 	private static synchronized int nextEndId() { return __endId++; }
 
+	static {
+		Random random = new Random();
+		 __hopId = Math.abs(random.nextInt());
+		 // RFC 3588: Upon reboot implementations MAY set the high order 12 bits to
+	     // contain the low order 12 bits of current time, and the low order
+	     // 20 bits to a random value
+		__endId = (int) ((System.currentTimeMillis() & 0xFFF) << 20) + random.nextInt(0x100000);
+	}
+	
 	public DiameterRequest() {}
 	
 	public DiameterRequest(Node node, DiameterCommand command, int appId, String sessionId)

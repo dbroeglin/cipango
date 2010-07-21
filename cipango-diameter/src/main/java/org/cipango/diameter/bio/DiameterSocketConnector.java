@@ -91,9 +91,9 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		Socket socket;
 		
 		if (peer.getAddress() != null)
-			socket = new Socket(peer.getAddress(), port);
+			socket = new Socket(peer.getAddress(), port, getLocalAddress(), 0);
 		else 
-			socket = new Socket(peer.getHost(), port);
+			socket = new Socket(peer.getHost(), port, getLocalAddress(), 0);
 		
 		Connection connection = new Connection(socket);
 		connection.setPeer(peer);

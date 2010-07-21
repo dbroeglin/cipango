@@ -85,7 +85,8 @@ public class AVPCodec extends AbstractCodec<AVP<?>>
 		
 		
 		pokeInt(buffer, start+4, flags << 24 | (buffer.putIndex() - start) & 0xffffff);
-		buffer.setPutIndex(buffer.putIndex() + 3 & -4);
+		while (buffer.putIndex() % 4 != 0)
+			buffer.put((byte) 0);
 		return buffer;
 	}
 }

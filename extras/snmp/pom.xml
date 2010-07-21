@@ -2,13 +2,16 @@
   <parent>
     <groupId>org.cipango</groupId>
     <artifactId>cipango-project</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>2.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>cipango-snmp</artifactId>
-  <name>Cipango SNMP</name>
-  <packaging>jar</packaging>
+  <name>Cipango :: SNMP</name>
+  <description>Cipango SNMP</description>
+  <properties>
+    <bundle-symbolic-name>${project.groupId}.snmp</bundle-symbolic-name>
+  </properties>
 
   <build>
     <plugins>
@@ -21,14 +24,6 @@
             <goals>
               <goal>manifest</goal>
             </goals>
-            <configuration>
-              <instructions>
-                <Bundle-SymbolicName>org.cipango.management</Bundle-SymbolicName>
-                <Bundle-RequiredExcutionEnvironment>J2SE-1.5</Bundle-RequiredExcutionEnvironment>
-                <Bundle-DocURL>http://cipango.org</Bundle-DocURL>
-                <Import-Package>!org.cipango.snmp,*</Import-Package>
-              </instructions>
-            </configuration>
            </execution>
         </executions>
       </plugin>
@@ -44,67 +39,18 @@
       </plugin>
       
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks if="jetty.home">
-                <delete includeemptydirs="true" failonerror="false">
-                  <fileset dir="${jetty.home}/lib/ext" includes="${project.build.finalName}.${project.packaging},snmp*.jar"/>
-                  <fileset dir="${jetty.home}/etc" includes="cipango-snmp.xml"/>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
-            <phase>install</phase>
-            <configuration>
-              <tasks if="jetty.home">
-                <copy todir="${jetty.home}/lib/ext">
-                  <fileset dir="${project.build.directory}" includes="${project.build.finalName}.${project.packaging}"/>
-                  <fileset dir="${project.build.directory}/lib/ext"/>
-                </copy>
-                <copy todir="${jetty.home}/etc">
-                  <fileset dir="etc"/>
-                </copy>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
             <phase>package</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>single</goal>
             </goals>
             <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.snmp4j</groupId>
-                  <artifactId>snmp4j-agent</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.snmp4j</groupId>
-                  <artifactId>snmp4j-agent-jmx</artifactId>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.snmp4j</groupId>
-                  <artifactId>snmp4j</artifactId>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/lib/ext</outputDirectory>
+              <descriptors>
+                <descriptor>config.xml</descriptor>
+              </descriptors>
             </configuration>
           </execution>
         </executions>
@@ -123,7 +69,7 @@
   <dependencies>
     <dependency>
       <groupId>org.cipango</groupId>
-      <artifactId>cipango</artifactId>
+      <artifactId>cipango-server</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

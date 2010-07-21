@@ -1,8 +1,10 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
-<Configure class="org.cipango.Server" id="Server">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure class="org.cipango.server.Server" id="Server">
   
   <Set name="sessionManager">
-    <New class="org.cipango.SessionManager">
+    <New class="org.cipango.server.session.SessionManager">
       <Set name="callsThreshold">10</Set>
     </New>
   </Set>

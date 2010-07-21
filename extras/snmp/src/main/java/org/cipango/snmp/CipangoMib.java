@@ -25,7 +25,7 @@ import javax.management.NotificationListener;
 import javax.management.ObjectName;
 
 import org.cipango.log.event.Events;
-import org.mortbay.log.Log;
+import org.eclipse.jetty.util.log.Log;
 import org.snmp4j.agent.DuplicateRegistrationException;
 import org.snmp4j.agent.MOAccess;
 import org.snmp4j.agent.MOGroup;

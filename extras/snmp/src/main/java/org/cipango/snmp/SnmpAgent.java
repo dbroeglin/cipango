@@ -16,9 +16,9 @@ package org.cipango.snmp;
 import java.io.File;
 import java.io.IOException;
 
-import org.cipango.Server;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.log.Log;
+import org.cipango.server.Server;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.log.Log;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;

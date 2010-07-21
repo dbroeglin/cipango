@@ -5,16 +5,14 @@
 <!-- Configure TLS for the Cipango Server                            -->
 <!-- this configuration file should be used in combination with      -->
 <!-- other configuration files.  e.g.                                -->
-<!--    java -jar start.jar etc/cipango.xml etc/cipango-tls.xml      -->
+<!-- java -jar start.jar --ini=start-cipango.ini etc/cipango-tls.xml -->
 <!-- =============================================================== -->
-<Configure id="Server" class="org.cipango.Server">
-
-
+<Configure class="org.cipango.server.Server" id="Server">
 
   <Get name="connectorManager">
     <Call name="addConnector">
       <Arg>
-        <New class="org.cipango.sip.TlsConnector">
+        <New class="org.cipango.server.bio.TlsConnector">
           <Set name="Port">5061</Set>
           <Set name="handshakeTimeout">2000</Set>
           <Set name="keystore"><SystemProperty name="jetty.home" default="." />/etc/keystore</Set>

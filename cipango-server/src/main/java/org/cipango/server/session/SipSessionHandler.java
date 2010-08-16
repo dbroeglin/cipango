@@ -29,7 +29,7 @@ import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipHandler;
 import org.cipango.server.SipMessage;
-import org.cipango.server.SipParams;
+import org.cipango.sip.SipParams;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.cipango.server.transaction.ServerTransaction;

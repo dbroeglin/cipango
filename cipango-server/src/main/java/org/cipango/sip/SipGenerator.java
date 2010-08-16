@@ -19,7 +19,6 @@ import java.util.Iterator;
 import javax.servlet.sip.SipServletMessage.HeaderForm;
 
 import org.cipango.server.SipMessage;
-import org.cipango.server.SipMethods;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.eclipse.jetty.io.Buffer;

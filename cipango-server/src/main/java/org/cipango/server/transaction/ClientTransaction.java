@@ -25,12 +25,11 @@ import javax.servlet.sip.URI;
 import org.cipango.server.ID;
 import org.cipango.server.SipConnection;
 import org.cipango.server.SipConnectors;
-import org.cipango.server.SipMethods;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
+import org.cipango.sip.SipMethods;
 import org.cipango.sip.SipVersions;
 import org.cipango.sip.Via;
-
 import org.eclipse.jetty.util.log.Log;
 
 public class ClientTransaction extends Transaction 

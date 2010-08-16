@@ -28,12 +28,11 @@ import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipRouteModifier;
 
 import org.cipango.server.ConnectorManager;
-import org.cipango.server.ID; 
+import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnector;
 import org.cipango.server.SipHandler;
 import org.cipango.server.SipMessage;
-import org.cipango.server.SipParams;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.cipango.server.ar.RouterInfoUtil;
@@ -41,11 +40,11 @@ import org.cipango.server.session.CallSessionHandler;
 import org.cipango.server.session.SipSessionHandler;
 import org.cipango.server.transaction.TransactionManager;
 import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipParams;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.URIFactory;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ExceptionUtil;
-
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.LazyList;

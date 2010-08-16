@@ -31,17 +31,17 @@ import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-
 import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipFields;
 import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.sip.SipStatus;
 import org.cipango.sip.Via;
 import org.cipango.sip.security.Authenticate;
-
 import org.eclipse.jetty.util.log.Log;
 
 public class SipResponse extends SipMessage implements SipServletResponse

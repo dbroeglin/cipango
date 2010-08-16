@@ -20,12 +20,10 @@ import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.Parameterable;
@@ -45,20 +43,19 @@ import org.cipango.sip.ParameterableImpl;
 import org.cipango.sip.SipFields;
 import org.cipango.sip.SipGenerator;
 import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipHeaders.HeaderInfo;
+import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.sip.SipVersions;
 import org.cipango.sip.Via;
-import org.cipango.sip.SipHeaders.HeaderInfo;
-
 import org.cipango.util.ContactAddress;
 import org.cipango.util.ListIteratorProxy;
 import org.cipango.util.ReadOnlyAddress;
 import org.cipango.util.ReadOnlyParameterable;
-
-import org.eclipse.jetty.io.Buffer;
-import org.eclipse.jetty.io.ByteArrayBuffer;
-import org.eclipse.jetty.io.BufferCache.CachedBuffer;
-
 import org.eclipse.jetty.http.HttpFields;
+import org.eclipse.jetty.io.Buffer;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+import org.eclipse.jetty.io.ByteArrayBuffer;
 import org.eclipse.jetty.util.Attributes;
 import org.eclipse.jetty.util.AttributesMap;
 import org.eclipse.jetty.util.LazyList;

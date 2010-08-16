@@ -20,7 +20,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,8 +51,6 @@ import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
-import org.cipango.server.SipMethods;
-import org.cipango.server.SipParams;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.cipango.server.session.scope.ScopedAppSession;
@@ -66,12 +63,13 @@ import org.cipango.servlet.SipServletHolder;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipException;
 import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ReadOnlyAddress;
 import org.cipango.util.TimerTask;
-
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.log.Log;
 
 public class Session implements SessionIf, ClientTransactionListener, ServerTransactionListener, Cloneable
 {	    

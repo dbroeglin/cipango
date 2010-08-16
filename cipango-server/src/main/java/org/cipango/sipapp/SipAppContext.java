@@ -35,8 +35,6 @@ import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnector;
 import org.cipango.server.SipHandler;
-import org.cipango.server.SipMethods;
-import org.cipango.server.SipParams;
 import org.cipango.server.SipRequest;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
@@ -54,6 +52,8 @@ import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.URIFactory;
 import org.cipango.sip.security.AuthInfoImpl;
+import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.util.ReadOnlySipURI;
 
 import org.eclipse.jetty.webapp.WebAppContext;

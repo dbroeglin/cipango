@@ -10,7 +10,7 @@
 
   <properties>
     <jetty.version>7.1.5.v20100705</jetty.version>
-    <servlet.version>2.5-20081211</servlet.version>
+    <servlet.version>2.5</servlet.version>
     <sip-api.version>1.1</sip-api.version>
     <junit.version>3.8</junit.version>
   </properties>
@@ -150,6 +150,16 @@
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-deploy</artifactId>
         <version>${jetty.version}</version>
       </dependency>
@@ -174,7 +184,7 @@
         <version>${sip-api.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
+        <groupId>javax.servlet</groupId>
         <artifactId>servlet-api</artifactId>
         <version>${servlet.version}</version>
       </dependency> 

@@ -98,7 +98,7 @@ public class SipServletHandler extends ServletHandler implements SipHandler
  		{
  			((org.cipango.http.servlet.ConvergedSessionManager.Session) request.getSession(true)).updateSession(request);
  		}
-    	super.handle(target, baseRequest, request, response);
+    	super.doHandle(target, baseRequest, request, response);
     }
 	
 	protected void doStart() throws Exception 

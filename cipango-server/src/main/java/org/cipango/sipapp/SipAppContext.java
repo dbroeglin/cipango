@@ -25,10 +25,31 @@ import java.util.List;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
-import javax.servlet.sip.*;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.AuthInfo;
+import javax.servlet.sip.Parameterable;
+import javax.servlet.sip.ServletParseException;
+import javax.servlet.sip.ServletTimer;
+import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSessionAttributeListener;
+import javax.servlet.sip.SipApplicationSessionListener;
+import javax.servlet.sip.SipErrorListener;
+import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletContextEvent;
+import javax.servlet.sip.SipServletListener;
+import javax.servlet.sip.SipServletMessage;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipSessionAttributeListener;
+import javax.servlet.sip.SipSessionListener;
+import javax.servlet.sip.SipSessionsUtil;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.TimerListener;
+import javax.servlet.sip.TimerService;
+import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
-import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.http.servlet.ConvergedSessionManager;
 import org.cipango.log.event.Events;
 import org.cipango.server.ID;
@@ -40,6 +61,7 @@ import org.cipango.server.session.AppSession;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.scope.ScopedAppSession;
 import org.cipango.server.session.scope.ScopedTimer;
 import org.cipango.servlet.SipDispatcher;
@@ -54,18 +76,14 @@ import org.cipango.sip.SipParams;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.URIFactory;
 import org.cipango.sip.security.AuthInfoImpl;
-import org.cipango.sip.SipMethods;
-import org.cipango.sip.SipParams;
 import org.cipango.util.ReadOnlySipURI;
-
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.session.SessionHandler;
-import org.eclipse.jetty.servlet.*;
-
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 public class SipAppContext extends WebAppContext implements SipHandler
 {
@@ -130,11 +148,9 @@ public class SipAppContext extends WebAppContext implements SipHandler
 
 	public SipAppContext() 
 	{
-		super(new SessionHandler(new ConvergedSessionManager()),
-				null,
-				new SipServletHandler(),
-				new ErrorPageErrorHandler());
-		
+		super();
+		setSessionHandler(new SessionHandler(new ConvergedSessionManager()));
+		setServletHandler(new SipServletHandler());
 		setConfigurationClasses((String[]) LazyList.addToArray(
 				getConfigurationClasses(),
 				SIP_CONFIGURATION_CLASS,

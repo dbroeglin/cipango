@@ -96,6 +96,8 @@
     <module>cipango-plus</module>
     <module>cipango-annotations</module>
     <module>cipango-diameter</module>
+    <module>cipango-console</module>
+    <module>cipango-callflow</module>
     <module>cipango-distribution</module>
   </modules>
 <!--  <modules>
@@ -192,6 +194,11 @@
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-jexl</groupId>
+        <artifactId>commons-jexl</artifactId>
+        <version>1.1</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

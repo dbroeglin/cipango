@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="dataToSvg.xsl" type="text/xsl"?>
+<data> 
+	<hosts> 
+		<host>/192.168.2.10:2126</host> 
+		<host>Cipango</host> 
+	</hosts> 
+	<messages> 
+		<message from="1" to="2"> 
+			<name>INVITE sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="19">INVITE sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 INVITE
+Content-Length: 135
+Content-Type: application/sdp
+Contact: sip:sipp@192.168.2.10:5065;transport=TCP
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=9
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-9-0
+Call-ID: 9-4352@192.168.2.10
+ 
+v=0
+o=user1 53655765 2353687637 IN IP4 192.168.2.10
+s=-
+c=IN IP4 192.168.2.10
+t=0 0
+m=audio 6000 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>100 Trying</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 100 Trying
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-9-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=9
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Call-ID: 9-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>404 Not Found</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 404 Not Found
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-9-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=9
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=1deeb158
+Call-ID: 9-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>ACK sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="12">ACK sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 ACK
+Content-Length: 0
+Contact: &lt;sip:sipp@192.168.2.10:5065;transport=TCP&gt;
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=9
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=1deeb158
+Subject: Performance Test
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-9-0
+Call-ID: 9-4352@192.168.2.10
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>INVITE sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="19">INVITE sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 INVITE
+Content-Length: 135
+Content-Type: application/sdp
+Contact: sip:sipp@192.168.2.10:5065;transport=TCP
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=10
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-10-0
+Call-ID: 10-4352@192.168.2.10
+ 
+v=0
+o=user1 53655765 2353687637 IN IP4 192.168.2.10
+s=-
+c=IN IP4 192.168.2.10
+t=0 0
+m=audio 6000 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>100 Trying</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 100 Trying
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-10-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=10
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Call-ID: 10-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>404 Not Found</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 404 Not Found
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-10-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=10
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=42049093
+Call-ID: 10-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>ACK sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="12">ACK sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 ACK
+Content-Length: 0
+Contact: &lt;sip:sipp@192.168.2.10:5065;transport=TCP&gt;
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=10
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=42049093
+Subject: Performance Test
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-10-0
+Call-ID: 10-4352@192.168.2.10
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>INVITE sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="19">INVITE sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 INVITE
+Content-Length: 135
+Content-Type: application/sdp
+Contact: sip:sipp@192.168.2.10:5065;transport=TCP
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=11
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-11-0
+Call-ID: 11-4352@192.168.2.10
+ 
+v=0
+o=user1 53655765 2353687637 IN IP4 192.168.2.10
+s=-
+c=IN IP4 192.168.2.10
+t=0 0
+m=audio 6000 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>100 Trying</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 100 Trying
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-11-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=11
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Call-ID: 11-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>404 Not Found</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 404 Not Found
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-11-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=11
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=3abaf567
+Call-ID: 11-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>ACK sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="12">ACK sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 ACK
+Content-Length: 0
+Contact: &lt;sip:sipp@192.168.2.10:5065;transport=TCP&gt;
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=11
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=3abaf567
+Subject: Performance Test
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-11-0
+Call-ID: 11-4352@192.168.2.10
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>INVITE sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="19">INVITE sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 INVITE
+Content-Length: 135
+Content-Type: application/sdp
+Contact: sip:sipp@192.168.2.10:5065;transport=TCP
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=12
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-12-0
+Call-ID: 12-4352@192.168.2.10
+ 
+v=0
+o=user1 53655765 2353687637 IN IP4 192.168.2.10
+s=-
+c=IN IP4 192.168.2.10
+t=0 0
+m=audio 6000 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>100 Trying</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 100 Trying
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-12-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=12
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Call-ID: 12-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>404 Not Found</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="9">SIP/2.0 404 Not Found
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-12-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=12
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=04793627
+Call-ID: 12-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>ACK sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:53</date> 
+			<content nbLines="12">ACK sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 ACK
+Content-Length: 0
+Contact: &lt;sip:sipp@192.168.2.10:5065;transport=TCP&gt;
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=12
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=04793627
+Subject: Performance Test
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-12-0
+Call-ID: 12-4352@192.168.2.10
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>INVITE sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:54</date> 
+			<content nbLines="19">INVITE sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 INVITE
+Content-Length: 135
+Content-Type: application/sdp
+Contact: sip:sipp@192.168.2.10:5065;transport=TCP
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=13
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-13-0
+Call-ID: 13-4352@192.168.2.10
+ 
+v=0
+o=user1 53655765 2353687637 IN IP4 192.168.2.10
+s=-
+c=IN IP4 192.168.2.10
+t=0 0
+m=audio 6000 RTP/AVP 0
+a=rtpmap:0 PCMU/8000
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>100 Trying</name> 
+			<date>2010-05-21 13:52:54</date> 
+			<content nbLines="9">SIP/2.0 100 Trying
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-13-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=13
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;
+Call-ID: 13-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="2" to="1"> 
+			<name>404 Not Found</name> 
+			<date>2010-05-21 13:52:54</date> 
+			<content nbLines="9">SIP/2.0 404 Not Found
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-13-0
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=13
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=2896c52c
+Call-ID: 13-4352@192.168.2.10
+CSeq: 1 INVITE
+Content-Length: 0
+ 
+</content> 
+		</message> 
+		<message from="1" to="2"> 
+			<name>ACK sip:proxy@192.168.2.10:5062</name> 
+			<date>2010-05-21 13:52:54</date> 
+			<content nbLines="12">ACK sip:proxy@192.168.2.10:5062 SIP/2.0
+CSeq: 1 ACK
+Content-Length: 0
+Contact: &lt;sip:sipp@192.168.2.10:5065;transport=TCP&gt;
+From: sipp &lt;sip:sipp@192.168.2.10:5065&gt;;tag=13
+Max-Forwards: 70
+To: sut &lt;sip:proxy@192.168.2.10:5062&gt;;tag=2896c52c
+Subject: Performance Test
+Via: SIP/2.0/TCP 192.168.2.10:5065;branch=z9hG4bK-4352-13-0
+Call-ID: 13-4352@192.168.2.10
+ 
+</content> 
+		</message> 
+	</messages> 
+</data> 

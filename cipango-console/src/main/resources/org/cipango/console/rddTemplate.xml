@@ -1,0 +1,99 @@
+ <rrd_def>
+     <path>${path}</path>
+     <!-- not mandatory -->
+     <start>${start}</start>
+     <!-- not mandatory -->
+     <step>20</step>
+     <!-- at least one datasource must be supplied -->
+     <datasource>
+         <name>calls</name>
+         <type>GAUGE</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <datasource>
+         <name>maxMemory</name>
+         <type>GAUGE</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <datasource>
+         <name>usedMemory</name>
+         <type>GAUGE</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <datasource>
+         <name>totalMemory</name>
+         <type>GAUGE</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <datasource>
+         <name>incomingMessages</name>
+         <type>COUNTER</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <datasource>
+         <name>outgoingMessages</name>
+         <type>COUNTER</type>
+         <heartbeat>20</heartbeat>
+         <min>0</min>
+         <max>U</max>
+     </datasource>
+     <!-- at least one archive must be supplied -->
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.5</xff>
+         <!-- 20s -->
+         <steps>1</steps>
+         <!-- 4 hours -->
+         <rows>720</rows>
+     </archive>
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.5</xff>
+         <!-- 5 minutes -->
+         <steps>15</steps>
+         <!-- two days -->
+         <rows>576</rows>
+     </archive>
+     <archive>
+         <cf>AVERAGE</cf>
+         <xff>0.5</xff>
+         <!-- 1 hour -->
+         <steps>180</steps>
+         <!-- two weeks -->
+         <rows>316</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.5</xff>
+         <!-- 1 minute -->
+         <steps>3</steps>
+         <!-- 4 hours -->
+         <rows>240</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.5</xff>
+         <!-- 15 minutes -->
+         <steps>45</steps>
+         <!-- two days -->
+         <rows>192</rows>
+     </archive>
+     <archive>
+         <cf>MAX</cf>
+         <xff>0.5</xff>
+         <!-- 1 hour -->
+         <steps>180</steps>
+         <!-- two weeks -->
+         <rows>316</rows>
+     </archive>
+ </rrd_def>

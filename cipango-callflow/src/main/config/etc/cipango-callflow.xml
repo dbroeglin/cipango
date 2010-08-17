@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id="Server" class="org.cipango.server.Server">
+  
+  <Get name="connectorManager">
+    <Set name="accessLog">
+      <New class="org.cipango.server.log.AccessLogCollection">
+        <Set name="server"><Ref id="Server"/></Set>
+        <Set name="loggers">
+          <Array type="org.cipango.server.log.AccessLog">
+            <Item>
+              <New class="org.cipango.callflow.JmxMessageLog"/>
+            </Item>
+            <Item>
+              <Ref id="FileMessageLog"/>
+            </Item>
+          </Array>
+        </Set>
+      </New>
+    </Set>
+  </Get>
+  
+</Configure>

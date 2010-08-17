@@ -1,0 +1,41 @@
+<rrd_graph_def>
+     <span>
+         <!-- ISO FORMAT: yyyy-MM-dd HH:mm:ss -->
+         <start>${start}</start>
+         <!-- timestamp in seconds is also allowed -->
+         <end>${end}</end>
+     </span>
+     <options>
+         <title>Running calls</title>
+         <grid_range>
+             <lower>0</lower>
+             <upper>U</upper>
+             <rigid>false</rigid>
+         </grid_range>
+     </options>
+     <datasources>
+         <def>
+             <name>calls</name>
+             <rrd>${rrd}</rrd>
+             <source>calls</source>
+             <cf>AVERAGE</cf>
+         </def>
+     </datasources>
+     <graph>
+         <line>
+             <datasource>calls</datasource>
+             <color>#FF0000</color>
+             <legend>Calls</legend>
+         </line>
+         <gprint>
+           <datasource>calls</datasource>
+           <cf>MAX</cf>
+           <format>max calls = @3@s</format>
+         </gprint>
+         <gprint>
+           <datasource>calls</datasource>
+           <cf>Average</cf>
+           <format>avg calls = @3@s@r</format>
+         </gprint>
+     </graph>
+</rrd_graph_def>

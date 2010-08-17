@@ -1,0 +1,91 @@
+<rrd_graph_def>
+     <span>
+         <start>${start}</start>
+         <end>${end}</end>
+     </span>
+     <options>
+         <title>JVM memory</title>
+         <vertical_label>bytes</vertical_label>
+         <grid_range>
+             <lower>0</lower>
+             <upper>U</upper>
+             <rigid>false</rigid>
+         </grid_range>
+     </options>
+     <datasources>
+         <def>
+             <name>max</name>
+             <rrd>${rrd}</rrd>
+             <source>maxMemory</source>
+             <cf>AVERAGE</cf>
+         </def>
+         <def>
+             <name>used</name>
+             <rrd>${rrd}</rrd>
+             <source>usedMemory</source>
+             <cf>AVERAGE</cf>
+         </def>
+         <def>
+             <name>total</name>
+             <rrd>${rrd}</rrd>
+             <source>totalMemory</source>
+             <cf>AVERAGE</cf>
+         </def>
+         <def>
+             <name>available</name>
+             <rpn>total,used,-</rpn>
+         </def>
+     </datasources>
+     <graph>
+       <area>
+          <datasource>used</datasource>
+          <color>#FFFFFF</color>
+          <legend/>
+       </area>
+       <stack>
+          <datasource>available</datasource>
+          <color>#99FF66</color>
+          <legend/>
+       </stack>
+       <line>
+           <datasource>used</datasource>
+           <color>#FF0000</color>
+           <legend>Used memory</legend>
+       </line>
+       <line>
+           <datasource>total</datasource>
+           <color>#006600</color>
+           <legend>Total memory</legend>
+       </line>
+       <line>
+           <datasource>max</datasource>
+           <color>#0000FF</color>
+           <legend>Max memory@r</legend>
+       </line>      
+        <gprint>
+           <datasource>max</datasource>
+           <cf>Average</cf>
+           <format>Max memory = @3@sb</format>
+         </gprint>
+	     <gprint>
+	       <datasource>used</datasource>
+	       <cf>MAX</cf>
+	       <format>max used memory = @3@sb</format>
+	     </gprint>
+	     <gprint>
+	       <datasource>used</datasource>
+	       <cf>Average</cf>
+	       <format>avg used memory = @3@sb@r</format>
+	     </gprint>
+	     <gprint>
+	       <datasource>total</datasource>
+	       <cf>MAX</cf>
+	       <format>max total memory = @3@sb</format>
+	     </gprint>
+	     <gprint>
+	       <datasource>total</datasource>
+	       <cf>Average</cf>
+	       <format>avg total memory = @3@sb@r</format>
+	     </gprint>
+     </graph>
+</rrd_graph_def>

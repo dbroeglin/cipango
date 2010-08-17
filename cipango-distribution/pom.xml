@@ -122,6 +122,11 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
+                  <artifactId>cipango-callflow</artifactId>
+                  <classifier>config</classifier>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cipango</groupId>
                   <artifactId>cipango-dar</artifactId>
                   <classifier>config</classifier>
                 </artifactItem>
@@ -167,6 +172,17 @@
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-callflow</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.cipango</groupId>
+                  <artifactId>cipango-console</artifactId>
+                  <type>war</type>
+                  <destFileName>cipango-console.war</destFileName>
+                  <outputDirectory>${assembly-directory}/sipapps</outputDirectory>
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
@@ -216,6 +232,15 @@
                   <version>3.1</version>
                   <outputDirectory>${assembly-directory}/lib/annotations</outputDirectory>
                 </artifactItem>
+                <artifactItem>
+                  <groupId>commons-jexl</groupId>
+                  <artifactId>commons-jexl</artifactId>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>commons-logging</groupId>
+                  <artifactId>commons-logging</artifactId>
+                  <version>1.0.3</version>
+                </artifactItem>
               </artifactItems>
               <outputDirectory>${assembly-directory}/lib/sip</outputDirectory>
               <overWriteReleases>true</overWriteReleases>
@@ -250,6 +275,17 @@
       <groupId>org.cipango</groupId>
       <artifactId>cipango-annotations</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-callflow</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-console</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
     </dependency>
     <dependency>
       <groupId>org.cipango</groupId>

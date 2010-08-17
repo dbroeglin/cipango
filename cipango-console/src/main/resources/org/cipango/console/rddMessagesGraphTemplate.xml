@@ -1,0 +1,61 @@
+<rrd_graph_def>
+     <span>
+         <start>${start}</start>
+         <end>${end}</end>
+     </span>
+     <options>
+         <title>SIP Messages</title>
+         <vertical_label>msg/s</vertical_label>
+         <grid_range>
+             <lower>0</lower>
+             <upper>U</upper>
+             <rigid>false</rigid>
+         </grid_range>
+     </options>
+     <datasources>
+         <def>
+             <name>incomingMessages</name>
+             <rrd>${rrd}</rrd>
+             <source>incomingMessages</source>
+             <cf>AVERAGE</cf>
+         </def>
+         <def>
+             <name>outgoingMessages</name>
+             <rrd>${rrd}</rrd>
+             <source>outgoingMessages</source>
+             <cf>AVERAGE</cf>
+         </def>
+     </datasources>
+     <graph>
+       <line>
+         <datasource>incomingMessages</datasource>
+         <color>#FF0000</color>
+         <legend>Incoming SIP messages@r</legend>
+       </line>
+       <gprint>
+	       <datasource>incomingMessages</datasource>
+	       <cf>MAX</cf>
+	       <format>max incoming = @3@smsg/s</format>
+	     </gprint>
+	     <gprint>
+	       <datasource>incomingMessages</datasource>
+	       <cf>Average</cf>
+	       <format>avg incmming = @3@smsg/s@r</format>
+	     </gprint>
+	     <line>
+         <datasource>outgoingMessages</datasource>
+         <color>#00FF00</color>
+         <legend>Outgoing SIP messages@r</legend>
+       </line>
+       <gprint>
+	       <datasource>outgoingMessages</datasource>
+	       <cf>MAX</cf>
+	       <format>max outgoing = @3@smsg/s</format>
+	     </gprint>
+	     <gprint>
+	       <datasource>outgoingMessages</datasource>
+	       <cf>Average</cf>
+	       <format>avg outgoing = @3@smsg/s@r</format>
+	     </gprint>
+     </graph>
+</rrd_graph_def>

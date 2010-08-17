@@ -47,22 +47,7 @@ public abstract class Transaction
         "Accepted",
         "Terminated"
     };
-    /*
-    protected static final int TIMER_A = 0;
-    protected static final int TIMER_B = 1;
-    protected static final int TIMER_D = 2;
-    protected static final int TIMER_E = 3;
-    protected static final int TIMER_F = 4;
-    protected static final int TIMER_G = 5;
-    protected static final int TIMER_H = 6;
-    protected static final int TIMER_I = 7;
-    protected static final int TIMER_J = 8;
-    protected static final int TIMER_K = 9;
-    protected static final int TIMER_L = 10;
-    protected static final int TIMER_M = 10;
-           
-    public static final char[] TIMERS = {'A','B','D','E','F','G','H','I','J','K','L','M'};
-    */
+   
     public static final int DEFAULT_T1 = 500;
     public static final int DEFAULT_T2 = 4000;
     public static final int DEFAULT_T4 = 5000;

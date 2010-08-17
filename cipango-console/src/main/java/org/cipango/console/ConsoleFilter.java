@@ -112,27 +112,32 @@ public class ConsoleFilter implements Filter
 	private StatisticGraph _statisticGraph;
 	private Deployer _deployer;
 	private ServletContext _servletContext;
-
+	private boolean _jmxAvailable;
+	
 	public void init(FilterConfig config) throws ServletException
 	{
 		initConnection();
 		_servletContext = config.getServletContext();
-		_statisticGraph = new StatisticGraph(_mbsc);
-		try
+		if (_jmxAvailable)
 		{
-			_statisticGraph.start();
+			_statisticGraph = new StatisticGraph(_mbsc);
+			try
+			{
+				_statisticGraph.start();
+			}
+			catch (Exception e)
+			{
+				_logger.warn("Failed to start statistic graph", e);
+			}
+			_deployer = new Deployer(_mbsc);
 		}
-		catch (Exception e)
-		{
-			_logger.warn("Failed to start statistic graph", e);
-		}
-		_deployer = new Deployer(_mbsc);
 	}
 	
 	
 	public void destroy()
 	{	
-		_statisticGraph.stop();
+		if (_statisticGraph != null)
+			_statisticGraph.stop();
 	}
 	
 	private void initConnection() throws ServletException
@@ -162,9 +167,7 @@ public class ConsoleFilter implements Filter
 			throw new IllegalStateException("Unable to get MBeanServer", t);
 		}
 
-		if (_mbsc == null)
-			throw new ServletException("No Mbean server found, unable to start cipango console.\n"
-					+ "Ensure cipango is started with the configuration file 'cipango-jmx.xml'");
+		_jmxAvailable = _mbsc != null;
 	}
 
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
@@ -174,12 +177,18 @@ public class ConsoleFilter implements Filter
 		HttpServletResponse response = (HttpServletResponse) servletResponse;
 		boolean forward = true;
 		boolean handled = true;
-		
-		
+				
 		String command = request.getRequestURI().substring(request.getContextPath().length() + 1);
 		if (command.indexOf(';') != -1)
 			command = command.substring(0, command.indexOf(';') - 1);
 				
+		if (!_jmxAvailable)
+		{
+			response.sendError(503 ,"JMX is not enabled, unable to use cipango console. Please start Cipango with:\n" +
+			"\tjava -Dcom.sun.management.jmxremote  -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
+			return;
+		}
+		
 		MenuPrinter menuPrinter = new MenuPrinter(_mbsc, command, request.getContextPath());
 		try
 		{

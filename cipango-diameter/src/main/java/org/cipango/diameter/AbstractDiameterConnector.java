@@ -197,6 +197,12 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	
 	public void setNode(Node node)
 	{
+		if (_node != null && _node != node && _node.getServer() != null)
+			_node.getServer().getContainer().update(this, _listener, null, "listener");
+				
+		if (node != null && node != _node && node.getServer() != null)
+			node.getServer().getContainer().update(this, null, _listener, "listener");
+		
 		_node = node;
 	}
 	

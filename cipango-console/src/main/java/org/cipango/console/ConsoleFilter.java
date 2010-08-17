@@ -185,7 +185,7 @@ public class ConsoleFilter implements Filter
 		if (!_jmxAvailable)
 		{
 			response.sendError(503 ,"JMX is not enabled, unable to use cipango console. Please start Cipango with:\n" +
-			"\tjava -Dcom.sun.management.jmxremote  -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
+			"\tjava -Dcom.sun.management.jmxremote -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
 			return;
 		}
 		
@@ -247,7 +247,7 @@ public class ConsoleFilter implements Filter
 			else if (command.equals(MenuPrinter.SYSTEM_PROPERTIES.getName()))
 				request.setAttribute(Attributes.CONTENT, new SystemPropertiesPrinter());
 			else if (command.equals(MenuPrinter.CONFIG_DIAMETER.getName()))
-				doDiameter(request);
+				doDiameterConfig(request);
 			else if (command.equals(MenuPrinter.CONFIG_HTTP.getName()))
 				doHttpConfig(request);
 			else if (command.equals(MenuPrinter.STATISTICS_HTTP.getName()))
@@ -529,7 +529,7 @@ public class ConsoleFilter implements Filter
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	
-	private void doDiameter(HttpServletRequest request)
+	private void doDiameterConfig(HttpServletRequest request)
 	throws Exception
 	{		
 		MultiplePrinter printer = new MultiplePrinter();

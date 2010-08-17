@@ -15,6 +15,7 @@
 package org.cipango.server.transaction;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletMessage;
@@ -30,13 +31,14 @@ import org.cipango.sip.SipGrammar;
 
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.statistic.CounterStatistic;
 
 public class TransactionManager extends HandlerWrapper implements SipHandler
 {   
-	private long _statsStartedAt = -1;	
-	private Object _statsLock = new Object();	
-	private long _nbRetransmission;
-	private long _nbUnknownTransaction;
+    private final AtomicLong _statsStartedAt = new AtomicLong(-1L);
+    
+    private CounterStatistic _retransStats = new CounterStatistic();
+    private CounterStatistic _notFoundStats = new CounterStatistic();
 	
 	public void handle(SipServletMessage message) throws ServletException, IOException 
     {
@@ -61,59 +63,60 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		if (request.isCancel()) 
 			branch = "cancel-" + branch;
 		
-		ServerTransaction tx = request.getCallSession().getServerTransaction(branch);
+		ServerTransaction transaction = request.getCallSession().getServerTransaction(branch);
 		
-		if (tx != null) 
+		if (transaction != null) 
         {
             if (Log.isDebugEnabled()) 
-                Log.debug("request {} in transaction {}", request.getRequestLine(), tx);
+                Log.debug("request {} in transaction {}", request.getRequestLine(), transaction);
 			
-            request.setTransaction(tx);
-			boolean handled = tx.handleRequest(request);
-            
-            if (handled)
-                return;
+            request.setTransaction(transaction);
+            if (request.isAck())
+            {
+            	transaction.handleAck(request);
+            }
+            else
+            {
+            	retransReceived();
+            	transaction.handleRetransmission(request);
+            }
 		} 
-        
-		tx = newServerTransaction(request);
+		else
+		{
+			transaction = new ServerTransaction(request);
 
-		if (request.isCancel())
-        {
-            String txBranch = request.getTopVia().getBranch();
-            ServerTransaction stx = request.getCallSession().getServerTransaction(txBranch);
-            if (stx == null)
-            {
-                if (Log.isDebugEnabled())
-                    Log.debug("No transaction for cancelled branch {}", txBranch, null);
-                SipResponse unknown = (SipResponse) request.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
-                tx.send(unknown);
-            }
-            else 
-            {
-                SipResponse ok = (SipResponse) request.createResponse(SipServletResponse.SC_OK);
-                tx.send(ok);
-                
-                stx.cancel(request);
-            }
-        }
-        else 
-        	((SipHandler) getHandler()).handle(request);
-	}
-	
-	public ServerTransaction newServerTransaction(SipRequest request)
-	{
-		ServerTransaction tx = new ServerTransaction(request);
-
-		if (!request.isAck()) 
-			request.getCallSession().addServerTransaction(tx);
+			if (!request.isAck()) 
+				request.getCallSession().addServerTransaction(transaction);
 		 
-        if (Log.isDebugEnabled())
-            Log.debug("new transaction {} for request {}", tx, request.getRequestLine());
-
-        return tx;
+	        if (Log.isDebugEnabled())
+	            Log.debug("new transaction {} for request {}", transaction, request.getRequestLine());
+	
+	        // TODO move to Session
+			if (request.isCancel())
+	        {
+	            String txBranch = request.getTopVia().getBranch();
+	            ServerTransaction stx = request.getCallSession().getServerTransaction(txBranch);
+	            if (stx == null)
+	            {
+	                if (Log.isDebugEnabled())
+	                    Log.debug("No transaction for cancelled branch {}", txBranch, null);
+	                SipResponse unknown = (SipResponse) request.createResponse(SipServletResponse.SC_CALL_LEG_DONE);
+	                transaction.send(unknown);
+	            }
+	            else 
+	            {
+	                SipResponse ok = (SipResponse) request.createResponse(SipServletResponse.SC_OK);
+	                transaction.send(ok);
+	                
+	                stx.cancel(request);
+	            }
+	        }
+	        else 
+	        	((SipHandler) getHandler()).handle(request);
+		}
 	}
 	
-	public void handleResponse(SipResponse response) 
+	public void handleResponse(SipResponse response) throws ServletException, IOException
     {
 		String branch = response.getTopVia().getBranch();
         
@@ -122,49 +125,23 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		
 		ClientTransaction ctx = response.getCallSession().getClientTransaction(branch);
 
-		if (ctx == null) 
-        {
-			// TODO fork or error
-            if (Log.isDebugEnabled())
-                Log.debug("Response {} with no transaction ", response, branch);
-
-        	boolean invite2xx = response.isInvite() 
-        							&& response.getStatus() >= 200
-									&& response.getStatus() < 300;
-			if (invite2xx)
-			{
-				incrementNbRetransmission();
-				Session session = (Session) response.getCallSession().findSession(response);
-				if (session != null)
-				{
-					try
-					{
-						session.handleResponse(response);
-					}
-					catch (Exception e)
-					{
-						Log.warn(e);
-					}
-				}
-			}
-			else
-			{
-				if (_statsStartedAt != -1) 
-				{
-					synchronized (_statsLock) 
-					{
-						_nbUnknownTransaction++;
-					}
-				}
-			}
-		} 
-        else 
-        {
-            if (Log.isDebugEnabled())
-                Log.debug("Response {} in transaction {}", response, ctx);
-			response.setTransaction(ctx);
-			ctx.handleResponse(response);
+		if (ctx == null)
+		{
+			if (Log.isDebugEnabled())
+				Log.debug("did not find client transaction for response {}", response);
+			
+			transactionNotFound();
+			return;
 		}
+		
+		if (Log.isDebugEnabled())
+            Log.debug("response {} for transaction {}", response, ctx);
+		
+		response.setTransaction(ctx);
+		ctx.handleResponse(response);
+		
+		if (!response.isHandled() && !response.isCancel())
+			((SipHandler) getHandler()).handle(response);
     }
 	
 	public ClientTransaction sendRequest(SipRequest request, ClientTransactionListener listener) 
@@ -226,47 +203,62 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		SipProxy.__timerC = millis;
 	}
 	
-	protected void incrementNbRetransmission() {
-		if (_statsStartedAt != -1) 
-		{
-			synchronized (_statsLock) 
-			{
-				_nbRetransmission++;
-			}
-		}
+	protected void retransReceived() 
+	{
+		if (_statsStartedAt.get() == -1)
+            return;
+		_retransStats.increment();
 	}
 	
-	public long getNbRetransmission()
+	protected void transactionNotFound()
 	{
-		return _nbRetransmission;
+		if (_statsStartedAt.get() == -1)
+			return;
+		_notFoundStats.increment();
 	}
 	
-	public long getNbUnknownTransaction()
+	public long getRetransmissions()
 	{
-		return _nbUnknownTransaction;
+		return _retransStats.getCurrent();
 	}
 	
-	public void statsReset() 
+	public long getNotFoundTransactions()
 	{
-		synchronized (_statsLock) 
-		{
-			_statsStartedAt = _statsStartedAt == -1 ? -1 : System.currentTimeMillis();
-			_nbRetransmission = 0;
-			_nbUnknownTransaction = 0;
-		}
+		return _notFoundStats.getCurrent();
 	}
 	
-	public void setStatsOn(boolean on) 
-	{
-        if (on && _statsStartedAt != -1) 
-        	return;
+	public void statsReset()
+    {
+        updateNotEqual(_statsStartedAt,-1,System.currentTimeMillis());
 
-        statsReset();
-        _statsStartedAt = on ? System.currentTimeMillis() : -1;
+        _retransStats.reset();
+        _notFoundStats.reset();
     }
 	
-	public boolean isStatsOn() 
-	{
-		return  _statsStartedAt != -1;
-	}
+	public void setStatsOn(boolean on)
+    {
+        if (on && _statsStartedAt.get() != -1)
+            return;
+
+        Log.debug("Statistics on = " + on + " for " + this);
+
+        statsReset();
+        _statsStartedAt.set(on?System.currentTimeMillis():-1);
+    }
+	
+	public boolean getStatsOn()
+    {
+        return _statsStartedAt.get() != -1;
+    }
+	
+	private void updateNotEqual(AtomicLong valueHolder, long compare, long value)
+    {
+        long oldValue = valueHolder.get();
+        while (compare != oldValue)
+        {
+            if (valueHolder.compareAndSet(oldValue,value))
+                break;
+            oldValue = valueHolder.get();
+        }
+    }
 }

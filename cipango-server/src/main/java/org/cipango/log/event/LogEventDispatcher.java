@@ -31,10 +31,10 @@ public class LogEventDispatcher implements EventDispatcher
 		switch (eventType)
 		{
 		case Events.START:
-			_logger.info(message, null, null);
+			_logger.info(message);
 			break;
 		default:
-			_logger.warn(message, null, null);
+			_logger.warn(message);
 			break;
 		}
 	}

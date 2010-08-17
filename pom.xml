@@ -9,7 +9,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jetty.version>7.1.5.v20100705</jetty.version>
+    <jetty.version>7.1.6.v20100715</jetty.version>
     <servlet.version>2.5</servlet.version>
     <sip-api.version>1.1</sip-api.version>
     <junit.version>3.8</junit.version>

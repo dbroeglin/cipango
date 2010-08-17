@@ -82,6 +82,7 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
 	protected Session _session;
 	
 	private boolean _committed = false;
+	private boolean _handled = false;
 	
 	private Attributes _attributes;
 	
@@ -1136,6 +1137,16 @@ public abstract class SipMessage implements SipServletMessage, Cloneable
     public AppSession appSession()
     {
     	return _session.appSession();
+    }
+    
+    public void setHandled(boolean handled)
+    {
+    	_handled = handled;
+    }
+    
+    public boolean isHandled()
+    {
+    	return _handled;
     }
     
     public abstract String getRequestLine();

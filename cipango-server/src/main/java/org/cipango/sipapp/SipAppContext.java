@@ -49,6 +49,8 @@ import org.cipango.sip.NameAddr;
 import org.cipango.sip.ParameterableImpl;
 import org.cipango.sip.SipFields;
 import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.URIFactory;
 import org.cipango.sip.security.AuthInfoImpl;

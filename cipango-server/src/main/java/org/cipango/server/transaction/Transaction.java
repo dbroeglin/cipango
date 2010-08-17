@@ -22,6 +22,9 @@ import org.cipango.util.TimerTask;
 
 import org.eclipse.jetty.util.log.Log;
 
+/**
+ * SIP transaction base class
+ */
 public abstract class Transaction
 {
 	public static final int STATE_UNDEFINED  = 0;
@@ -30,7 +33,8 @@ public abstract class Transaction
     public static final int STATE_PROCEEDING = 3;
     public static final int STATE_COMPLETED  = 4;
     public static final int STATE_CONFIRMED  = 5;
-    public static final int STATE_TERMINATED = 6;
+    public static final int STATE_ACCEPTED	 = 6;
+    public static final int STATE_TERMINATED = 7;
     
     public static final String[] STATES = 
     {
@@ -40,20 +44,25 @@ public abstract class Transaction
         "Proceeding", 
         "Completed", 
         "Confirmed", 
+        "Accepted",
         "Terminated"
     };
-    
-    protected static final int TIMER_A = 1;
-    protected static final int TIMER_B = 2;
-    protected static final int TIMER_D = 4;
-    protected static final int TIMER_E = 5;
-    protected static final int TIMER_F = 6;
-    protected static final int TIMER_G = 7;
-    protected static final int TIMER_H = 8;
-    protected static final int TIMER_I = 9;
-    protected static final int TIMER_J = 10;
-    protected static final int TIMER_K = 11;
+    /*
+    protected static final int TIMER_A = 0;
+    protected static final int TIMER_B = 1;
+    protected static final int TIMER_D = 2;
+    protected static final int TIMER_E = 3;
+    protected static final int TIMER_F = 4;
+    protected static final int TIMER_G = 5;
+    protected static final int TIMER_H = 6;
+    protected static final int TIMER_I = 7;
+    protected static final int TIMER_J = 8;
+    protected static final int TIMER_K = 9;
+    protected static final int TIMER_L = 10;
+    protected static final int TIMER_M = 10;
            
+    public static final char[] TIMERS = {'A','B','D','E','F','G','H','I','J','K','L','M'};
+    */
     public static final int DEFAULT_T1 = 500;
     public static final int DEFAULT_T2 = 4000;
     public static final int DEFAULT_T4 = 5000;
@@ -64,7 +73,7 @@ public abstract class Transaction
     public static int __T4 = DEFAULT_T4;
     public static int __TD = DEFAULT_TD;
     
-    private TimerTask[] _timers = new TimerTask[] { null, null, null, null, null, null, null, null, null, null, null, null };
+    protected TimerTask[] _timers;
     
     protected int _state;
     private String _branch;
@@ -84,13 +93,6 @@ public abstract class Transaction
             
         _key = _cancel ? "cancel-" + branch : branch;
         request.setTransaction(this);
-    }
-    
-    protected Transaction() { }
-    
-    public void setCallSession(CallSession callSession)
-    {
-    	_callSession = callSession;
     }
     
     public SipConnection getConnection()
@@ -143,6 +145,11 @@ public abstract class Transaction
         _state = state;
     }
     
+    public String getStateAsString()
+    {
+    	return STATES[_state];
+    }
+    
     public void startTimer(int timer, long delay)
     {
     	TimerTask timerTask = _timers[timer];
@@ -159,7 +166,12 @@ public abstract class Transaction
     	_timers[timer] = null;
     }
     
-    public abstract boolean isTransportReliable();
+    public abstract String asString(int timer);
+    
+    public boolean isTransportReliable()
+	{
+		return getConnection().getConnector().isReliable();
+	}
     
     public Server getServer() 
     {
@@ -178,6 +190,9 @@ public abstract class Transaction
     
     public abstract void timeout(int id);
     
+    /**
+     * SIP transaction timer
+     */
     class Timer implements Runnable
     {
 		private int _timer;
@@ -191,17 +206,19 @@ public abstract class Transaction
     	{
     		try 
     		{		
+    			if (Log.isDebugEnabled())
+    				Log.debug("timeout {} for transaction {}", this, Transaction.this);
     			timeout(_timer);
     		}
     		catch (Throwable t)
     		{
-    			Log.debug(t);
+    			Log.warn(t);
     		}
     	}
     	
     	public String toString()
     	{
-    		return "timer" + (char) (0x40 + _timer);
+    		return asString(_timer);
     	}
     }
   

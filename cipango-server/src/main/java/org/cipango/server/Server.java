@@ -336,7 +336,7 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 		return isStatsOn()
 			&& getSessionManager().isStatsOn()
 			&& getConnectorManager().isStatsOn()
-			&& getTransactionManager().isStatsOn();
+			&& getTransactionManager().getStatsOn();
 	}
 	
 	public long getMessages()

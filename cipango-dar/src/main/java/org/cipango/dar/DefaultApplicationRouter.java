@@ -42,14 +42,36 @@ import org.eclipse.jetty.util.log.Log;
 public class DefaultApplicationRouter implements SipApplicationRouter
 {
 	public static final String __J_S_DAR_CONFIGURATION = "javax.servlet.sip.ar.dar.configuration";
-	public static final String MATCH_ON_NEW_OUTGOING_REQUESTS = "org.cipango.dar.matchOnNewOutgoingRequests";
+	
+	public static final String ROUTE_OUTGOING_REQUESTS = "org.cipango.dar.routeOutgoingRequests";
 	public static final String DEFAULT_CONFIGURATION = "etc/dar.properties";
 
 	private Map<String, RouterInfo[]> _routerInfoMap;
 	private String _configuration;
 	private SortedSet<String> _applicationNames = new TreeSet<String>();
-	private boolean _matchOnNewOutgoingRequests;
+	
+	private boolean _routeOutgoingRequests = true;
+	
+	public void setConfiguration(String configuration)
+	{
+		_configuration = configuration;
+	}
+	
+	public String getConfiguration()
+	{
+		return _configuration;
+	}
+	
+	public void setRouteOutgoingRequests(boolean b)
+	{
+		_routeOutgoingRequests = b;
+	}
 
+	public boolean getRouteOutgoingRequests()
+	{
+		return _routeOutgoingRequests;
+	}
+	
 	public String[] getApplicationNames()
 	{
 		return _applicationNames.toArray(new String[] {});
@@ -74,7 +96,7 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	public SipApplicationRouterInfo getNextApplication(SipServletRequest initialRequest,
 			SipApplicationRoutingRegion region, SipApplicationRoutingDirective directive, SipTargetedRequestInfo toto, Serializable stateInfo)
 	{
-		if (!_matchOnNewOutgoingRequests && initialRequest.getRemoteAddr() == null)
+		if (!_routeOutgoingRequests && initialRequest.getRemoteAddr() == null)
 			return null;
 		
 		if (_routerInfoMap == null || _routerInfoMap.isEmpty())
@@ -177,9 +199,8 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 
 	public void init() 
 	{
-		
-		_matchOnNewOutgoingRequests = 
-			!System.getProperty(MATCH_ON_NEW_OUTGOING_REQUESTS, "true").equalsIgnoreCase("false");
+		if (!System.getProperty(ROUTE_OUTGOING_REQUESTS, "true").equalsIgnoreCase("true"))
+			_routeOutgoingRequests = false;
 		
 		if (_configuration == null)
 		{
@@ -213,23 +234,8 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 			Log.info("No DAR configuration. Using application: " + _applicationNames.first());
 	}
 	
-	public void setConfiguration(String configuration)
-	{
-		_configuration = configuration;
-	}
-
 	public void init(Properties properties)
 	{
 		init();
-	}
-	
-	public String getConfiguration()
-	{
-		return _configuration;
-	}
-	
-	public boolean isMatchOnNewOutgoingRequests()
-	{
-		return _matchOnNewOutgoingRequests;
 	}
 }

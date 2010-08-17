@@ -18,14 +18,30 @@ import java.io.IOException;
 
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
-import org.cipango.sip.SipHeaders;
+import org.cipango.util.TimerTask;
 
 import org.eclipse.jetty.util.log.Log;
 
 public class ServerTransaction extends Transaction
 {	
+	// INVITE response retransmit interval
+	private static final int TIMER_G = 0;
+	
+	// Wait time for ACK receipt
+	private static final int TIMER_H = 1;
+	
+	// Wait time for ACK retransmits
+	private static final int TIMER_I = 2;
+	
+	// Wait time for non-INVITE request retransmits
+	private static final int TIMER_J = 3;
+	
+	// Wait time for accepted INVITE request retransmits
+	private static final int TIMER_L = 4;
+
+	private static final char[] TIMERS = {'G','H','I','J','L'};
+    
 	private SipResponse _provisionalResponse;
-    private SipResponse _gResponse;
     private SipResponse _finalResponse;
     
     private ServerTransactionListener _listener;
@@ -35,6 +51,8 @@ public class ServerTransaction extends Transaction
 	public ServerTransaction(SipRequest request) 
     {
 		super(request, request.getTopVia().getBranch());
+		_timers = new TimerTask[TIMER_L+1];
+		
 		setConnection(request.getConnection());
 		
 		if (isInvite()) 
@@ -53,57 +71,51 @@ public class ServerTransaction extends Transaction
        _listener.handleCancel(this, cancel);
     }
     
-	public boolean handleRequest(SipRequest request)
+    public void handleAck(SipRequest ack)
     {
-		if (request.isAck())
-        {
-			if (isInvite())
-            {
-				if (_state != STATE_COMPLETED)
-                {
-					Log.info("ACK in state: {}", STATES[_state]);
-                    return true;
-				}
-				_state = STATE_CONFIRMED;
-				cancelTimer(TIMER_H);
-				cancelTimer(TIMER_G);
-				if (isTransportReliable())
-					terminate();
-				else 
-					startTimer(TIMER_I, __T4);
-			} 
-            else 
-				Log.warn("Dropped ACK for non-INVITE: {}", this);
-            
-            return true;
-		} 
-        else 
-        {
-            if (!request.getHeader(SipHeaders.CSEQ).equals(_request.getHeader(SipHeaders.CSEQ)))
-                return false;
-
-        	getServer().getTransactionManager().incrementNbRetransmission();
-        	
-            SipResponse response = null;
-			if (_state == STATE_PROCEEDING) 
-                response = _provisionalResponse;
-            else if (_state == STATE_COMPLETED)
-                response = _finalResponse;
-            
-            if (response != null)
-            {
-                try 
-                { 
-                    doSend(response);
-                }
-                catch (IOException e)
-                {
-                    Log.ignore(e);
-                }
-			} 
-		}
-        return true;
-	}
+    	if (isInvite())
+    	{
+    		if (_state != STATE_COMPLETED)
+    		{
+    			Log.info("ACK in state {} for transaction {}", getStateAsString(), this);
+    			return;
+    		}
+    		setState(STATE_CONFIRMED);
+    		cancelTimer(TIMER_H); cancelTimer(TIMER_G);
+    		
+    		if (isTransportReliable())
+    			terminate(); // TIMER_I == 0
+    		else
+    			startTimer(TIMER_I, __T4);
+    	}
+    	else
+    	{
+    		Log.info("ACK for non-INVITE: {}", this);
+    	}
+    }
+    
+    public void handleRetransmission(SipRequest request)
+    {
+    	// TODO cseq
+    	SipResponse response = null;
+    	
+    	if (_state == STATE_PROCEEDING)
+    		response = _provisionalResponse;
+    	else if (_state == STATE_COMPLETED)
+    		response = _finalResponse;
+    	
+    	if (response != null)
+    	{
+    		try
+    		{
+    			doSend(response);
+    		}
+    		catch (Exception e)
+    		{
+    			Log.debug(e);
+    		}
+    	}
+    }
 	
 	public boolean isServer() 
     {
@@ -112,35 +124,37 @@ public class ServerTransaction extends Transaction
 	
 	public void send(SipResponse response) 
     {
-		if (_state >= STATE_COMPLETED) 
-			throw new IllegalStateException("Completed && send");
+		int status = response.getStatus();
 		
-        // update transaction state
 		if (isInvite()) 
         {
             switch (_state)
             {
             case STATE_PROCEEDING:
-                if (response.getStatus() < 200) 
+                if (status < 200) 
                 {
                     _provisionalResponse = response;
                 } 
-                else if (response.getStatus() >= 300) 
+                else if (status >= 300) 
                 {
                     setState(STATE_COMPLETED);
+                	_finalResponse = response;
+
                     if (!isTransportReliable()) 
-                    {
-                        _gResponse = response;
                         startTimer(TIMER_G, gDelay);
-                    }
-                    _finalResponse = response;
+                    
                     startTimer(TIMER_H, 64*__T1);
                 } 
-                else if (response.getStatus() >= 200) 
+                else if (status >= 200) 
                 {
-                    terminate();
+                	setState(STATE_ACCEPTED);
+                	startTimer(TIMER_L, 64*__T1);
                 }
                 break;
+            case STATE_ACCEPTED:
+            	if (!(status >= 200 && status < 300))
+            		throw new IllegalStateException("!2xx && Accepted");
+            	break;
             default:
                 throw new IllegalStateException("sendInvite && !Proceeding");
             }
@@ -157,14 +171,14 @@ public class ServerTransaction extends Transaction
                     if (_state == STATE_TRYING) 
                         setState(STATE_PROCEEDING);                    
                 } 
-                else if (response.getStatus() >= 200) 
+                else if (response.getStatus() >= 200)
                 {
                     setState(STATE_COMPLETED);
                     _finalResponse = response;
+
                     if (isTransportReliable()) 
-                        terminate();
+                        terminate(); // TIMER_J == 0
                     else 
-                        //startOldTimer(TIMER_J, __T1 * 64);
                     	startTimer(TIMER_J, 64*__T1);
                 } 
                 break;
@@ -172,21 +186,15 @@ public class ServerTransaction extends Transaction
                 throw new IllegalStateException("sendNonInvite && !(state == Trying || state == Proceeding)");
             }
         }
-        // send response
+		
 		try 
         {
 			doSend(response);
         }
 		catch (IOException e) 
         {
-			Log.warn("Failed to send response {}", response);
-			//terminate();
+			Log.debug(e);
 		}
-	}
-	
-	public boolean isTransportReliable()
-	{
-		return getConnection().getConnector().isReliable();
 	}
 	
 	private void doSend(SipResponse response) throws IOException 
@@ -201,11 +209,11 @@ public class ServerTransaction extends Transaction
 		case TIMER_G:
 			try 
             {
-				doSend(_gResponse);
+				doSend(_finalResponse);
 			} 
             catch (IOException e) 
             {
-				Log.warn("Failed to retransmit G response", e);
+				Log.debug("failed to retransmit response on timer G expiry", e);
 			}
 			gDelay = gDelay * 2;
 			startTimer(TIMER_G, Math.min(gDelay, __T2));
@@ -216,20 +224,24 @@ public class ServerTransaction extends Transaction
 			terminate();
 			break;
 		case TIMER_I:
-			terminate();
-			break;
 		case TIMER_J:
+		case TIMER_L:
 			terminate();
 			break;
 		default:
-			throw new RuntimeException("!(g || h || i || j)");
+			throw new RuntimeException("unknown timeout id " + id);
 		}
 	}
 	
 	private void terminate()
     {
-		_provisionalResponse = _finalResponse = _gResponse = null;
+		_provisionalResponse = _finalResponse = null;
         setState(STATE_TERMINATED);
         getCallSession().removeServerTransaction(this);
     }
+	
+	public String asString(int timer)
+	{
+		return "Timer" + TIMERS[timer];
+	}
 }

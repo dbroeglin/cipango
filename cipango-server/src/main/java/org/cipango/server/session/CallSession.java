@@ -88,7 +88,7 @@ public interface CallSession
 	 */
 	Session findSession(SipRequest request);
 	
-	Session findSession(SipResponse response);
+	Session findSession(SipResponse response); // TODO remove
 	
 	/**
 	 * Indicates whether a SipSession has active transactions (i.e. transactions that are not completed)

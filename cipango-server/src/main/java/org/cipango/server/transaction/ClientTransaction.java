@@ -30,10 +30,38 @@ import org.cipango.server.SipResponse;
 import org.cipango.sip.SipMethods;
 import org.cipango.sip.SipVersions;
 import org.cipango.sip.Via;
+import org.cipango.util.TimerTask;
 import org.eclipse.jetty.util.log.Log;
 
+/**
+ * INVITE and non-INVITE client transaction. 
+ * Supports draft-ietf-sipcore-invfix-01.
+ */
 public class ClientTransaction extends Transaction 
 {
+	// INVITE request retransmit, for UDP only
+	private static final int TIMER_A = 0;
+	
+	// INVITE transaction timeout
+	private static final int TIMER_B = 1;
+    
+    //Wait time for response retransmits
+	private static final int TIMER_D = 2;
+    
+    // Non-INVITE request retransmit, for UDP only
+	private static final int TIMER_E = 3;
+    
+    // Non-INVITE transaction timeout timer
+	private static final int TIMER_F = 4;
+    
+    // Wait time for response retransmits
+	private static final int TIMER_K = 5;
+    
+    // Wait time for retransmission of 2xx to INVITE 
+	private static final int TIMER_M = 6;
+    
+	private static final char[] TIMERS = {'A','B','D','E','F','K','M'};
+
 	private long _aDelay = __T1;
     private long _eDelay = __T1;
     
@@ -51,6 +79,13 @@ public class ClientTransaction extends Transaction
     {
 		super(request, branch);
         _listener = listener;
+        
+        _timers = new TimerTask[TIMER_M+1];
+	}
+	
+	public ClientTransactionListener getListener()
+	{
+		return _listener;
 	}
 	
 	private void ack(SipResponse response) 
@@ -200,17 +235,9 @@ public class ClientTransaction extends Transaction
 		}
 	}
 	
-	public boolean isTransportReliable()
-	{
-		return getConnection().getConnector().isReliable();
-	}
-	
 	public void handleResponse(SipResponse response) 
     {
-        if (Log.isDebugEnabled())
-            Log.debug("Response {} for tx {}", response, this);
-        
-		int status = response.getStatus();
+		int status = response.getStatus(); 
         
 		if (response.isInvite()) 
         {
@@ -226,44 +253,56 @@ public class ClientTransaction extends Transaction
 				} 
                 else if (200 <= status && status < 300) 
                 {
-					terminated();
+					setState(STATE_ACCEPTED);
+					startTimer(TIMER_M, 64L*__T1);
 				} 
                 else 
                 {
 					setState(STATE_COMPLETED);
 					ack(response);
 					if (isTransportReliable()) 
-						terminated();
+						terminate();
 					else 
 						startTimer(TIMER_D, __TD);
 				}
-                if (!_cancel)
-                    _listener.handleResponse(response);
+                //if (!_cancel)
+                //    _listener.handleResponse(response);
 				break;
 				
 			case STATE_PROCEEDING:
 				if (200 <= status && status < 300) 
                 {
-					terminated();
+					setState(STATE_ACCEPTED);
+					startTimer(TIMER_M, 64L*__T1);
 				} 
                 else if (status >= 300) 
                 {
 					setState(STATE_COMPLETED);
 					ack(response);
 					if (isTransportReliable()) 
-						terminated();
+						terminate();
 					else 
 						startTimer(TIMER_D, __TD);
 				}
-                if (!_cancel)
-                    _listener.handleResponse(response);
+                // if (!_cancel)
+                //    _listener.handleResponse(response);
 				break;
                 
 			case STATE_COMPLETED:
 				ack(response);
+				response.setHandled(true);
+				break;
+			case STATE_ACCEPTED:
+				if (!(200 <= status && status < 300))
+				{
+					Log.debug("non 2xx response {} in Accepted state", response);
+					response.setHandled(true);
+				}
+				//	_listener.handleResponse(response); 
 				break;
 			default:
-				Log.warn("handleResponse (invite) && state ==" + _state);
+				Log.debug("handleResponse (invite) && state ==" + _state);
+				response.setHandled(true);
 			}
 		} 
         else 
@@ -280,12 +319,12 @@ public class ClientTransaction extends Transaction
 					cancelTimer(TIMER_E); cancelTimer(TIMER_F);
 					setState(STATE_COMPLETED);
 					if (isTransportReliable()) 
-						terminated();
+						terminate(); // TIMER_K == 0
 					else 
 						startTimer(TIMER_K, __T4);
 				}
-                if (!_cancel)
-                    _listener.handleResponse(response);
+                //if (!_cancel)
+                //    _listener.handleResponse(response);
 				break;
                 
 			case STATE_PROCEEDING:
@@ -294,19 +333,21 @@ public class ClientTransaction extends Transaction
                     cancelTimer(TIMER_E); cancelTimer(TIMER_F);
 					setState(STATE_COMPLETED);
 					if (isTransportReliable())
-						terminated();
+						terminate();
 					else 
 						startTimer(TIMER_K, __T4);
-                    if (!_cancel)
-                        _listener.handleResponse(response);
+                    //if (!_cancel)
+                    //    _listener.handleResponse(response);
 				}
 				break;
 				
 			case STATE_COMPLETED:
+				response.setHandled(true);
 				break;
 				
 			default:
 				Log.warn("handleResponse (non-invite) && state ==" + _state);
+				response.setHandled(true);
 			}
 		}
 	}
@@ -316,17 +357,19 @@ public class ClientTransaction extends Transaction
 		return false;
 	}
 	
-	protected void terminated() 
+	protected void terminate() 
     {
 		setState(STATE_TERMINATED);
 		getCallSession().removeClientTransaction(this); 
     }
 	
+	public String asString(int timer)
+	{
+		return "Timer" + TIMERS[timer];
+	}
+	
 	public void timeout(int id) 
     {
-        if (Log.isDebugEnabled())
-            Log.debug("Timeout {} for tx {}", Integer.toString(id), this);
-        
 		switch (id) 
         {
 		case TIMER_A:
@@ -347,10 +390,10 @@ public class ClientTransaction extends Transaction
 			// TODO send to ??
             if (!_cancel)
                 _listener.handleResponse(responseB);
-			terminated();
+			terminate();
             break;
         case TIMER_D:
-            terminated();
+            terminate();
             break;
             
         case TIMER_E:
@@ -371,16 +414,18 @@ public class ClientTransaction extends Transaction
         case TIMER_F:
             cancelTimer(TIMER_E);
             SipResponse responseF = create408();
-            // TODO send to ??
             if (!_cancel)
-                _listener.handleResponse(responseF);
-            terminated();
+                _listener.handleResponse(responseF); // TODO interface TU
+            terminate();
             break;
         case TIMER_K:
-            terminated();
+            terminate();
             break;
+        case TIMER_M:
+        	terminate();
+        	break;
         default:
-            throw new RuntimeException("!(a || b || d || e || f || k)");
+            throw new RuntimeException("unknown timeout id " + id);
 		}
 	}
 

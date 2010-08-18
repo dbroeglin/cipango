@@ -220,11 +220,14 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		try
 		{
 			SipServletHolder[] holders = getSipServletHandler().getSipServlets();
-			for (SipServletHolder holder : holders)
+			if (holders != null)
 			{
-				if (holder.servlet() != null && holder.servlet() instanceof SipServlet)
+				for (SipServletHolder holder : holders)
 				{
-					fireServletInitialized((SipServlet) holder.servlet());
+					if (holder.servlet() != null && holder.servlet() instanceof SipServlet)
+					{
+						fireServletInitialized((SipServlet) holder.servlet());
+					}
 				}
 			}
 		}
@@ -398,11 +401,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 			super.startContext();
 	              
 			if (_name == null)
-			{
-				_name = getContextPath();
-				if (_name != null && _name.startsWith("/"))
-					_name = _name.substring(1);	
-			}
+				_name = getDefaultName();		
 			
 			if (_servletHandler != null && _servletHandler.isStarted())
 	            ((SipServletHandler) _servletHandler).initializeSip();
@@ -414,6 +413,14 @@ public class SipAppContext extends WebAppContext implements SipHandler
         			+ ": " + e.getMessage());
 			throw e;
 		}
+    }
+    
+    public String getDefaultName()
+    {
+    	String name = getContextPath();
+		if (name != null && name.startsWith("/"))
+			name = name.substring(1);
+		return name;
     }
     
     @Override

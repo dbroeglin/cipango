@@ -81,6 +81,10 @@ public class Configuration extends org.cipango.plus.webapp.Configuration
         Context context = new InitialContext();
         Context compCtx = (Context) context.lookup("java:comp/env");
         String name = appContext.getName();
+        
+        if (name == null)
+        	name = appContext.getDefaultName();
+        
         compCtx.createSubcontext("sip").createSubcontext(name);
         compCtx.bind(JNDI_SIP_PREFIX + name + JNDI_SIP_FACTORY_POSTFIX, appContext.getSipFactory());
         compCtx.bind(JNDI_SIP_PREFIX + name + JNDI_TIMER_SERVICE_POSTFIX, appContext.getTimerService());

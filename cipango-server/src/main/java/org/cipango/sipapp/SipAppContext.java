@@ -427,14 +427,14 @@ public class SipAppContext extends WebAppContext implements SipHandler
     protected void doStart() throws Exception
     {
     	super.doStart();
-    	if (hasSipServlets())
+    	if (hasSipServlets() && isAvailable())
     		getSipServer().applicationDeployed(this);
     }
     
 	@Override
 	protected void doStop() throws Exception
 	{
-		if (hasSipServlets())
+		if (hasSipServlets() && isAvailable())
 			getSipServer().applicationUndeployed(this);
 		super.doStop();
 	}

@@ -108,7 +108,7 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 			if (contexts != null)
 			{
 				for (SipAppContext context : contexts)
-					if (context.hasSipServlets())
+					if (context.hasSipServlets() && context.isAvailable())
 						appNames.add(context.getName());
 			}
 			_applicationRouter.applicationDeployed(appNames);

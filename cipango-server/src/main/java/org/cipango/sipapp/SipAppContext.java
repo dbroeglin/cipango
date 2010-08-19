@@ -396,23 +396,13 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		setAttribute(SipServlet.SUPPORTED, Collections.unmodifiableList(Arrays.asList(EXTENSIONS)));
 		setAttribute(SipServlet.SUPPORTED_RFCs, Collections.unmodifiableList(Arrays.asList(SUPPORTED_RFC)));
 		
-		try 
-		{
-			super.startContext();
-	              
-			if (_name == null)
-				_name = getDefaultName();		
-			
-			if (_servletHandler != null && _servletHandler.isStarted())
-	            ((SipServletHandler) _servletHandler).initializeSip();
-		} 
-		catch (Exception e) 
-		{
-			Events.fire(Events.DEPLOY_FAIL, 
-        			"Unable to deploy application " + getName()
-        			+ ": " + e.getMessage());
-			throw e;
-		}
+		super.startContext();
+              
+		if (_name == null)
+			_name = getDefaultName();		
+		
+		if (_servletHandler != null && _servletHandler.isStarted())
+            ((SipServletHandler) _servletHandler).initializeSip();
     }
     
     public String getDefaultName()
@@ -427,7 +417,16 @@ public class SipAppContext extends WebAppContext implements SipHandler
     protected void doStart() throws Exception
     {
     	super.doStart();
-    	if (hasSipServlets() && isAvailable())
+    	
+    	if (!isAvailable())
+    	{
+    		if (_name == null)
+				_name = getDefaultName();
+			Events.fire(Events.DEPLOY_FAIL, 
+        			"Unable to deploy application " + getName()
+        			+ ": " + getUnavailableException().getMessage());
+    	}
+    	else if (hasSipServlets())
     		getSipServer().applicationDeployed(this);
     }
     

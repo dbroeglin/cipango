@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.sip;
+package org.cipango.server;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -19,9 +19,7 @@ import java.net.UnknownHostException;
 
 import junit.framework.TestCase;
 
-import org.cipango.server.AbstractSipConnector;
-import org.cipango.server.ConnectorManager;
-import org.cipango.server.SipConnection;
+import org.cipango.sip.SipURIImpl;
 
 public class ConnectionManagerTest extends TestCase
 {

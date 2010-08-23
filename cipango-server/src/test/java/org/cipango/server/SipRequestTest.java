@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.sip;
+package org.cipango.server;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

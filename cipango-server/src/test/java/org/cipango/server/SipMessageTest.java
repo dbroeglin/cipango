@@ -1,4 +1,4 @@
-package org.cipango.sip;
+package org.cipango.server;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
@@ -9,7 +9,7 @@ import org.cipango.util.ReadOnlyAddress;
 
 import junit.framework.TestCase;
 
-public class MessageTest extends TestCase
+public class SipMessageTest extends TestCase
 {
 	public void testProxyAddress() throws Exception
 	{

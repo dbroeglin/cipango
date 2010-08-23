@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.sip;
+package org.cipango.server.bio;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

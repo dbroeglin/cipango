@@ -34,15 +34,14 @@ import org.cipango.sip.SipGenerator;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.Via;
 import org.cipango.util.SystemUtil;
-
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.Buffers;
 import org.eclipse.jetty.io.ByteArrayBuffer;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.MultiException;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.log.Log;
 
 public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipHandler
 {
@@ -272,27 +271,38 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
             return false;
 
         String host = sipUri.getHost();
+        
+        // Normalize IPv6 address
+		if (host.indexOf("[") != -1) 
+		{
+			try
+			{
+				host = InetAddress.getByName(host).getHostAddress();
+			}
+			catch (UnknownHostException e)
+			{
+				Log.ignore(e);
+			}
+		}
+		
         for (int i = 0; i < _connectors.length; i++)
         {
             SipConnector connector = _connectors[i];
-            boolean samePort = connector.getPort() == sipUri.getPort() 
-						|| (sipUri.getPort() == -1 && connector.getPort() == connector.getDefaultPort());
+            boolean samePort = connector.getPort() == sipUri.getPort() || sipUri.getPort() == -1;
             if (samePort)
             {
-            	
 	            if ((connector.getHost().equals(host) || connector.getAddr().getHostAddress().equals(host))) 
-	                return true;
-	            if (host.indexOf("[") != -1) // IPv6
 	            {
-	            	try
-					{
-						InetAddress addr = InetAddress.getByName(host);
-						if (connector.getAddr().equals(addr))
-							return true;
-					} catch (UnknownHostException e)
-					{
-						Log.ignore(e);
-					}
+	            	if (sipUri.getPort() != -1)
+	            		return true;
+	            	
+	            	// match on host address and port is not set ==> NAPTR case
+	            	if (connector.getAddr().getHostAddress().equals(host)
+	            			&& connector.getPort() != connector.getDefaultPort())
+	            	{
+	            		return false;
+	            	}
+	            	return true;
 	            }
             }
         }

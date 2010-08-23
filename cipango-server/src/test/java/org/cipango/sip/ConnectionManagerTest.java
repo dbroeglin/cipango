@@ -17,12 +17,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import junit.framework.TestCase;
+
 import org.cipango.server.AbstractSipConnector;
 import org.cipango.server.ConnectorManager;
 import org.cipango.server.SipConnection;
-import org.eclipse.jetty.io.Buffer;
-
-import junit.framework.TestCase;
 
 public class ConnectionManagerTest extends TestCase
 {
@@ -31,7 +30,7 @@ public class ConnectionManagerTest extends TestCase
 	{ 
 			"sip:cipango.org;lr",
 			"sip:cipango.org:5060;lr",
-			// "sip:as.cipango.org;lr",
+			"sip:as.cipango.org;lr",
 			"sip:as.cipango.org:5070;lr",
 			"sip:192.168.1.1;lr",
 			"sip:192.168.1.1:5060;lr",

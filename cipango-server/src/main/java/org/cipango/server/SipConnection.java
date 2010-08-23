@@ -16,4 +16,6 @@ public interface SipConnection
 	int getRemotePort();
 		
 	void write(Buffer buffer) throws IOException;
+	
+	boolean isOpen();
 }

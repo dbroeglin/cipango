@@ -224,6 +224,11 @@ public class UdpConnector extends AbstractSipConnector
 			_datagramSocket.send(packet);
 		}
 		
+		public boolean isOpen()
+		{
+			return (_datagramSocket != null && !_datagramSocket.isClosed());
+		}
+		
 		public String toString()
 		{
 			return "udp/" + _remoteAddr.getHostAddress() + ":" + _remotePort; 

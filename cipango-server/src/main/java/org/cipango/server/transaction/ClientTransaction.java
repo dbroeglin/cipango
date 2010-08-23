@@ -153,7 +153,7 @@ public class ClientTransaction extends Transaction
 
 	private void doSend() throws IOException 
     {
-		if (getConnection() != null)
+		if (getConnection() != null && getConnection().isOpen())
 		{
 			getServer().getConnectorManager().send(_request, getConnection()); 
 		}

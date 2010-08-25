@@ -70,3 +70,19 @@ describe TestApp do
     end
   end
 end
+
+describe TestApp do
+  it "should add a request handler" do
+    TestApp.invite(/sip:new_uri/) {}
+    TestApp.register(/sip:new_uri/) {}
+    
+    TestApp.instance_variable_get(:@req_handlers)['INVITE'].size.should == 2
+    TestApp.instance_variable_get(:@req_handlers)['REGISTER'].size.should == 1
+  end
+
+  it "should add a response handler" do
+    TestApp.response(:invite, /sip:new_uri/) {}
+    
+    TestApp.instance_variable_get(:@resp_handlers)['INVITE'].size.should == 1
+  end
+end

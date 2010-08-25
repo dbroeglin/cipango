@@ -63,6 +63,23 @@ module Sipatra
         yield self if envs.empty? || envs.include?(environment.to_sym)
       end
       
+      def response(*args, &block)
+        method_name, code_int, opts = *args
+        pattern = code_int || 0
+        handler("response_#{method_name.to_s.upcase || "ALL"}  \"#{pattern}\"", method_name.to_s.upcase || "ALL", pattern, [], opts || {}, &block)
+      end
+      
+      [:ack, :bye, :cancel, :info, :invite, :message, 
+       :notify, :options, :prack, :publish, :refer, 
+       :register, :subscribe, :update, :request].each do |name|
+        define_method name do |*args, &block|
+          path, opts = *args
+          uri = path || //
+          pattern, keys = compile_uri_pattern(uri)
+          handler("#{name.to_s.upcase}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", name.to_s.upcase, pattern, keys , opts || {}, &block)
+        end
+      end
+      
       private
       
       def reset!
@@ -72,7 +89,6 @@ module Sipatra
       
       # compiles a URI pattern
       def compile_uri_pattern(uri)
-        puts "Compile: #{uri}"
         keys = [] # TODO: Not yet used, shall contain key names
         if uri.respond_to? :to_str
           [/^#{uri}$/, keys]
@@ -87,38 +103,21 @@ module Sipatra
         define_method method_name, &block
         unbound_method = instance_method(method_name)
         block =
-        if block.arity != 0
-          proc { unbound_method.bind(self).call(*@block_params) }
-        else
-          proc { unbound_method.bind(self).call }
+          if block.arity != 0
+            proc { unbound_method.bind(self).call(*@block_params) }
+          else
+            proc { unbound_method.bind(self).call }
         end
-        #TODO: ugly
-        if(method_name.include? "RESPONSE_")
-         ((@resp_handlers ||= {})[verb] ||= []).
-          push([pattern, keys, nil, block]).last # TODO: conditions  
-        else
-         ((@req_handlers ||= {})[verb] ||= []).
-          push([pattern, keys, nil, block]).last # TODO: conditions  
-        end      
+        handler_table(method_name, verb).push([pattern, keys, nil, block]).last # TODO: conditions  
       end         
       
-      [:ack, :bye, :cancel, :info, :invite, :message, 
-       :notify, :options, :prack, :publish, :refer, 
-       :register, :subscribe, :update, :request].each do |name|
-        define_method name do |*args, &block|
-          path, opts = *args
-          uri = path || //
-          pattern, keys = compile_uri_pattern(uri)
-          handler("#{name.to_s.upcase}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", name.to_s.upcase, pattern, keys , opts || {}, &block)
+      def handler_table(method_name, verb)
+        if method_name.start_with? "response"
+          (@resp_handlers ||= {})[verb] ||= []
+        else
+          (@req_handlers ||= {})[verb] ||= []
         end
-      end
-      
-      def response(*args, &block)
-        method_name, code_int, opts = *args
-        pattern = code_int || 0
-        handler("RESPONSE_#{method_name.to_s.upcase || "ALL"}  \"#{pattern}\"", method_name.to_s.upcase || "ALL", pattern, [], opts || {}, &block)
-      end
-      
+      end   
     end
     
     reset!

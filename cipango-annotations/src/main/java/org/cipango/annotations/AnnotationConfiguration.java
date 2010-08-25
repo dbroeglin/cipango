@@ -13,17 +13,23 @@
 // ========================================================================
 package org.cipango.annotations;
 
-import org.cipango.plus.servlet.SipServletHandler;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.cipango.servlet.SipServletHandler;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AbstractConfiguration;
 import org.eclipse.jetty.annotations.AnnotationParser;
+import org.eclipse.jetty.annotations.ClassNameResolver;
 import org.eclipse.jetty.annotations.DeclareRolesAnnotationHandler;
 import org.eclipse.jetty.annotations.PostConstructAnnotationHandler;
 import org.eclipse.jetty.annotations.PreDestroyAnnotationHandler;
 import org.eclipse.jetty.annotations.ResourcesAnnotationHandler;
 import org.eclipse.jetty.annotations.RunAsAnnotationHandler;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
@@ -92,4 +98,35 @@ public class AnnotationConfiguration extends AbstractConfiguration
 
     }
 
+    @Override
+	public void parseWebInfLib(final WebAppContext context, final AnnotationParser parser) throws Exception
+	{
+		ArrayList<URI> webInfUris = new ArrayList<URI>();
+		@SuppressWarnings("unchecked")
+		List<Resource> jarResources = (List<Resource>) context.getAttribute(WEB_INF_JAR_RESOURCES);
+
+		for (Resource r : jarResources)
+			webInfUris.add(r.getURI());
+
+		parser.parse(webInfUris.toArray(new URI[webInfUris.size()]), new ClassNameResolver()
+		{
+			public boolean isExcluded(String name)
+			{
+				if (context.isSystemClass(name))
+					return true;
+				if (context.isServerClass(name))
+					return false;
+				return false;
+			}
+
+			public boolean shouldOverride(String name)
+			{
+				// looking at webapp classpath, found already-parsed class of
+				// same name - did it come from system or duplicate in webapp?
+				if (context.isParentLoaderPriority())
+					return false;
+				return true;
+			}
+		});
+	}
 }

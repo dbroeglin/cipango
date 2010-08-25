@@ -66,7 +66,7 @@ public class ServerTransaction extends Transaction
         _listener = listener;
     }
     
-    public void cancel(SipRequest cancel)
+    public void cancel(SipRequest cancel) throws IOException
     {
        _listener.handleCancel(this, cancel);
     }

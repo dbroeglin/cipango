@@ -273,10 +273,7 @@ public class AppSession implements AppSessionIf
 		for (int i = 0; i < _sessions.size(); i++)
 		{
 			Session session = _sessions.get(i);
-
-			if (ftag.equals(session.getRemoteTag()) && ttag.equals(session.getLocalTag()))
-				return session;
-			if (ttag.equals(session.getRemoteTag()) && ftag.equals(session.getLocalTag()))
+			if (session.isDialog(ftag, ttag))
 				return session;
 		}
 		return null;
@@ -635,23 +632,23 @@ public class AppSession implements AppSessionIf
         return session;
     }
     
-    public Session createDerivedsession(Session session)
-    {
-    	if (session.appSession() != this)
-    		throw new IllegalArgumentException("SipSession " + session.getId() +  " does not belong to SipApplicationSession " + getId());
-    	
-    	Session clone = session.clone();
-    	clone.setId(ID.newSessionId());
-    	addSession(clone);
-    	return clone;
-    }
-    
-    public Session createUacSession(String callId, NameAddr from, NameAddr to)
+    public Session createSession(String callId, NameAddr from, NameAddr to)
     {
         Session session = new Session(this, ID.newSessionId(), callId, from, to);
         session.setInvalidateWhenReady(_invalidateWhenReady);
         addSession(session);
         return session;
+    }
+    
+    public Session createDerivedSession(Session session)
+    {
+    	if (session.appSession() != this)
+    		throw new IllegalArgumentException("SipSession " + session.getId() +  " does not belong to SipApplicationSession " + getId());
+    	
+    	Session derived = new Session(ID.newSessionId(), session);
+    	derived.setInvalidateWhenReady(_invalidateWhenReady);
+    	addSession(derived);
+    	return derived;
     }
     
 	public void addSession(Object session)

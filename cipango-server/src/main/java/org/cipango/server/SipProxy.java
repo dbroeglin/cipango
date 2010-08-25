@@ -574,6 +574,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
             	Log.debug("Server transaction completed {}", _tx, null);
             return;
         }
+        /*
         if (_tx.getRequest().getTo().getParameter("tag") == null)
         {
             if (response.getStatus() < 300 && (response.isInvite() || response.isSubscribe()))
@@ -581,6 +582,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
                 response.session().registerProxy(response);
             }
         }
+        */
         _tx.send(response);
 		response.setCommitted(true); 
 	}    
@@ -848,12 +850,21 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 			if (_branchPathUri != null && _request.isRegister())
 				_request.addAddressHeader(SipHeaders.PATH, new NameAddr(_branchPathUri), true);
 				
-			_ctx = _request.getCallSession().getServer().sendRequest(_request, this);
+			//_ctx = _request.getCallSession().getServer().sendRequest(_request, this);
+			try
+			{
+				_ctx = _request.session().sendRequest(_request, this);
 			
-			if (_request.isInvite())
-				startTimerC();
+				if (_request.isInvite())
+					startTimerC();
 			
-			_actives++;
+				_actives++;
+			}
+			catch (Exception e)
+			{
+				Log.debug(e);
+				// TODO
+			}
 		}
         
         public void startTimerC()

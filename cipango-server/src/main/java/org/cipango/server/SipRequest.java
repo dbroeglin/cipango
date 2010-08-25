@@ -159,12 +159,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
     	if (!isServer()) 
     		throw new IllegalStateException("Not a received request");
     	
-    	if (_session.getRole() == Session.Role.UNDEFINED) 
-    		_session.setRole(Session.Role.PROXY);
-    	else if (_session.getRole() != Session.Role.PROXY) 
-    		throw new IllegalStateException(
-    				"Session is " + 
-    				_session.getRole());
+    	_session.setProxy();
 
     	if (_proxy == null) 
     	{
@@ -293,7 +288,8 @@ public class SipRequest extends SipMessage implements SipServletRequest
 	    	if (isCancel())
 	    		((ClientTransaction) getTransaction()).cancel(this);
 	    	else
-	    		getCallSession().getServer().sendRequest(this, _session);
+	    		//getCallSession().getServer().sendRequest(this, _session);
+	    		_session.sendRequest(this);
     	} 
     	finally
     	{

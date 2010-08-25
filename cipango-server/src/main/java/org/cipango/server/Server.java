@@ -190,9 +190,30 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
     		context.fireServletInitialized(servlet);
     }
     
-    /**
-     * AR for outgoing message
-     */
+    public void customizeRequest(SipRequest request) throws IOException
+    {
+    	if (!request.isInitial())
+    		return;
+    	
+    	SipApplicationRouterInfo routerInfo = _applicationRouter.getNextApplication(
+    			request,
+    			request.getRegion(),
+    			request.getRoutingDirective(),
+    			null,
+    			request.getStateInfo());
+    	
+    	if (routerInfo != null && routerInfo.getNextApplicationName() != null)
+    	{
+    		SipConnector connector = _connectorManager.getDefaultConnector();
+    		SipURI route = new SipURIImpl(null, connector.getHost(), connector.getPort());
+    		RouterInfoUtil.encode(route, routerInfo);
+    		route.setLrParam(true);
+    		
+    		request.pushRoute(route);
+    	}
+    }
+    
+    /*
     public ClientTransaction sendRequest(SipRequest request, ClientTransactionListener listener) 
     {
     	if (!request.isInitial())
@@ -229,6 +250,7 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 			return request.session().sendRequest(request, listener);
        	}
     }
+    */
 	
     public void handle(SipServletMessage message) throws IOException, ServletException
     {

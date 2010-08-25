@@ -108,7 +108,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         else if (_status >= 200 && _status < 300)
         {
         	setCommitted(true);
-            return _session.createRequest(SipMethods.ACK, getCSeq().getNumber());
+            return _session.getUA(false).createRequest(SipMethods.ACK, getCSeq().getNumber());
         }
         else 
             throw new IllegalStateException("non 2xx or 1xx response");
@@ -381,7 +381,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         
         SessionManager csm = getCallSession().getServer().getSessionManager();
         
-        SessionScope workUnit = csm.openScope(getCallSession());
+        SessionScope scope = csm.openScope(getCallSession());
         
         try 
         {
@@ -397,7 +397,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
         }
         finally
         {
-        	workUnit.close();
+        	scope.close();
         }
     }
 	

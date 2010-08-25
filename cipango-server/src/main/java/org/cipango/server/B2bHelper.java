@@ -141,8 +141,8 @@ public class B2bHelper implements B2buaHelper
         from.setParameter(SipParams.TAG, ID.newTag());
         to.removeParameter(SipParams.TAG);
         
-        Session session = appsession.createUacSession(callId, from, to);
-        session.setLocalCSeq(request.getCSeq().getNumber() + 1);
+        Session session = appsession.createSession(callId, from, to);
+        //session.setLocalCSeq(request.getCSeq().getNumber() + 1);
         session.setHandler(appsession.getContext().getSipServletHandler().getDefaultServlet());
         
         request.setSession(session);
@@ -352,7 +352,7 @@ public class B2bHelper implements B2buaHelper
 						throw new IllegalStateException("A final response has been already sent");
 					SipResponse response = new SipResponse(request, status, reason);
 					
-					response.setSession(session.appSession().createDerivedsession(session));
+					response.setSession(session.appSession().createDerivedSession(session));
 					linkSipSessions(response.getSession(), _request.getSession());
 					response.setSendOutsideTx(true);
 					return response;

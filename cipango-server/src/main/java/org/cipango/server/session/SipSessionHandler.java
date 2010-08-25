@@ -55,8 +55,6 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 	{
 		if (((SipMessage) message).isRequest())
 			handleRequest((SipRequest) message);
-		else
-			handleResponse((SipResponse) message);
 	}
 	
 	public void handleRequest(SipRequest request) throws IOException, ServletException
@@ -126,7 +124,6 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
 		}
 		
 		request.setSession(session);
-        ((ServerTransaction) request.getTransaction()).setListener(session.getSession());
         
         try
         {
@@ -159,13 +156,5 @@ public class SipSessionHandler extends AbstractHandler implements SipHandler
         		Log.debug(e);
         	}
         }
-	}
-
-	public void handleResponse(SipResponse response)
-	{
-		ClientTransaction ctx = (ClientTransaction) response.getTransaction();
-		ctx.getListener().handleResponse(response);
-		
-		// TODO fork
 	}
 }

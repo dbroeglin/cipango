@@ -303,7 +303,7 @@ public class TcpConnector extends AbstractSipConnector //implements Buffers
 			socket.setSoTimeout(_connectionTimeout);
 			
 			_local = socket.getLocalAddress();
-			_remote = socket.getInetAddress();
+			_remote = socket.getInetAddress(); 
 		}
 		
 		public void dispatch() throws IOException

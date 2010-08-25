@@ -699,7 +699,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
             
             String cid = ID.newCallId(appSession.getCallSession().getId());
             
-            Session session = appSession.createUacSession(cid, local, remote); 
+            Session session = appSession.createSession(cid, local, remote); 
             session.setHandler(getSipServletHandler().getDefaultServlet());
             
             SipRequest request = (SipRequest) session.createRequest(method);
@@ -723,44 +723,12 @@ public class SipAppContext extends WebAppContext implements SipHandler
         
         public SipServletRequest createRequest(SipServletRequest srcRequest, boolean sameCallId) 
         {
-            AppSession appsession = ((SipRequest) srcRequest).appSession(); 
-            SipRequest request = (SipRequest) ((SipRequest) srcRequest).clone();
+            AppSession appSession = ((SipRequest) srcRequest).appSession(); 
             
-            NameAddr from = (NameAddr) srcRequest.getFrom().clone();
-            NameAddr to = (NameAddr) srcRequest.getTo().clone();
-            
-            from.setParameter(SipParams.TAG, ID.newTag());
-            to.removeParameter(SipParams.TAG);
-            
-            SipFields fields = request.getFields();
-            
-            fields.setAddress(SipHeaders.FROM, from);
-            fields.setAddress(SipHeaders.TO, to);
-            fields.remove(SipHeaders.RECORD_ROUTE_BUFFER);
-            fields.remove(SipHeaders.VIA);
-            
-            if (!request.isRegister())
-                fields.remove(SipHeaders.CONTACT_BUFFER);
-            
-            String callId = null;
-            
-            if (sameCallId)
-                callId = request.getCallId();
-            else 
-                callId = ID.newCallId(request.getCallId());
-            
-            fields.setString(SipHeaders.CALL_ID, callId);
-            Session session = appsession.createUacSession(callId, from, to);
-          
-            session.setLocalCSeq(request.getCSeq().getNumber() + 1);
+            Session session = appSession.createSession();
             session.setHandler(getSipServletHandler().getDefaultServlet());
-            
-            request.setSession(session);
-            
-            if (request.needsContact())
-                fields.setAddress(SipHeaders.CONTACT, (NameAddr) session.getContact());
-            
-            request.setInitial(true);
+
+            SipRequest request = session.getUA(true).createRequest((SipRequest) srcRequest, sameCallId);
             request.setRoutingDirective(SipApplicationRoutingDirective.CONTINUE, srcRequest);
             
             return request;

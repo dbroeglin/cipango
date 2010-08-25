@@ -155,7 +155,7 @@ public class ClientTransaction extends Transaction
     {
 		if (getConnection() != null && getConnection().isOpen())
 		{
-			getServer().getConnectorManager().send(_request, getConnection()); 
+			getServer().getConnectorManager().send(_request, getConnection());
 		}
 		else 
 		{
@@ -265,8 +265,7 @@ public class ClientTransaction extends Transaction
 					else 
 						startTimer(TIMER_D, __TD);
 				}
-                //if (!_cancel)
-                //    _listener.handleResponse(response);
+				_listener.handleResponse(response);
 				break;
 				
 			case STATE_PROCEEDING:
@@ -284,8 +283,7 @@ public class ClientTransaction extends Transaction
 					else 
 						startTimer(TIMER_D, __TD);
 				}
-                // if (!_cancel)
-                //    _listener.handleResponse(response);
+				_listener.handleResponse(response);
 				break;
                 
 			case STATE_COMPLETED:
@@ -298,7 +296,10 @@ public class ClientTransaction extends Transaction
 					Log.debug("non 2xx response {} in Accepted state", response);
 					response.setHandled(true);
 				}
-				//	_listener.handleResponse(response); 
+				else
+				{
+					_listener.handleResponse(response);
+				}
 				break;
 			default:
 				Log.debug("handleResponse (invite) && state ==" + _state);
@@ -323,8 +324,8 @@ public class ClientTransaction extends Transaction
 					else 
 						startTimer(TIMER_K, __T4);
 				}
-                //if (!_cancel)
-                //    _listener.handleResponse(response);
+                if (!_cancel)
+                    _listener.handleResponse(response);
 				break;
                 
 			case STATE_PROCEEDING:
@@ -336,8 +337,8 @@ public class ClientTransaction extends Transaction
 						terminate();
 					else 
 						startTimer(TIMER_K, __T4);
-                    //if (!_cancel)
-                    //    _listener.handleResponse(response);
+                    if (!_cancel)
+                        _listener.handleResponse(response);
 				}
 				break;
 				

@@ -139,9 +139,6 @@ public class TransactionManager extends HandlerWrapper implements SipHandler
 		
 		response.setTransaction(ctx);
 		ctx.handleResponse(response);
-		
-		if (!response.isHandled() && !response.isCancel())
-			((SipHandler) getHandler()).handle(response);
     }
 	
 	public ClientTransaction sendRequest(SipRequest request, ClientTransactionListener listener) 

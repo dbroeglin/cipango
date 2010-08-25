@@ -153,9 +153,12 @@ public class ClientTransaction extends Transaction
 
 	private void doSend() throws IOException 
     {
-		if (getConnection() != null && getConnection().isOpen())
+		if (getConnection() != null)
 		{
-			getServer().getConnectorManager().send(_request, getConnection());
+			if (getConnection().isOpen())
+				getServer().getConnectorManager().send(_request, getConnection());
+			else
+				Log.debug("Could not sent request {} as the connection {} is closed", _request, getConnection());
 		}
 		else 
 		{

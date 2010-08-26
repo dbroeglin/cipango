@@ -17,6 +17,7 @@ package org.cipango.diameter.app;
 import java.util.EventListener;
 
 import org.cipango.diameter.DiameterFactory;
+import org.cipango.diameter.DiameterFactoryImpl;
 import org.cipango.diameter.Node;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.Configuration;
@@ -60,7 +61,7 @@ public class DiameterConfiguration implements Configuration
 		
 		Log.debug("Using " + diameterListener + " as diameter listener");
 		
-		DiameterFactory factory = new DiameterFactory();
+		DiameterFactoryImpl factory = new DiameterFactoryImpl();
 		Node node = (Node) context.getServer().getAttribute(Node.class.getName());
 		factory.setNode(node);
 		

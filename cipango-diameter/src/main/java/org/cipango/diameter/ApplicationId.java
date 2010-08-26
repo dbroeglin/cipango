@@ -19,6 +19,33 @@ import java.util.List;
 
 import org.cipango.diameter.base.Common;
 
+/**
+ * the Application Identifier is used to identify a specific Diameter
+ * Application. There are standards-track application ids and vendor specific
+ * application ids.
+ * 
+ * IANA [IANA] has assigned the range 0x00000001 to 0x00ffffff for
+ * standards-track applications; and 0x01000000 - 0xfffffffe for vendor specific
+ * applications, on a first-come, first-served basis. The following values are
+ * allocated.
+ * <ul>
+ * 	<li>Diameter Common Messages 0 
+ *  <li>NASREQ 1
+ *  <li>Mobile-IP 2 
+ *  <li>Diameter Base Accounting 3 
+ *  <li>Relay 0xffffffff
+ *  </ul>
+ * 
+ * Assignment of standards-track application IDs are by Designated Expert with
+ * Specification Required [IANA].
+ * 
+ * Both Application-Id and Acct-Application-Id AVPs use the same Application
+ * Identifier space.
+ * 
+ * Vendor-Specific Application Identifiers, are for Private Use. Vendor-Specific
+ * Application Identifiers are assigned on a First Come, First Served basis by
+ * IANA.
+ */
 public class ApplicationId
 {
 	public static enum Type { Acct, Auth }

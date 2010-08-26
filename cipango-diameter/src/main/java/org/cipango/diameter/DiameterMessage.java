@@ -166,6 +166,10 @@ public abstract class DiameterMessage implements Visitable
 		return _avps.size();
 	}
 	
+	/**
+	 * Returns a list with all messages AVPs.
+	 * @return a list with all messages AVPs.
+	 */
 	public AVPList getAVPs()
 	{
 		return _avps;
@@ -204,6 +208,14 @@ public abstract class DiameterMessage implements Visitable
 		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command;
 	}
 	
+	/**
+	 * Returns the value of the named attribute as an Object, or null if no attribute of the given
+	 * name exists.
+	 * 
+	 * @param name a String specifying the name of the attribute
+	 * @return an Object containing the value of the attribute, or null if the attribute does not
+	 *         exist
+	 */
 	public Object getAttribute(String name) 
 	{
 		if (_attributes != null) 
@@ -211,6 +223,12 @@ public abstract class DiameterMessage implements Visitable
 		return null;
 	}
 	
+	/**
+	 * Removes the named attribute from this message. Nothing is done if the message did not already
+	 * contain the specified attribute.
+	 * 
+	 * @param name a String specifying the name of the attribute
+	 */
 	public void removeAttribute(String name)
 	{
 		if (_attributes == null)
@@ -219,6 +237,13 @@ public abstract class DiameterMessage implements Visitable
 	}
 	
 
+	/**
+	 * Returns an Enumeration containing the names of the attributes available to this message
+	 * object. This method returns an empty Enumeration if the message has no attributes available
+	 * to it.
+	 * 
+	 * @return an Enumeration of strings containing the names of the message's attributes
+	 */
 	@SuppressWarnings("unchecked")
 	public Enumeration<String> getAttributeNames() 
 	{
@@ -228,6 +253,12 @@ public abstract class DiameterMessage implements Visitable
 		return Collections.enumeration(Collections.EMPTY_LIST);
 	}
 	
+	/**
+	 * Stores an attribute in this message.
+	 * @param name a String specifying the name of the attribute
+	 * @param o the Object to be stored 
+	 * @throws NullPointerException if either of name or o is null.
+	 */
 	public void setAttribute(String name, Object o) 
 	{
 		if (o == null || name == null) 

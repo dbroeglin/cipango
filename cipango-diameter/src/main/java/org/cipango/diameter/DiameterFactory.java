@@ -16,44 +16,64 @@ package org.cipango.diameter;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.base.Common;
+
 /**
- * Factory interface for Diameter abstractions. 
- * An instance this class is available to applications through the <code>org.cipango.diameter.DiameterFactory</code>
- * attribute of {@link javax.servlet.ServletContext}
+ * Factory interface for Diameter abstractions. An instance this class is available to applications
+ * through the <code>org.cipango.diameter.DiameterFactory</code> attribute of
+ * {@link javax.servlet.ServletContext}
  */
-public class DiameterFactory 
+public interface DiameterFactory
 {
-	private Node _node;
-	
-	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id, DiameterCommand command, String destinationRealm)
-	{
-		String suffix = "appid-" + appSession.getId();
-		DiameterSession session = _node.getSessionManager().createSession(suffix);
-		return null;
-	}
-	
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm)
-	{
-		return createRequest(id, command, destinationRealm, null);
-	}
-	
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
-	{
-		DiameterSession session = _node.getSessionManager().createSession();
-		session.setNode(_node);
-		session.setApplicationId(id);
-		session.setDestinationRealm(destinationRealm);
-		session.setDestinationHost(destinationHost);
-		return session.createRequest(command, false);
-	}
-	
-	public void setNode(Node node)
-	{
-		_node = node;
-	}
-	
-	protected Node getNode()
-	{
-		return _node;
-	}
+
+	/**
+	 * Returns a new diameter request object with the specified command, application identifier, and
+	 * destination realm. The returned request object exists in a new <code>DiameterSession</code>
+	 * which belongs to the specified <code>SipApplicationSession</code>.
+	 * 
+	 * The container is responsible for assigning the request appropriate origin host, origin realm,
+	 * session id AVPs.
+	 * 
+	 * @param appSession the application session to which the new <code>DiameterSession</code> and
+	 *            <code>DiameterRequest</code> belongs
+	 * @param id diameter application identifier
+	 * @param command diameter command
+	 * @param destinationRealm value of destination realm AVP
+	 * @return a new diameter request object with the specified command, application identifier, and
+	 *         destination realm.
+	 * @see Common.DESTINATION_REALM
+	 */
+	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+			DiameterCommand command, String destinationRealm);
+
+	/**
+	 * Returns a new diameter request object with the specified command, application identifier,
+	 * destination realm and destination host. The returned request object exists in a new
+	 * <code>DiameterSession</code> which belongs to the specified
+	 * <code>SipApplicationSession</code>.
+	 * 
+	 * The container is responsible for assigning the request appropriate origin host, origin realm,
+	 * session id AVPs.
+	 * 
+	 * @param appSession the application session to which the new <code>DiameterSession</code> and
+	 *            <code>DiameterRequest</code> belongs
+	 * @param id diameter application identifier
+	 * @param command diameter command
+	 * @param destinationRealm value of destination realm AVP
+	 * @param destinationHost value of destination host AVP
+	 * @return a new diameter request object with the specified command, application identifier, and
+	 *         destination realm.
+	 * @see Common.DESTINATION_REALM
+	 * @see Common.DESTINATION_HOST
+	 */
+	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+			DiameterCommand command, String destinationRealm, String destinationHost);
+
+	@Deprecated
+	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm);
+
+	@Deprecated
+	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm,
+			String destinationHost);
+
 }

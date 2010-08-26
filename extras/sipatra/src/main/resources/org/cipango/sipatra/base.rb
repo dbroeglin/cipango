@@ -10,27 +10,35 @@ module Sipatra
     include HelperMethods
     attr_accessor :sip_factory, :context, :session, :message
     
+    # called from Java to set SIP servlet bindings
     def set_bindings(*args)
       @context, @sip_factory, @session, @message = args
     end
     
+    # called to process a SIP request
     def do_request
-      puts "DO REQUEST: #{message.method} #{message.requestURI}"
-      processed = process_handler(self.class.req_handlers, message.method)
-      if !processed
-        process_handler(self.class.req_handlers, "REQUEST")
-      end
+      call self.class.req_handlers
     end
     
+    # called to process a SIP response
     def do_response
-      puts "DO RESPONSE: #{message.status} #{message.method}"
-      processed = process_handler(self.class.resp_handlers, message.method)
-      if !processed
-        process_handler(self.class.resp_handlers, "ALL")
-      end
+      call self.class.resp_handlers
     end
     
-    def eval_arg?(arg)
+    # Exit the current block, halts any further processing
+    # of the message.
+    def halt
+      throw :halt
+    end
+    
+    # Pass control to the next matching handler.
+    def pass
+      throw :pass
+    end
+    
+    private
+    
+    def eval_condition(arg)
       #TODO: ugly
       if message.respond_to? :requestURI
         return arg.match message.requestURI.to_s
@@ -39,19 +47,22 @@ module Sipatra
       end
     end
     
-    def process_handler(tab_handler, value)
-      processed = false
-      if handlers = tab_handler[value]
-        handlers.each { |pattern, keys, conditions, block|
-          if eval_arg?(pattern)
-            # TODO: use keys and conditions
-            processed = true
-            instance_eval(&block)          
-            break
+    def process_handler(handlers_hash, method_or_joker)
+      if handlers = handlers_hash[method_or_joker]
+        handlers.each do |pattern, keys, conditions, block|
+          catch :pass do
+            throw :pass unless eval_condition(pattern)
+            throw :halt, instance_eval(&block)          
           end
-        }
+        end
       end
-      return processed
+    end
+    
+    def call(handlers)
+      catch(:halt) do
+        process_handler(handlers, message.method)
+        process_handler(handlers, "_")
+      end
     end
     
     class << self
@@ -66,7 +77,8 @@ module Sipatra
       def response(*args, &block)
         method_name, code_int, opts = *args
         pattern = code_int || 0
-        handler("response_#{method_name.to_s.upcase || "ALL"}  \"#{pattern}\"", method_name.to_s.upcase || "ALL", pattern, [], opts || {}, &block)
+        sip_method_name = method_name ? method_name.to_s.upcase : "_"
+        handler("response_#{sip_method_name}  \"#{pattern}\"", sip_method_name, pattern, [], opts || {}, &block)
       end
       
       [:ack, :bye, :cancel, :info, :invite, :message, 
@@ -76,7 +88,8 @@ module Sipatra
           path, opts = *args
           uri = path || //
           pattern, keys = compile_uri_pattern(uri)
-          handler("#{name.to_s.upcase}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", name.to_s.upcase, pattern, keys , opts || {}, &block)
+          sip_method_name = name == :request ? "_" : name.to_s.upcase
+          handler("request_#{sip_method_name}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", sip_method_name, pattern, keys , opts || {}, &block)
         end
       end
       

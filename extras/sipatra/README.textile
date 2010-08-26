@@ -22,7 +22,7 @@ register do
 end
 </pre>
 
-Those handlers have to be put in a file called @WEB-INF/jruby/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
+Those handlers have to be put in a file called @WEB-INF/sipatra/application.rb@ and you need to add the following declaration to your @WEB-INF/sip.xml@. Handlers exist for the following SIP methods: ACK, BYE, CANCEL, INFO, INVITE, MESSAGE, NOTIFY, OPTIONS, PRACK, PUBLISH, REFER, REGISTER, SUBSCRIBE, UPDATE (http://en.wikipedia.org/wiki/List_of_SIP_request_methods).
 
 Helper methods like @send_response@ are available to handler writers in order to reduce the amount of code necessary for common tasks.
 
@@ -30,8 +30,8 @@ To use Sipatra in your SIP applications, just add the following declaration to y
 
 <pre>
   <servlet>
-      <servlet-name>jruby</servlet-name>
-      <servlet-class>org.cipango.jruby.JRubyServlet</servlet-class>
+      <servlet-name>sipatra</servlet-name>
+      <servlet-class>org.cipango.sipatra.JRubyServlet</servlet-class>
       <load-on-startup/>
   </servlet>
 </pre>
@@ -60,12 +60,12 @@ create_address('sip:12345@domain.com', :expires => 1234, :display_name => 'Foo')
 
 h2. Dependencies
 
-In order to use the cipango-jruby-1.0-SNAPSHOT.jar you also need to put those jars into your @WEB-INF/lib@ directory.
+In order to use the sipatra-0.1-SNAPSHOT.jar you also need to put those jars into your @WEB-INF/lib@ directory.
 
  * http://jruby.org.s3.amazonaws.com/downloads/1.5.1/jruby-complete-1.5.1.jar
- * cipango-jruby-1.0-SNAPSHOT.jar
+ * sipatra-0.1-SNAPSHOT.jar
 
 
 h2. Sample application
 
-A very simple, yet functionnal, "sample application":http://github.com/dbroeglin/sipatra-sample-app is available. 
+A very simple, yet functionnal, "sample application":http://github.com/dbroeglin/sipatra-sample-app featuring a Sipatra application alongside a Sinatra is available. It's packaged with "Warbler":http://kenai.com/projects/warbler/pages/Home wich makes it even simpler to try.

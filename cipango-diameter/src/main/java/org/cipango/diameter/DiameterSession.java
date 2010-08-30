@@ -14,8 +14,12 @@
 
 package org.cipango.diameter;
 
+import javax.servlet.sip.SipApplicationSession;
+
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.AuthSessionState;
+import org.cipango.server.session.AppSession;
+import org.cipango.server.session.scope.ScopedAppSession;
 
 /**
  * Point-to-point Diameter relationship. 
@@ -30,9 +34,19 @@ public class DiameterSession
 	private String _destinationRealm;
 	private String _destinationHost;
 	
-	public DiameterSession(String sessionId)
+	private SipApplicationSession _appSession;
+		
+	public DiameterSession(SipApplicationSession appSession, String sessionId)
 	{
 		_sessionId = sessionId;
+		_appSession = appSession;
+	}
+	
+	public SipApplicationSession getApplicationSession()
+	{
+		if (_appSession instanceof AppSession)
+			return new ScopedAppSession((AppSession) _appSession);
+		return _appSession;
 	}
 
 	public void setApplicationId(ApplicationId appId)
@@ -88,5 +102,10 @@ public class DiameterSession
 	public void setNode(Node node)
 	{
 		_node = node;
+	}
+
+	public boolean isValid()
+	{
+		return true; // TODO
 	}
 }

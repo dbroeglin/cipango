@@ -23,10 +23,12 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.log.BasicMessageLog;
-import org.eclipse.jetty.server.Server;
+import org.cipango.server.Server;
+import org.cipango.server.session.SessionManager.SessionScope;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.Loader;
 import org.eclipse.jetty.util.MultiException;
@@ -82,10 +84,12 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 	public Node()
 	{
+		setHandler(new DiameterContext());
 	}
 	
 	public Node(int port) throws IOException
 	{
+		setHandler(new DiameterContext());
 		DiameterSocketConnector connector = new DiameterSocketConnector();
 		connector.setHost(InetAddress.getLocalHost().getHostAddress());
 		connector.setMessageListener(new BasicMessageLog());
@@ -149,6 +153,10 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			_identity = InetAddress.getLocalHost().getHostName();
 		
 		_sessionManager = new SessionManager();
+		
+		if (_server != null)
+			_server.getContainer().update(this, null, _sessionManager, "sessionManager");
+		
 		_sessionManager.setNode(this);
 		
 		if (_connectors != null)
@@ -329,6 +337,11 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		}
 	}
 	
+	public DiameterHandler getHandler()
+	{
+		return _handler;
+	}
+	
 	public void setHandler(DiameterHandler handler)
 	{
 		_handler = handler;
@@ -336,33 +349,32 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	public void handle(DiameterMessage message) throws IOException
 	{
-		/*
+		
 		System.out.println("Got message: " + message);
 		String sessionId = message.getSessionId();
-		
-		boolean initial = false;
-		DiameterSession session = null;
-		
+				
 		if (sessionId != null)
 		{
-			session = _sessionManager.getSession(sessionId);
-			if (session == null)
+			DiameterSession session = null;
+			session = _sessionManager.get(sessionId);
+			/*if (session == null)
 			{
 				initial = true;
 				session = _sessionManager.newSession();
 				
-				ApplicationId id = ApplicationId.ofAVP(message);
-				String destinationRealm = message.getAVPs().getString(Base.DESTINATION_REALM);
+				//ApplicationId id = message.getApplicationId();
+				String destinationRealm = message.getAVPs().getValue(Common.DESTINATION_REALM);
 				
-				session.setApplicationId(id);
+				//session.setApplicationId(id);
 				session.setDestinationRealm(destinationRealm);
-			}
+			}*/
 			
 			message.setSession(session);
 		}
 		
-		System.out.println(message.getSession());
-		*/
+		System.out.println("Diameter session: " + message.getSession(false));
+		
+		
 		if (message instanceof DiameterAnswer)
 		{
 			DiameterAnswer answer = (DiameterAnswer) message;
@@ -388,8 +400,20 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
                 }
 			}
 		}
-		if (_handler != null)
-			_handler.handle(message);
+		
+		SessionScope scope = null;
+		try
+		{
+			scope = _sessionManager.openScope(message.getApplicationSession());
+			if (_handler != null)
+				_handler.handle(message);
+		}
+		finally
+		{
+			if (scope != null)
+				scope.close();
+		}
+		
 		//System.out.println("Got message: " + message.getAVPs());
 	}
 	

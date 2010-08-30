@@ -14,28 +14,20 @@
 
 package org.cipango.diameter.app;
 
+import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.List;
 
 import org.cipango.diameter.DiameterFactory;
 import org.cipango.diameter.DiameterFactoryImpl;
 import org.cipango.diameter.Node;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.Configuration;
-import org.eclipse.jetty.xml.XmlParser;
 
 public class DiameterConfiguration implements Configuration
 {
-	private XmlParser _xmlParser;
-		
-	public static XmlParser diameterXmlParser()
-	{
-		return new XmlParser();
-	}
-	
-
 	public void preConfigure(org.eclipse.jetty.webapp.WebAppContext arg0) throws Exception
 	{
-		_xmlParser = diameterXmlParser();
 	}
 
 
@@ -50,16 +42,16 @@ public class DiameterConfiguration implements Configuration
 		if (listeners == null)
 			return;
 		
-		DiameterListener diameterListener = null;
+		List<DiameterListener> diameterListeners = new ArrayList<DiameterListener>();
 		
 		for (int i = 0; i < listeners.length; i++)
 		{
 			EventListener listener = listeners[i];
 			if (listener instanceof DiameterListener)
-				diameterListener = (DiameterListener) listener;
+				diameterListeners.add((DiameterListener) listener);
 		}
 		
-		Log.debug("Using " + diameterListener + " as diameter listener");
+		Log.debug("Using " + diameterListeners + " as diameter listeners");
 		
 		DiameterFactoryImpl factory = new DiameterFactoryImpl();
 		Node node = (Node) context.getServer().getAttribute(Node.class.getName());
@@ -67,20 +59,21 @@ public class DiameterConfiguration implements Configuration
 		
 		context.getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		
-		node.setHandler(new DiameterContext(diameterListener, context.getClassLoader()));		
+		if (!diameterListeners.isEmpty())
+			((DiameterContext) node.getHandler()).addListeners(diameterListeners.toArray(new DiameterListener[0]), context);
+		
 	}
 	
 
-	public void postConfigure(org.eclipse.jetty.webapp.WebAppContext arg0) throws Exception
+	public void postConfigure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
 	{
-		// TODO Auto-generated method stub
 		
 	}
 
-	public void deconfigure(org.eclipse.jetty.webapp.WebAppContext arg0) throws Exception
+	public void deconfigure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
 	{
-		// TODO Auto-generated method stub
-		
+		Node node = (Node) context.getServer().getAttribute(Node.class.getName());
+		((DiameterContext) node.getHandler()).removeListeners(context);
 	}
 
 

@@ -16,6 +16,8 @@ package org.cipango.diameter;
 
 import java.io.IOException;
 
+import javax.servlet.sip.SipApplicationSession;
+
 public class DiameterAnswer extends DiameterMessage
 {
 	private DiameterRequest _request;
@@ -67,5 +69,21 @@ public class DiameterAnswer extends DiameterMessage
 	public String toString()
 	{
 		return "[" + _applicationId + "," + _endToEndId + "," + _hopByHopId + "] " + _command + " / " + _resultCode + " :" + _avps;
+	}
+
+	@Override
+	public SipApplicationSession getApplicationSession()
+	{
+		if (_request != null)
+			return _request.getApplicationSession();
+		return null;
+	}
+
+	@Override
+	public DiameterSession getSession(boolean create)
+	{
+		if (_request != null)
+			return _request.getSession(create);
+		return _session;
 	}
 }

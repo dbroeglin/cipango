@@ -65,6 +65,9 @@ public class MessageCodec extends AbstractCodec<DiameterMessage>
 		message.setEndToEndId(getInt(buffer));
 		message.setCommand(command);
 		
+		if (isRequest)
+			((DiameterRequest) message).setUac(false);
+		
 		message.setAVPList(Common.__grouped.decode(buffer));
 		return message;
 	}

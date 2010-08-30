@@ -16,6 +16,8 @@ package org.cipango.diameter;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.base.Common;
+
 public class DiameterFactoryImpl implements DiameterFactory
 {
 	private Node _node;
@@ -28,14 +30,17 @@ public class DiameterFactoryImpl implements DiameterFactory
 
 	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm, String destinationHost)
-	{
-		String suffix = "appid-" + appSession.getId();
-		DiameterSession session = _node.getSessionManager().createSession(suffix);
-		session.setNode(_node);
-		session.setApplicationId(id);
-		session.setDestinationRealm(destinationRealm);
-		session.setDestinationHost(destinationHost);
-		return session.createRequest(command, false);
+	{	
+		String sessionId = _node.getSessionManager().newSessionId();
+		DiameterRequest request = new DiameterRequest(_node, command, id.getId(),sessionId);
+		request.getAVPs().add(Common.DESTINATION_REALM, destinationRealm);
+		if (destinationHost != null)
+			request.getAVPs().add(Common.DESTINATION_HOST, destinationHost);
+		
+		request.getAVPs().add(id.getAVP());
+		request.setApplicationSession(appSession);
+		request.setUac(true);
+		return request;
 	}
 
 	@Deprecated
@@ -47,12 +52,7 @@ public class DiameterFactoryImpl implements DiameterFactory
 	@Deprecated
 	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
 	{
-		DiameterSession session = _node.getSessionManager().createSession();
-		session.setNode(_node);
-		session.setApplicationId(id);
-		session.setDestinationRealm(destinationRealm);
-		session.setDestinationHost(destinationHost);
-		return session.createRequest(command, false);
+		return createRequest(null, id, command, destinationRealm, destinationHost);
 	}
 	
 	public void setNode(Node node)

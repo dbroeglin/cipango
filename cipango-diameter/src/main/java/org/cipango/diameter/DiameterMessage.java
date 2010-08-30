@@ -20,6 +20,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.sip.SipApplicationSession;
+
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.util.CommandUtil;
 import org.cipango.diameter.util.DiameterVisitor;
@@ -45,6 +47,7 @@ public abstract class DiameterMessage implements Visitable
 	protected DiameterSession _session;
 	
 	private Map<String, Object> _attributes;
+	
 	
 	public <T> T get(Type<T> type)
 	{
@@ -180,10 +183,27 @@ public abstract class DiameterMessage implements Visitable
 		_avps = avps;
 	}
 	
+	/**
+	 * Returns the <code>DiameterSession</code> to which this message belongs. If the session didn't
+	 * already exist it is created. This method is equivalent to calling <code>getSession(true)</code>.
+	 * 
+	 * @return the <code>DiameterSession</code> to which this message belongs.
+	 */
 	public DiameterSession getSession()
 	{
-		return _session;
+		return getSession(true);
 	}
+
+	/**
+	 * Returns the <code>DiameterSession</code> to which this message belongs.
+	 * 
+	 * @param create indicates whether the session is created if it doesn't already exist
+	 * @return the <code>DiameterSession</code> to which this message belongs , or <code>null</code>
+	 *         if one hasn't been created and <code>create</code> is false
+	 */
+	public abstract DiameterSession getSession(boolean create);
+	
+	public abstract SipApplicationSession getApplicationSession();
 	
 	public void setSession(DiameterSession session)
 	{
@@ -205,7 +225,7 @@ public abstract class DiameterMessage implements Visitable
 	
 	public String toString()
 	{
-		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command;
+		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command + " :" + _avps;
 	}
 	
 	/**
@@ -268,5 +288,5 @@ public abstract class DiameterMessage implements Visitable
 			_attributes = new HashMap<String, Object>();
 
 		_attributes.put(name, o);
-	}
+	}	
 }

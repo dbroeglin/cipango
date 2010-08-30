@@ -21,6 +21,7 @@ import java.util.Map;
 
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.DisconnectCause;
+import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.eclipse.jetty.util.log.Log;
 
 /**
@@ -51,6 +52,7 @@ public class Peer
 	public Peer()
 	{
 		_state = CLOSED;
+		_port = DiameterSocketConnector.DEFAULT_PORT;
 	}
 	
 	public Peer(String host)
@@ -78,6 +80,8 @@ public class Peer
 	
 	public void setPort(int port)
 	{
+		if (port == -1)
+    		port = DiameterSocketConnector.DEFAULT_PORT;
 		_port = port;
 	}
 	

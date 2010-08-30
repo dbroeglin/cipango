@@ -47,6 +47,16 @@
             </New>
           </Arg>
         </Call>
+        <!-- Add supported applications -->
+        <!-- Uncomment to set the applications supported -->
+        <!-- 
+        <Call name="addSupportedApplication">
+          <Arg>
+            <Get name="SH_APPLICATION_ID" class="org.cipango.diameter.ims.Sh"/>
+          </Arg>
+        </Call>
+        -->
+        
         <Call name="addPeer">
           <Arg>
             <New class="org.cipango.diameter.Peer">

@@ -76,8 +76,9 @@
   
  <dependencies>
     <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-deploy</artifactId>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-server</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

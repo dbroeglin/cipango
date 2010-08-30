@@ -14,7 +14,9 @@
 
 package org.cipango.diameter;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.cipango.diameter.base.Common;
@@ -118,56 +120,54 @@ public class ApplicationId
 			return appId;
 	}
 	
-	public String toString()
+	@Override
+	public boolean equals(Object o)
 	{
-		return _id + _vendors.toString();
+		if (!(o instanceof ApplicationId))
+			return false;
+		ApplicationId other = (ApplicationId) o;
+		
+		boolean same = _id == other.getId() && _type == other._type && isVendorSpecific() == other.isVendorSpecific(); 
+		if (isVendorSpecific())
+			return same && getVendors().equals(other.getVendors());
+		return same;
+		
 	}
 	
-	/*
+	@Override
+	public String toString()
+	{
+		return _id + (isVendorSpecific() ? _vendors.toString() : "");
+	}
+	
+	
 	public static ApplicationId ofAVP(DiameterMessage message)
 	{
-		List<AVP> list = message.getAVPs();
-		for (int i = 0; i < list.size(); i++)
-		{
-			AVP avp = list.get(i);
-			if (avp.getVendorId() == 0)
-			{
-				switch(avp.getCode())
-				{
-				case Base.ACCT_APPLICATION_ID:
-					return new ApplicationId(Type.Acct, avp.getInt());
-				case Base.AUTH_APPLICATION_ID:
-					return new ApplicationId(Type.Auth, avp.getInt());
-				case Base.VENDOR_SPECIFIC_APPLICATION_ID:
-					List<AVP> vsai = avp.getGrouped();
-					
-					int id = -1;
-					Type type = null;
-					List<Integer> vendors = new ArrayList<Integer>();
-					
-					for (int j = 0; j < vsai.size(); j++)
-					{
-						AVP avp2 = vsai.get(j);
-						switch (avp2.getCode())
-						{
-						case Base.ACCT_APPLICATION_ID:
-							id = avp2.getInt();
-							type = Type.Acct;
-							break;
-						case Base.AUTH_APPLICATION_ID:
-							id = avp2.getInt();
-							type = Type.Auth;
-							break;
-						case Base.VENDOR_ID:
-							vendors.add(avp2.getInt());
-							break;
-						}
-					}
-					return new ApplicationId(type, id, vendors);
-				}
-			}
-		}
-		return null;
+		Integer appId = message.get(Common.ACCT_APPLICATION_ID);
+		if (appId != null)
+			return new ApplicationId(ApplicationId.Type.Acct, appId);
+		
+		appId = message.get(Common.AUTH_APPLICATION_ID);
+		
+		if (appId != null)
+			return new ApplicationId(ApplicationId.Type.Auth, appId);
+		
+		AVPList list = message.get(Common.VENDOR_SPECIFIC_APPLICATION_ID);
+		
+		if (list == null)
+			return null;
+		
+		List<Integer> vendors = new ArrayList<Integer>();
+		Iterator<AVP<Integer>> it = list.getAVPs(Common.VENDOR_ID);
+		while(it.hasNext())
+			vendors.add(it.next().getValue());
+		
+		appId = list.getValue(Common.ACCT_APPLICATION_ID);
+		if (appId != null)
+			return new ApplicationId(ApplicationId.Type.Acct, appId, vendors);
+		
+		appId = list.getValue(Common.AUTH_APPLICATION_ID);
+		return new ApplicationId(ApplicationId.Type.Auth, appId, vendors);
 	}
-	*/
+	
 }

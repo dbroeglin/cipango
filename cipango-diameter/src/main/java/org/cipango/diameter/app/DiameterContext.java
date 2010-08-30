@@ -15,40 +15,68 @@
 package org.cipango.diameter.app;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.cipango.diameter.DiameterHandler;
 import org.cipango.diameter.DiameterMessage;
+import org.cipango.server.session.AppSessionIf;
+import org.cipango.sipapp.SipAppContext;
+import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 public class DiameterContext implements DiameterHandler
 {
-	private DiameterListener _diameterListener;
-	private ClassLoader _classLoader;
+	private SipAppContext _defaultContext;
+	private Map<String, DiameterListener[]> _listeners = new ConcurrentHashMap<String, DiameterListener[]>();
 	
-	public DiameterContext(DiameterListener diameterListener, ClassLoader classLoader)
+	private Method _handleMsg;
+	
+	public DiameterContext()
 	{
-		_diameterListener = diameterListener;
-		_classLoader = classLoader;
+		try 
+		{
+		 _handleMsg = DiameterListener.class.getMethod("handle", DiameterMessage.class);
+		} 
+        catch (NoSuchMethodException e)
+        {
+            throw new ExceptionInInitializerError(e);
+        }
 	}
+	
+	public void addListeners(DiameterListener[] listeners, WebAppContext context)
+	{
+		_listeners.put(context.getContextPath(), listeners);
+	}
+	
+	public void removeListeners(WebAppContext context)
+	{
+		_listeners.remove(context.getContextPath());
+	}
+	//TODO init default context
 	
 	public void handle(DiameterMessage message) throws IOException
 	{
-		ClassLoader oldClassLoader = null;
-		Thread currentThread = null;
+		DiameterListener[] listeners = null;
+		SipAppContext context = null;
+		AppSessionIf appSession = (AppSessionIf) message.getApplicationSession();
+		if (appSession != null)
+		{
+			context = appSession.getAppSession().getContext();
+			listeners = _listeners.get(context.getName());
+		}
 		
-		if (_classLoader != null)
-		{
-			currentThread = Thread.currentThread();
-			oldClassLoader = currentThread.getContextClassLoader();
-			currentThread.setContextClassLoader(_classLoader);
-		}
-		try
-		{
-			_diameterListener.handle(message);
-		}
-		finally
-		{
-			if (_classLoader != null)
-				currentThread.setContextClassLoader(oldClassLoader);
-		}
+		if (context == null)
+			context = _defaultContext;
+			
+		listeners = _listeners.get(context.getContextPath());
+
+		if (listeners != null && listeners.length != 0)
+			context.fire(listeners, _handleMsg, message);
+		else
+			Log.warn("No diameter listeners for context {} to handle message {}", context.getName(), message);
+
+		
 	}
 }

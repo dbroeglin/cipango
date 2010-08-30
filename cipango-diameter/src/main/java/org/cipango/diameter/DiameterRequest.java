@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,11 @@ package org.cipango.diameter;
 import java.io.IOException;
 import java.util.Random;
 
+import javax.servlet.sip.SipApplicationSession;
+
 import org.cipango.diameter.base.Common;
+import org.cipango.server.session.AppSession;
+import org.cipango.server.session.scope.ScopedAppSession;
 
 public class DiameterRequest extends DiameterMessage
 {
@@ -27,6 +31,10 @@ public class DiameterRequest extends DiameterMessage
 	private static synchronized int nextHopId() { return __hopId++; }
 	private static synchronized int nextEndId() { return __endId++; }
 
+	private SipApplicationSession _appSession;
+
+	private boolean _uac;
+	
 	static {
 		Random random = new Random();
 		 __hopId = Math.abs(random.nextInt());
@@ -41,6 +49,18 @@ public class DiameterRequest extends DiameterMessage
 	public DiameterRequest(Node node, DiameterCommand command, int appId, String sessionId)
 	{	
 		super(node, appId, command, nextEndId(), nextHopId(), sessionId);
+	}
+	
+	public void setApplicationSession(SipApplicationSession appSession)
+	{
+		_appSession = appSession;
+	}
+	
+	public SipApplicationSession getApplicationSession()
+	{
+		if (_appSession instanceof AppSession)
+			return new ScopedAppSession((AppSession) _appSession);
+		return _appSession;
 	}
 	
 	public boolean isRequest()
@@ -63,8 +83,38 @@ public class DiameterRequest extends DiameterMessage
 		return new DiameterAnswer(this, resultCode);
 	}
 	
+	public DiameterSession getSession(boolean create)
+	{
+		if (_session == null && create)
+		{
+			_session = _node.getSessionManager().createSession(getApplicationSession());
+			if (isUac())
+			{
+				_session.setDestinationHost(getDestinationHost());
+				_session.setDestinationRealm(getDestinationRealm());
+			}
+			else
+			{
+				_session.setDestinationHost(get(Common.ORIGIN_HOST));
+				_session.setDestinationRealm(get(Common.ORIGIN_REALM));
+			}
+			_session.setApplicationId(ApplicationId.ofAVP(this));
+		}
+		return _session;
+	}
+	
 	public void send() throws IOException
 	{
 		getNode().send(this);
+	}
+	
+	public boolean isUac()
+	{
+		return _uac;
+	}
+	
+	public void setUac(boolean uac)
+	{
+		_uac = uac;
 	}
 }

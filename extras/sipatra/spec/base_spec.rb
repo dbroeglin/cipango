@@ -139,3 +139,80 @@ describe TestApp do
     TestApp.instance_variable_get(:@resp_handlers)['_'].size.should == 1
   end
 end
+
+describe 'Sipatra::Base params ' do
+
+  subject do
+    app_class = Class::new(Sipatra::Base)
+    app = app_class.new
+    app.message = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
+    app
+  end
+  
+  it 'should not have an empty size by default' do
+    subject.instance_eval{@params.size}.should == 0
+  end
+  
+  describe "when receiving do_request (with URI sip:+uri-1-2-3:pass@domain.com;params1=test)" do
+    after do
+      subject.do_request
+    end
+    
+    it "should pass processing through a right regexp " do
+      subject.class.invite('sip:(:uri):(:pass)@(:domain)') do
+        must_be_called
+      end
+      
+      subject.should_receive(:must_be_called)
+    end
+    
+    it "should pass processing through a right regexp " do
+      subject.class.invite(/sip:.*:.*@.*;.*/) do
+        must_be_called
+      end
+      
+      subject.should_receive(:must_be_called)
+    end
+    
+     it "should not be processed through a wrong regexp " do
+      subject.class.invite('sip:domain.com') do
+        must_not_be_called
+      end
+      
+      subject.should_not_receive(:must_not_be_called)
+    end
+  end
+  
+  describe "when receiving do_request" do
+   it "should have access to params between brackets" do
+      subject.class.invite('sip:(:user):(:pass)?@(:domain)') do
+        must_be_called
+      end
+      subject.should_receive(:must_be_called)
+      subject.do_request
+        
+      subject.instance_eval{@params[:user]}.should == "+uri-1-2-3"
+      subject.instance_eval{@params[:pass]}.should == "pass"
+      subject.instance_eval{@params[:domain]}.should == "domain.com;params1=test"
+    end
+  end
+  
+  describe "when receiving do_request" do
+   it "should have access to params " do
+      subject.class.invite(/sip:(.*):(.*)@([^;]*)(;([^;=]*)=([^;=]*))?/) do
+        must_be_called
+      end
+      subject.should_receive(:must_be_called)
+      subject.do_request
+        
+      subject.instance_eval{@params[:uri][0]}.should == "sip:+uri-1-2-3:pass@domain.com;params1=test"
+      subject.instance_eval{@params[:uri][1]}.should == "+uri-1-2-3"
+      subject.instance_eval{@params[:uri][2]}.should == "pass"
+      subject.instance_eval{@params[:uri][3]}.should == "domain.com"
+      subject.instance_eval{@params[:uri][4]}.should == ";params1=test"
+      subject.instance_eval{@params[:uri][5]}.should == "params1"
+      subject.instance_eval{@params[:uri][6]}.should == "test"
+      subject.instance_eval{@params[:uri][7]}.should == nil
+    end
+  end
+end

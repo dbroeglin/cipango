@@ -8,7 +8,11 @@ module Sipatra
   
   class Base
     include HelperMethods
-    attr_accessor :sip_factory, :context, :session, :message
+    attr_accessor :sip_factory, :context, :session, :message, :params
+    
+    def initialize()
+      @params = Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
+    end
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
@@ -38,10 +42,26 @@ module Sipatra
     
     private
     
-    def eval_condition(arg)
+    def eval_condition(arg, keys)
       #TODO: ugly
       if message.respond_to? :requestURI
-        return arg.match message.requestURI.to_s
+        match = arg.match message.requestURI.to_s
+        if match
+          params=
+          if keys.any?
+            values = match.captures.to_a #Array of matched values
+            keys.zip(values).inject({}) do |hash,(k,v)| #keys.zip(values) build an Array containaing Arrays of containing 2 elements "key and value"
+              hash[k] = v
+              hash
+            end
+          elsif(match.length > 1)
+            {:uri => match.to_a}
+          else
+            {}
+          end
+          @params.merge!(params)
+        end
+        return match
       else
         return ((arg == 0) or (arg == message.status))
       end
@@ -51,7 +71,7 @@ module Sipatra
       if handlers = handlers_hash[method_or_joker]
         handlers.each do |pattern, keys, conditions, block|
           catch :pass do
-            throw :pass unless eval_condition(pattern)
+            throw :pass unless eval_condition(pattern, keys)
             throw :halt, instance_eval(&block)          
           end
         end
@@ -96,15 +116,20 @@ module Sipatra
       private
       
       def reset!
-        @req_handlers         = {}
+        @req_handlers          = {}
         @resp_handlers         = {}
       end
       
       # compiles a URI pattern
       def compile_uri_pattern(uri)
-        keys = [] # TODO: Not yet used, shall contain key names
+        keys = []
         if uri.respond_to? :to_str
-          [/^#{uri}$/, keys]
+          pattern =
+          uri.to_str.gsub(/\(:(\w+)\)/) do |match|
+            keys << $1.dup
+                "(.*)"
+          end
+          [/^#{pattern}$/, keys]
         elsif uri.respond_to? :match
           [uri, keys]
         else
@@ -116,19 +141,19 @@ module Sipatra
         define_method method_name, &block
         unbound_method = instance_method(method_name)
         block =
-          if block.arity != 0
-            proc { unbound_method.bind(self).call(*@block_params) }
-          else
-            proc { unbound_method.bind(self).call }
+        if block.arity != 0
+          proc { unbound_method.bind(self).call(*@block_params) }
+        else
+          proc { unbound_method.bind(self).call }
         end
         handler_table(method_name, verb).push([pattern, keys, nil, block]).last # TODO: conditions  
       end         
       
       def handler_table(method_name, verb)
         if method_name.start_with? "response"
-          (@resp_handlers ||= {})[verb] ||= []
+         (@resp_handlers ||= {})[verb] ||= []
         else
-          (@req_handlers ||= {})[verb] ||= []
+         (@req_handlers ||= {})[verb] ||= []
         end
       end   
     end

@@ -15,6 +15,7 @@
 package org.cipango.diameter;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 import org.eclipse.jetty.io.Buffer;
@@ -26,6 +27,22 @@ import org.eclipse.jetty.util.log.Log;
 
 public abstract class AbstractDiameterConnector extends AbstractLifeCycle implements DiameterConnector //, Buffers
 {
+	
+	private static String __localhost;
+    
+    static
+    {
+        try
+        {
+            __localhost = InetAddress.getLocalHost().getHostAddress();
+        }
+        catch (Exception e)
+        {
+            Log.ignore(e);
+            __localhost = "127.0.0.1";
+        }
+    }
+	
 	private Node _node;
 	
 	private int _acceptors = 1;
@@ -39,6 +56,12 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	private int _messageBufferSize = 8192;
 	
 	protected DiameterMessageListener _listener;
+	
+	public AbstractDiameterConnector()
+	{
+		 _port = getDefaultPort();
+	     setHost( __localhost);
+	}
 	
 	@Override
 	protected void doStart() throws Exception
@@ -177,6 +200,9 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	
 	public void setHost(String host)
 	{
+		if (host == null)
+    		host = __localhost;
+		
 		_host = host;
 	}
 	
@@ -212,6 +238,8 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	}
 	
 	protected abstract void accept(int acceptorID) throws IOException, InterruptedException;
+	
+	protected abstract int getDefaultPort();
 	
 	public String toString()
     {

@@ -1,12 +1,18 @@
 package org.cipango.console;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
@@ -43,15 +49,17 @@ public class StatisticGraph
 	private String _rrdPath;
 	private MBeanServerConnection _connection;
 	private String _dataFileName;
-
+	private ObjectName _sessionManger;
+	
 	private Timer _statTimer = new Timer("Statistics timer");
 	private static Runtime __runtime = Runtime.getRuntime();
 
 	private Logger _logger = Log.getLogger("console");
 	
-	public StatisticGraph(MBeanServerConnection connection)
+	public StatisticGraph(MBeanServerConnection connection) throws AttributeNotFoundException, InstanceNotFoundException, MBeanException, ReflectionException, IOException
 	{
 		_connection = connection;
+		_sessionManger = (ObjectName) _connection.getAttribute(ConsoleFilter.SERVER, "sessionManager");
 	}
 
 	/**
@@ -92,7 +100,7 @@ public class StatisticGraph
 		{
 			RrdDb rrdDb = _rrdPool.requestRrdDb(_rrdPath);
 			Sample sample = rrdDb.createSample();
-			sample.setValue("calls", (Integer) _connection.getAttribute(ConsoleFilter.SESSION_MANAGER, "calls"));
+			sample.setValue("calls", (Integer) _connection.getAttribute(_sessionManger, "calls"));
 			long totalMemory = __runtime.totalMemory();
 			sample.setValue("maxMemory", __runtime.maxMemory());
 			sample.setValue("totalMemory", totalMemory);

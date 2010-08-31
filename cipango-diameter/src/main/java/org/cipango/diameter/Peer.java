@@ -256,9 +256,8 @@ public class Peer
 					if (connection == null || !connection.isOpen())
 						throw new IOException("connection not open");
 					
-					connection.write(request);
-					
 					_pending = true;
+					connection.write(request);
 				} 
 				catch (IOException e)
 				{

@@ -69,6 +69,13 @@ public class MenuPrinter implements HtmlPrinter
 		STATISTICS = PAGES.add(new Page("Statistics")),
 		STATISTICS_SIP = STATISTICS.add(new Page("statistics-sip", "SIP Statistics", "SIP")),
 		STATISTICS_HTTP = STATISTICS.add(new Page("statistics-http", "HTTP Statistics", "HTTP")),
+		STATISTICS_DIAMETER = STATISTICS.add(new Page("statistics-diameter", "Diameter Statistics", "Diameter"){
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return c.isRegistered(ConsoleFilter.DIAMETER_NODE);
+			}
+		}),
 		
 		LOGS = PAGES.add(new Page("Logs")),
 		SIP_LOGS = LOGS.add(new Page("logs-sip", "SIP Logs", "SIP"){

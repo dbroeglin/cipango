@@ -64,29 +64,7 @@ public class SessionManager
 			return _sessions.get(id);
 		}
 	}
-	
-	/*
-	public DiameterSession openScope(String id)
-	{
-		DiameterSession session = null;
-		synchronized(_sessions)
-		{
-			session = _sessions.get(id);
-			if (session == null)
-			{
-				session = newSession();
-				_sessions.put(session.getId(), session);			
-			}
-		}
-		AppSessionIf appSession = (AppSessionIf) session.getApplicationSession();
-		if (appSession != null && appSession.getAppSession().getCallSession() != null)
-		{
-			CallSession callSession = appSession.getAppSession().getCallSession();
-			_node.getServer().getSessionManager().openScope(callSession);
-		}
-		return session;
-	}*/
-	
+		
 	public SessionScope openScope(SipApplicationSession session)
 	{
 		AppSessionIf appSession = (AppSessionIf) session;

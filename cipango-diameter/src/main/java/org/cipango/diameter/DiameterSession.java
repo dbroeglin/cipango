@@ -35,6 +35,8 @@ public class DiameterSession
 	private String _destinationHost;
 	
 	private SipApplicationSession _appSession;
+	
+	private boolean _valid = true;
 		
 	public DiameterSession(SipApplicationSession appSession, String sessionId)
 	{
@@ -59,8 +61,19 @@ public class DiameterSession
 		_destinationRealm = destinationRealm;
 	}
 	
+	/**
+	 * Returns a new <code>DiameterRequest</code>.
+	 * @param command the command of the new <code>DiameterRequest</code>.
+	 * @param maintained if <code>true</code>, add the AVP Auth-Session-State with the value AuthSessionState.STATE_MAINTAINED.
+	 * @return a new <code>DiameterRequest</code>.
+	 * @throws java.lang.IllegalStateException if this <code>DiameterSession</code> has been invalidated.
+	 * @see Common#AUTH_SESSION_STATE
+	 * @see AuthSessionState#STATE_MAINTAINED
+	 */
 	public DiameterRequest createRequest(DiameterCommand command, boolean maintained)
 	{
+		checkValid();
+		
 		DiameterRequest request = new DiameterRequest(_node, command, _appId.getId(), _sessionId);
 		request.getAVPs().add(Common.DESTINATION_REALM, _destinationRealm);
 		if (_destinationHost != null)
@@ -104,8 +117,34 @@ public class DiameterSession
 		_node = node;
 	}
 
+	/**
+	 * Returns <code>true</code> if this <code>DiameterSession</code> is valid, <code>false</code>
+	 * otherwise. The <code>DiameterSession</code> can be invalidated by calling the method
+	 * invalidate() on it.
+	 * 
+	 * @return <code>true</code> if this <code>DiameterSession</code> is valid, <code>false</code>
+	 *         otherwise.
+	 */
 	public boolean isValid()
 	{
-		return true; // TODO
+		return _valid;
+	}
+	
+	/**
+	 * Invalidates this session and unbinds any objects bound to it.
+	 * 
+	 * @throws java.lang.IllegalStateException if this method is called on an invalidated session
+	 */
+	public void invalidate()
+	{
+		checkValid();
+		_valid = false;
+		_node.getSessionManager().removeSession(this);
+	}
+	
+	private void checkValid()
+	{
+		if (!_valid)
+			throw new IllegalStateException("Session has been invalidated");
 	}
 }

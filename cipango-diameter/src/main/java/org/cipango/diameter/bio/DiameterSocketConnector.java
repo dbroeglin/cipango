@@ -50,7 +50,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	public void open() throws IOException
 	{
 		if (_serverSocket == null || _serverSocket.isClosed())
-			_serverSocket = newServerSocket(getPort()); 
+			_serverSocket = newServerSocket(); 
 	}
 	
 	public void close() throws IOException
@@ -65,7 +65,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		return _serverSocket;
 	}
 	
-	protected ServerSocket newServerSocket(int port) throws IOException
+	protected ServerSocket newServerSocket() throws IOException
 	{
 		ServerSocket ss = new ServerSocket();
 		if (getHost() == null)
@@ -115,6 +115,12 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 		if (_serverSocket == null || _serverSocket.isClosed())
 			return null;
 		return _serverSocket.getInetAddress();
+	}
+
+	@Override
+	protected int getDefaultPort()
+	{
+		return DEFAULT_PORT;
 	}
 	
 	public class Connection extends SocketEndPoint implements Runnable, DiameterConnection
@@ -237,4 +243,5 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 			}
 		}
 	}
+
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+
+<Configure id="DiameterSocketConnector" class="org.cipango.diameter.bio.DiameterSocketConnector">
+  
+  <Get name="messageListener">
+    <New class="org.cipango.diameter.log.MessageListenerCollection">
+      <Set name="server"><Ref id="Server"/></Set>
+      <Set name="messageListeners">
+        <Array type="org.cipango.diameter.DiameterMessageListener">
+          <Item>
+            <New class="org.cipango.callflow.diameter.JmxMessageLogger"/>
+          </Item>
+          <Item>
+            <Ref id="FileMessageLogger"/>
+          </Item>
+        </Array>
+      </Set>
+    </New>
+  </Get>
+  
+</Configure>

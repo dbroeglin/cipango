@@ -60,6 +60,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cipango.console.printer.AbstractLogPrinter.Output;
 import org.cipango.console.printer.DarPrinter;
 import org.cipango.console.printer.DiameterLogPrinter;
+import org.cipango.console.printer.DiameterStatisticsPrinter;
 import org.cipango.console.printer.ErrorPrinter;
 import org.cipango.console.printer.FileLogPrinter;
 import org.cipango.console.printer.HtmlPrinter;
@@ -93,14 +94,13 @@ public class ConsoleFilter implements Filter
 		DIAMETER_NODE = ObjectNameFactory.create("org.cipango.diameter:type=node,id=0"),
 		DIAMETER_PEERS = ObjectNameFactory.create("org.cipango.diameter:type=peer,*"),
 		DIAMETER_FILE_LOG = ObjectNameFactory.create("org.cipango.diameter.log:type=filemessagelogger,id=0"),
-		DIAMETER_CONSOLE_LOG = ObjectNameFactory.create("org.cipango.diameter.log:type=jmxmessagelogger,id=0"),
+		DIAMETER_CONSOLE_LOG = ObjectNameFactory.create("org.cipango.callflow.diameter:type=jmxmessagelogger,id=0"),
 		HTTP_LOG = ObjectNameFactory.create("org.eclipse.jetty:type=ncsarequestlog,id=0"),
 		SIP_APP_DEPLOYER = ObjectNameFactory.create("org.cipango.deployer:type=sipappdeployer,id=0"),
 		SIP_CONSOLE_MSG_LOG = ObjectNameFactory.create("org.cipango.callflow:type=jmxmessagelog,id=0"),
 		SERVER = ObjectNameFactory.create("org.cipango.server:type=server,id=0"), 
 		SNMP_AGENT = ObjectNameFactory.create("org.cipango.snmp:type=snmpagent,id=0"), 
 		SIP_MESSAGE_LOG = ObjectNameFactory.create("org.cipango.server.log:type=filemessagelog,id=0"),
-		SESSION_MANAGER = ObjectNameFactory.create("org.cipango.server.session:type=sessionmanager,id=0"), 
 		TRANSACTION_MANAGER = ObjectNameFactory.create("org.cipango.server.transaction:type=transactionmanager,id=0");
 	
 	private static final String[] RESOURCES_EXT = { ".css", ".js", ".jpg", ".png", ".gif", ".xsl"};
@@ -120,9 +120,9 @@ public class ConsoleFilter implements Filter
 		_servletContext = config.getServletContext();
 		if (_jmxAvailable)
 		{
-			_statisticGraph = new StatisticGraph(_mbsc);
 			try
 			{
+				_statisticGraph = new StatisticGraph(_mbsc);
 				_statisticGraph.start();
 			}
 			catch (Exception e)
@@ -248,6 +248,8 @@ public class ConsoleFilter implements Filter
 				request.setAttribute(Attributes.CONTENT, new SystemPropertiesPrinter());
 			else if (command.equals(MenuPrinter.CONFIG_DIAMETER.getName()))
 				doDiameterConfig(request);
+			else if (command.equals(MenuPrinter.STATISTICS_DIAMETER.getName()))
+				request.setAttribute(Attributes.CONTENT, new DiameterStatisticsPrinter(_mbsc));
 			else if (command.equals(MenuPrinter.CONFIG_HTTP.getName()))
 				doHttpConfig(request);
 			else if (command.equals(MenuPrinter.STATISTICS_HTTP.getName()))
@@ -501,6 +503,8 @@ public class ConsoleFilter implements Filter
 
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
+	
+//  ---------------------------  SIP -------------------------------------
 
 	private void doSipConfig(HttpServletRequest request) throws Exception
 	{
@@ -529,6 +533,8 @@ public class ConsoleFilter implements Filter
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	
+//  ---------------------------  Diameter -------------------------------------
+	
 	private void doDiameterConfig(HttpServletRequest request)
 	throws Exception
 	{		
@@ -545,7 +551,9 @@ public class ConsoleFilter implements Filter
 					
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-
+	
+	//  ---------------------------  HTTP -------------------------------------
+	
 	private void doHttpConfig(HttpServletRequest request)
 	throws Exception
 	{		

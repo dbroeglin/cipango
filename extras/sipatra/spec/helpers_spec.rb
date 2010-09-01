@@ -250,28 +250,49 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     subject.add_address_header('toto', 'test2')
   end
   
-  it 'should proxy without URI' do
-    subject.message.should_receive(:requestURI).and_return('the_uri')
-    subject.message.should_receive(:getProxy).and_return(mock_proxy)
-    mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
-    subject.proxy
-  end
-  
-  it 'should proxy with an URI' do
-    subject.message.should_receive(:getProxy).and_return(mock_proxy)
-    subject.should_receive(:sip_factory).and_return(mock_sip_factory)
-    mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
-    mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
-    subject.proxy('the_uri_string')
-  end 
-  
   it 'should push a route' do
     mock_sip_factory.should_receive(:createAddress).with('sip:an_address').and_return(mock_address)
     subject.should_receive(:sip_factory).and_return(mock_sip_factory)
     subject.message.should_receive(:pushRoute).with(mock_address)
     
     subject.push_route('sip:an_address')
+  end
+  
+  describe "#proxy" do
+    it 'should proxy without URI' do
+      subject.message.should_receive(:requestURI).and_return('the_uri')
+      subject.message.should_receive(:getProxy).and_return(mock_proxy)
+      mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+      subject.proxy
+    end
+
+    it 'should proxy (RR) without URI' do
+      subject.message.should_receive(:requestURI).and_return('the_uri')
+      subject.message.should_receive(:getProxy).and_return(mock_proxy)
+      mock_proxy.should_receive(:setRecordRoute).with(true)
+      mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+      subject.proxy :record_route => true
+    end
+  
+    it 'should proxy with an URI' do
+      subject.message.should_receive(:getProxy).and_return(mock_proxy)
+      subject.should_receive(:sip_factory).and_return(mock_sip_factory)
+      mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
+      mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+      subject.proxy('the_uri_string')
+    end 
+    
+    it 'should proxy (RR) with an URI' do
+      subject.message.should_receive(:getProxy).and_return(mock_proxy)
+      subject.should_receive(:sip_factory).and_return(mock_sip_factory)
+      mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
+      mock_proxy.should_receive(:setRecordRoute).with(false)
+      mock_proxy.should_receive(:proxyTo).with('the_uri')
+    
+      subject.proxy('the_uri_string', :record_route => false)
+    end 
   end
 end

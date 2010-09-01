@@ -27,9 +27,18 @@ module Sipatra
     end
     
     module HelperMethods  
-      def proxy(uri = nil)
-        uri = uri.nil? ? message.requestURI : sip_factory.createURI(uri)
-        message.getProxy().proxyTo(uri)
+      def proxy(*args)
+        uri = args.shift
+        uri, options = nil, uri if uri.kind_of? Hash
+        options ||= args.shift || {}
+        if uri.nil?
+          uri = message.requestURI
+        else
+          uri = sip_factory.createURI(uri)
+        end
+        proxy = message.getProxy()
+        proxy.setRecordRoute(options[:record_route]) if options.has_key? :record_route
+        proxy.proxyTo(uri)
       end    
       
       def header

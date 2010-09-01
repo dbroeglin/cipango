@@ -48,11 +48,16 @@ public class DiameterContext implements DiameterHandler
 	public void addListeners(DiameterListener[] listeners, WebAppContext context)
 	{
 		_listeners.put(context.getContextPath(), listeners);
+		if (_defaultContext == null)
+			_defaultContext = (SipAppContext) context;
 	}
 	
 	public void removeListeners(WebAppContext context)
 	{
 		_listeners.remove(context.getContextPath());
+		
+		if (_defaultContext == context)
+			_defaultContext = null;
 	}
 	//TODO init default context
 	
@@ -62,21 +67,18 @@ public class DiameterContext implements DiameterHandler
 		SipAppContext context = null;
 		AppSessionIf appSession = (AppSessionIf) message.getApplicationSession();
 		if (appSession != null)
-		{
 			context = appSession.getAppSession().getContext();
-			listeners = _listeners.get(context.getName());
-		}
 		
 		if (context == null)
 			context = _defaultContext;
-			
-		listeners = _listeners.get(context.getContextPath());
+		
+		if (context != null)
+			listeners = _listeners.get(context.getContextPath());
 
 		if (listeners != null && listeners.length != 0)
 			context.fire(listeners, _handleMsg, message);
 		else
-			Log.warn("No diameter listeners for context {} to handle message {}", context.getName(), message);
-
-		
+			Log.warn("No diameter listeners for context {} to handle message {}", 
+					context == null ? "" : context.getName(), message);	
 	}
 }

@@ -27,6 +27,8 @@ import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.log.BasicMessageLog;
+import org.cipango.diameter.router.DiameterRouter;
+import org.cipango.diameter.router.Router;
 import org.cipango.server.Server;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.eclipse.jetty.util.LazyList;
@@ -81,6 +83,8 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private ScheduledExecutorService _scheduler;
 
 	private Set<ApplicationId> _supportedApplications = new HashSet<ApplicationId>();
+	
+	private DiameterRouter _router;
 		
 	public Node()
 	{
@@ -139,6 +143,25 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			_server.getContainer().update(this, _peers, peers, "peers");
 		
 		_peers = peers;
+		
+		if( isStarted())
+			_router.peerAdded(peer);
+		
+	}
+	
+	public synchronized void removePeer(Peer peer)
+	{		
+		Peer[] peers = (Peer[]) LazyList.removeFromArray(_peers, peer);
+		
+		if (_server != null)
+			_server.getContainer().update(this, _peers, peers, "peers");
+		
+		_peers = peers;
+		
+		peer.stop();
+		
+		if( isStarted())
+			_router.peerRemoved(peer);
 	}
 	
 	@Override
@@ -169,6 +192,15 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		_scheduler = new ScheduledThreadPoolExecutor(1);
 		
+		if (_router == null)
+			_router = new Router();
+		
+		if (_router instanceof LifeCycle)
+			((LifeCycle) _router).start();
+		
+		if (_server != null)
+			_server.getContainer().update(this, null, _router, "diameterRouter");
+		
 		synchronized (this)
 		{
 			if (_peers != null)
@@ -178,6 +210,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 					try 
 					{
 						peer.start(); 
+						_router.peerAdded(peer);
 					}
 					catch (Exception e) 
 					{ 
@@ -185,7 +218,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 					}
 				}
 			}
-		}
+		}	
 		
 		_scheduler.scheduleAtFixedRate(new WatchdogTimeout(), 5000, 5000, TimeUnit.MILLISECONDS);
 		Log.info("Started {}", this);
@@ -274,13 +307,19 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		return null;
 	}
 	
+	public DiameterRouter getDiameterRouter()
+	{
+		return _router;
+	}
+
+	public void setDiameterRouter(DiameterRouter router)
+	{
+		_router = router;
+	}
+	
 	public void send(DiameterRequest request) throws IOException
 	{
-		String host = request.getDestinationHost();
-		Peer peer = null;
-		
-		if (host != null)
-			peer = getPeer(host);
+		Peer peer = _router.getRoute(request);
 		
 		if (peer == null)
 			throw new IOException("No peer for destination host " + request.getDestinationHost());
@@ -350,31 +389,11 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	public void handle(DiameterMessage message) throws IOException
 	{
 		
-		System.out.println("Got message: " + message);
-		String sessionId = message.getSessionId();
+		// System.out.println("Node.handle(): Got message: " + message);
+		String sessionId = message.getSessionId();		
+		if (sessionId != null)			
+			message.setSession(_sessionManager.get(sessionId));
 				
-		if (sessionId != null)
-		{
-			DiameterSession session = null;
-			session = _sessionManager.get(sessionId);
-			/*if (session == null)
-			{
-				initial = true;
-				session = _sessionManager.newSession();
-				
-				//ApplicationId id = message.getApplicationId();
-				String destinationRealm = message.getAVPs().getValue(Common.DESTINATION_REALM);
-				
-				//session.setApplicationId(id);
-				session.setDestinationRealm(destinationRealm);
-			}*/
-			
-			message.setSession(session);
-		}
-		
-		System.out.println("Diameter session: " + message.getSession(false));
-		
-		
 		if (message instanceof DiameterAnswer)
 		{
 			DiameterAnswer answer = (DiameterAnswer) message;
@@ -413,8 +432,6 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			if (scope != null)
 				scope.close();
 		}
-		
-		//System.out.println("Got message: " + message.getAVPs());
 	}
 	
 	public void addSupportedApplication(ApplicationId id)

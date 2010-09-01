@@ -14,11 +14,12 @@ public class NodeTest extends TestCase
 		client.setIdentity("client");
 		
 		Peer peer = new Peer("server");
-		peer.setAddress(InetAddress.getLocalHost());
-		peer.setPort(3869);
+		peer.setAddress(InetAddress.getByName("127.0.0.1"));
+		peer.setPort(38680);
 		client.addPeer(peer);
 		
-		Node server = new Node(3869);
+		Node server = new Node(38680);
+		server.getConnectors()[0].setHost("127.0.0.1");
 		server.setIdentity("server");
 		server.start();
 		

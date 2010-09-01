@@ -150,7 +150,7 @@ describe 'Sipatra::Base params ' do
   end
   
   it 'should not have an empty size by default' do
-    subject.instance_eval{@params.size}.should == 0
+    subject.params.size.should == 0
   end
   
   describe "when receiving do_request (with URI sip:+uri-1-2-3:pass@domain.com;params1=test)" do
@@ -158,7 +158,7 @@ describe 'Sipatra::Base params ' do
       subject.do_request
     end
     
-    it "should pass processing through a right regexp " do
+    it "should pass processing through a right matching string " do
       subject.class.invite('sip:(:uri):(:pass)@(:domain)') do
         must_be_called
       end
@@ -191,9 +191,10 @@ describe 'Sipatra::Base params ' do
       subject.should_receive(:must_be_called)
       subject.do_request
         
-      subject.instance_eval{@params[:user]}.should == "+uri-1-2-3"
-      subject.instance_eval{@params[:pass]}.should == "pass"
-      subject.instance_eval{@params[:domain]}.should == "domain.com;params1=test"
+      subject.params[:user].should == "+uri-1-2-3"
+      subject.params[:pass].should == "pass"
+      subject.params[:domain].should == "domain.com;params1=test"
+      subject.params[:uri].should == nil
     end
   end
   
@@ -205,14 +206,14 @@ describe 'Sipatra::Base params ' do
       subject.should_receive(:must_be_called)
       subject.do_request
         
-      subject.instance_eval{@params[:uri][0]}.should == "sip:+uri-1-2-3:pass@domain.com;params1=test"
-      subject.instance_eval{@params[:uri][1]}.should == "+uri-1-2-3"
-      subject.instance_eval{@params[:uri][2]}.should == "pass"
-      subject.instance_eval{@params[:uri][3]}.should == "domain.com"
-      subject.instance_eval{@params[:uri][4]}.should == ";params1=test"
-      subject.instance_eval{@params[:uri][5]}.should == "params1"
-      subject.instance_eval{@params[:uri][6]}.should == "test"
-      subject.instance_eval{@params[:uri][7]}.should == nil
+      subject.params[:uri][0].should == "sip:+uri-1-2-3:pass@domain.com;params1=test"
+      subject.params[:uri][1].should == "+uri-1-2-3"
+      subject.params[:uri][2].should == "pass"
+      subject.params[:uri][3].should == "domain.com"
+      subject.params[:uri][4].should == ";params1=test"
+      subject.params[:uri][5].should == "params1"
+      subject.params[:uri][6].should == "test"
+      subject.params[:uri][7].should == nil
     end
   end
 end

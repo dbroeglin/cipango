@@ -94,6 +94,13 @@ module Sipatra
         yield self if envs.empty? || envs.include?(environment.to_sym)
       end
       
+      # Methods defined in the block and/or in the module
+      # arguments available to handlers.
+      def helpers(*modules, &block)
+        include(*modules) if modules.any?
+        class_eval(&block) if block_given?
+      end
+      
       def response(*args, &block)
         method_name, code_int, opts = *args
         pattern = code_int || 0
@@ -166,7 +173,7 @@ module Sipatra
       added_methods = extensions.map {|m| m.public_instance_methods }.flatten
       Delegator.delegate(*added_methods)
       super(*extensions, &block)
-    end
+    end    
   end
   
   module Delegator #:nodoc:
@@ -181,8 +188,15 @@ module Sipatra
       end
     end
     
-    delegate :invite, :register, :request, :response
+    delegate :request, :response, :helpers,
+      :ack, :bye, :cancel, :info, :invite, 
+      :notify, :options, :prack, :publish, :refer, 
+      :register, :subscribe, :update
   end
+  
+  def self.helpers(*extensions, &block)
+    Application.helpers(*extensions, &block)
+  end  
 end
 
 include Sipatra::Delegator

@@ -12,4 +12,28 @@ describe Object do
     
     Sipatra::Application.instance_variable_get(:@resp_handlers)['INVITE'].size.should == 1
   end
+
+  describe "#helpers" do
+    module TestModule
+      def a_helper
+      end
+    end
+    
+    it "should add helpers defined in the block" do
+      helpers do
+        def a_helper
+          # TODO
+        end
+      end
+  
+      Sipatra::Application.public_methods.find(:a_helper).should_not be_nil
+    end
+    
+    it "should add helpers defined in the module" do
+      helpers TestModule
+  
+      Sipatra::Application.public_methods.find(:a_helper).should_not be_nil
+    end
+    
+  end
 end

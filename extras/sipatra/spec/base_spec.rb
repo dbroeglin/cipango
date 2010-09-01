@@ -36,6 +36,19 @@ describe 'Sipatra::Base subclasses' do
     subject.respond_to?(:do_response).should be_true
   end
 
+  describe '#helpers' do
+    it "adds a helper method" do
+      subject.class.helpers do
+        def a_helper
+          a_helper_body
+        end
+      end
+      
+      subject.respond_to? :a_helper
+    end
+  end
+
+
   describe "when receiving do_request (with URI sip:uri)" do
     after do
       subject.do_request
@@ -73,7 +86,7 @@ describe 'Sipatra::Base subclasses' do
   end
 end
 
-describe 'Sipatra::Base should have handlers for SIP request methods' do
+describe Sipatra::Base do
   [:ack, :bye, :cancel, :info, :invite, :message, 
     :notify, :options, :prack, :publish, :refer, 
     :register, :subscribe, :update, :request].each do |name|
@@ -86,7 +99,7 @@ describe 'Sipatra::Base should have handlers for SIP request methods' do
     ref = nil
     TestApp.configure { |app| ref = app }
      ref.should == TestApp
-  end   
+  end  
 end
 
 describe TestApp do

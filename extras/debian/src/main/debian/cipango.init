@@ -11,12 +11,12 @@ fi
 
 if [ ! -z "$SIP_PORT" ]
 then
-  JETTY_OPTIONS="${JETTY_OPTIONS} -Dsip.port=${SIP_PORT}"
+  JETTY6_OPTIONS="${JETTY6_OPTIONS} -Dsip.port=${SIP_PORT}"
 fi
 
 if [ ! -z "$SIP_HOST" ]
 then
-  JETTY_OPTIONS="${JETTY_OPTIONS} -Dsip.port=${SIP_HOST}"
+  JETTY6_OPTIONS="${JETTY6_OPTIONS} -Dsip.port=${SIP_HOST}"
 fi
 
 DIR=`dirname $0`

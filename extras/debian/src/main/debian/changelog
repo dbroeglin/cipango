@@ -1,11 +1,12 @@
 cipango (1.0.0) stable; urgency=low
- + CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session
- + CIPANGO-77 When a response is forwarded in TCP, it does not reuse the initial TCP connection
- + CIPANGO-81 Message log config specified with maven plugin is not used
- + CIPANGO-75 SipApplicationSession not started anew when session is lastAccessedTime is refreshed
- + CIPANGO-80 inconsistency between isReadyToInvalidate state and outcome of invalidateIfReady
- + CIPANGO-79 On startup, it is not the right version logged
- + CIPANGO-74 javax.servlet.ServletRequest.getLocalName() returns an IP address instead of a host name 
+
+  * CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session
+  * CIPANGO-77 When a response is forwarded in TCP, it does not reuse the initial TCP connection
+  * CIPANGO-81 Message log config specified with maven plugin is not used
+  * CIPANGO-75 SipApplicationSession not started anew when session is lastAccessedTime is refreshed
+  * CIPANGO-80 inconsistency between isReadyToInvalidate state and outcome of invalidateIfReady
+  * CIPANGO-79 On startup, it is not the right version logged
+  * CIPANGO-74 javax.servlet.ServletRequest.getLocalName() returns an IP address instead of a host name 
 
  -- Nexcom Systems <nicolas@cipango.org>  Wed, 30 May 2010 09:42:00 +0200
 

@@ -10,7 +10,7 @@ In Sipatra an handler is a SIP method paired with an URI matching pattern and so
 
 <pre>
 invite 'sip:standard@.*' do
-    proxy "sip:0123456789@#{message.requestURI.host}"
+    proxy "sip:0123456789@#{msg.requestURI.host}"
     puts "VIA    : '#{headers[:Via].join(", ")}'"
     puts "CONTACT: '#{header['Contact']}'"
     

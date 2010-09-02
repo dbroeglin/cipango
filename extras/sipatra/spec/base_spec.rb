@@ -24,7 +24,7 @@ describe 'Sipatra::Base subclasses' do
   subject do
     app_class = Class::new(Sipatra::Base)
     app = app_class.new
-    app.message = mock_request('INVITE', 'sip:uri')
+    app.msg = mock_request('INVITE', 'sip:uri')
     app
   end
 
@@ -114,13 +114,13 @@ describe TestApp do
     end
   
     it "should invoke the handler" do
-      subject.message = mock_request('INVITE', 'sip:test_uri')
+      subject.msg = mock_request('INVITE', 'sip:test_uri')
 
       subject.should_receive(:block_called)
     end
   
     it "should not invoke the handler" do
-      subject.message = mock_request('INVITE', 'sip:wrong_test_uri')
+      subject.msg = mock_request('INVITE', 'sip:wrong_test_uri')
 
       subject.should_not_receive(:block_called)
     end
@@ -158,7 +158,7 @@ describe 'Sipatra::Base params ' do
   subject do
     app_class = Class::new(Sipatra::Base)
     app = app_class.new
-    app.message = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
+    app.msg = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
     app
   end
   

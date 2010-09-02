@@ -8,7 +8,7 @@ module Sipatra
   
   class Base
     include HelperMethods
-    attr_accessor :sip_factory, :context, :session, :message, :params
+    attr_accessor :sip_factory, :context, :session, :msg, :params
     
     def initialize()
       @params = Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
@@ -16,7 +16,7 @@ module Sipatra
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
-      @context, @sip_factory, @session, @message = args
+      @context, @sip_factory, @session, @msg = args
     end
     
     # called to process a SIP request
@@ -44,8 +44,8 @@ module Sipatra
     
     def eval_condition(arg, keys)
       #TODO: ugly
-      if message.respond_to? :requestURI
-        match = arg.match message.requestURI.to_s
+      if msg.respond_to? :requestURI
+        match = arg.match msg.requestURI.to_s
         if match
           params=
           if keys.any?
@@ -63,7 +63,7 @@ module Sipatra
         end
         return match
       else
-        return ((arg == 0) or (arg == message.status))
+        return ((arg == 0) or (arg == msg.status))
       end
     end
     
@@ -80,7 +80,7 @@ module Sipatra
     
     def call(handlers)
       catch(:halt) do
-        process_handler(handlers, message.method)
+        process_handler(handlers, msg.method)
         process_handler(handlers, "_")
       end
     end

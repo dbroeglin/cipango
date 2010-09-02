@@ -84,7 +84,7 @@ module Sipatra
         process_handler(handlers, "_")
       end
     end
-    
+
     class << self
       attr_reader :req_handlers
       attr_reader :resp_handlers

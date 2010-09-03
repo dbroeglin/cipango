@@ -15,6 +15,17 @@ def mock_request(method, uri)
   @mock_request
 end
 
+def mock_request_with_header(method, uri, header_value)
+  unless @mock_request_with_header
+    @mock_request_with_header = mock('MockSipRequest')
+    @mock_request_with_header.should_receive(:method).any_number_of_times.and_return(method)
+    @mock_request_with_header.should_receive(:requestURI).any_number_of_times.and_return(uri)
+    @mock_request_with_header.should_receive(:addHeader).any_number_of_times
+    @mock_request_with_header.should_receive(:getHeader).any_number_of_times.and_return(header_value)
+  end
+  @mock_request_with_header
+end
+
 def mock_response
   @mock_response ||= mock('SipServletResponse')
 end
@@ -172,7 +183,7 @@ describe 'Sipatra::Base params ' do
     end
     
     it "should pass processing through a right matching string " do
-      subject.class.invite('sip:(:uri):(:pass)@(:domain)') do
+      subject.class.invite('sip:(:uri):(:pass)@(:domain);.*') do
         must_be_called
       end
       
@@ -198,7 +209,7 @@ describe 'Sipatra::Base params ' do
   
   describe "when receiving do_request" do
    it "should have access to params between brackets" do
-      subject.class.invite('sip:(:user):(:pass)?@(:domain)') do
+      subject.class.invite('sip:(:user):(:pass)?@(:domain);.*') do
         must_be_called
       end
       subject.should_receive(:must_be_called)
@@ -206,7 +217,7 @@ describe 'Sipatra::Base params ' do
         
       subject.params[:user].should == "+uri-1-2-3"
       subject.params[:pass].should == "pass"
-      subject.params[:domain].should == "domain.com;params1=test"
+      subject.params[:domain].should == "domain.com"
       subject.params[:uri].should == nil
     end
   end
@@ -227,6 +238,40 @@ describe 'Sipatra::Base params ' do
       subject.params[:uri][5].should == "params1"
       subject.params[:uri][6].should == "test"
       subject.params[:uri][7].should == nil
+    end
+  end
+end
+
+
+describe 'Sipatra::Base params with conditions ' do
+
+  subject do
+    app_class = Class::new(Sipatra::Base)
+    app = app_class.new
+    app.msg = mock_request_with_header('INVITE', 'sip:user@domain.com', 'sip:user:pass@domain.com')
+    app
+  end
+  
+  describe "when receiving do_request" do
+   it "should have access to params with conditions " do
+      subject.class.invite(/sip:(.*)@(.*)/, :Header => /sip:(.*):(.*)@(.*)/, :Header2 => /sip:(.*)@(.*)/, :Header3 => /tel:(.*)/) do
+        must_be_called
+      end
+      subject.should_receive(:must_be_called)
+      subject.do_request
+        
+      subject.params.size.should == 3
+      subject.params[:Header].size.should == 4
+      subject.params[:Header2].size.should == 3
+      subject.params[:Header3].should == nil
+      subject.params[:uri][1].should == "user"
+      subject.params[:Header][0].should == "sip:user:pass@domain.com"
+      subject.params[:Header][1].should == "user"
+      subject.params[:Header][2].should == "pass"
+      subject.params[:Header][3].should == "domain.com"
+      subject.params[:Header2][0].should == "sip:user:pass@domain.com"
+      subject.params[:Header2][1].should == "user:pass"
+      subject.params[:Header2][2].should == "domain.com"
     end
   end
 end

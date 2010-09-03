@@ -42,11 +42,19 @@ module Sipatra
     
     private
     
-    def eval_condition(arg, keys)
-      #TODO: ugly
+    def eval_condition(arg, keys, conditions)
+      @params.clear
       if msg.respond_to? :requestURI
         match = arg.match msg.requestURI.to_s
         if match
+          conditions.each_key { |key|
+            if header? key
+              match_header = header[key].match conditions[key]
+              if match_header
+                @params[key] = match_header.to_a
+              end
+            end
+          }
           params=
           if keys.any?
             values = match.captures.to_a #Array of matched values
@@ -71,7 +79,7 @@ module Sipatra
       if handlers = handlers_hash[method_or_joker]
         handlers.each do |pattern, keys, conditions, block|
           catch :pass do
-            throw :pass unless eval_condition(pattern, keys)
+            throw :pass unless eval_condition(pattern, keys, conditions)
             throw :halt, instance_eval(&block)          
           end
         end
@@ -84,7 +92,7 @@ module Sipatra
         process_handler(handlers, "_")
       end
     end
-
+    
     class << self
       attr_reader :req_handlers
       attr_reader :resp_handlers
@@ -134,7 +142,7 @@ module Sipatra
           pattern =
           uri.to_str.gsub(/\(:(\w+)\)/) do |match|
             keys << $1.dup
-                "(.*)"
+                "([^:@;=?&]+)"
           end
           [/^#{pattern}$/, keys]
         elsif uri.respond_to? :match
@@ -153,7 +161,7 @@ module Sipatra
         else
           proc { unbound_method.bind(self).call }
         end
-        handler_table(method_name, verb).push([pattern, keys, nil, block]).last # TODO: conditions  
+        handler_table(method_name, verb).push([pattern, keys, options, block]).last # TODO: conditions  
       end         
       
       def handler_table(method_name, verb)

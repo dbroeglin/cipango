@@ -336,6 +336,30 @@ describe 'Sipatra::Base responses with params' do
       
       subject.should_not_receive(:must_not_be_called)
     end
+    
+     it "should pass processing through a response line with the right status code and no method " do
+      subject.class.response(200) do
+        must_be_called
+      end
+      
+      subject.should_receive(:must_be_called)
+    end
+    
+    it "should pass processing through a response line with the wrong status code and no method " do
+      subject.class.response(600) do
+        must_not_be_called
+      end
+      
+      subject.should_not_receive(:must_not_be_called)
+    end
+    
+    it "should pass processing through a response line with the wrong status code and no method " do
+      subject.class.response(300, :Header => /sip:(.*):(.*)@(.*)/) do
+        must_not_be_called
+      end
+      
+      subject.should_not_receive(:must_not_be_called)
+    end
   end
   
   describe "when receiving do_response" do
@@ -357,6 +381,31 @@ describe 'Sipatra::Base responses with params' do
       subject.params[:Header2][0].should == "sip:user:pass@domain.com"
       subject.params[:Header2][1].should == "user:pass"
       subject.params[:Header2][2].should == "domain.com"
+    end
+    
+    it "should have access to params when no status nor method are set " do
+      subject.class.response(:Header => /sip:(.*):(.*)@.*/, :Header2 => /sip:(.*)@.*/, :Header3 => /tel:(.*)/) do
+        must_be_called
+      end
+      subject.should_receive(:must_be_called)
+      subject.do_response
+      
+      subject.params.size.should == 2
+      subject.params[:Header].size.should == 3
+      subject.params[:Header2].size.should == 2
+      subject.params[:Header3].should == nil
+    end
+    
+    it "should have access to params only status is set " do
+      subject.class.response(200, :Header => /sip:(.*):(.*)@.*/, :Header4 => /sip:(.*)@(.*)/) do
+        must_be_called
+      end
+      subject.should_receive(:must_be_called)
+      subject.do_response
+      
+      subject.params.size.should == 2
+      subject.params[:Header].size.should == 3
+      subject.params[:Header4].size.should == 3
     end
   end
 end

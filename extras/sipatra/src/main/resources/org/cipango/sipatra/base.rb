@@ -120,7 +120,9 @@ module Sipatra
       end
       
       def response(*args, &block)
-        method_name, code_int, opts = *args
+        method_name = args.shift if (!args.first.kind_of? Hash) and (!args.first.kind_of? Integer)
+        code_int = args.shift if !args.first.kind_of? Hash
+        opts = *args
         pattern = code_int || 0
         sip_method_name = method_name ? method_name.to_s.upcase : "_"
         handler("response_#{sip_method_name}  \"#{pattern}\"", sip_method_name, pattern, [], opts || {}, &block)

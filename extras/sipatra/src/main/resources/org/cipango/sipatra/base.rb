@@ -42,19 +42,24 @@ module Sipatra
     
     private
     
-    def eval_condition(arg, keys, conditions)
+    def eval_options(opts)
+      opts.each_key { |key|
+        if header? key
+          match_header = header[key].match opts[key]
+          if match_header
+            @params[key] = match_header.to_a
+          end
+        end
+      }
+    end
+    
+    def eval_condition(arg, keys, opts)
+      #clear (for multi usage)
       @params.clear
       if msg.respond_to? :requestURI
         match = arg.match msg.requestURI.to_s
         if match
-          conditions.each_key { |key|
-            if header? key
-              match_header = header[key].match conditions[key]
-              if match_header
-                @params[key] = match_header.to_a
-              end
-            end
-          }
+          eval_options(opts)
           params=
           if keys.any?
             values = match.captures.to_a #Array of matched values
@@ -71,15 +76,20 @@ module Sipatra
         end
         return match
       else
-        return ((arg == 0) or (arg == msg.status))
+        if ((arg == 0) or (arg == msg.status))
+          eval_options(opts)
+          return true
+        else
+          return false
+        end
       end
     end
     
     def process_handler(handlers_hash, method_or_joker)
       if handlers = handlers_hash[method_or_joker]
-        handlers.each do |pattern, keys, conditions, block|
+        handlers.each do |pattern, keys, opts, block|
           catch :pass do
-            throw :pass unless eval_condition(pattern, keys, conditions)
+            throw :pass unless eval_condition(pattern, keys, opts)
             throw :halt, instance_eval(&block)          
           end
         end

@@ -17,6 +17,10 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     @sip_factory ||= mock('SipFactory')
   end
   
+  def mock_response
+    @mock_response ||= mock('SipServletResponse')
+  end
+  
   before do
     subject.stub!(:msg).and_return(Object::new)
   end
@@ -262,25 +266,25 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
       subject.msg.should_receive(:requestURI).and_return('the_uri')
       subject.msg.should_receive(:getProxy).and_return(mock_proxy)
       mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
+      
       subject.proxy
     end
-
+    
     it 'should proxy (RR) without URI' do
       subject.msg.should_receive(:requestURI).and_return('the_uri')
       subject.msg.should_receive(:getProxy).and_return(mock_proxy)
       mock_proxy.should_receive(:setRecordRoute).with(true)
       mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
+      
       subject.proxy :record_route => true
     end
-  
+    
     it 'should proxy with an URI' do
       subject.msg.should_receive(:getProxy).and_return(mock_proxy)
       subject.should_receive(:sip_factory).and_return(mock_sip_factory)
       mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
       mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
+      
       subject.proxy('the_uri_string')
     end 
     
@@ -290,7 +294,7 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
       mock_sip_factory.should_receive(:createURI).with('the_uri_string').and_return('the_uri')
       mock_proxy.should_receive(:setRecordRoute).with(false)
       mock_proxy.should_receive(:proxyTo).with('the_uri')
-    
+      
       subject.proxy('the_uri_string', :record_route => false)
     end 
   end

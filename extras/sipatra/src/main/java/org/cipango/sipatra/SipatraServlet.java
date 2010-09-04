@@ -35,6 +35,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.jruby.embed.PathType;
 import org.jruby.embed.ScriptingContainer;
+import org.jruby.embed.LocalContextScope;
 import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 
 /**
@@ -44,6 +45,27 @@ public class SipatraServlet extends SipServlet
 {
 	private ScriptingContainer _container;
 	private ServletContext _servletContext;
+  private ThreadLocal _localContainer = new ThreadLocal();
+  String _appPath;
+  
+  public ScriptingContainer getContainer() {
+    if (_localContainer.get() == null) {
+  		List<String> loadPaths = new ArrayList<String>();
+
+      // TODO: handle RUBY LOAD PATH to allow non JRuby dev
+  		loadPaths.add(_appPath);
+  		ScriptingContainer container = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
+  		
+  		container.getProvider().setLoadPaths(loadPaths);
+
+  		// TODO: derive it from the servlets package name
+  		container.runScriptlet(PathType.CLASSPATH, "/org/cipango/sipatra/base.rb");
+  		container.runScriptlet(PathType.ABSOLUTE, _appPath + "/application.rb");
+  		
+  		_localContainer.set(container);
+    }
+    return (ScriptingContainer)_localContainer.get();
+  }
 
 	/**
 	 * Initialize the jrubyServlet.
@@ -56,49 +78,32 @@ public class SipatraServlet extends SipServlet
 	{
 		super.init(config);
 
-		String appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
-		List<String> loadPaths = new ArrayList<String>();
-
-		loadPaths.add(appPath);
-		_container = new ScriptingContainer();
-		_container.getProvider().setLoadPaths(loadPaths);
+	  _appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
 		_servletContext = config.getServletContext();
-
-		// TODO: derive it from the servlets package name
-		_container.runScriptlet(PathType.CLASSPATH, "/org/cipango/sipatra/base.rb");
-		_container.runScriptlet(PathType.ABSOLUTE, appPath + "/application.rb");
-
-	}
-
-	private Object getSipatraApp() {
-		return _container.runScriptlet("Sipatra::Application::new");
 	}
 
 	@Override
 	public void doRequest(SipServletRequest request) throws IOException
 	{
-		_container.getVarMap().clear();
-		Object app = getSipatraApp();
-
-		setBindings(app, request);
-		_container.callMethod(app, "do_request");
+	  invokeMethod(request, "do_request");
 	}
 
 	@Override
 	public void doResponse(SipServletResponse response) throws IOException
 	{
-		Object app = getSipatraApp();
-
-		_container.getVarMap().clear();
-		setBindings(app, response);
-		_container.callMethod(app, "do_response");
+	  invokeMethod(response, "do_response");
 	}	
+	
+	private void invokeMethod(SipServletMessage message, String methodName) {
+	  ScriptingContainer container = getContainer();
+	  
+	  Object app = container.runScriptlet("Sipatra::Application::new");
 
-	private void setBindings(Object app, SipServletMessage message) {
-		_container.callMethod(app, "set_bindings", new Object[] { 
+		container.callMethod(app, "set_bindings", new Object[] { 
 		  _servletContext,  
 		  _servletContext.getAttribute(SipServlet.SIP_FACTORY), 
 		  message.getSession(), 
 		  message});
+	  container.callMethod(app, methodName);
 	}
 }

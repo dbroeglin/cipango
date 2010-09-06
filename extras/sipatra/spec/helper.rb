@@ -1,6 +1,8 @@
 require 'lib/sip-api-1.1.jar'
 require 'lib/servlet-api-2.5-20081211.jar'
 
+$top_level = self 
+
 $LOAD_PATH << "src/main/resources"
 require 'org/cipango/sipatra/base'
 
@@ -15,7 +17,7 @@ share_as :ExtensionsMethods do
       def helper2
       end
     end
-    
+      
     it "should add helpers defined in the block" do
       subject.send :helpers do
         def a_helper
@@ -42,7 +44,6 @@ share_as :ExtensionsMethods do
       Sipatra::Application.instance_methods.include?('helper1').should be_true
       Sipatra::Application.instance_methods.include?('helper2').should be_true
       Sipatra::Application.instance_methods.include?('helper3').should be_true
-    end
-    
+    end    
   end
 end

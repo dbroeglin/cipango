@@ -31,6 +31,7 @@ module Sipatra
     
     # Exit the current block, halts any further processing
     # of the message.
+    # TODO: handle a response (as param)
     def halt
       throw :halt
     end
@@ -119,6 +120,27 @@ module Sipatra
         class_eval(&block) if block_given?
       end
       
+      # Extension modules registered on this class and all superclasses.
+      def extensions
+        if superclass.respond_to?(:extensions)
+          (@extensions + superclass.extensions).uniq
+        else
+          @extensions
+        end
+      end
+      
+      # Extends current class with all modules passed as arguements
+      # if a block is present, creates a module with the block and
+      # extends the current class with it.
+      def register_extension(*extensions, &block)
+        extensions << Module.new(&block) if block_given?
+        @extensions += extensions
+        extensions.each do |extension|
+          extend extension
+          extension.registered(self) if extension.respond_to?(:registered)
+        end
+      end      
+      
       def response(*args, &block)
         method_name = args.shift if (!args.first.kind_of? Hash) and (!args.first.kind_of? Integer)
         code_int = args.shift if !args.first.kind_of? Hash
@@ -139,14 +161,20 @@ module Sipatra
           handler("request_#{sip_method_name}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", sip_method_name, pattern, keys , opts || {}, &block)
         end
       end
-      
-      private
-      
+            
       def reset!
         @req_handlers          = {}
         @resp_handlers         = {}
+        @extensions            = []
+      end
+
+      def inherited(subclass)
+        subclass.reset!
+        super
       end
       
+      private
+            
       # compiles a URI pattern
       def compile_uri_pattern(uri)
         keys = []
@@ -189,7 +217,7 @@ module Sipatra
   end
   
   class Application < Base    
-    def self.register(*extensions, &block) #:nodoc:
+    def self.register_extension(*extensions, &block) #:nodoc:
       added_methods = extensions.map {|m| m.public_instance_methods }.flatten
       Delegator.delegate(*added_methods)
       super(*extensions, &block)
@@ -217,6 +245,10 @@ module Sipatra
   def self.helpers(*extensions, &block)
     Application.helpers(*extensions, &block)
   end  
+  
+  def self.register_extension(*extensions, &block)
+    Application.register_extension(*extensions, &block)
+  end
 end
 
 include Sipatra::Delegator

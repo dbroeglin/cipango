@@ -632,11 +632,12 @@ public class AppSession implements AppSessionIf
         return session;
     }
     
-    public Session createSession(String callId, NameAddr from, NameAddr to)
+    public Session createUacSession(String callId, NameAddr from, NameAddr to)
     {
         Session session = new Session(this, ID.newSessionId(), callId, from, to);
         session.setInvalidateWhenReady(_invalidateWhenReady);
         addSession(session);
+        session.createUA(UAMode.UAC);
         return session;
     }
     

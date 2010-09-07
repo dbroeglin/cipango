@@ -75,9 +75,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
 
     private Serializable _stateInfo;
     private SipApplicationRouterInfo _nextRouterInfo;
-
-    private B2bHelper _b2bHelper;
-    
+  
     private SipApplicationRoutingDirective _directive;
     private SipApplicationRoutingRegion _region;
     private URI _subscriberURI;
@@ -85,6 +83,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
     private boolean _nextHopStrictRouting = false;
    
 	private Object _handlerAttributes;
+	private SipRequest _linkedRequest;
     
 	public SipRequest() { }
 	
@@ -673,17 +672,9 @@ public class SipRequest extends SipMessage implements SipServletRequest
 	{
 		if (_proxy != null)
 			throw new IllegalStateException("getProxy() had already been called");
-		// TODO change session mode	
-		if (_b2bHelper == null)
-			_b2bHelper = new B2bHelper(this);
-		return _b2bHelper;
+		return B2bHelper.getInstance();
 	}
 	
-	public void setB2bHelper(B2bHelper b2bHelper)
-	{
-		_b2bHelper = b2bHelper;
-	}
-
 	public Address getInitialPoppedRoute()
 	{
 		return _initialPoppedRoute;
@@ -716,7 +707,6 @@ public class SipRequest extends SipMessage implements SipServletRequest
 		SipRequest clone = (SipRequest) super.clone(); 
 		clone._region = null;
 		clone._subscriberURI = null;
-		clone._b2bHelper = null;
 		clone._proxy = null;
 		clone._initialPoppedRoute = null;
 		return clone;
@@ -788,6 +778,16 @@ public class SipRequest extends SipMessage implements SipServletRequest
     public String getRequestLine()
     {
     	return _method + " " + getRequestURI().toString(); 
+    }
+    
+    public SipRequest getLinkedRequest()
+    {
+    	return _linkedRequest;
+    }
+    
+    public void setLinkedRequest(SipRequest request)
+    {
+    	_linkedRequest = request;
     }
     
 	static class IteratorToEnum  implements Enumeration<String>

@@ -22,15 +22,11 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
-import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipSession.State;
-import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
@@ -40,267 +36,99 @@ import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
-import org.cipango.server.transaction.Transaction;
 import org.cipango.sip.NameAddr;
-import org.cipango.sip.SipFields;
-import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipParams;
-import org.cipango.util.ContactAddress;
-import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class B2bHelper implements B2buaHelper
 {
+	private static final B2bHelper __instance = new B2bHelper();
 	
-	private SipRequest _request;
-	private SipRequest _linkedRequest;
-	
-	public B2bHelper(SipRequest request)
+	public static B2bHelper getInstance()
 	{
-		_request = request;
+		return __instance;
 	}
 
-	public SipServletRequest createCancel(SipSession sipSession)
+	public SipServletRequest createCancel(SipSession sipSession) 
 	{
 		Session session = ((SessionIf) sipSession).getSession();
-		Iterator<ClientTransaction> it = session.getCallSession().getClientTransactions(session).iterator();
-		while (it.hasNext())
+		for (ClientTransaction tx : session.getCallSession().getClientTransactions(session))
 		{
-			ClientTransaction tx = (ClientTransaction) it.next();
 			if (tx.getRequest().isInitial())
-			{
 				return tx.getRequest().createCancel();
-			}
 		}
 		return null;
 	}
-	
-	public SipServletRequest createRequest(SipServletRequest origRequest)
-	{
-		try {
-			// FIXME max-forward should be decremented ?, should be linked ?
-			return createRequest(origRequest, true, null);
-		} catch (TooManyHopsException e) {
-			throw new IllegalStateException(e);
-		}
+
+	/**
+	 * @see B2buaHelper#createRequest(SipServletRequest)
+	 */
+	public SipServletRequest createRequest(SipServletRequest origRequest) 
+	{ 
+		SipRequest srcRequest = (SipRequest) origRequest;
+
+		NameAddr local = (NameAddr) srcRequest.from().clone();
+    	local.setParameter(SipParams.TAG, ID.newTag());
+    	
+    	NameAddr remote = (NameAddr) srcRequest.to().clone();
+    	remote.removeParameter(SipParams.TAG);
+    	
+    	String callId = ID.newCallId(srcRequest.getCallId());
+		
+		AppSession appSession = srcRequest.appSession(); 
+        
+        Session session = appSession.createUacSession(callId, local, remote);
+        session.setHandler(appSession.getContext().getSipServletHandler().getDefaultServlet());
+
+        SipRequest request = session.getUA().createRequest(srcRequest);
+        request.setRoutingDirective(SipApplicationRoutingDirective.CONTINUE, srcRequest);
+        request.setInitial(true);
+        
+        return request;
 	}
 
-	public SipServletRequest createRequest(SipServletRequest origRequest, boolean linked,
+	public SipServletRequest createRequest(SipServletRequest origRequest, boolean linked, 
 			Map<String, List<String>> headerMap) throws IllegalArgumentException, TooManyHopsException
 	{
 		if (origRequest == null)
-			throw new NullPointerException("origRequest is null");
-		
+			throw new NullPointerException("Original request is null");
 		if (!origRequest.isInitial())
-			throw new IllegalArgumentException("origRequest is not initial");
+			throw new IllegalArgumentException("Original request is not initial");
 		
-		AppSession appsession = _request.appSession();
-        SipRequest request = (SipRequest) ((SipRequest) origRequest).clone();
-                                
-        SipFields fields = request.getFields();
-        
-        fields.remove(SipHeaders.RECORD_ROUTE_BUFFER);
-        fields.remove(SipHeaders.VIA);
-        
-        fields.remove(SipHeaders.FROM_BUFFER);
-        fields.remove(SipHeaders.TO_BUFFER);
-        
-        int mf = request.getMaxForwards();
-        if (mf == -1)
-            mf = SipProxy.__maxForwards;
-        else if (mf == 0)
-            throw new TooManyHopsException();
-        else
-            mf--;
-		request.setMaxForwards(mf);
-          
-        if (!request.isRegister())
-            fields.remove(SipHeaders.CONTACT_BUFFER);
-        
-        String callId = ID.newCallId(request.getCallId());
-        
-        fields.setString(SipHeaders.CALL_ID, callId);
-        
-        request.setInitial(true);
-                
-        List<String> contacts = processHeaderMap(headerMap, fields, false);
-        
-        // From and to may have been set by headerMap
-        NameAddr from = (NameAddr) request.from();
-        if (from == null)
-        {
-        	from = (NameAddr) origRequest.getFrom().clone();
-        	fields.setAddress(SipHeaders.FROM, from);
-        }
-        NameAddr to = (NameAddr) request.to();
-        if (to == null)
-        {
-        	to = (NameAddr) origRequest.getTo().clone();
-        	fields.setAddress(SipHeaders.TO, to);
-        }	
-           
-        from.setParameter(SipParams.TAG, ID.newTag());
-        to.removeParameter(SipParams.TAG);
-        
-        Session session = appsession.createSession(callId, from, to);
-        //session.setLocalCSeq(request.getCSeq().getNumber() + 1);
-        session.setHandler(appsession.getContext().getSipServletHandler().getDefaultServlet());
-        
-        request.setSession(session);
-        
-        if (request.needsContact())
-        {
-        	NameAddr contact = (NameAddr) session.getContact().clone();
-        	if (contacts != null && contacts.size() > 1)
-        		throw new IllegalStateException("Found multiple contacts in haederMap");
-        	else if (contacts != null && contacts.size() == 1)
-        	{
-        		mergeContact(contacts.get(0), contact);
-        	}
-            fields.setAddress(SipHeaders.CONTACT, contact);
-        }
-        
-        if (linked)
-        	linkRequest(request);
-        
-        request.setRoutingDirective(SipApplicationRoutingDirective.CONTINUE, origRequest);
-        
+		int mf = origRequest.getMaxForwards();
+		if (mf == 0)
+			throw new TooManyHopsException("Max-Forwards of original request is equal to 0");
+		
+		SipRequest request = (SipRequest) createRequest(origRequest);
+		if (linked)
+			linkRequest((SipRequest) origRequest, request);
+		
+		// TODO add header map
 		return request;
 	}
-	
-	protected void mergeContact(String sSource, Address destination)
-	{
-		try
-		{
-			Address source = new NameAddr(sSource);
-			SipURI uri = (SipURI) source.getURI();
-			SipURI destUri = (SipURI) destination.getURI();
-			destUri.setUser(uri.getUser());
-			Iterator<String> it = uri.getHeaderNames();
-			while (it.hasNext())
-			{
-				String name = (String) it.next();
-				destUri.setHeader(name, uri.getHeader(name));
-			}
-			it = uri.getParameterNames();
-			while (it.hasNext())
-			{
-				String name = (String) it.next();
-				if (!ContactAddress.isReservedUriParam(name))
-					destUri.setParameter(name, uri.getParameter(name));
-			}
-			destination.setDisplayName(source.getDisplayName());
-			it = source.getParameterNames();
-			while (it.hasNext())
-			{
-				String name = (String) it.next();
-				destination.setParameter(name, source.getParameter(name));
-			}
-			
-		}
-		catch (ServletParseException e)
-		{
-			throw new IllegalArgumentException("Invalid contact: " + sSource, e);
-		}
-		catch (ClassCastException e) 
-		{
-			throw new IllegalArgumentException("Invalid contact: " + sSource, e);
-		}
-	}
-	
-	protected void linkRequest(SipRequest request)
-	{
-    	_linkedRequest = request;
-    	B2bHelper linkedB2bHelper = new B2bHelper(_linkedRequest);
-    	linkedB2bHelper._linkedRequest = _request;
-    	_linkedRequest.setB2bHelper(linkedB2bHelper);
-    	Session origSession = _request.session();
-    	Session session = request.session();
-    	origSession.setLinkedSession(session);
-    	session.setLinkedSession(origSession);
-	}
-	
-	protected List<String> processHeaderMap(Map<String, List<String>> headerMap, SipFields fields, boolean subsequest)
-	{
-		List<String> contacts = null;
-        if (headerMap != null)
-        {
-        	Iterator<String> it = headerMap.keySet().iterator();
-        	while (it.hasNext())
-			{
-				String name = it.next();
-				checkSystemHeader(name, subsequest);
-				
-				if (name.length() == 1)
-				{
-					CachedBuffer buffer = SipHeaders.getCompact(name.charAt(0));
-					name = buffer.toString();
-				}
-				
-				List<String> values = headerMap.get(name);
-				if (name.equalsIgnoreCase(SipHeaders.CONTACT))
-				{
-					contacts = values;
-				}
-				else if (subsequest && 
-						(name.equalsIgnoreCase(SipHeaders.FROM) || name.equalsIgnoreCase(SipHeaders.TO)))
-				{
-					// As RFC 4916 is not supported ignore FROM and TO headers, see Sip servlet spec 1.1 §4.1.2
-				}
-				else
-				{
-					boolean first = true;
-					Iterator<String> it2 = values.iterator();
-					while (it2.hasNext())
-					{
-						String value = (String) it2.next();
-						if (first)
-						{
-							fields.setString(name, value);
-							first = false;
-						}
-						else
-						{
-							fields.addString(name, value);
-						}
-					}
-				}
-			}
-        }
-        return contacts;
-	}
 
-	protected void checkSystemHeader(String name, boolean subsequest) throws IllegalArgumentException
-	{	
-		if (!_request.isSystemHeader(name))
-			return;
-	
-		if (name.equalsIgnoreCase(SipHeaders.FROM)
-				|| name.equalsIgnoreCase(SipHeaders.TO)
-				|| name.equalsIgnoreCase(SipHeaders.CONTACT))
-			return;
-		
-		if (!subsequest && name.equalsIgnoreCase(SipHeaders.ROUTE))
-			return;
-			
-		throw new IllegalArgumentException("System header: " + name);
-	}
-	
-	public SipServletRequest createRequest(SipSession session, SipServletRequest origRequest,
-			Map<String, List<String>> headerMap) throws IllegalArgumentException
+	public SipServletRequest createRequest(SipSession sipSession, SipServletRequest origRequest, 
+			Map<String, List<String>> headerMap) throws IllegalArgumentException 
 	{
-		//if (!origRequest.isInitial())
-		//	throw new IllegalArgumentException("origRequest is not initial");
+		if (!sipSession.getApplicationSession().equals(origRequest.getApplicationSession()))
+			throw new IllegalArgumentException("SipSession " + sipSession 
+					+ " does not belong to same application session as original request");
 		
-		if (!session.getApplicationSession().equals(_request.appSession()))
-			throw new IllegalArgumentException("Not same application session");
+		SipSession linkedSession = getLinkedSession(origRequest.getSession());
+		if (linkedSession != null && linkedSession != sipSession)
+			throw new IllegalArgumentException("Original request is already linked to another sipSession");
+	
+		if (getLinkedSipServletRequest(origRequest) != null)
+			throw new IllegalArgumentException("Original request is already linked to another request");
 		
-		SipSession linkedSession =  getLinkedSession(origRequest.getSession());
-		if (linkedSession != null && linkedSession != session)
-			throw new IllegalArgumentException("Already link to another session");
+		Session session = ((SessionIf) sipSession).getSession();
+		SipRequest srcRequest = (SipRequest) origRequest;
 		
-		if (_linkedRequest != null)
-			throw new IllegalArgumentException("Already link to another request");
+		SipRequest request = (SipRequest) session.getUA().createRequest(srcRequest);
+		linkRequest(srcRequest, request);
 		
+		// TOD add header map
+		return request;
+		/*
 		SipRequest request = (SipRequest) session.createRequest(origRequest.getMethod());
 
 		SipFields fields = request.getFields();
@@ -331,30 +159,31 @@ public class B2bHelper implements B2buaHelper
 		linkRequest(request);
 		
 		return request;
+		 */
 	}
 
-	public SipServletResponse createResponseToOriginalRequest(SipSession sipSession, int status, String reason)
+	/**
+	 * @see B2buaHelper#createResponseToOriginalRequest(SipSession, int, String)
+	 */
+	public SipServletResponse createResponseToOriginalRequest(SipSession sipSession, int status, String reason) 
 	{
 		if (!sipSession.isValid())
-			throw new IllegalArgumentException("session invalid");
+			throw new IllegalArgumentException("SipSession " + sipSession + " is not valid");
 		
 		Session session = ((SessionIf) sipSession).getSession();
-		Iterator<ServerTransaction> it = session.getCallSession().getServerTransactions(session).iterator();
-		while (it.hasNext())
+		for (ServerTransaction tx : session.getCallSession().getServerTransactions(session))
 		{
-			ServerTransaction tx = (ServerTransaction) it.next();
 			SipRequest request = tx.getRequest();
 			if (request.isInitial())
 			{
-				if (tx.isCompleted()) // Pseudo forking
+				if (tx.isCompleted())
 				{
 					if (status >= 300)
-						throw new IllegalStateException("A final response has been already sent");
+						throw new IllegalStateException("Cannot send response with status" + status 
+								+ " since final response has already been sent");
 					SipResponse response = new SipResponse(request, status, reason);
-					
-					response.setSession(session.appSession().createDerivedSession(session));
-					linkSipSessions(response.getSession(), _request.getSession());
-					response.setSendOutsideTx(true);
+					Session derived = session.appSession().createDerivedSession(session);
+					response.setSession(derived);
 					return response;
 				}
 				else
@@ -366,90 +195,111 @@ public class B2bHelper implements B2buaHelper
 		return null;
 	}
 
-	public SipSession getLinkedSession(SipSession session)
+	/**
+	 * @see B2buaHelper#getLinkedSession(SipSession)
+	 */
+	public SipSession getLinkedSession(SipSession session) 
 	{
 		if (!session.isValid())
-			throw new IllegalArgumentException("Invalid");
+			throw new IllegalArgumentException("SipSession " + session + " is not valid");
 		return ((SessionIf) session).getSession().getLinkedSession();
 	}
 
-	public SipServletRequest getLinkedSipServletRequest(SipServletRequest request)
+	/**
+	 * @see B2buaHelper#getLinkedSipServletRequest(SipServletRequest)
+	 */
+	public SipServletRequest getLinkedSipServletRequest(SipServletRequest request) 
 	{
-		return _linkedRequest;
+		return ((SipRequest) request).getLinkedRequest();
 	}
 
-	public List<SipServletMessage> getPendingMessages(SipSession sipSession, UAMode mode)
+	/**
+	 * @see B2buaHelper#getPendingMessages(SipSession, UAMode)
+	 */
+	@SuppressWarnings("unchecked")
+	public List<SipServletMessage> getPendingMessages(SipSession sipSession, UAMode mode) 
 	{
 		if (!sipSession.isValid())
-			throw new IllegalArgumentException("session invalid");
+			throw new IllegalArgumentException("SipSession " + sipSession + " is not valid");
 		
 		Session session = ((SessionIf) sipSession).getSession();
-		List<SipServletMessage> list = new ArrayList<SipServletMessage>();
-
+		
+		List<SipServletMessage> messages = new ArrayList<SipServletMessage>();
 		if (mode == UAMode.UAS)
 		{
-			Iterator<ServerTransaction> it = session.getCallSession().getServerTransactions(session).iterator();
-			while (it.hasNext())
+			for (ServerTransaction tx : session.getCallSession().getServerTransactions(session))
 			{
-				ServerTransaction tx = (ServerTransaction) it.next();
 				if (!tx.getRequest().isCommitted())
-					list.add(tx.getRequest());
-				
+					messages.add(tx.getRequest());
 			}
 		}
-		else
+		else 
 		{
-			Iterator<ClientTransaction> it = session.getCallSession().getClientTransactions(session).iterator();
-			while (it.hasNext())
-			{
-				ClientTransaction tx = (ClientTransaction) it.next();
-				if (tx.getState() < Transaction.STATE_COMPLETED)
-					list.add(tx.getRequest());
-				
-			}
-
+			// TODO
 		}
-		List<SipServletResponse> invite200 = session.getUncommitted200(mode);
-		if (invite200 != null)
-			list.addAll(invite200);
-		Comparator<SipServletMessage> comparator = new Comparator<SipServletMessage>() {
-
-			public int compare(SipServletMessage o1, SipServletMessage o2)
+		Collections.sort(messages, new Comparator() {
+			public int compare(Object message1, Object message2)
 			{
-				return (int) (((SipMessage) o1).getCSeq().getNumber() - ((SipMessage) o2).getCSeq().getNumber());
+				long cseq1 = ((SipMessage) message1).getCSeq().getNumber();
+				long cseq2 = ((SipMessage) message2).getCSeq().getNumber();
+				
+				return (int) (cseq1 - cseq2);
 			}
-			
-		};
-		Collections.sort(list, comparator);
-		return list;
+		});
+		return messages;
 	}
 
-	public void linkSipSessions(SipSession sipSession1, SipSession sipSession2)
+	/**
+	 * @see B2buaHelper#linkSipSessions(SipSession, SipSession)
+	 */
+	public void linkSipSessions(SipSession sipSession1, SipSession sipSession2) 
 	{
 		Session session1 = ((SessionIf) sipSession1).getSession();
 		Session session2 = ((SessionIf) sipSession2).getSession();
 		
-		if (!session1.isValid() || !session2.isValid())
-			throw new IllegalArgumentException ("session invalid");
-		if (session1.appSession() != session2.appSession())
-			throw new IllegalArgumentException ("Different SipApplicationSession");
-		if (session1.getLinkedSession() != null || session2.getLinkedSession() != null)
-			throw new IllegalArgumentException ("Session already linked");
-		session1.getSession().setLinkedSession(session2);
-    	session2.getSession().setLinkedSession(session1);
+		checkNotTerminated(session1);
+		checkNotTerminated(session2);	
+		
+		Session linked1 = session1.getLinkedSession();
+		
+		if (linked1 != null && !linked1.equals(session2))
+			throw new IllegalArgumentException("SipSession " + sipSession1 + " is already linked to " + linked1);
+		
+		Session linked2 = session2.getLinkedSession();
+		
+		if (linked2 != null && !linked2.equals(session1))
+			throw new IllegalArgumentException("SipSession " + sipSession2 + " is already linked to " + linked2);
+		
+		session1.setLinkedSession(session2);
+		session2.setLinkedSession(session1);
 	}
 
-	public void unlinkSipSessions(SipSession sipSession)
+	/**
+	 * @see B2buaHelper#unlinkSipSessions(SipSession)
+	 */
+	public void unlinkSipSessions(SipSession sipSession) 
 	{
 		Session session = ((SessionIf) sipSession).getSession();
-		if (!session.isValid() || session.getState() == State.TERMINATED)
-			throw new IllegalArgumentException ("session invalid");
-		SessionIf linkedSession = session.getLinkedSession();
-		if (linkedSession == null)
-			throw new IllegalArgumentException ("No linked session");
+		checkNotTerminated(session);
 		
-		linkedSession.getSession().setLinkedSession(null);
-		session.getSession().setLinkedSession(null);
+		Session linked = session.getLinkedSession();
+		if (linked == null)
+			throw new IllegalArgumentException("SipSession " + session + " has no linked SipSession");
+		linked.setLinkedSession(null);
+		session.setLinkedSession(null);
 	}
-
+	
+	private void checkNotTerminated(Session session)
+	{
+		if (session.isTerminated())
+			throw new IllegalArgumentException("SipSession " + session + " is terminated");
+	}
+	
+	private void linkRequest(SipRequest request1, SipRequest request2)
+	{
+		request1.setLinkedRequest(request2);
+		request2.setLinkedRequest(request1);
+		
+		linkSipSessions(request1.session(), request2.session());
+	}
 }

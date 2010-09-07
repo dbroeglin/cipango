@@ -37,6 +37,7 @@ import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.CallSession;
+import org.cipango.server.session.Session;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
 import org.cipango.server.transaction.ServerTransaction;
@@ -44,6 +45,7 @@ import org.cipango.server.transaction.ServerTransactionListener;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipGrammar;
 import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipParams;
 import org.cipango.util.TimerTask;
 
 import org.eclipse.jetty.util.log.Log;
@@ -916,14 +918,20 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        if (Log.isDebugEnabled()) 
 	        	Log.debug("Got response {}", response, null);
 	        
-	        /*
-	        if (_tx.getRequest().isInitial() && (_tx.get) )
-	        String tag = response.to().getParameter(SipParams.TAG);
-	        if (tag != null && _tx.getRequest().session().getRemoteTag())
-	        	*/
+	        SipRequest request = _tx.getRequest();
 	        
-	        response.setSession(_tx.getRequest().session());
-	        // TODO fork
+	        Session session = request.session();
+	        
+	        if (request.isInitial() && status < 300)
+	        {
+	        	AppSession appSession = session.appSession();
+				session = appSession.getSession(response);
+				if (session == null)
+					session = appSession.createDerivedSession(session);			
+	        }
+			
+	        response.setSession(session);
+			session.updateState(response, true);
 			
 			response.removeTopVia();
 			response.setProxyBranch(this);

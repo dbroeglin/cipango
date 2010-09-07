@@ -64,6 +64,7 @@ import org.cipango.sip.SipMethods;
 import org.cipango.sip.SipParams;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ReadOnlyAddress;
+import org.eclipse.jetty.security.UserDataConstraint;
 import org.eclipse.jetty.util.log.Log;
 
 public class Session implements SessionIf
@@ -88,8 +89,12 @@ public class Session implements SessionIf
 	protected NameAddr _localParty;
 	protected NameAddr _remoteParty;
 	
+	public enum Role { UNDEFINED, UAC, UAS, PROXY };
+	
+	private Role _role = Role.UNDEFINED;
 	private UA _ua;
-	private boolean _proxy;
+	
+	protected String _linkedSessionId;
 	
 	public Session(AppSession appSession, String id)
 	{
@@ -116,6 +121,10 @@ public class Session implements SessionIf
 		_localParty = (NameAddr) other._localParty.clone();
 		_remoteParty = (NameAddr) other._remoteParty.clone();
 		_remoteParty.setParameter(SipParams.TAG, null);
+		
+		_role = other._role;
+		if (other._ua != null)
+			_ua = new UA(other._ua._mode);
 	}
 	
 	/**
@@ -132,8 +141,10 @@ public class Session implements SessionIf
 	public SipServletRequest createRequest(String method) 
 	{
 		checkValid();
+		if (!isUA())
+			throw new IllegalStateException("session is " + _role);
 		
-		return getUA(true).createRequest(method);
+		return _ua.createRequest(method);
 	}
 
 	/**
@@ -413,7 +424,9 @@ public class Session implements SessionIf
 	
 	public void sendResponse(SipResponse response, ServerTransaction tx, boolean reliable) throws IOException
     {
-		getUA(true).sendResponse(response, reliable);
+		if (!isUA())
+			createUA(UAMode.UAS);
+		_ua.sendResponse(response, reliable);
     }
 	// =====
 	
@@ -536,6 +549,9 @@ public class Session implements SessionIf
 				{
 					if (_ua != null)
 						_ua.createDialog(response, uac);
+					else if (isProxy())
+						createProxyDialog(response);
+					
 					if (status < 200)
 						setState(State.EARLY);
 					else
@@ -568,6 +584,12 @@ public class Session implements SessionIf
 		}
 	}
 	
+	protected void createProxyDialog(SipResponse response)
+	{
+		String tag = response.to().getParameter(SipParams.TAG);
+        _remoteParty.setParameter(SipParams.TAG, tag);
+	}
+	
 	public void invalidateIfReady()
 	{
 		if (isValid() && getInvalidateWhenReady() && isReadyToInvalidate())
@@ -593,27 +615,33 @@ public class Session implements SessionIf
 		return _ua != null;
 	}
 	
-	public UA getUA(boolean create)
+	public UA getUA()
 	{
-		if (_ua == null && create)
-		{
-			if (isProxy())
-				throw new IllegalStateException("session is proxy");
-			_ua = new UA();
-		}
 		return _ua;
+	}
+	
+	public void createUA(UAMode mode)
+	{
+		if (_role != Role.UNDEFINED)
+			throw new IllegalStateException("Session is " + _role);
+		_ua = new UA(mode);
 	}
 	
 	public boolean isProxy()
 	{
-		return _proxy;
+		return _role == Role.PROXY;
 	}
 	
 	public void setProxy()
 	{
-		if (_ua != null)
-			throw new IllegalStateException("session is UA");
-		_proxy = true;
+		if (isUA())
+			throw new IllegalStateException("session is " + _role);
+		
+		NameAddr tmp = _remoteParty;
+		_remoteParty = _localParty;
+		_localParty = tmp;
+		
+		_role = Role.PROXY;
 	}
 	
 	public boolean isDialog(String fromTag, String toTag)
@@ -626,6 +654,18 @@ public class Session implements SessionIf
 		if (toTag.equals(localTag) && fromTag.equals(remoteTag))
 			return true;
 		return false;
+	}
+	
+	public boolean isSameDialog(SipResponse response)
+	{
+		String remoteTag = _remoteParty.getParameter(SipParams.TAG);
+		if (remoteTag != null)
+		{
+			String responseTag = response.to().getParameter(SipParams.TAG);
+			if (responseTag != null && !remoteTag.equalsIgnoreCase(responseTag))
+				return false;
+		}
+		return true;
 	}
 		
 	public SipServletHolder getHandler()
@@ -700,61 +740,60 @@ public class Session implements SessionIf
 	
 	public String toString()
 	{
-		return "[" + _id + ",state=" + _state + ",ua=" + (_ua != null) + ",proxy=" + _proxy + "]";
+		return "[" + _id + ",state=" + _state + ", _role = " + _role + "]";
 	}
 	
-	public void setLinkedSession(Session session) { }
-	public Session getLinkedSession() { return null; }
+	public void setLinkedSession(Session session) 
+	{ 
+		_linkedSessionId = session != null ? session.getId() : null;
+	}
+	
+	public Session getLinkedSession() 
+	{ 
+		return _linkedSessionId != null ? (Session) _appSession.getSipSession(_linkedSessionId) : null; 
+	}
+	
+	public boolean isTerminated()
+	{
+		return _state == State.TERMINATED || !_valid;
+	}
+	
 	public List<SipServletResponse> getUncommitted200(UAMode mode) { return null; }
 	
 	public class UA implements ClientTransactionListener, ServerTransactionListener
 	{
+		private UAMode _mode;
+		
 		private long _localCSeq = 1;
 		private long _remoteCSeq = -1;
 		private URI _remoteTarget;
 		private LinkedList<String> _routeSet;
 		private boolean _secure = false;
 		
-		public UA()
+		public UA(UAMode mode)
 		{
-			
+			if (_role != Role.UNDEFINED)
+				throw new IllegalStateException("session is " + _role);
+			_mode = mode;
 		}
 		
-		public SipRequest createRequest(SipRequest srcRequest, boolean sameCallId)
+		public SipRequest createRequest(SipRequest srcRequest)
 		{
 			SipRequest request = (SipRequest) srcRequest.clone();
-			_localParty = (NameAddr) srcRequest.from().clone();
-			_localParty.setParameter(SipParams.TAG, ID.newTag());
-			
-			_remoteParty = (NameAddr) srcRequest.to().clone();
-			_remoteParty.removeParameter(SipParams.TAG);
-			
-            if (sameCallId)
-                _callId = srcRequest.getCallId();
-            else 
-            	_callId = ID.newCallId(srcRequest.getCallId());
             
-			SipFields fields = request.getFields();
-			fields.setAddress(SipHeaders.FROM_BUFFER, _localParty);
-			fields.setAddress(SipHeaders.TO_BUFFER, _remoteParty);
-			fields.remove(SipHeaders.RECORD_ROUTE_BUFFER);
-			fields.remove(SipHeaders.VIA_BUFFER);
-			
-			if (request.isRegister())
-				fields.remove(SipHeaders.CONTACT_BUFFER);
-			
-			fields.setString(SipHeaders.CALL_ID_BUFFER, _callId);
-			
-			fields.setString(SipHeaders.CSEQ_BUFFER, _localCSeq++ + " " + request.getMethod());
-			
-			if (request.needsContact())
-				fields.setAddress(SipHeaders.CONTACT_BUFFER, getContact());
-			
-			request.setInitial(true);
+            request.getFields().remove(SipHeaders.RECORD_ROUTE_BUFFER);
+            request.getFields().remove(SipHeaders.VIA_BUFFER);
+            request.getFields().remove(SipHeaders.CONTACT_BUFFER);
+            
+            setDialogHeaders(request, _localCSeq++);
+            		
+			//request.setInitial(true);
 			request.setSession(Session.this);
 			
 			return request;
 		}
+		
+		
 		
 		public SipServletRequest createRequest(String method)
 		{
@@ -775,11 +814,20 @@ public class Session implements SessionIf
 		public SipServletRequest createRequest(String method, long cseq)
 		{
 			SipRequest request = new SipRequest();
-			request.setSession(Session.this);
 			request.setMethod(method.toUpperCase());
 			
-			request.getFields().setAddress(SipHeaders.FROM_BUFFER, (NameAddr) _localParty.clone()); 
-			request.getFields().setAddress(SipHeaders.TO_BUFFER, (NameAddr) _remoteParty.clone());
+			setDialogHeaders(request, cseq);
+			
+			request.setSession(Session.this);
+			return request;
+		}
+		
+		protected void setDialogHeaders(SipRequest request, long cseq)
+		{
+			SipFields fields = request.getFields();
+			
+			fields.setAddress(SipHeaders.FROM_BUFFER, _localParty);
+			fields.setAddress(SipHeaders.TO_BUFFER, _remoteParty);
 			
 			if (_remoteTarget != null)
 				request.setRequestURI((URI) _remoteTarget.clone());
@@ -790,17 +838,15 @@ public class Session implements SessionIf
 			{
 				for (String route: _routeSet)
 				{
-					request.getFields().addString(SipHeaders.ROUTE_BUFFER, route);
+					fields.addString(SipHeaders.ROUTE_BUFFER, route);
 				}
 			}
-			request.getFields().setString(SipHeaders.CALL_ID_BUFFER, _callId);
-			request.getFields().setString(SipHeaders.CSEQ_BUFFER, cseq + " " + method);
-			request.getFields().setString(SipHeaders.MAX_FORWARDS_BUFFER, "70");
+			fields.setString(SipHeaders.CALL_ID_BUFFER, _callId);
+			fields.setString(SipHeaders.CSEQ_BUFFER, cseq + " " + request.getMethod());
+			fields.setString(SipHeaders.MAX_FORWARDS_BUFFER, "70");
 			
 			if (request.needsContact())
-				request.getFields().setAddress(SipHeaders.CONTACT_BUFFER, getContact());
-			
-			return request;
+				fields.setAddress(SipHeaders.CONTACT_BUFFER, getContact());
 		}
 		
 		public void handleRequest(SipRequest request) throws SipException
@@ -839,18 +885,13 @@ public class Session implements SessionIf
 		
 		public void handleResponse(SipResponse response)
 		{
-			String remoteTag = _remoteParty.getParameter(SipParams.TAG);
-			if (remoteTag != null)
+			if (!isSameDialog(response))
 			{
-				String responseTag = response.to().getParameter(SipParams.TAG);
-				if (responseTag != null && !remoteTag.equals(responseTag))
-				{
-					Session derived = _appSession.getSession(response);
-					if (derived == null)
-						derived = _appSession.createDerivedSession(Session.this);
-					derived.getUA(true).handleResponse(response);
-					return;
-				}
+				Session derived = _appSession.getSession(response);
+				if (derived == null)
+					derived = _appSession.createDerivedSession(Session.this);
+				derived._ua.handleResponse(response);
+				return;
 			}
 			
 			response.setSession(Session.this); 
@@ -920,7 +961,6 @@ public class Session implements SessionIf
 		{
 			if (uac)
 			{
-				
 				String tag = response.to().getParameter(SipParams.TAG);
                 _remoteParty.setParameter(SipParams.TAG, tag);
                 
@@ -955,7 +995,9 @@ public class Session implements SessionIf
 		
 		protected void setRemoteTarget(SipMessage message) 
 		{
-			_remoteTarget = message.getFields().getAddress(SipHeaders.CONTACT_BUFFER).getURI();
+			Address contact = message.getFields().getAddress(SipHeaders.CONTACT_BUFFER);
+			if (contact != null)
+				_remoteTarget = contact.getURI();
 		}
 		
 		protected void setRoute(SipMessage message, boolean reverse)
@@ -974,6 +1016,11 @@ public class Session implements SessionIf
 		public boolean isSecure()
 		{
 			return _secure;
+		}
+		
+		public UAMode getMode()
+		{
+			return _mode;
 		}
 	}
 }

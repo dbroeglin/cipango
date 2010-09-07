@@ -152,7 +152,7 @@ public class Peer
 		{
 			_pendingRequests.put(request.getHopByHopId(), request);
 			
-			if (_node.isAllStatsOn() && _pendingRequests.size() > _maxPendings.get())
+			if (_node.isStatsOn() && _pendingRequests.size() > _maxPendings.get())
 				_maxPendings.set(_pendingRequests.size());
 			
 		}

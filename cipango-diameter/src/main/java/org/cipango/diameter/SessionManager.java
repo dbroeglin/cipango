@@ -16,14 +16,12 @@ package org.cipango.diameter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.sip.SipApplicationSession;
 
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.SessionManager.SessionScope;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.statistic.CounterStatistic;
 
 public class SessionManager 
@@ -34,7 +32,6 @@ public class SessionManager
 	private Node _node;
 	private Map<String, DiameterSession> _sessions = new HashMap<String, DiameterSession>();
 	
-	private final AtomicLong _statsStartedAt = new AtomicLong(-1L);
 	private CounterStatistic _sessionsCounter = new CounterStatistic();
 	
 	public DiameterSession createSession(SipApplicationSession appSession)
@@ -43,7 +40,7 @@ public class SessionManager
 		synchronized (_sessions)
 		{
 			_sessions.put(diameterSession.getId(), diameterSession);
-			if (isStatsOn())
+			if (_node.isStatsOn())
 				_sessionsCounter.increment();
 		}
 		diameterSession.setNode(_node);
@@ -81,7 +78,7 @@ public class SessionManager
 		synchronized(_sessions)
 		{
 			_sessions.remove(session.getId());
-			if (isStatsOn())
+			if (_node.isStatsOn())
 				_sessionsCounter.decrement();
 		}
 	}
@@ -113,40 +110,7 @@ public class SessionManager
 	
 	public void statsReset()
     {
-        updateNotEqual(_statsStartedAt,-1,System.currentTimeMillis());
-
         _sessionsCounter.reset();
     }
 	
-	public void setStatsOn(boolean on)
-    {
-        if (on && _statsStartedAt.get() != -1)
-            return;
-
-        Log.debug("Statistics on = " + on + " for " + this);
-
-        statsReset();
-        _statsStartedAt.set(on?System.currentTimeMillis():-1);
-    }
-	
-	public boolean isStatsOn()
-    {
-        return _statsStartedAt.get() != -1;
-    }
-	
-	public long getStatsStartedAt()
-	{
-		return _statsStartedAt.get();
-	}
-	
-	private void updateNotEqual(AtomicLong valueHolder, long compare, long value)
-    {
-        long oldValue = valueHolder.get();
-        while (compare != oldValue)
-        {
-            if (valueHolder.compareAndSet(oldValue,value))
-                break;
-            oldValue = valueHolder.get();
-        }
-    }
 }

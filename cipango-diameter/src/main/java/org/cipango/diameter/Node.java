@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
@@ -85,6 +86,8 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	private Set<ApplicationId> _supportedApplications = new HashSet<ApplicationId>();
 	
 	private DiameterRouter _router;
+	
+	protected final AtomicLong _statsStartedAt = new AtomicLong(-1L);
 		
 	public Node()
 	{
@@ -518,28 +521,53 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 				_peers[i].statsReset();
 		}
 	}
-	
-	public void setAllStatsOn(boolean on) 
-	{
-		if (getSessionManager() != null)
-			getSessionManager().setStatsOn(on);
+		
+	public void statsReset()
+    {
+        updateNotEqual(_statsStartedAt,-1,System.currentTimeMillis());
+
+        getSessionManager().statsReset();
 		for (int i = 0; _connectors != null && i < _connectors.length; i++)
 			if (_connectors[i] instanceof AbstractDiameterConnector)
-				((AbstractDiameterConnector) _connectors[i]).setStatsOn(on);
-	}
+				((AbstractDiameterConnector) _connectors[i]).statsReset();
+		
+		synchronized (this)
+		{
+			for (int i = 0; _peers != null && i < _peers.length; i++)
+				_peers[i].statsReset();
+		}
+    }
 	
-	public boolean isAllStatsOn() 
+	private void updateNotEqual(AtomicLong valueHolder, long compare, long value)
+    {
+        long oldValue = valueHolder.get();
+        while (compare != oldValue)
+        {
+            if (valueHolder.compareAndSet(oldValue,value))
+                break;
+            oldValue = valueHolder.get();
+        }
+    }
+	
+	public void setStatsOn(boolean on)
+    {
+        if (on && _statsStartedAt.get() != -1)
+            return;
+
+        Log.debug("Statistics on = " + on + " for " + this);
+
+        statsReset();
+        _statsStartedAt.set(on?System.currentTimeMillis():-1);
+    }
+	
+	public boolean isStatsOn()
+    {
+        return _statsStartedAt.get() != -1;
+    }
+	
+	public long getStatsStartedAt()
 	{
-		boolean on = true;
-		
-		for (int i = 0; _connectors != null && i < _connectors.length; i++)
-			if (_connectors[i] instanceof AbstractDiameterConnector)
-				on = on &&  ((AbstractDiameterConnector) _connectors[i]).isStatsOn();
-		
-		if (getSessionManager() != null)
-			on = on && getSessionManager().isStatsOn();
-		
-		return on;
+		return _statsStartedAt.get();
 	}
 	
 	class ConnectPeerTimeout implements Runnable

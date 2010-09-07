@@ -19,7 +19,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
@@ -156,7 +155,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 			flush(buffer);
 			returnBuffer(buffer);
 			
-			if (isStatsOn())
+			if (getNode().isStatsOn())
 				_messagesSent.incrementAndGet();
 			
 			if (_listener != null)
@@ -194,7 +193,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					message.setConnection(this);
 					message.setNode(getNode());
 					
-					if (isStatsOn())
+					if (getNode().isStatsOn())
 						_messagesReceived.incrementAndGet();
 					
 					// TODO move the following code at a better place. Need to be done before _listener.messageReceived(message, this);

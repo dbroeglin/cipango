@@ -58,21 +58,20 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 	private void printActions(Writer out) throws Exception
 	{
 		out.write("<br/>");
-		Boolean on = (Boolean) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "allStatsOn");
+		Boolean on = (Boolean) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "statsOn");
 		if (on.booleanValue())
 		{
 			out.write("Statistics are started since ");
-			ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
-			out.write(new Date((Long)  _connection.getAttribute(objectName, "statsStartedAt")).toString() + ".<br/>");
-			out.write(PrinterUtil.getSetterLink("allStatsOn", "false", ConsoleFilter.DIAMETER_NODE,
+			out.write(new Date((Long)  _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "statsStartedAt")).toString() + ".<br/>");
+			out.write(PrinterUtil.getSetterLink("statsOn", "false", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Disable statistics"));
 			out.write("&nbsp;&nbsp;&nbsp;");
-			out.write(PrinterUtil.getActionLink("allStatsReset", ConsoleFilter.DIAMETER_NODE,
+			out.write(PrinterUtil.getActionLink("statsReset", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Reset statistics"));
 		}
 		else
 		{
-			out.write(PrinterUtil.getSetterLink("allStatsOn", "true", ConsoleFilter.DIAMETER_NODE,
+			out.write(PrinterUtil.getSetterLink("statsOn", "true", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Enable statistics"));
 		}
 

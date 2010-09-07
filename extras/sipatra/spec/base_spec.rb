@@ -9,39 +9,42 @@ end
 def mock_request(method, uri, header_value = nil)
   unless @mock_request
     @mock_request = mock('MockSipRequest')
-    @mock_request.should_receive(:method).any_number_of_times.and_return(method)
-    @mock_request.should_receive(:requestURI).any_number_of_times.and_return(uri)
+    @mock_request.stub!(:method => method, :requestURI => uri) 
     if !header_value.nil?
+      # TODO: ???
       @mock_request.should_receive(:addHeader).any_number_of_times
       @mock_request.should_receive(:getHeader).any_number_of_times.and_return(header_value)
     end
   end
-  @mock_request
+  @app.msg = @mock_request
 end
 
-def mock_response(method, code, header_value = nil)
+def mock_response(method, status_code, header_value = nil)
   unless @mock_response
     @mock_response = mock('MockSipResponse')
-    @mock_response.should_receive(:method).any_number_of_times.and_return(method)
-    @mock_response.should_receive(:status).any_number_of_times.and_return(code)
+    @mock_response.stub!(:method => method, :status => status_code)
     if !header_value.nil?
+      # TODO: ???
       @mock_response.should_receive(:addHeader).any_number_of_times
       @mock_response.should_receive(:getHeader).any_number_of_times.and_return(header_value)
     end
   end
-  @mock_response
+  @mock_response.stub! :getRequest # needed to decide if the message is a response or a request
+  @app.msg = @mock_response
 end
 
 
 describe 'Sipatra::Base subclasses' do
   
-  subject do
-    app_class = Class::new(Sipatra::Base)
-    app = app_class.new
-    app.msg = mock_request('INVITE', 'sip:uri')
-    app
+  before do  
+    @app = Class::new(Sipatra::Base).new
   end
   
+  subject do
+    mock_request('INVITE', 'sip:uri')
+    @app 
+  end
+    
   it 'processes requests with do_request' do
     subject.respond_to?(:do_request).should be_true
   end
@@ -104,7 +107,7 @@ describe Sipatra::Base do
   [:ack, :bye, :cancel, :info, :invite, :message, 
     :notify, :options, :prack, :publish, :refer, 
     :register, :subscribe, :update, 
-    :request, :response, :helpers].each do |name|
+    :request, :response, :helpers, :before, :after].each do |name|
     it "should accept method handler #{name}" do
       Sipatra::Base.respond_to?(name).should be_true
     end
@@ -121,7 +124,7 @@ describe TestApp do
   
   describe "when calling do_request" do
     subject do
-      TestApp::new
+      @app = TestApp::new
     end
     
     after(:each) do
@@ -175,7 +178,7 @@ describe Sipatra::Base do
   
   subject { @app }
   
-  describe 'Sipatra::Base params ' do
+  describe 'params' do
   
     before do
       @app.msg = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
@@ -394,4 +397,86 @@ describe Sipatra::Base do
       end
     end  
   end
+  
+  describe "#before" do
+    it "should add a before filter" do
+      subject.class.before { before_call }
+      
+      subject.should_receive(:before_call).exactly(2)
+      subject.class.after_filters.should == []
+      subject.class.before_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+    end
+    
+    it "should add a before request filter" do
+      subject.class.before :request do before_call end
+      
+      subject.should_receive(:before_call).exactly(2)
+      subject.class.after_filters.should == []
+      subject.class.before_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+    end
+
+    it "should add a before response filter" do
+      subject.class.before :response do before_call end
+      
+      subject.should_receive(:before_call).exactly(2)
+      subject.class.after_filters.should == []
+      subject.class.before_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+      subject.do_response
+    end    
+  end
+  
+  describe "#after" do
+    it "should add an after filter" do
+      subject.class.after { after_call }
+      
+      subject.should_receive(:after_call).exactly(2)
+      subject.class.before_filters.should == []
+      subject.class.after_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+    end
+
+    it "should add an after request filter" do
+      subject.class.after :request do after_call end
+      
+      subject.should_receive(:after_call).exactly(2)
+      subject.class.before_filters.should == []
+      subject.class.after_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+    end
+
+    it "should add an after response filter" do
+      subject.class.after :response do after_call end
+      
+      subject.should_receive(:after_call).exactly(2)
+      subject.class.before_filters.should == []
+      subject.class.after_filters.size.should == 1
+      mock_request('INVITE', 'sip:uri')
+      subject.do_request
+      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      subject.do_response
+      subject.do_response
+
+    end    
+  end
+  
 end

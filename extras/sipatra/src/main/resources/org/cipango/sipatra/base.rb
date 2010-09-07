@@ -21,12 +21,12 @@ module Sipatra
     
     # called to process a SIP request
     def do_request
-      call self.class.req_handlers
+      call! self.class.req_handlers
     end
     
     # called to process a SIP response
     def do_response
-      call self.class.resp_handlers
+      call! self.class.resp_handlers
     end
     
     # Exit the current block, halts any further processing
@@ -42,6 +42,10 @@ module Sipatra
     end
     
     private
+    
+    def msg_type
+      msg.respond_to?(:getRequest) ? :response : :request
+    end
     
     def eval_options(opts)
       opts.each_key { |key|
@@ -97,16 +101,24 @@ module Sipatra
       end
     end
     
-    def call(handlers)
+    # Run all filters defined on superclasses and then those on the current class.
+    def filter!(type, base = self.class)
+      filter! type, base.superclass if base.superclass.respond_to?(:filters)
+      base.filters[type].each { |block| instance_eval(&block) }
+    end
+    
+    def call!(handlers)
+      filter! :before
       catch(:halt) do
         process_handler(handlers, msg.method)
         process_handler(handlers, "_")
       end
+    ensure 
+      filter! :after
     end
     
     class << self
-      attr_reader :req_handlers
-      attr_reader :resp_handlers
+      attr_reader :req_handlers, :resp_handlers, :filters
       
       # permits configuration of the application
       def configure(*envs, &block)
@@ -161,11 +173,20 @@ module Sipatra
           handler("request_#{sip_method_name}  \"#{uri.kind_of?(Regexp) ? uri.source : uri}\"", sip_method_name, pattern, keys , opts || {}, &block)
         end
       end
+      
+      def before(msg_type = nil, &block)
+        add_filter(:before, msg_type, &block)
+      end
+      
+      def after(msg_type = nil, &block)
+        add_filter(:after, msg_type, &block)
+      end
             
       def reset!
         @req_handlers          = {}
         @resp_handlers         = {}
         @extensions            = []
+        @filters               = {:before => [], :after => []}
       end
 
       def inherited(subclass)
@@ -173,7 +194,26 @@ module Sipatra
         super
       end
       
+      def before_filters
+        filters[:before]
+      end
+
+      def after_filters
+        filters[:after]
+      end
+      
       private
+      
+      def add_filter(type, message_type = nil, &block)
+        if message_type
+          add_filter(type) do
+            next unless msg_type == message_type
+            instance_eval(&block)
+          end
+        else
+          filters[type] << block
+        end
+      end
             
       # compiles a URI pattern
       def compile_uri_pattern(uri)

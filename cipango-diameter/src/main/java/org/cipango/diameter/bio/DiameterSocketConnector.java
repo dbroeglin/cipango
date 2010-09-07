@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
@@ -46,7 +47,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	public static final int DEFAULT_PORT = 3868;
 	
 	private ServerSocket _serverSocket;
-	
+		
 	public void open() throws IOException
 	{
 		if (_serverSocket == null || _serverSocket.isClosed())
@@ -122,7 +123,7 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 	{
 		return DEFAULT_PORT;
 	}
-	
+		
 	public class Connection extends SocketEndPoint implements Runnable, DiameterConnection
 	{
 		private Peer _peer;
@@ -154,6 +155,9 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 			
 			flush(buffer);
 			returnBuffer(buffer);
+			
+			if (isStatsOn())
+				_messagesSent.incrementAndGet();
 			
 			if (_listener != null)
 				_listener.messageSent(message, this);
@@ -189,6 +193,9 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					DiameterMessage message = Codecs.__message.decode(b);
 					message.setConnection(this);
 					message.setNode(getNode());
+					
+					if (isStatsOn())
+						_messagesReceived.incrementAndGet();
 					
 					// TODO move the following code at a better place. Need to be done before _listener.messageReceived(message, this);
 					if (!message.isRequest())

@@ -544,6 +544,8 @@ public class ConsoleFilter implements Filter
 		ObjectName[] transports = (ObjectName[]) _mbsc.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
 		printer.addLast(new SetPrinter(transports, "diameter.transport", _mbsc));
+		
+		printer.addLast(new ObjectPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
 
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _mbsc.queryNames(ConsoleFilter.DIAMETER_PEERS, null);

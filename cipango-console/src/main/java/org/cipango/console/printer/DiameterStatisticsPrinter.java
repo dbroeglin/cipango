@@ -16,6 +16,7 @@ package org.cipango.console.printer;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
+import java.util.Set;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -36,7 +37,16 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 		_connection = connection;
 		ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
 		
-		addLast(new ObjectPrinter(objectName, "diameter.sessions",  _connection));
+		addLast(new ObjectPrinter(objectName, "diameter.stats.sessions",  _connection));
+		
+		ObjectName[] transports = (ObjectName[]) _connection.getAttribute(
+				ConsoleFilter.DIAMETER_NODE, "connectors");
+		for (int i = 0; i < transports.length; i++)
+			addLast(new ObjectPrinter(transports[i], "diameter.stats.msg",  _connection));
+		
+		@SuppressWarnings("unchecked")
+		Set<ObjectName> peers = _connection.queryNames(ConsoleFilter.DIAMETER_PEERS, null);
+		addLast(new SetPrinter(peers, "diameter.stats.pending", _connection));
 	}
 	
 	public void print(Writer out) throws Exception
@@ -47,21 +57,22 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 	
 	private void printActions(Writer out) throws Exception
 	{
-		ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
-		Boolean on = (Boolean) _connection.getAttribute(objectName, "statsOn");
+		out.write("<br/>");
+		Boolean on = (Boolean) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "allStatsOn");
 		if (on.booleanValue())
 		{
 			out.write("Statistics are started since ");
+			ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
 			out.write(new Date((Long)  _connection.getAttribute(objectName, "statsStartedAt")).toString() + ".<br/>");
-			out.write(PrinterUtil.getSetterLink("statsOn", "false", objectName,
+			out.write(PrinterUtil.getSetterLink("allStatsOn", "false", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Disable statistics"));
 			out.write("&nbsp;&nbsp;&nbsp;");
-			out.write(PrinterUtil.getActionLink("statsReset", objectName,
+			out.write(PrinterUtil.getActionLink("allStatsReset", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Reset statistics"));
 		}
 		else
 		{
-			out.write(PrinterUtil.getSetterLink("statsOn", "true", objectName,
+			out.write(PrinterUtil.getSetterLink("allStatsOn", "true", ConsoleFilter.DIAMETER_NODE,
 					MenuPrinter.STATISTICS_DIAMETER, "Enable statistics"));
 		}
 

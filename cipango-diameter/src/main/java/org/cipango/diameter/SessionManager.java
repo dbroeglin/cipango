@@ -43,7 +43,7 @@ public class SessionManager
 		synchronized (_sessions)
 		{
 			_sessions.put(diameterSession.getId(), diameterSession);
-			if (getStatsOn())
+			if (isStatsOn())
 				_sessionsCounter.increment();
 		}
 		diameterSession.setNode(_node);
@@ -81,7 +81,7 @@ public class SessionManager
 		synchronized(_sessions)
 		{
 			_sessions.remove(session.getId());
-			if (getStatsOn())
+			if (isStatsOn())
 				_sessionsCounter.decrement();
 		}
 	}
@@ -129,7 +129,7 @@ public class SessionManager
         _statsStartedAt.set(on?System.currentTimeMillis():-1);
     }
 	
-	public boolean getStatsOn()
+	public boolean isStatsOn()
     {
         return _statsStartedAt.get() != -1;
     }

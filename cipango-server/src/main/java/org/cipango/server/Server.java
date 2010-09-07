@@ -87,6 +87,9 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 		}
 		catch (Throwable t) { mex.add(t); }
 		
+		if (_sessionManager == null)
+			setSessionManager(new SessionManager());
+		
 		try
 		{
 			super.doStart();
@@ -95,9 +98,7 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 
 		if (_applicationRouter == null)
 			setApplicationRouter(ApplicationRouterLoader.loadApplicationRouter());
-			
-		if (_sessionManager == null)
-			setSessionManager(new SessionManager());
+
 		
 		try 
 		{

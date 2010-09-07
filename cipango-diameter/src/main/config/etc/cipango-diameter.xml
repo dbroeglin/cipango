@@ -17,12 +17,13 @@
   <Ref id="DeploymentManager">
     <Call name="addAppProvider">
       <Arg>
-        <New class="org.eclipse.jetty.deploy.providers.WebAppProvider">
+        <New class="org.cipango.deploy.providers.SipAppProvider">
           <Set name="monitoredDir"><Property name="jetty.home" default="." />/webapps-diameter</Set>
           <Set name="defaultsDescriptor"><Property name="jetty.home" default="."/>/etc/webdefault.xml</Set>
           <Set name="scanInterval">5</Set>
           <Set name="contextXmlDir"><Property name="jetty.home" default="." />/contexts</Set>
           <Set name="configurationClasses"><Ref id="diameterConfig"/></Set>
+          <Set name="extractWars">true</Set>
         </New>
       </Arg>
     </Call>

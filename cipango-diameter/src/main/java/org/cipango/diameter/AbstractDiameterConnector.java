@@ -17,6 +17,7 @@ package org.cipango.diameter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.Buffers;
@@ -54,6 +55,10 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	private Thread[] _acceptorThread;
 	private ArrayList<Buffer> _buffers;
 	private int _messageBufferSize = 8192;
+	
+	protected final AtomicLong _statsStartedAt = new AtomicLong(-1L);
+	protected AtomicLong _messagesReceived = new AtomicLong();
+	protected AtomicLong _messagesSent = new AtomicLong();
 	
 	protected DiameterMessageListener _listener;
 	
@@ -241,6 +246,7 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
 	
 	protected abstract int getDefaultPort();
 	
+	@Override
 	public String toString()
     {
         String name = this.getClass().getName();
@@ -249,6 +255,56 @@ public abstract class AbstractDiameterConnector extends AbstractLifeCycle implem
             name=name.substring(dot+1);
         
         return name+"@"+(getHost()==null?"0.0.0.0":getHost())+":"+(getLocalPort()<=0?getPort():getLocalPort());
+    }
+	
+	public long getMessageReceived()
+	{
+		return _messagesReceived.get();
+	}
+	
+	public long getMessageSent()
+	{
+		return _messagesSent.get();
+	}
+	
+	public void statsReset()
+    {
+        updateNotEqual(_statsStartedAt,-1,System.currentTimeMillis());
+
+        _messagesReceived.set(0);
+        _messagesSent.set(0);
+    }
+	
+	public void setStatsOn(boolean on)
+    {
+        if (on && _statsStartedAt.get() != -1)
+            return;
+
+        Log.debug("Statistics on = " + on + " for " + this);
+
+        statsReset();
+        _statsStartedAt.set(on?System.currentTimeMillis():-1);
+    }
+	
+	public boolean isStatsOn()
+    {
+        return _statsStartedAt.get() != -1;
+    }
+	
+	public long getStatsStartedAt()
+	{
+		return _statsStartedAt.get();
+	}
+	
+	private void updateNotEqual(AtomicLong valueHolder, long compare, long value)
+    {
+        long oldValue = valueHolder.get();
+        while (compare != oldValue)
+        {
+            if (valueHolder.compareAndSet(oldValue,value))
+                break;
+            oldValue = valueHolder.get();
+        }
     }
 	
 	private class Acceptor implements Runnable

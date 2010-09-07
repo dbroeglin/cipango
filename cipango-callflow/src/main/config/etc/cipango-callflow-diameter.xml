@@ -3,7 +3,7 @@
 
 <Configure id="DiameterSocketConnector" class="org.cipango.diameter.bio.DiameterSocketConnector">
   
-  <Get name="messageListener">
+  <Set name="messageListener">
     <New class="org.cipango.diameter.log.MessageListenerCollection">
       <Set name="server"><Ref id="Server"/></Set>
       <Set name="messageListeners">
@@ -17,6 +17,6 @@
         </Array>
       </Set>
     </New>
-  </Get>
+  </Set>
   
 </Configure>

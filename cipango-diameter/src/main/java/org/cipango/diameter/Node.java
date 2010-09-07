@@ -505,6 +505,43 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		schedule(new ConnectPeerTimeout(peer), _tc);
 	}
 	
+	public void allStatsReset()
+	{
+		getSessionManager().statsReset();
+		for (int i = 0; _connectors != null && i < _connectors.length; i++)
+			if (_connectors[i] instanceof AbstractDiameterConnector)
+				((AbstractDiameterConnector) _connectors[i]).statsReset();
+		
+		synchronized (this)
+		{
+			for (int i = 0; _peers != null && i < _peers.length; i++)
+				_peers[i].statsReset();
+		}
+	}
+	
+	public void setAllStatsOn(boolean on) 
+	{
+		if (getSessionManager() != null)
+			getSessionManager().setStatsOn(on);
+		for (int i = 0; _connectors != null && i < _connectors.length; i++)
+			if (_connectors[i] instanceof AbstractDiameterConnector)
+				((AbstractDiameterConnector) _connectors[i]).setStatsOn(on);
+	}
+	
+	public boolean isAllStatsOn() 
+	{
+		boolean on = true;
+		
+		for (int i = 0; _connectors != null && i < _connectors.length; i++)
+			if (_connectors[i] instanceof AbstractDiameterConnector)
+				on = on &&  ((AbstractDiameterConnector) _connectors[i]).isStatsOn();
+		
+		if (getSessionManager() != null)
+			on = on && getSessionManager().isStatsOn();
+		
+		return on;
+	}
+	
 	class ConnectPeerTimeout implements Runnable
 	{
 		private Peer _peer;
@@ -538,9 +575,10 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		public void run()
 		{
-			for (Peer peer: _peers)
+			if (_peers != null)
 			{
-				peer.watchdog();
+				for (Peer peer: _peers)
+					peer.watchdog();
 			}
 		}
 	}

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.DisconnectCause;
@@ -42,6 +43,8 @@ public class Peer
 	private DiameterConnection _iConnection;
 	
 	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
+	
+	private AtomicInteger _maxPendings = new AtomicInteger();
 	
 	private long _lastAccessed;
 	private volatile boolean _pending;
@@ -148,6 +151,10 @@ public class Peer
 		synchronized (_pendingRequests)
 		{
 			_pendingRequests.put(request.getHopByHopId(), request);
+			
+			if (_node.isAllStatsOn() && _pendingRequests.size() > _maxPendings.get())
+				_maxPendings.set(_pendingRequests.size());
+			
 		}
 		connection.write(request);
 	}
@@ -440,7 +447,25 @@ public class Peer
 		}
     	
     }
-	
+    
+    public int getPendings()
+    {
+    	synchronized (_pendingRequests)
+		{
+        	return _pendingRequests.size();
+		}
+    }
+    
+    public int getMaxPendings()
+    {
+    	return _maxPendings.get();
+    }
+    
+    public void statsReset() 
+    {
+    	_maxPendings.set(0);
+    }
+    
     // peer states 
     
 	private abstract class State

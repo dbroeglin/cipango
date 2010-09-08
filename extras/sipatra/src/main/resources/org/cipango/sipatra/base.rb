@@ -276,10 +276,10 @@ module Sipatra
       end
     end
     
-    delegate :request, :response, :helpers,
-      :ack, :bye, :cancel, :info, :invite, 
+    delegate :ack, :bye, :cancel, :info, :invite, :message,
       :notify, :options, :prack, :publish, :refer, 
-      :register, :subscribe, :update
+      :register, :subscribe, :update, 
+      :before, :after, :request, :response, :helpers
   end
   
   def self.helpers(*extensions, &block)

@@ -108,8 +108,9 @@ describe Sipatra::Base do
     :notify, :options, :prack, :publish, :refer, 
     :register, :subscribe, :update, 
     :request, :response, :helpers, :before, :after].each do |name|
-    it "should accept method handler #{name}" do
+    it "should accept method handler '#{name}'" do
       Sipatra::Base.respond_to?(name).should be_true
+      TOPLEVEL_BINDING.eval("private_methods.include? '#{name}'").should be_true
     end
   end
   

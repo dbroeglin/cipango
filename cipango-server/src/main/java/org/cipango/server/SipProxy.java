@@ -931,7 +931,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        }
 			
 	        response.setSession(session);
-			session.updateState(response, true);
+			session.updateState(response, false);
 			
 			response.removeTopVia();
 			response.setProxyBranch(this);

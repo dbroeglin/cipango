@@ -964,7 +964,7 @@ public class Session implements SessionIf
 				String tag = response.to().getParameter(SipParams.TAG);
                 _remoteParty.setParameter(SipParams.TAG, tag);
                 
-                System.out.println("Created dialog: " + tag);
+                //System.out.println("Created dialog: " + tag);
                 setRoute(response, true);
 			}
 			else

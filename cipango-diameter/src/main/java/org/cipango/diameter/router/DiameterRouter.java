@@ -23,8 +23,8 @@ public interface DiameterRouter
 	/**
 	 * Returns the first open peer which can send the request.
 	 * 
-	 * @param request
-	 * @return
+	 * @param request the request for which a peer should be find.
+	 * @return the first open peer which can send the request.
 	 */
 	public Peer getRoute(DiameterRequest request);
 	

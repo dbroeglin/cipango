@@ -41,7 +41,7 @@ public interface DiameterFactory
 	 * @param destinationRealm value of destination realm AVP
 	 * @return a new diameter request object with the specified command, application identifier, and
 	 *         destination realm.
-	 * @see Common.DESTINATION_REALM
+	 * @see Common#DESTINATION_REALM
 	 */
 	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm);
@@ -63,8 +63,8 @@ public interface DiameterFactory
 	 * @param destinationHost value of destination host AVP
 	 * @return a new diameter request object with the specified command, application identifier, and
 	 *         destination realm.
-	 * @see Common.DESTINATION_REALM
-	 * @see Common.DESTINATION_HOST
+	 * @see Common#DESTINATION_REALM
+	 * @see Common#DESTINATION_HOST
 	 */
 	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm, String destinationHost);

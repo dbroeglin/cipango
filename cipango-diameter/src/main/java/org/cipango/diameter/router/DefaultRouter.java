@@ -18,7 +18,7 @@ import org.cipango.diameter.Node;
 import org.cipango.diameter.Peer;
 
 
-public class Router implements DiameterRouter
+public class DefaultRouter implements DiameterRouter
 {
 
 	private Node _node;

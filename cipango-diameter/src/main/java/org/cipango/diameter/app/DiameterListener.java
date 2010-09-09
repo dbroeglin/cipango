@@ -14,14 +14,20 @@
 
 package org.cipango.diameter.app;
 
+import java.io.IOException;
 import java.util.EventListener;
 
 import org.cipango.diameter.DiameterHandler;
+import org.cipango.diameter.DiameterMessage;
 
 /**
  * Callback for diameter messages. 
  */
 public interface DiameterListener extends EventListener, DiameterHandler
 {
-
+	/**
+	 * The <code>handle</code> method is invoked by the container when a Diameter message should be
+	 * passed to the application.
+	 */
+	void handle(DiameterMessage message) throws IOException;
 }

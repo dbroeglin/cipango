@@ -10,7 +10,7 @@ public class NodeTest extends TestCase
 	{
 		//Log.getLog().setDebugEnabled(true);
 		
-		Node client = new Node(3868);
+		Node client = new Node(38681);
 		client.setIdentity("client");
 		
 		Peer peer = new Peer("server");

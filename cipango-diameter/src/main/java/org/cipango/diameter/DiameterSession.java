@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,13 @@
 // ========================================================================
 
 package org.cipango.diameter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.sip.SipApplicationSession;
 
@@ -37,6 +44,8 @@ public class DiameterSession
 	private SipApplicationSession _appSession;
 	
 	private boolean _valid = true;
+	
+	private Map<String, Object> _attributes;
 		
 	public DiameterSession(SipApplicationSession appSession, String sessionId)
 	{
@@ -146,5 +155,80 @@ public class DiameterSession
 	{
 		if (!_valid)
 			throw new IllegalStateException("Session has been invalidated");
+	}
+	
+	/**
+	 * Returns the object bound with the specified name in this session, or null if no object is
+	 * bound under the name.
+	 * 
+	 * @param name a string specifying the name of the object
+	 * @return the object with the specified name
+	 * @throws NullPointerException if the name is null.
+	 * @throws IllegalStateException if session is invalidated
+	 */
+	public Object getAttribute(String name) 
+	{
+		checkValid();
+		if (name == null)
+			throw new NullPointerException("Attribute name is null");
+		if (_attributes == null)
+			return null;
+		return _attributes.get(name);
+	}
+
+	/**
+	 * Returns an Enumeration over the <code>String</code> objects containing the names of all the
+	 * objects bound to this session.
+	 * 
+	 * @return Returns an Enumeration over the <code>String</code> objects containing the names of
+	 *         all the objects bound to this session.
+	 * @throws IllegalStateException if session is invalidated
+	 */
+	public Enumeration<String> getAttributeNames() 
+	{
+		checkValid();
+		List<String> names;
+		if (_attributes == null)
+			names = Collections.emptyList();
+		else
+			names = new ArrayList<String>(_attributes.keySet());
+		return Collections.enumeration(names);
+	}
+	
+	/**
+	 * Removes the object bound with the specified name from this session. If the session does not have an object bound with the specified name, this method does nothing. 
+	 * @param name the name of the object to remove from this session 
+	 * @throws IllegalStateException if session is invalidated
+	 */
+	public void removeAttribute(String name) 
+	{
+		checkValid();
+		
+		if (_attributes == null)
+			return;
+		
+		 _attributes.remove(name);
+	}
+
+	/**
+	 * Binds an object to this session, using the name specified. If an object of the same name is
+	 * already bound to the session, the object is replaced.
+	 * 
+	 * @param name the name to which the object is bound
+	 * @param value the object to be bound
+	 * @throws IllegalStateException if session is invalidated
+	 * @throws NullPointerException on <code>null</code> <code>name</code> or <code>value</code>.
+	 */
+	public void setAttribute(String name, Object value) 
+	{
+		checkValid();
+		
+		if (name == null || value == null)
+			throw new NullPointerException("name or value is null");
+		
+		if (_attributes == null)
+			_attributes = new HashMap<String, Object>(3);
+		
+		_attributes.put(name, value);	
 	}
 }

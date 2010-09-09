@@ -29,7 +29,7 @@ import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.log.BasicMessageLog;
 import org.cipango.diameter.router.DiameterRouter;
-import org.cipango.diameter.router.Router;
+import org.cipango.diameter.router.DefaultRouter;
 import org.cipango.server.Server;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.eclipse.jetty.util.LazyList;
@@ -198,7 +198,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		_scheduler = new ScheduledThreadPoolExecutor(1);
 		
 		if (_router == null)
-			_router = new Router();
+			_router = new DefaultRouter();
 		
 		if (_router instanceof LifeCycle)
 			((LifeCycle) _router).start();

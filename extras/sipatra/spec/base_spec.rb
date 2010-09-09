@@ -33,15 +33,33 @@ def mock_response(method, status_code, header_value = nil)
   @app.msg = @mock_response
 end
 
+describe Sipatra::Base do
+  [:ack, :bye, :cancel, :info, :invite, :message, 
+    :notify, :options, :prack, :publish, :refer, 
+    :register, :subscribe, :update, 
+    :request, :response, :helpers, :before, :after].each do |name|
+    it "should accept method handler '#{name}'" do
+      Sipatra::Base.respond_to?(name).should be_true
+      TOPLEVEL_BINDING.eval("private_methods.include? '#{name}'").should be_true
+    end
+  end
+  
+  it "passes the subclass to configure blocks" do
+    ref = nil
+    TestApp.configure { |app| ref = app }
+    ref.should == TestApp
+  end  
+end
 
 describe 'Sipatra::Base subclasses' do
   
   before do  
     @app = Class::new(Sipatra::Base).new
+    mock_request('INVITE', 'sip:uri')
+    @app.session = mock('SipSessionMock')
   end
   
   subject do
-    mock_request('INVITE', 'sip:uri')
     @app 
   end
     
@@ -65,6 +83,26 @@ describe 'Sipatra::Base subclasses' do
     end
   end
   
+  it "session[] should return a session attribute value" do
+    @app.session.should_receive(:getAttribute).with('foo').twice.and_return('bar')
+      
+    @app.session['foo'].should == 'bar'
+    @app.session[:foo].should  == 'bar'
+  end
+
+  it "session[]= should set session attribute value" do
+    @app.session.should_receive(:setAttribute).with('foo', 'bar').twice
+      
+    @app.session['foo'] = 'bar'
+    @app.session[:foo]  = 'bar'
+  end
+  
+  it "session[]= should remove a session attribute if value is nil" do
+    @app.session.should_receive(:removeAttribute).with('foo').twice
+      
+    @app.session['foo'] = nil
+    @app.session[:foo]  = nil
+  end
   
   describe "when receiving do_request (with URI sip:uri)" do
     after do
@@ -101,24 +139,6 @@ describe 'Sipatra::Base subclasses' do
       subject.should_not_receive(:must_not_be_called2)
     end
   end
-end
-
-describe Sipatra::Base do
-  [:ack, :bye, :cancel, :info, :invite, :message, 
-    :notify, :options, :prack, :publish, :refer, 
-    :register, :subscribe, :update, 
-    :request, :response, :helpers, :before, :after].each do |name|
-    it "should accept method handler '#{name}'" do
-      Sipatra::Base.respond_to?(name).should be_true
-      TOPLEVEL_BINDING.eval("private_methods.include? '#{name}'").should be_true
-    end
-  end
-  
-  it "passes the subclass to configure blocks" do
-    ref = nil
-    TestApp.configure { |app| ref = app }
-    ref.should == TestApp
-  end  
 end
 
 describe TestApp do

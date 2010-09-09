@@ -5,6 +5,20 @@ module Sipatra
   VERSION = '1.0.0'
   
   java_import javax.servlet.sip.SipServletResponse
+
+  module SessionExtension
+    def [](name)
+      getAttribute(name.to_s)
+    end
+    
+    def []=(name, value)
+      if value.nil?
+        removeAttribute(name.to_s)
+      else
+        setAttribute(name.to_s, value)
+      end
+    end
+  end
   
   class Base
     include HelperMethods
@@ -17,6 +31,13 @@ module Sipatra
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
       @context, @sip_factory, @session, @msg = args
+    end
+    
+    def session=(session)
+      @session = session
+      class << @session
+         include SessionExtension
+       end
     end
     
     # called to process a SIP request

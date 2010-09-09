@@ -63,6 +63,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	public static final long DEFAULT_TW = 30000;
 	public static final long DEFAULT_TC = 30000;
+	public static final long DEFAULT_REQUEST_TIMEOUT = 10000;
 	
 	private Server _server;
 	
@@ -73,6 +74,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	
 	private long _tw = DEFAULT_TW;
 	private long _tc = DEFAULT_TC;
+	private long _requestTimeout = DEFAULT_REQUEST_TIMEOUT;
 	
 	private DiameterConnector[] _connectors;
 	
@@ -324,10 +326,17 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{
 		Peer peer = _router.getRoute(request);
 		
-		if (peer == null)
-			throw new IOException("No peer for destination host " + request.getDestinationHost());
-		else
+		if (peer == null && request.getDestinationHost() != null)
+		{
+			peer = new Peer(request.getDestinationHost());
+			peer.start();
+			addPeer(peer);
+		}
+			
+		if (peer != null)
 			peer.send(request);
+		else
+			throw new IOException("Router found no peer and no destination host set");
 	}
 	
 	public void receive(DiameterMessage message) throws IOException
@@ -526,7 +535,9 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
     {
         updateNotEqual(_statsStartedAt,-1,System.currentTimeMillis());
 
-        getSessionManager().statsReset();
+        if (getSessionManager() != null)
+        	getSessionManager().statsReset();
+        
 		for (int i = 0; _connectors != null && i < _connectors.length; i++)
 			if (_connectors[i] instanceof AbstractDiameterConnector)
 				((AbstractDiameterConnector) _connectors[i]).statsReset();
@@ -570,6 +581,16 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		return _statsStartedAt.get();
 	}
 	
+	public long getRequestTimeout()
+	{
+		return _requestTimeout;
+	}
+
+	public void setRequestTimeout(long requestTimeout)
+	{
+		_requestTimeout = requestTimeout;
+	}
+	
 	class ConnectPeerTimeout implements Runnable
 	{
 		private Peer _peer;
@@ -610,4 +631,5 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			}
 		}
 	}
+
 }

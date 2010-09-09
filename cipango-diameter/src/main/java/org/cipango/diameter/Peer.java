@@ -17,9 +17,12 @@ package org.cipango.diameter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.DisconnectCause;
 import org.cipango.diameter.bio.DiameterSocketConnector;
@@ -42,7 +45,8 @@ public class Peer
 	private DiameterConnection _rConnection;
 	private DiameterConnection _iConnection;
 	
-	private Map<Integer, DiameterRequest> _pendingRequests = new HashMap<Integer, DiameterRequest>();
+	private Map<Integer, Pending> _pendingRequests = new HashMap<Integer, Pending>();
+	private Map<Integer, Pending> _waitingRequests = new HashMap<Integer, Pending>();
 	
 	private AtomicInteger _maxPendings = new AtomicInteger();
 	
@@ -140,9 +144,15 @@ public class Peer
 	
 	public void send(DiameterRequest request) throws IOException
 	{
-		// FIXME find a solution when peer is starting.
 		if (!isOpen())
-			throw new IOException("peer " + this + " not open");
+		{
+			// FIXME use same timeout ???
+			synchronized (_pendingRequests)
+			{
+				_waitingRequests.put(request.getHopByHopId(), new Pending(request));
+			}
+			return;
+		}
 		
 		DiameterConnection connection = getConnection();
 		if (connection == null || !connection.isOpen())
@@ -150,7 +160,7 @@ public class Peer
 		
 		synchronized (_pendingRequests)
 		{
-			_pendingRequests.put(request.getHopByHopId(), request);
+			_pendingRequests.put(request.getHopByHopId(), new Pending(request));
 			
 			if (_node.isStatsOn() && _pendingRequests.size() > _maxPendings.get())
 				_maxPendings.set(_pendingRequests.size());
@@ -212,10 +222,16 @@ public class Peer
 			}
 		}
 		 
-		DiameterRequest request;
+		DiameterRequest request = null;
 		synchronized (_pendingRequests)
 		{
-			request = _pendingRequests.remove(answer.getHopByHopId());
+			
+			Pending pending = _pendingRequests.remove(answer.getHopByHopId());
+			if (pending != null)
+			{
+				pending.cancel();
+				request = pending.getRequest();
+			}
 		}
 		
 		answer.setRequest(request);
@@ -242,6 +258,39 @@ public class Peer
 	{
 		Log.debug(this + " " + _state + " > " + state);
 		_state = state;
+		
+		if (_state == OPEN)
+			onOpen();
+	}
+	
+	private void onOpen()
+	{
+		DiameterConnection connection = getConnection();
+		if (connection == null || !connection.isOpen())
+		{
+			Log.warn("State is open but no open connection");
+			return;
+		}
+			
+
+		synchronized (_pendingRequests)
+		{
+			try
+			{
+				Iterator<Pending> it  = _waitingRequests.values().iterator();
+				while (it.hasNext())
+				{
+					Peer.Pending pending = (Peer.Pending) it.next();
+					_pendingRequests.put(pending.getRequest().getHopByHopId(), pending);
+					it.remove();
+					connection.write(pending.getRequest());
+				}
+			}
+			catch (IOException e)
+			{
+				Log.debug("Unable to sent waiting requests: {}", e);
+			}
+		}
 	}
 	
     public void watchdog()
@@ -459,6 +508,14 @@ public class Peer
     public int getMaxPendings()
     {
     	return _maxPendings.get();
+    }
+    
+    public int getWaitings()
+    {
+    	synchronized (_pendingRequests)
+		{
+        	return _waitingRequests.size();
+		}
     }
     
     public void statsReset() 
@@ -764,4 +821,42 @@ public class Peer
 			setState(CLOSED);
 		}
 	};
+	
+	class Pending implements Runnable
+	{
+		private DiameterRequest _request;
+		private ScheduledFuture<?> _timeout;
+		
+		public Pending(DiameterRequest request)
+		{
+			_request = request;
+			_timeout = _node.schedule(this, _node.getRequestTimeout());
+		}
+		
+		public void cancel()
+		{
+			_timeout.cancel(false);
+		}
+
+		public DiameterRequest getRequest()
+		{
+			return _request;
+		}
+		
+		public void run()
+		{
+			Log.debug("Diameter request timeout for {}", _request);
+			// FIXME should not use class cast
+			if (_node.getHandler() instanceof DiameterContext)
+				((DiameterContext) _node.getHandler()).fireNoAnswerReceived(_request, _node.getRequestTimeout());
+			
+			synchronized (_pendingRequests)
+			{
+				Pending p = _pendingRequests.remove(_request.getHopByHopId());
+				if (p == null)
+					_waitingRequests.remove(_request.getHopByHopId());
+			}
+			
+		}
+	}
 }

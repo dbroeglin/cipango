@@ -43,12 +43,15 @@ public class DiameterConfiguration implements Configuration
 			return;
 		
 		List<DiameterListener> diameterListeners = new ArrayList<DiameterListener>();
+		List<DiameterErrorListener> errorListeners = new ArrayList<DiameterErrorListener>();
 		
 		for (int i = 0; i < listeners.length; i++)
 		{
 			EventListener listener = listeners[i];
 			if (listener instanceof DiameterListener)
 				diameterListeners.add((DiameterListener) listener);
+			if (listener instanceof DiameterErrorListener)
+				errorListeners.add((DiameterErrorListener) listener);
 		}
 		
 		Log.debug("Using " + diameterListeners + " as diameter listeners");
@@ -60,7 +63,11 @@ public class DiameterConfiguration implements Configuration
 		context.getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		
 		if (!diameterListeners.isEmpty())
-			((DiameterContext) node.getHandler()).addListeners(diameterListeners.toArray(new DiameterListener[0]), context);
+		{
+			DiameterListener[] l = diameterListeners.toArray(new DiameterListener[0]);
+			DiameterErrorListener[] l2 = errorListeners.toArray(new DiameterErrorListener[0]);
+			((DiameterContext) node.getHandler()).addListeners(context, l, l2);
+		}
 		
 	}
 	

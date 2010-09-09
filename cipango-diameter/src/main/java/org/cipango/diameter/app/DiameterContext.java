@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.cipango.diameter.DiameterHandler;
 import org.cipango.diameter.DiameterMessage;
+import org.cipango.diameter.DiameterRequest;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.log.Log;
@@ -29,15 +30,17 @@ import org.eclipse.jetty.webapp.WebAppContext;
 public class DiameterContext implements DiameterHandler
 {
 	private SipAppContext _defaultContext;
-	private Map<String, DiameterListener[]> _listeners = new ConcurrentHashMap<String, DiameterListener[]>();
-	
+	private Map<String, DiameterAppContext> _diameterListeners = new ConcurrentHashMap<String, DiameterAppContext>();
+
 	private Method _handleMsg;
+	private Method _noAnswerReceived;
 	
 	public DiameterContext()
 	{
 		try 
 		{
 		 _handleMsg = DiameterListener.class.getMethod("handle", DiameterMessage.class);
+		 _noAnswerReceived = DiameterErrorListener.class.getMethod("noAnswerReceived", DiameterErrorEvent.class);
 		} 
         catch (NoSuchMethodException e)
         {
@@ -45,16 +48,16 @@ public class DiameterContext implements DiameterHandler
         }
 	}
 	
-	public void addListeners(DiameterListener[] listeners, WebAppContext context)
+	public void addListeners(WebAppContext context, DiameterListener[] listeners, DiameterErrorListener[] errorListeners)
 	{
-		_listeners.put(context.getContextPath(), listeners);
+		_diameterListeners.put(context.getContextPath(), new DiameterAppContext(listeners, errorListeners));
 		if (_defaultContext == null)
 			_defaultContext = (SipAppContext) context;
 	}
 	
 	public void removeListeners(WebAppContext context)
 	{
-		_listeners.remove(context.getContextPath());
+		_diameterListeners.remove(context.getContextPath());
 		
 		if (_defaultContext == context)
 			_defaultContext = null;
@@ -73,7 +76,11 @@ public class DiameterContext implements DiameterHandler
 			context = _defaultContext;
 		
 		if (context != null)
-			listeners = _listeners.get(context.getContextPath());
+		{
+			DiameterAppContext ctx = _diameterListeners.get(context.getContextPath());
+			if (ctx != null)
+				listeners = ctx.getDiameterListeners();
+		}
 
 		if (listeners != null && listeners.length != 0)
 			context.fire(listeners, _handleMsg, message);
@@ -81,4 +88,47 @@ public class DiameterContext implements DiameterHandler
 			Log.warn("No diameter listeners for context {} to handle message {}", 
 					context == null ? "" : context.getName(), message);	
 	}
+	
+	public void fireNoAnswerReceived(DiameterRequest request, long timeout)
+	{
+		DiameterErrorListener[] listeners = null;
+		SipAppContext context = null;
+		AppSessionIf appSession = (AppSessionIf) request.getApplicationSession();
+		if (appSession != null)
+			context = appSession.getAppSession().getContext();
+		
+		if (context != null)
+		{
+			DiameterAppContext ctx = _diameterListeners.get(context.getContextPath());
+			if (ctx != null)
+				listeners = ctx.getErrorListeners();
+		}
+		
+		if (listeners != null && listeners.length != 0)
+			context.fire(listeners, _noAnswerReceived, new DiameterErrorEvent(request, timeout));		
+	}
+	
 }
+
+class DiameterAppContext
+{
+	private DiameterListener[] _diameterListeners;
+	private DiameterErrorListener[] _errorListeners;
+	
+	public DiameterAppContext(DiameterListener[] listeners, DiameterErrorListener[] errorListeners)
+	{
+		_diameterListeners = listeners;
+		_errorListeners = errorListeners;
+	}
+
+	public DiameterListener[] getDiameterListeners()
+	{
+		return _diameterListeners;
+	}
+
+	public DiameterErrorListener[] getErrorListeners()
+	{
+		return _errorListeners;
+	}
+}
+

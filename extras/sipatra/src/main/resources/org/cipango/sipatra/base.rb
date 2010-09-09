@@ -30,7 +30,8 @@ module Sipatra
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
-      @context, @sip_factory, @session, @msg = args
+      @context, @sip_factory, session, @msg = args
+      self.session = session # force a call to the attribute writer
     end
     
     def session=(session)

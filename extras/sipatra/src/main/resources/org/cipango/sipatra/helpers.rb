@@ -4,7 +4,7 @@ module Sipatra
       @app = app
       method_definitions = <<-RUBY
         def [](name)
-          @app.msg.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)
+          @app.msg.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)#{plural ? ".to_a" : ""}
         end
       RUBY
       if plural
@@ -122,6 +122,8 @@ module Sipatra
         case symbol_or_int
           when Integer: return symbol_or_int
           when Symbol
+            # patch to correct typo in the SIP servlet API
+            symbol_or_int = :temporarly_unavailable if symbol_or_int == :temporarily_unavailable
           begin
             SipServletResponse.class_eval("SC_#{symbol_or_int.to_s.upcase}")
           rescue NameError => e

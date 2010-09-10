@@ -11,11 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.diameter.app;
+package org.cipango.diameter.api;
 
 import java.util.EventObject;
-
-import org.cipango.diameter.DiameterRequest;
 
 /**
  * Events of this type are sent to objects implementing the <code>DiameterErrorListener</code>
@@ -23,10 +21,10 @@ import org.cipango.diameter.DiameterRequest;
  */
 public class DiameterErrorEvent extends EventObject
 {
-	private DiameterRequest _request;
+	private DiameterServletRequest _request;
 	private long _timeout;
 
-	public DiameterErrorEvent(DiameterRequest source, long timeout)
+	public DiameterErrorEvent(DiameterServletRequest source, long timeout)
 	{
 		super(source);
 		_request = source;
@@ -38,7 +36,7 @@ public class DiameterErrorEvent extends EventObject
 	 * 
 	 * @return the Diameter request associated with <code>DiameterErrorEvent</code>.
 	 */
-	public DiameterRequest getRequest()
+	public DiameterServletRequest getRequest()
 	{
 		return _request;
 	}

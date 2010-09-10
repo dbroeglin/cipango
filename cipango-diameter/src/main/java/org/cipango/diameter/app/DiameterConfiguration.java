@@ -18,9 +18,11 @@ import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.List;
 
-import org.cipango.diameter.DiameterFactory;
 import org.cipango.diameter.DiameterFactoryImpl;
 import org.cipango.diameter.Node;
+import org.cipango.diameter.api.DiameterErrorListener;
+import org.cipango.diameter.api.DiameterFactory;
+import org.cipango.diameter.api.DiameterListener;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.Configuration;
 

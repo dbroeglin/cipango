@@ -4,11 +4,11 @@ import java.net.InetAddress;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.ApplicationId;
-import org.cipango.diameter.DiameterFactory;
 import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Node;
 import org.cipango.diameter.Peer;
 import org.cipango.diameter.SessionManager;
+import org.cipango.diameter.api.DiameterFactory;
 import org.cipango.diameter.base.Common;
 
 public class SCSCF 

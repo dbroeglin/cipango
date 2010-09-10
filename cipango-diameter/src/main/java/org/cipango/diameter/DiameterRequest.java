@@ -19,11 +19,13 @@ import java.util.Random;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.api.DiameterServletRequest;
+import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.scope.ScopedAppSession;
 
-public class DiameterRequest extends DiameterMessage
+public class DiameterRequest extends DiameterMessage implements DiameterServletRequest
 {
 	private static int __hopId;
 	private static int __endId;

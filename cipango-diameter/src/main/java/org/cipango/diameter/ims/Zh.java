@@ -54,7 +54,7 @@ public class Zh
 
 	/**
 	 * <pre>
-	 * < Bootstrapping-Info-Request> ::=<Diameter Header: 310, REQ, PXY, 16777220 >
+	 * < Bootstrapping-Info-Request > ::=< Diameter Header: 310, REQ, PXY, 16777220 >
 	 *    < Session-Id >
 	 *    { Vendor-Specific-Application-Id }
 	 *    { Origin-Host }	; Address of NAF
@@ -75,7 +75,7 @@ public class Zh
 	
 	/**
 	 * <pre>
-	 * < Boostrapping-Info-Answer> ::= < Diameter Header: 310, PXY, 16777220 >
+	 * < Boostrapping-Info-Answer > ::= < Diameter Header: 310, PXY, 16777220 >
 	 *    < Session-Id >
 	 *    { Vendor-Specific-Application-Id }
 	 *    [ Result-Code ]	

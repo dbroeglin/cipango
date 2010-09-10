@@ -17,8 +17,8 @@ import org.cipango.diameter.base.Common.EnumDataFormat;
  *    and message contents</li>
  * </ul>
  *  
- * @see http://www.3gpp.org/ftp/Specs/html-info/29228.htm
- * @see http://www.3gpp.org/ftp/Specs/html-info/29229.htm
+ * @see <a href="http://www.3gpp.org/ftp/Specs/html-info/29228.htm">TS 29.228</a>
+ * @see <a href="http://www.3gpp.org/ftp/Specs/html-info/29229.htm">TS 29.229</a>
  */
 public class Cx 
 {
@@ -114,8 +114,7 @@ public class Cx
 	 * currently serving the user.
 	 * 
 	 * <pre>
-	 * @code
-	 * <Server-Assignment-Request> ::= < Diameter Header: 301, REQ, PXY, 16777216 > 
+	 * < Server-Assignment-Request > ::= < Diameter Header: 301, REQ, PXY, 16777216 > 
 	 * 		< Session-Id >
 	 * 		{ Vendor-Specific-Application-Id } 
 	 * 		{ Auth-Session-State } 
@@ -130,7 +129,7 @@ public class Cx
 	 * 		{ User-Data-Already-Available } 
 	 * 		*[ AVP ] 
 	 * 		*[ Proxy-Info ]
-	 * *[ Route-Record ]
+	 * 		*[ Route-Record ]
 	 */
 	public static final DiameterCommand SAR = IMS.newRequest(SAR_ORDINAL,
 			"Server-Assignment-Request");
@@ -145,7 +144,7 @@ public class Cx
 	 * needs to give service to the user.
 	 * 
 	 * <pre>
-	 * <Server-Assignment-Answer> ::=	< Diameter Header: 301, PXY, 16777216 >
+	 * < Server-Assignment-Answer > ::=	< Diameter Header: 301, PXY, 16777216 >
 	 *     < Session-Id >
 	 *     { Vendor-Specific-Application-Id }
 	 *     [ Result-Code ]
@@ -178,7 +177,7 @@ public class Cx
 	 * to request name of the server that is currently serving the user.
 	 * 
 	 * <pre>
-	 * <Location-Info-Request> ::= < Diameter Header: 302, REQ, PXY, 16777216 >
+	 * < Location-Info-Request > ::= < Diameter Header: 302, REQ, PXY, 16777216 >
 	 *     < Session-Id >
 	 *     { Vendor-Specific-Application-Id }
 	 *     { Auth-Session-State }
@@ -206,7 +205,7 @@ public class Cx
 	 * 6.2.
 	 * 
 	 * <pre>
-	 * <Location-Info-Answer> ::= < Diameter Header: 302, PXY, 16777216 >
+	 * < Location-Info-Answer > ::= < Diameter Header: 302, PXY, 16777216 >
 	 *     < Session-Id >
 	 *     { Vendor-Specific-Application-Id }
 	 *     [ Result-Code ]
@@ -295,7 +294,7 @@ public class Cx
 	 * client in order to request the de-registration of a user.
 	 * 
 	 * <pre>
-	 * <Registration-Termination-Request> ::= < Diameter Header: 304, REQ, PXY, 16777216 >
+	 * < Registration-Termination-Request > ::= < Diameter Header: 304, REQ, PXY, 16777216 >
 	 *     < Session-Id >
 	 *     { Vendor-Specific-Application-Id }
 	 *     { Auth-Session-State }
@@ -324,7 +323,7 @@ public class Cx
 	 * contain one of the values defined in section 6.2.
 	 * 
 	 * <pre>
-	 * <Registration-Termination-Answer> ::= < Diameter Header: 304, PXY, 16777216 >
+	 * < Registration-Termination-Answer > ::= < Diameter Header: 304, PXY, 16777216 >
 	 *     < Session-Id >
 	 *     { Vendor-Specific-Application-Id }
 	 *     [ Result-Code ]
@@ -791,7 +790,7 @@ public class Cx
 	 * The Originating-Request AVP is of type Enumerated and indicates to the
 	 * HSS that the request is related to an AS originating SIP request in the
 	 * Location-Information-Request operation.
-	 * @See OriginatingRequest
+	 * @see OriginatingRequest
 	 */
 	public static final Type<OriginatingRequest> ORIGININATING_REQUEST = IMS.newIMSType("Originating-Request", 
 			ORIGININATING_REQUEST_ORDINAL, new EnumDataFormat<OriginatingRequest>(OriginatingRequest.class));

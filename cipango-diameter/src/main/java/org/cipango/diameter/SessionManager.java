@@ -30,13 +30,13 @@ public class SessionManager
 	private long _id;
 	
 	private Node _node;
-	private Map<String, DiameterSession> _sessions = new HashMap<String, DiameterSession>();
+	private Map<String, Session> _sessions = new HashMap<String, Session>();
 	
 	private CounterStatistic _sessionsCounter = new CounterStatistic();
 	
-	public DiameterSession createSession(SipApplicationSession appSession)
+	public Session createSession(SipApplicationSession appSession)
 	{
-		DiameterSession diameterSession = new DiameterSession(appSession, newSessionId());
+		Session diameterSession = new Session(appSession, newSessionId());
 		synchronized (_sessions)
 		{
 			_sessions.put(diameterSession.getId(), diameterSession);
@@ -47,14 +47,14 @@ public class SessionManager
 		return diameterSession;
 	}
 	
-	protected DiameterSession newSession()
+	protected Session newSession()
 	{
-		DiameterSession diameterSession = new DiameterSession(null, newSessionId());
+		Session diameterSession = new Session(null, newSessionId());
 		
 		return diameterSession;
 	}
 	
-	public DiameterSession get(String id)
+	public Session get(String id)
 	{
 		synchronized(_sessions)
 		{
@@ -73,7 +73,7 @@ public class SessionManager
 		return null;
 	}
 		
-	public void removeSession(DiameterSession session)
+	public void removeSession(Session session)
 	{
 		synchronized(_sessions)
 		{

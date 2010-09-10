@@ -12,10 +12,12 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.api;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.ApplicationId;
+import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.base.Common;
 
 /**
@@ -43,7 +45,7 @@ public interface DiameterFactory
 	 *         destination realm.
 	 * @see Common#DESTINATION_REALM
 	 */
-	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+	public DiameterServletRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm);
 
 	/**
@@ -66,14 +68,7 @@ public interface DiameterFactory
 	 * @see Common#DESTINATION_REALM
 	 * @see Common#DESTINATION_HOST
 	 */
-	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+	public DiameterServletRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm, String destinationHost);
-
-	@Deprecated
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm);
-
-	@Deprecated
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm,
-			String destinationHost);
 
 }

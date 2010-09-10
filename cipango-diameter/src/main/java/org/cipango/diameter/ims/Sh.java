@@ -20,8 +20,8 @@ import org.cipango.diameter.base.Common.EnumDataFormat;
  *  <li>3GPP TS 23228: IP Multimedia (IM) Subsystem Sh interface; Signalling flows and message contents</li>
  * </ul>
  * 
- * @see http://www.3gpp.org/ftp/Specs/html-info/29328.htm
- * @see http://www.3gpp.org/ftp/Specs/html-info/29329.htm
+ * @see <a href="http://www.3gpp.org/ftp/Specs/html-info/29328.htm">TS 29.328</a>
+ * @see <a href="http://www.3gpp.org/ftp/Specs/html-info/29329.htm">TS 29.329</a>
  */
 public class Sh 
 {

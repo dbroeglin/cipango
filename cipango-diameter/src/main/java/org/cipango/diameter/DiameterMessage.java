@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.api.DiameterServletMessage;
+import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.util.CommandUtil;
 import org.cipango.diameter.util.DiameterVisitor;
@@ -30,7 +32,7 @@ import org.cipango.diameter.util.Visitable;
 /**
  * Base class for diameter requests and answers.
  */
-public abstract class DiameterMessage implements Visitable
+public abstract class DiameterMessage implements Visitable, DiameterServletMessage
 {
 	protected DiameterCommand _command;
 	
@@ -44,21 +46,10 @@ public abstract class DiameterMessage implements Visitable
 	protected Node _node;
 	protected DiameterConnection _connection;
 	
-	protected DiameterSession _session;
+	protected Session _session;
 	
 	private Map<String, Object> _attributes;
-	
-	
-	public <T> T get(Type<T> type)
-	{
-		return _avps.getValue(type);
-	}
-	
-	public <T> void add(Type<T> type, T value)
-	{
-		_avps.add(type, value);
-	}
-	
+		
 	public DiameterMessage()
 	{
 	}
@@ -87,6 +78,16 @@ public abstract class DiameterMessage implements Visitable
 				message._endToEndId, 
 				message._hopByHopId, 
 				message.getSessionId());
+	}
+	
+	public <T> T get(Type<T> type)
+	{
+		return _avps.getValue(type);
+	}
+	
+	public <T> void add(Type<T> type, T value)
+	{
+		_avps.add(type, value);
 	}
 	
 	public Node getNode()
@@ -169,10 +170,6 @@ public abstract class DiameterMessage implements Visitable
 		return _avps.size();
 	}
 	
-	/**
-	 * Returns a list with all messages AVPs.
-	 * @return a list with all messages AVPs.
-	 */
 	public AVPList getAVPs()
 	{
 		return _avps;
@@ -183,29 +180,16 @@ public abstract class DiameterMessage implements Visitable
 		_avps = avps;
 	}
 	
-	/**
-	 * Returns the <code>DiameterSession</code> to which this message belongs. If the session didn't
-	 * already exist it is created. This method is equivalent to calling <code>getSession(true)</code>.
-	 * 
-	 * @return the <code>DiameterSession</code> to which this message belongs.
-	 */
 	public DiameterSession getSession()
 	{
 		return getSession(true);
 	}
 
-	/**
-	 * Returns the <code>DiameterSession</code> to which this message belongs.
-	 * 
-	 * @param create indicates whether the session is created if it doesn't already exist
-	 * @return the <code>DiameterSession</code> to which this message belongs , or <code>null</code>
-	 *         if one hasn't been created and <code>create</code> is false
-	 */
 	public abstract DiameterSession getSession(boolean create);
 	
 	public abstract SipApplicationSession getApplicationSession();
 	
-	public void setSession(DiameterSession session)
+	public void setSession(Session session)
 	{
 		_session = session;
 	}
@@ -228,14 +212,6 @@ public abstract class DiameterMessage implements Visitable
 		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command + " :" + _avps;
 	}
 	
-	/**
-	 * Returns the value of the named attribute as an Object, or null if no attribute of the given
-	 * name exists.
-	 * 
-	 * @param name a String specifying the name of the attribute
-	 * @return an Object containing the value of the attribute, or null if the attribute does not
-	 *         exist
-	 */
 	public Object getAttribute(String name) 
 	{
 		if (_attributes != null) 
@@ -243,12 +219,6 @@ public abstract class DiameterMessage implements Visitable
 		return null;
 	}
 	
-	/**
-	 * Removes the named attribute from this message. Nothing is done if the message did not already
-	 * contain the specified attribute.
-	 * 
-	 * @param name a String specifying the name of the attribute
-	 */
 	public void removeAttribute(String name)
 	{
 		if (_attributes == null)
@@ -257,13 +227,6 @@ public abstract class DiameterMessage implements Visitable
 	}
 	
 
-	/**
-	 * Returns an Enumeration containing the names of the attributes available to this message
-	 * object. This method returns an empty Enumeration if the message has no attributes available
-	 * to it.
-	 * 
-	 * @return an Enumeration of strings containing the names of the message's attributes
-	 */
 	@SuppressWarnings("unchecked")
 	public Enumeration<String> getAttributeNames() 
 	{
@@ -273,12 +236,6 @@ public abstract class DiameterMessage implements Visitable
 		return Collections.enumeration(Collections.EMPTY_LIST);
 	}
 	
-	/**
-	 * Stores an attribute in this message.
-	 * @param name a String specifying the name of the attribute
-	 * @param o the Object to be stored 
-	 * @throws NullPointerException if either of name or o is null.
-	 */
 	public void setAttribute(String name, Object o) 
 	{
 		if (o == null || name == null) 

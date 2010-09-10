@@ -36,8 +36,7 @@ public class Accounting
      * information with a peer.
 	 * 
 	 * <pre>
-	 * {@code
-	 *       <ACR> ::= < Diameter Header: 271, REQ, PXY >
+	 * < ACR > ::= < Diameter Header: 271, REQ, PXY >
      *          < Session-Id >
      *          { Origin-Host }
      *          { Origin-Realm }
@@ -57,7 +56,6 @@ public class Accounting
      *        * [ Proxy-Info ]
      *        * [ Route-Record ]
      *        * [ AVP ]
-	 * }
 	 * </pre>
 	 */
 	public static final DiameterCommand ACR = newRequest(ACR_ORDINAL, "Accounting-Request");
@@ -82,9 +80,8 @@ public class Accounting
      * is present, it must have an Acct-Application-Id inside.
 	 * 
 	 * <pre>
-	 * {@code
 	 * 
-	 * <ACA> ::= < Diameter Header: 271, PXY >
+	 * < ACA > ::= < Diameter Header: 271, PXY >
      *           < Session-Id >
      *           { Result-Code }
      *           { Origin-Host }
@@ -104,6 +101,7 @@ public class Accounting
      *           [ Event-Timestamp ]
      *         * [ Proxy-Info ]
      *         * [ AVP ]
+     * </pre>
 	 */
 	public static final DiameterCommand ACA = newAnswer(ACA_ORDINAL, "Accounting-Answer");
 	

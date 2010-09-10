@@ -16,19 +16,21 @@ package org.cipango.diameter;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.api.DiameterFactory;
+import org.cipango.diameter.api.DiameterServletRequest;
 import org.cipango.diameter.base.Common;
 
 public class DiameterFactoryImpl implements DiameterFactory
 {
 	private Node _node;
 	
-	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+	public DiameterServletRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm)
 	{
 		return createRequest(appSession, id, command, destinationRealm, null);
 	}
 
-	public DiameterRequest createRequest(SipApplicationSession appSession, ApplicationId id,
+	public DiameterServletRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm, String destinationHost)
 	{	
 		String sessionId = _node.getSessionManager().newSessionId();
@@ -44,13 +46,13 @@ public class DiameterFactoryImpl implements DiameterFactory
 	}
 
 	@Deprecated
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm)
+	public DiameterServletRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm)
 	{
 		return createRequest(id, command, destinationRealm, null);
 	}
 	
 	@Deprecated
-	public DiameterRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
+	public DiameterServletRequest createRequest(ApplicationId id, DiameterCommand command, String destinationRealm, String destinationHost)
 	{
 		return createRequest(null, id, command, destinationRealm, destinationHost);
 	}

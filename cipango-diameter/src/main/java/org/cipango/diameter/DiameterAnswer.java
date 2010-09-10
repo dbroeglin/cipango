@@ -18,7 +18,10 @@ import java.io.IOException;
 
 import javax.servlet.sip.SipApplicationSession;
 
-public class DiameterAnswer extends DiameterMessage
+import org.cipango.diameter.api.DiameterServletAnswer;
+import org.cipango.diameter.api.DiameterSession;
+
+public class DiameterAnswer extends DiameterMessage implements DiameterServletAnswer
 {
 	private DiameterRequest _request;
 	private ResultCode _resultCode;

@@ -9,7 +9,7 @@
   <name>Cipango :: Diameter</name>
   <description>Cipango diameter</description>
   <properties>
-    <bundle-symbolic-name>${project.groupId}.deploy</bundle-symbolic-name>
+    <bundle-symbolic-name>${project.groupId}.diameter</bundle-symbolic-name>
   </properties>
 
   <build>

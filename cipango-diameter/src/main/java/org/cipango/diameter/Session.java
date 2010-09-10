@@ -23,6 +23,7 @@ import java.util.Map;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.AuthSessionState;
 import org.cipango.server.session.AppSession;
@@ -31,7 +32,7 @@ import org.cipango.server.session.scope.ScopedAppSession;
 /**
  * Point-to-point Diameter relationship. 
  */
-public class DiameterSession 
+public class Session implements DiameterSession
 {
 	private Node _node;
 	
@@ -47,7 +48,7 @@ public class DiameterSession
 	
 	private Map<String, Object> _attributes;
 		
-	public DiameterSession(SipApplicationSession appSession, String sessionId)
+	public Session(SipApplicationSession appSession, String sessionId)
 	{
 		_sessionId = sessionId;
 		_appSession = appSession;
@@ -126,24 +127,11 @@ public class DiameterSession
 		_node = node;
 	}
 
-	/**
-	 * Returns <code>true</code> if this <code>DiameterSession</code> is valid, <code>false</code>
-	 * otherwise. The <code>DiameterSession</code> can be invalidated by calling the method
-	 * invalidate() on it.
-	 * 
-	 * @return <code>true</code> if this <code>DiameterSession</code> is valid, <code>false</code>
-	 *         otherwise.
-	 */
 	public boolean isValid()
 	{
 		return _valid;
 	}
 	
-	/**
-	 * Invalidates this session and unbinds any objects bound to it.
-	 * 
-	 * @throws java.lang.IllegalStateException if this method is called on an invalidated session
-	 */
 	public void invalidate()
 	{
 		checkValid();
@@ -157,15 +145,6 @@ public class DiameterSession
 			throw new IllegalStateException("Session has been invalidated");
 	}
 	
-	/**
-	 * Returns the object bound with the specified name in this session, or null if no object is
-	 * bound under the name.
-	 * 
-	 * @param name a string specifying the name of the object
-	 * @return the object with the specified name
-	 * @throws NullPointerException if the name is null.
-	 * @throws IllegalStateException if session is invalidated
-	 */
 	public Object getAttribute(String name) 
 	{
 		checkValid();
@@ -176,14 +155,6 @@ public class DiameterSession
 		return _attributes.get(name);
 	}
 
-	/**
-	 * Returns an Enumeration over the <code>String</code> objects containing the names of all the
-	 * objects bound to this session.
-	 * 
-	 * @return Returns an Enumeration over the <code>String</code> objects containing the names of
-	 *         all the objects bound to this session.
-	 * @throws IllegalStateException if session is invalidated
-	 */
 	public Enumeration<String> getAttributeNames() 
 	{
 		checkValid();
@@ -195,11 +166,6 @@ public class DiameterSession
 		return Collections.enumeration(names);
 	}
 	
-	/**
-	 * Removes the object bound with the specified name from this session. If the session does not have an object bound with the specified name, this method does nothing. 
-	 * @param name the name of the object to remove from this session 
-	 * @throws IllegalStateException if session is invalidated
-	 */
 	public void removeAttribute(String name) 
 	{
 		checkValid();
@@ -210,15 +176,6 @@ public class DiameterSession
 		 _attributes.remove(name);
 	}
 
-	/**
-	 * Binds an object to this session, using the name specified. If an object of the same name is
-	 * already bound to the session, the object is replaced.
-	 * 
-	 * @param name the name to which the object is bound
-	 * @param value the object to be bound
-	 * @throws IllegalStateException if session is invalidated
-	 * @throws NullPointerException on <code>null</code> <code>name</code> or <code>value</code>.
-	 */
 	public void setAttribute(String name, Object value) 
 	{
 		checkValid();

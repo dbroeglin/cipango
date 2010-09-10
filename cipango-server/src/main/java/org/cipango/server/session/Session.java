@@ -64,7 +64,6 @@ import org.cipango.sip.SipMethods;
 import org.cipango.sip.SipParams;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ReadOnlyAddress;
-import org.eclipse.jetty.security.UserDataConstraint;
 import org.eclipse.jetty.util.log.Log;
 
 public class Session implements SessionIf
@@ -91,8 +90,8 @@ public class Session implements SessionIf
 	
 	public enum Role { UNDEFINED, UAC, UAS, PROXY };
 	
-	private Role _role = Role.UNDEFINED;
-	private UA _ua;
+	protected Role _role = Role.UNDEFINED;
+	protected UA _ua;
 	
 	protected String _linkedSessionId;
 	
@@ -764,11 +763,11 @@ public class Session implements SessionIf
 	{
 		private UAMode _mode;
 		
-		private long _localCSeq = 1;
-		private long _remoteCSeq = -1;
-		private URI _remoteTarget;
-		private LinkedList<String> _routeSet;
-		private boolean _secure = false;
+		protected long _localCSeq = 1;
+		protected long _remoteCSeq = -1;
+		protected URI _remoteTarget;
+		protected LinkedList<String> _routeSet;
+		protected boolean _secure = false;
 		
 		public UA(UAMode mode)
 		{

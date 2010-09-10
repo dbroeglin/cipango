@@ -25,6 +25,7 @@ import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.api.DiameterErrorEvent;
 import org.cipango.diameter.api.DiameterErrorListener;
 import org.cipango.diameter.api.DiameterListener;
+import org.cipango.diameter.api.DiameterServletMessage;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.log.Log;
@@ -42,7 +43,7 @@ public class DiameterContext implements DiameterHandler
 	{
 		try 
 		{
-		 _handleMsg = DiameterListener.class.getMethod("handle", DiameterMessage.class);
+		 _handleMsg = DiameterListener.class.getMethod("handle", DiameterServletMessage.class);
 		 _noAnswerReceived = DiameterErrorListener.class.getMethod("noAnswerReceived", DiameterErrorEvent.class);
 		} 
         catch (NoSuchMethodException e)

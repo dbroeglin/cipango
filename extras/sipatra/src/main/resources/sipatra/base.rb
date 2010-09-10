@@ -1,5 +1,5 @@
 require 'java'
-require 'org/cipango/sipatra/helpers'
+require 'sipatra/helpers'
 
 module Sipatra
   VERSION = '1.0.0'
@@ -312,5 +312,3 @@ module Sipatra
     Application.register_extension(*extensions, &block)
   end
 end
-
-include Sipatra::Delegator

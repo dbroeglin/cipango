@@ -50,16 +50,15 @@ public class SipatraServlet extends SipServlet
   
   public ScriptingContainer getContainer() {
     if (_localContainer.get() == null) {
+  		ScriptingContainer container = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
   		List<String> loadPaths = new ArrayList<String>();
 
       // TODO: handle RUBY LOAD PATH to allow non JRuby dev
   		loadPaths.add(_appPath);
-  		ScriptingContainer container = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
   		
   		container.getProvider().setLoadPaths(loadPaths);
-
-  		// TODO: derive it from the servlets package name
-  		container.runScriptlet(PathType.CLASSPATH, "/org/cipango/sipatra/base.rb");
+  		container.runScriptlet("ENV['SIPATRA_PATH'] = '" + _appPath.replaceAll("'", "\'") + "'");
+  		container.runScriptlet(PathType.CLASSPATH, "sipatra.rb");
   		container.runScriptlet(PathType.ABSOLUTE, _appPath + "/application.rb");
   		
   		_localContainer.set(container);

@@ -43,27 +43,20 @@ import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
  */
 public class SipatraServlet extends SipServlet 
 {
+  public static final String INIT_MARKER = "SIPATRA_INITIALIZED";
 	private ScriptingContainer _container;
 	private ServletContext _servletContext;
   private ThreadLocal _localContainer = new ThreadLocal();
   String _appPath;
   
   public ScriptingContainer getContainer() {
-    if (_localContainer.get() == null) {
-  		ScriptingContainer container = new ScriptingContainer(LocalContextScope.SINGLETHREAD);
-  		List<String> loadPaths = new ArrayList<String>();
-
-      // TODO: handle RUBY LOAD PATH to allow non JRuby dev
-  		loadPaths.add(_appPath);
-  		
-  		container.getProvider().setLoadPaths(loadPaths);
-  		container.runScriptlet("ENV['SIPATRA_PATH'] = '" + _appPath.replaceAll("'", "\'") + "'");
-  		container.runScriptlet(PathType.CLASSPATH, "sipatra.rb");
-  		container.runScriptlet(PathType.ABSOLUTE, _appPath + "/application.rb");
-  		
-  		_localContainer.set(container);
+    if (_container.getAttribute(INIT_MARKER) == null) {
+  		_container.runScriptlet("ENV['SIPATRA_PATH'] = '" + _appPath.replaceAll("'", "\'") + "'");
+  		_container.runScriptlet(PathType.CLASSPATH, "sipatra.rb");
+  	  _container.runScriptlet(PathType.ABSOLUTE, _appPath + "/application.rb");
+  		_container.setAttribute(INIT_MARKER, true);
     }
-    return (ScriptingContainer)_localContainer.get();
+    return _container;
   }
 
 	/**
@@ -77,8 +70,17 @@ public class SipatraServlet extends SipServlet
 	{
 		super.init(config);
 
+
 	  _appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
 		_servletContext = config.getServletContext();
+		
+    _container = new ScriptingContainer(LocalContextScope.THREADSAFE);
+
+    // TODO: handle RUBY LOAD PATH to allow non JRuby dev
+		List<String> loadPaths = new ArrayList<String>();
+		loadPaths.add(_appPath);
+		
+		_container.getProvider().setLoadPaths(loadPaths);
 	}
 
 	@Override
@@ -95,7 +97,6 @@ public class SipatraServlet extends SipServlet
 	
 	private void invokeMethod(SipServletMessage message, String methodName) {
 	  ScriptingContainer container = getContainer();
-	  
 	  Object app = container.runScriptlet("Sipatra::Application::new");
 
 		container.callMethod(app, "set_bindings", new Object[] { 

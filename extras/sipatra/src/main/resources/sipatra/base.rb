@@ -1,5 +1,6 @@
 require 'java'
 require 'sipatra/helpers'
+require 'benchmark'
 
 module Sipatra
   VERSION = '1.0.0'
@@ -130,11 +131,13 @@ module Sipatra
     end
     
     def call!(handlers)
-      filter! :before
-      catch(:halt) do
-        process_handler(handlers, msg.method)
-        process_handler(handlers, "_")
-      end
+      puts Benchmark.measure { 
+        filter! :before
+        catch(:halt) do
+          process_handler(handlers, msg.method)
+          process_handler(handlers, "_")
+        end
+      }
     ensure 
       filter! :after
     end
@@ -301,7 +304,8 @@ module Sipatra
     delegate :ack, :bye, :cancel, :info, :invite, :message,
       :notify, :options, :prack, :publish, :refer, 
       :register, :subscribe, :update, 
-      :before, :after, :request, :response, :helpers
+      :helpers, :configure,
+      :before, :after, :request, :response
   end
   
   def self.helpers(*extensions, &block)

@@ -4,7 +4,7 @@ require 'lib/servlet-api-2.5-20081211.jar'
 $top_level = self 
 
 $LOAD_PATH << "src/main/resources"
-require 'org/cipango/sipatra/base'
+require 'sipatra'
 
 share_as :ExtensionsMethods do
   describe "#helpers" do

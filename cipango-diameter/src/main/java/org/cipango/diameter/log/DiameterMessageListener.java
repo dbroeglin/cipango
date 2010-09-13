@@ -12,7 +12,10 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.log;
+
+import org.cipango.diameter.node.DiameterConnection;
+import org.cipango.diameter.node.DiameterMessage;
 
 public interface DiameterMessageListener 
 {

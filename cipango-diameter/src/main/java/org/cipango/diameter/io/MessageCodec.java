@@ -2,13 +2,13 @@ package org.cipango.diameter.io;
 
 import java.io.IOException;
 
-import org.cipango.diameter.DiameterAnswer;
 import org.cipango.diameter.DiameterCommand;
-import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.Factory;
 import org.cipango.diameter.base.Common;
+import org.cipango.diameter.node.DiameterAnswer;
+import org.cipango.diameter.node.DiameterMessage;
+import org.cipango.diameter.node.DiameterRequest;
 import org.cipango.diameter.util.BufferUtil;
 import org.eclipse.jetty.io.Buffer;
 

@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.node;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -24,6 +24,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.cipango.diameter.ApplicationId;
+import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;

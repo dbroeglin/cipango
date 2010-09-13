@@ -7,12 +7,12 @@ import java.net.URL;
 import junit.framework.TestCase;
 
 import org.cipango.diameter.AVPList;
-import org.cipango.diameter.DiameterAnswer;
-import org.cipango.diameter.DiameterMessage;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
+import org.cipango.diameter.node.DiameterAnswer;
+import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 

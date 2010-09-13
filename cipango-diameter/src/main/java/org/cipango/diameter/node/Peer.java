@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.node;
 
 import java.io.IOException;
 import java.net.InetAddress;

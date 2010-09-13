@@ -75,7 +75,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
-          <excludePackageNames>org.cipango.diameter.bio,org.cipango.diameter.log,org.cipango.diameter.bio,org.apache.commons.net.ntp,org.cipango.diameter.sh.data.impl</excludePackageNames>
+          <excludePackageNames>org.cipango.diameter.bio,org.cipango.diameter.node,org.cipango.diameter.app,org.cipango.diameter.io,org.cipango.diameter.util,org.cipango.diameter.router,org.cipango.diameter.log,org.cipango.diameter.bio,org.apache.commons.net.ntp,org.cipango.diameter.sh.data</excludePackageNames>
         </configuration>
       </plugin>
 

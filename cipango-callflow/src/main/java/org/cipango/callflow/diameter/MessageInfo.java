@@ -4,8 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.cipango.callflow.diameter.JmxMessageLogger.Direction;
-import org.cipango.diameter.DiameterConnection;
-import org.cipango.diameter.DiameterMessage;
+import org.cipango.diameter.node.DiameterConnection;
+import org.cipango.diameter.node.DiameterMessage;
 
 public class MessageInfo
 {

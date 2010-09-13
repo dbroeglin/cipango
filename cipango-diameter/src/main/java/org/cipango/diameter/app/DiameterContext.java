@@ -19,13 +19,13 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.cipango.diameter.DiameterHandler;
-import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.DiameterRequest;
 import org.cipango.diameter.api.DiameterErrorEvent;
 import org.cipango.diameter.api.DiameterErrorListener;
 import org.cipango.diameter.api.DiameterListener;
 import org.cipango.diameter.api.DiameterServletMessage;
+import org.cipango.diameter.node.DiameterHandler;
+import org.cipango.diameter.node.DiameterMessage;
+import org.cipango.diameter.node.DiameterRequest;
 import org.cipango.server.session.AppSessionIf;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.log.Log;

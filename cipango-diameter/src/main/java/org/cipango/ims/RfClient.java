@@ -2,11 +2,11 @@ package org.cipango.ims;
 
 import java.net.InetAddress;
 
-import org.cipango.diameter.DiameterRequest;
-import org.cipango.diameter.Node;
-import org.cipango.diameter.Peer;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;
+import org.cipango.diameter.node.DiameterRequest;
+import org.cipango.diameter.node.Node;
+import org.cipango.diameter.node.Peer;
 
 public class RfClient 
 {

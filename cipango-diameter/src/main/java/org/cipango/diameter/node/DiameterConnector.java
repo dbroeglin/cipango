@@ -12,18 +12,30 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.node;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
-import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.util.component.LifeCycle;
 
-public interface DiameterConnection extends EndPoint
+public interface DiameterConnector extends LifeCycle
 {
-	Peer getPeer();
-	void setPeer(Peer peer);
+	void setNode(Node node);
 	
-	void write(DiameterMessage message) throws IOException;
+	Object getTransport();
+
+	void open() throws IOException;
+	void close() throws IOException;
+
+	DiameterConnection getConnection(Peer peer) throws IOException;
 	
-	void stop();
+	void setHost(String host);
+	String getHost();
+	
+	void setPort(int port);
+	int getPort();
+	
+	int getLocalPort();
+	InetAddress getLocalAddress();
 }

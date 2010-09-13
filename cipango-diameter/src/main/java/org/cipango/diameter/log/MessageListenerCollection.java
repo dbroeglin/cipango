@@ -13,9 +13,8 @@
 // ========================================================================
 package org.cipango.diameter.log;
 
-import org.cipango.diameter.DiameterConnection;
-import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.DiameterMessageListener;
+import org.cipango.diameter.node.DiameterConnection;
+import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.MultiException;

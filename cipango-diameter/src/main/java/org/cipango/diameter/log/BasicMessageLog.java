@@ -14,9 +14,8 @@
 
 package org.cipango.diameter.log;
 
-import org.cipango.diameter.DiameterConnection;
-import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.DiameterMessageListener;
+import org.cipango.diameter.node.DiameterConnection;
+import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.util.log.Log;
 
 public class BasicMessageLog implements DiameterMessageListener

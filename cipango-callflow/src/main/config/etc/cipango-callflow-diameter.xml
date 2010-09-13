@@ -7,7 +7,7 @@
     <New class="org.cipango.diameter.log.MessageListenerCollection">
       <Set name="server"><Ref id="Server"/></Set>
       <Set name="messageListeners">
-        <Array type="org.cipango.diameter.DiameterMessageListener">
+        <Array type="org.cipango.diameter.log.DiameterMessageListener">
           <Item>
             <New class="org.cipango.callflow.diameter.JmxMessageLogger"/>
           </Item>

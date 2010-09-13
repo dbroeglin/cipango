@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.diameter;
+package org.cipango.diameter.node;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -22,6 +22,10 @@ import java.util.Map;
 
 import javax.servlet.sip.SipApplicationSession;
 
+import org.cipango.diameter.AVP;
+import org.cipango.diameter.AVPList;
+import org.cipango.diameter.DiameterCommand;
+import org.cipango.diameter.Type;
 import org.cipango.diameter.api.DiameterServletMessage;
 import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;

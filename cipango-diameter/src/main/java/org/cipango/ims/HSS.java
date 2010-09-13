@@ -1,6 +1,6 @@
 package org.cipango.ims;
 
-import org.cipango.diameter.Node;
+import org.cipango.diameter.node.Node;
 
 public class HSS 
 {

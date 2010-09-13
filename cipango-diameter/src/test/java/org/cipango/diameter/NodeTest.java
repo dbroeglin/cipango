@@ -2,6 +2,9 @@ package org.cipango.diameter;
 
 import java.net.InetAddress;
 
+import org.cipango.diameter.node.Node;
+import org.cipango.diameter.node.Peer;
+
 import junit.framework.TestCase;
 
 public class NodeTest extends TestCase

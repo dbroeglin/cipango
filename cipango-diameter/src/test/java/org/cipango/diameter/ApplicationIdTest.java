@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 import org.cipango.diameter.base.Accounting;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;
+import org.cipango.diameter.node.DiameterRequest;
 
 public class ApplicationIdTest extends TestCase
 {

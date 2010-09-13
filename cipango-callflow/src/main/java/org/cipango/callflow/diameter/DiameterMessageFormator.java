@@ -19,8 +19,8 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.cipango.diameter.AVP;
-import org.cipango.diameter.DiameterAnswer;
-import org.cipango.diameter.DiameterMessage;
+import org.cipango.diameter.node.DiameterAnswer;
+import org.cipango.diameter.node.DiameterMessage;
 
 
 public class DiameterMessageFormator

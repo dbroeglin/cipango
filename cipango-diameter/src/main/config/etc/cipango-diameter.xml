@@ -31,15 +31,15 @@
   
   <Call name="addLifeCycle">
     <Arg>
-      <New id="node" class="org.cipango.diameter.Node">
+      <New id="node" class="org.cipango.diameter.node.Node">
         <Set name="server"><Ref id="Server"/></Set>
         <Call name="addConnector">
           <Arg>
-            <New class="org.cipango.diameter.bio.DiameterSocketConnector">
+            <New class="org.cipango.diameter.bio.DiameterSocketConnector" id="DiameterSocketConnector">
               <Set name="host"><SystemProperty  name="diameter.host"/></Set>
               <Set name="port"><SystemProperty default="3868" name="diameter.port"/></Set>
               <Set name="messageListener">
-                <New class="org.cipango.diameter.log.FileMessageLogger">
+                <New class="org.cipango.diameter.log.FileMessageLogger" id="FileMessageLogger">
                   <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.diameter.log</Set>
                   <Set name="append">true</Set>
                   <Set name="retainDays">31</Set>
@@ -60,7 +60,7 @@
         
         <Call name="addPeer">
           <Arg>
-            <New class="org.cipango.diameter.Peer">
+            <New class="org.cipango.diameter.node.Peer">
               <Arg>sip1.nexcom.voip</Arg>
             </New>
           </Arg>
@@ -70,7 +70,7 @@
   </Call>
 
   <Call name="setAttribute">
-    <Arg>org.cipango.diameter.Node</Arg>
+    <Arg>org.cipango.diameter.node.Node</Arg>
     <Arg><Ref id="node"/></Arg>
   </Call>
 

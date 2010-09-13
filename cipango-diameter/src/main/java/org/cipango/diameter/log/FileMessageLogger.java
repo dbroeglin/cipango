@@ -6,9 +6,8 @@ import java.io.OutputStream;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.cipango.diameter.DiameterConnection;
-import org.cipango.diameter.DiameterMessage;
-import org.cipango.diameter.DiameterMessageListener;
+import org.cipango.diameter.node.DiameterConnection;
+import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.util.DateCache;
 import org.eclipse.jetty.util.RolloverFileOutputStream;
 import org.eclipse.jetty.util.StringUtil;

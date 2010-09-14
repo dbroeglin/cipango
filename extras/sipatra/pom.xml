@@ -13,8 +13,8 @@
   <dependencies>
     <dependency>
       <groupId>org.jruby</groupId>
-      <artifactId>jruby</artifactId>
-      <version>1.5.1</version>
+      <artifactId>jruby-complete</artifactId>
+      <version>1.5.2</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

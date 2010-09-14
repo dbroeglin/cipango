@@ -26,10 +26,10 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.session.CallSession;
 import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;
+import org.cipango.server.session.SessionManager.SessionScope;
 
 public class ScopedSession extends ScopedObject implements SessionIf
 {
@@ -188,7 +188,9 @@ public class ScopedSession extends ScopedObject implements SessionIf
 	@Override
 	public boolean equals(Object o)
 	{
-		return _session.equals(o);
+		if (!(o instanceof SessionIf))
+			return false;
+		return _session.equals(((SessionIf) o).getSession());
 	}
 
 	@Override

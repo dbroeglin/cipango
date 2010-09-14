@@ -81,9 +81,30 @@ public class DiameterCommand
 	{
 		return _proxiable;
 	}
+	
+	
 
 	public String toString()
 	{
 		return _name + "(" + _code + ")";
+	}
+
+	@Override
+	public int hashCode()
+	{
+		if (isRequest())
+			return _code;
+		return -_code;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == this)
+			return true;
+		
+		if (obj instanceof DiameterCommand)
+			return hashCode() == obj.hashCode();
+		return false;
 	}
 }

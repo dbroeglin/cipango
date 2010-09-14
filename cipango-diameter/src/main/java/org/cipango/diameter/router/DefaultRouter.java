@@ -13,6 +13,9 @@
 // ========================================================================
 package org.cipango.diameter.router;
 
+import java.util.Hashtable;
+import java.util.Map;
+
 import org.cipango.diameter.node.DiameterRequest;
 import org.cipango.diameter.node.Node;
 import org.cipango.diameter.node.Peer;
@@ -21,29 +24,22 @@ import org.cipango.diameter.node.Peer;
 public class DefaultRouter implements DiameterRouter
 {
 
-	private Node _node;
+	private Map<String, Peer> _peers = new Hashtable<String, Peer>();
 	
 	public Peer getRoute(DiameterRequest request)
 	{
-		return _node.getPeer(request.getDestinationHost());
+		return _peers.get(request.getDestinationHost());
 	}
 
-	public Node getNode()
-	{
-		return _node;
-	}
-
-	public void setNode(Node node)
-	{
-		_node = node;
-	}
 
 	public void peerAdded(Peer peer)
 	{
+		_peers.put(peer.getHost(), peer);
 	}
 
 	public void peerRemoved(Peer peer)
 	{
+		_peers.remove(peer.getHost());
 	}
 
 }

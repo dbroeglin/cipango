@@ -103,10 +103,9 @@ public class ScopedAppSession extends ScopedObject implements AppSessionIf
 		return session;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Iterator<?> getSessions() 
 	{
-		// TODO returns SipSessionInterceptor ?
 		List list = new ArrayList();
 		Iterator it = _appSession.getSessions();
 		while (it.hasNext())
@@ -252,7 +251,9 @@ public class ScopedAppSession extends ScopedObject implements AppSessionIf
 	@Override
 	public boolean equals(Object o)
 	{
-		return _appSession.equals(o);
+		if (!(o instanceof AppSessionIf))
+			return false;
+		return _appSession.equals(((AppSessionIf) o).getAppSession());
 	}
 
 	@Override

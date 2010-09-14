@@ -11,12 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.diameter;
+package org.cipango.diameter.node;
 
 import java.lang.reflect.Field;
 
 import junit.framework.TestCase;
 
+import org.cipango.diameter.AVPList;
+import org.cipango.diameter.ApplicationId;
 import org.cipango.diameter.base.Accounting;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;

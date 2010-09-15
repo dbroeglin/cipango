@@ -126,7 +126,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 				connectors[i].setNode(this);
 		}
 		if (_server != null)
-			_server.getContainer().update(this, _connectors, connectors, "connectors");
+			_server.getContainer().update(this, _connectors, connectors, "connectors", true);
 		_connectors = connectors;
 	}
 	
@@ -147,7 +147,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		Peer[] peers = (Peer[]) LazyList.addToArray(_peers, peer, Peer.class);
 		
 		if (_server != null)
-			_server.getContainer().update(this, _peers, peers, "peers");
+			_server.getContainer().update(this, _peers, peers, "peers", true);
 		
 		_peers = peers;
 		
@@ -161,7 +161,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		Peer[] peers = (Peer[]) LazyList.removeFromArray(_peers, peer);
 		
 		if (_server != null)
-			_server.getContainer().update(this, _peers, peers, "peers");
+			_server.getContainer().update(this, _peers, peers, "peers", true);
 		
 		_peers = peers;
 		

@@ -44,7 +44,6 @@ import javax.servlet.sip.ar.SipApplicationRouterInfo;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.transaction.ClientTransaction;

@@ -233,11 +233,13 @@ public class ServerTransaction extends Transaction
 		}
 	}
 	
-	private void terminate()
+	public void terminate()
     {
 		_provisionalResponse = _finalResponse = null;
         setState(STATE_TERMINATED);
         getCallSession().removeServerTransaction(this);
+        
+        _listener.transactionTerminated(this);
     }
 	
 	public String asString(int timer)

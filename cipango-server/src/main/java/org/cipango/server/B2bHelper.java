@@ -17,9 +17,7 @@ package org.cipango.server;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import javax.servlet.sip.B2buaHelper;

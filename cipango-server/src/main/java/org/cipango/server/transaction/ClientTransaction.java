@@ -361,10 +361,10 @@ public class ClientTransaction extends Transaction
 		return false;
 	}
 	
-	protected void terminate() 
+	public void terminate() 
     {
 		setState(STATE_TERMINATED);
-		getCallSession().removeClientTransaction(this); 
+		getCallSession().removeClientTransaction(this);
     }
 	
 	public String asString(int timer)

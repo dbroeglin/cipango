@@ -42,10 +42,10 @@ import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.server.transaction.ServerTransactionListener;
+import org.cipango.server.transaction.Transaction;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipGrammar;
 import org.cipango.sip.SipHeaders;
-import org.cipango.sip.SipParams;
 import org.cipango.util.TimerTask;
 
 import org.eclipse.jetty.util.log.Log;
@@ -527,6 +527,11 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
             Log.debug(e);
         }
     }
+    
+    public void transactionTerminated(Transaction transaction)
+    {
+    	
+    }
 	
 	private void tryFinal()
     {
@@ -1006,6 +1011,10 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	            	}
 	            }
 			}
+		}
+		
+		public void transactionTerminated(Transaction transaction)
+		{	
 		}
     }
 	

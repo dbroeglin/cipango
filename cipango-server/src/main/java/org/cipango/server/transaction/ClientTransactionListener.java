@@ -16,7 +16,7 @@ package org.cipango.server.transaction;
 
 import org.cipango.server.SipResponse;
 
-public interface ClientTransactionListener
+public interface ClientTransactionListener extends TransactionListener
 {
     void handleResponse(SipResponse response);
 }

@@ -1145,7 +1145,7 @@ public class Session implements SessionIf
 		private void removeServerInvite(long cseq)
 		{
 			int i = getInviteContextIndex(_serverInvites, cseq);
-			if (i == -1)
+			if (i != -1)
 			{
 				_serverInvites = LazyList.remove(_serverInvites, i);
             	

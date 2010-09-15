@@ -239,7 +239,8 @@ public class ServerTransaction extends Transaction
         setState(STATE_TERMINATED);
         getCallSession().removeServerTransaction(this);
         
-        _listener.transactionTerminated(this);
+        if (_listener != null) // TODO check
+        	_listener.transactionTerminated(this);
     }
 	
 	public String asString(int timer)

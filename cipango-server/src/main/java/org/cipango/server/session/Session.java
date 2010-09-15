@@ -969,15 +969,18 @@ public class Session implements SessionIf
 				invokeServlet(response);
 		}
 		
-		public void sendResponse(SipResponse response, boolean reliable)
+		public void sendResponse(SipResponse response, boolean reliable) throws IOException
 		{
 			ServerTransaction tx = (ServerTransaction) response.getTransaction();
 			
-			if (tx.isCompleted())
-				throw new IllegalStateException("transaction terminated for response " + response.getRequestLine());
+			if (tx != null)
+			{
+				if (tx.isCompleted())
+					throw new IllegalStateException("transaction terminated for response " + response.getRequestLine());
 			
-			tx.setListener(this);
-            
+				tx.setListener(this);
+			}
+			
 			updateState(response, false);
 			
 			SipRequest request = (SipRequest) response.getRequest();
@@ -1005,7 +1008,10 @@ public class Session implements SessionIf
 				}
 				// TODO reliable && retrans
 			}
-			tx.send(response);
+			if (tx != null)
+				tx.send(response);
+			else
+				getServer().getConnectorManager().sendResponse(response);
 		}
 		
 		public void requestSent(SipRequest request)

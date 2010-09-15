@@ -182,6 +182,7 @@ public class B2bHelper implements B2buaHelper
 					SipResponse response = new SipResponse(request, status, reason);
 					Session derived = session.appSession().createDerivedSession(session);
 					response.setSession(derived);
+					response.setTransaction(null);
 					return response;
 				}
 				else

@@ -128,7 +128,7 @@ public class Session implements SessionIf
 		
 		_role = other._role;
 		if (other._ua != null)
-			_ua = new UA(other._ua._mode);
+			_ua = new UA();
 	}
 	
 	/**
@@ -799,6 +799,8 @@ public class Session implements SessionIf
 			_role = mode == UAMode.UAC ? Role.UAC : Role.UAS;
 		}
 		
+		protected UA() { }
+		
 		public SipRequest createRequest(SipRequest srcRequest)
 		{
 			SipRequest request = (SipRequest) srcRequest.clone();
@@ -1087,11 +1089,6 @@ public class Session implements SessionIf
 		public boolean isSecure()
 		{
 			return _secure;
-		}
-		
-		public UAMode getMode()
-		{
-			return _mode;
 		}
 		
 		public void transactionTerminated(Transaction transaction) 

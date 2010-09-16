@@ -147,7 +147,7 @@ public class Session implements SessionIf
 		checkValid();
 		if (!isUA())
 			throw new IllegalStateException("session is " + _role);
-		
+	
 		return _ua.createRequest(method);
 	}
 
@@ -791,6 +791,9 @@ public class Session implements SessionIf
 		private Object _serverInvites;
 		private Object _clientInvites;
 		
+		protected long _remoteRSeq = -1;
+		protected long _localRSeq = 1;
+		 
 		public UA(UAMode mode)
 		{
 			if (_role != Role.UNDEFINED)
@@ -824,6 +827,8 @@ public class Session implements SessionIf
 		
 			if (_state == State.TERMINATED)
 				throw new IllegalStateException("Cannot create request in TERMINATED state");
+			else if (_state == State.INITIAL && _role == Role.UAS)
+				throw new IllegalStateException("Cannot create request in INITIAL state and UAS mode");
 			
 			return createRequest(method, _localCSeq++);
 		}
@@ -933,7 +938,7 @@ public class Session implements SessionIf
 				return;
 			}
 			
-			response.setSession(Session.this); 
+			response.setSession(Session.this);
 			
 			accessed();
 			
@@ -1006,7 +1011,22 @@ public class Session implements SessionIf
 					ServerInvite invite = getServerInvite(cseq, true);
 					invite.set2xx(response);
 				}
-				// TODO reliable && retrans
+				else if ((100 < status) && (status < 200)  && reliable)
+				{
+					ServerInvite invite = getServerInvite(cseq, true);
+					
+					long rseq = _localRSeq++;
+					response.getFields().addString(SipHeaders.REQUIRE_BUFFER, SipParams.REL_100);
+					response.setRSeq(rseq);
+					
+					//invite.addReliable1xx(response);
+				}
+				else if (status >= 300)
+				{
+					ServerInvite invite = getServerInvite(cseq, false);
+					if (invite != null)
+						invite.stop1xxRetrans();
+				}
 			}
 			if (tx != null)
 				tx.send(response);
@@ -1202,15 +1222,20 @@ public class Session implements SessionIf
 			public void set2xx(SipResponse response)
 			{
 				_2xx = response;
+				stop1xxRetrans();
+				
+				_timers = new TimerTask[2];
+				scheduleRetrans2xx();
+				_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64*Transaction.__T1);
+			}
+			
+			public void stop1xxRetrans()
+			{
 				for (int i = LazyList.size(_reliable1xxs); i-->0;)
 				{
 					Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(_reliable1xxs, i);
 					reliable1xx.stopRetrans();
 				}
-				
-				_timers = new TimerTask[2];
-				scheduleRetrans2xx();
-				_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64*Transaction.__T1);
 			}
 			
 			public void scheduleRetrans2xx()

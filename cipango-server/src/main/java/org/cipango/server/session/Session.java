@@ -929,6 +929,9 @@ public class Session implements SessionIf
 		
 		public void handleResponse(SipResponse response)
 		{
+			if (response.getStatus() == 100)
+				return;
+			
 			if (!isSameDialog(response))
 			{
 				Session derived = _appSession.getSession(response);
@@ -1019,7 +1022,7 @@ public class Session implements SessionIf
 					response.getFields().addString(SipHeaders.REQUIRE_BUFFER, SipParams.REL_100);
 					response.setRSeq(rseq);
 					
-					//invite.addReliable1xx(response);
+					invite.addReliable1xx(response);
 				}
 				else if (status >= 300)
 				{
@@ -1227,6 +1230,13 @@ public class Session implements SessionIf
 				_timers = new TimerTask[2];
 				scheduleRetrans2xx();
 				_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64*Transaction.__T1);
+			}
+			
+			public void addReliable1xx(SipResponse response)
+			{
+				Reliable1xx reliable1xx = new Reliable1xx(response);
+				_reliable1xxs = LazyList.add(_reliable1xxs, reliable1xx);
+				reliable1xx.start();
 			}
 			
 			public void stop1xxRetrans()

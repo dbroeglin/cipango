@@ -363,6 +363,11 @@ public class SipResponse extends SipMessage implements SipServletResponse
 		return request.getTransaction();
 	}
 	*/
+	
+	public boolean is2xx()
+	{
+		return (200 <= _status && _status < 300);
+	}
     
     public void setRSeq(long rseq)
     {

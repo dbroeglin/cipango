@@ -922,11 +922,15 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        Session session = request.session();
 	        
 	        if (request.isInitial() && status < 300)
-	        {
-	        	AppSession appSession = session.appSession();
-				session = appSession.getSession(response);
-				if (session == null)
-					session = appSession.createDerivedSession(session);			
+	        { 
+	        	if (!session.isSameDialog(response))
+	        	{
+	        		AppSession appSession = session.appSession();
+	        		Session derived = appSession.getSession(response);
+	        		if (derived == null)
+	        			derived = appSession.createDerivedSession(session);
+	        		session = derived;
+	        	}	
 	        }
 			
 	        response.setSession(session);

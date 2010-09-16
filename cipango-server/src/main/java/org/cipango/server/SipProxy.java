@@ -569,12 +569,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
     
 	private void forward(SipResponse response)
     {	
-        if (_tx.getState() >= ServerTransaction.STATE_COMPLETED) 
-        {
-            if (Log.isDebugEnabled()) 
-            	Log.debug("Server transaction completed {}", _tx, null);
-            return;
-        }
+        
         /*
         if (_tx.getRequest().getTo().getParameter("tag") == null)
         {
@@ -913,7 +908,14 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 			
 			if (status == 100)
 				return;
-			
+	        
+	        if (_tx.isCompleted() && !response.is2xx())
+			{
+				if (Log.isDebugEnabled())
+					Log.debug("Dropping response " + response.getStatus() + " since proxy is completed");
+				return;
+			}
+	        
 	        if (Log.isDebugEnabled()) 
 	        	Log.debug("Got response {}", response, null);
 	        
@@ -934,6 +936,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        }
 			
 	        response.setSession(session);
+			
 			session.updateState(response, false);
 			
 			response.removeTopVia();

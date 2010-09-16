@@ -124,7 +124,7 @@ public class SipResponse extends SipMessage implements SipServletResponse
 		
 		if (_status > 100 && _status < 200)
         {
-            int rseq = getRSeq();
+            long rseq = getRSeq();
             if (!isReliable1xx()) 
         		throw new Rel100Exception(Rel100Exception.NOT_100rel);
         	
@@ -364,14 +364,14 @@ public class SipResponse extends SipMessage implements SipServletResponse
 	}
 	*/
     
-    public void setRSeq(int rseq)
+    public void setRSeq(long rseq)
     {
-        getFields().setString(SipHeaders.RSEQ_BUFFER, Integer.toString(rseq));
+        getFields().setString(SipHeaders.RSEQ_BUFFER, Long.toString(rseq));
     }
     
-    public int getRSeq()
+    public long getRSeq()
     {
-        return (int) getFields().getLong(SipHeaders.RSEQ_BUFFER);
+        return getFields().getLong(SipHeaders.RSEQ_BUFFER);
     }
     
     private void send(boolean reliable) throws IOException

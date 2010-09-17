@@ -191,7 +191,8 @@ module Sipatra
        :notify, :options, :prack, :publish, :refer, 
        :register, :subscribe, :update, :request].each do |name|
         define_method name do |*args, &block|
-          path, opts = *args
+          path = args.shift if (!args.first.kind_of? Hash)
+          opts = *args
           uri = path || //
           pattern, keys = compile_uri_pattern(uri)
           sip_method_name = name == :request ? "_" : name.to_s.upcase

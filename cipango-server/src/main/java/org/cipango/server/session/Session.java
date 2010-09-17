@@ -308,6 +308,8 @@ public class Session implements SessionIf
 		else if (isUA() && _state == State.INITIAL)
 			return !hasTransactions();
 		
+		// TODO proxy
+		
 		return false;
 	}
 
@@ -890,7 +892,7 @@ public class Session implements SessionIf
 						request.setHandled(true);
 				}
 			}
-			// TODO ACK / PRACK
+			// TODO PRACK
 		}
 		
 		public void handleCancel(ServerTransaction transaction, SipRequest cancel) throws IOException 

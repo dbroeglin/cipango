@@ -79,10 +79,7 @@ public class CallSessionViewer
 			Log.warn(e);
 		}
 		
-		String s = sb.toString();
-		s = s.replaceAll("<", "&lt;");
-		s = s.replaceAll(">", "&gt;");
-		return s;
+		return sb.toString();
 	}
 	
 	private void printAppSession(StringBuilder sb, AppSession appSession)
@@ -97,31 +94,33 @@ public class CallSessionViewer
 		
 		Iterator<Session> it = appSession._sessions.iterator();
 		if (it.hasNext())
-			sb.append("\t\t+ [sipSessions]\n");
+			sb.append("\t\t\t+ [sipSessions]\n");
 		while (it.hasNext())
 		{
 			Session session = it.next();
-			sb.append("\t\t\t+ ").append(session.getId()).append('\n');
-			printAttr(sb, "created", new Date(session.getCreationTime()), 4);
-			printAttr(sb, "accessed", new Date(session.getLastAccessedTime()), 4);
-			printAttr(sb, "role", session._role, 4);
-			printAttr(sb, "state", session._state, 4);
-			printAttr(sb, "invalidateWhenReady", appSession.getInvalidateWhenReady(), 4);
-			printAttr(sb, "attributes", appSession._attributes, 4);
-			printAttr(sb, "localParty", session._localParty, 4);
-			printAttr(sb, "remoteParty", session._remoteParty, 4);
-			printAttr(sb, "region", session._region, 4);
-			printAttr(sb, "Call-ID", session._callId, 4);
-			printAttr(sb, "linkedSessionId", session._linkedSessionId, 4);
-			printAttr(sb, "subscriberURI", session._subscriberURI, 4);
+			sb.append("\t\t\t\t+ ").append(session.getId()).append('\n');
+			printAttr(sb, "created", new Date(session.getCreationTime()), 5);
+			printAttr(sb, "accessed", new Date(session.getLastAccessedTime()), 5);
+			printAttr(sb, "role", session._role, 5);
+			printAttr(sb, "state", session._state, 5);
+			printAttr(sb, "invalidateWhenReady", appSession.getInvalidateWhenReady(), 5);
+			printAttr(sb, "attributes", appSession._attributes, 5);
+			printAttr(sb, "localParty", session._localParty, 5);
+			printAttr(sb, "remoteParty", session._remoteParty, 5);
+			printAttr(sb, "region", session._region, 5);
+			printAttr(sb, "Call-ID", session._callId, 5);
+			printAttr(sb, "linkedSessionId", session._linkedSessionId, 5);
+			printAttr(sb, "subscriberURI", session._subscriberURI, 5);
 			UA ua = session._ua;
 			if (ua != null)
 			{
-				printAttr(sb, "local CSeq", ua._localCSeq, 4);
-				printAttr(sb, "Remote CSeq", ua._remoteCSeq, 4);
-				printAttr(sb, "Remote Target", ua._remoteTarget, 4);
-				printAttr(sb, "route Set", ua._routeSet, 4);
-				printAttr(sb, "Secure", ua._secure, 4);
+				printAttr(sb, "local CSeq", ua._localCSeq, 5);
+				printAttr(sb, "Remote CSeq", ua._remoteCSeq, 5);
+				printAttr(sb, "Remote Target", ua._remoteTarget, 5);
+				printAttr(sb, "route Set", ua._routeSet, 5);
+				printAttr(sb, "Secure", ua._secure, 5);
+				printAttr(sb, "local RSeq", ua._localRSeq, 5);
+				printAttr(sb, "Remote RSeq", ua._remoteRSeq, 5);
 			}
 			
 		}

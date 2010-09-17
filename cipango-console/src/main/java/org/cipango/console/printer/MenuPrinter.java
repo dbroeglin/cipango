@@ -95,6 +95,7 @@ public class MenuPrinter implements HtmlPrinter
 				return c.isRegistered(ConsoleFilter.DIAMETER_NODE);
 			}
 		}),
+		CALLS = LOGS.add(new Page("logs-calls", "Calls")),
 
 		APPLICATIONS = PAGES.add(new Page("Applications")),
 		MAPPINGS = APPLICATIONS.add(new Page("applications", "Applications Mapping")),

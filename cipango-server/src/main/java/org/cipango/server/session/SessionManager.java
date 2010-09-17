@@ -149,45 +149,51 @@ public class SessionManager extends AbstractLifeCycle
     
     public void close(CSession callSession)
     {
-    	int holds = callSession._lock.getHoldCount();
-    	
-    	if (holds == 1)
+    	try
     	{
-    		callSession.invalidateSessionsIfReady();
-    		
-    		long time = callSession.nextExecutionTime();
-
-        	if (time > 0)
-        	{
-        		while (time < System.currentTimeMillis())
-        		{
-        			callSession.runTimers();
-        			time = callSession.nextExecutionTime();
-        			
-        			if (time < 0)
-        				break;
-        		}
-        		
-        		if (time > 0)
-        		{
-        			synchronized (_queue)
-        			{
-        				//_queue.remove(callSession); // TODO O(n) ?
-        				_queue.offer(callSession, time);
-        				_queue.notifyAll();
-        			}
-        		}
-        	}
-        	if (callSession.isDone())
-        	{
-        		removeSession(callSession);
-        	}
-        	else
-        	{
-        		saveSession(callSession);
-        	}
+	    	int holds = callSession._lock.getHoldCount();
+	    	
+	    	if (holds == 1)
+	    	{
+	    		callSession.invalidateSessionsIfReady();
+	    		
+	    		long time = callSession.nextExecutionTime();
+	
+	        	if (time > 0)
+	        	{
+	        		while (time < System.currentTimeMillis())
+	        		{
+	        			callSession.runTimers();
+	        			time = callSession.nextExecutionTime();
+	        			
+	        			if (time < 0)
+	        				break;
+	        		}
+	        		
+	        		if (time > 0)
+	        		{
+	        			synchronized (_queue)
+	        			{
+	        				//_queue.remove(callSession); // TODO O(n) ?
+	        				_queue.offer(callSession, time);
+	        				_queue.notifyAll();
+	        			}
+	        		}
+	        	}
+	        	if (callSession.isDone())
+	        	{
+	        		removeSession(callSession);
+	        	}
+	        	else
+	        	{
+	        		saveSession(callSession);
+	        	}
+	    	}
     	}
-    	callSession._lock.unlock();
+    	finally
+    	{
+    		callSession._lock.unlock();
+    	}
     }
     
     protected void removeSession(CSession callSession)
@@ -661,8 +667,11 @@ public class SessionManager extends AbstractLifeCycle
 		
 		protected boolean isDone()
 		{
-			return (_timers.isEmpty()) && (_appSessions.isEmpty()) 
-				&& (_clientTransactions.isEmpty()) && (_serverTransactions.isEmpty());
+			// No check is done on transaction as 
+			//  - if tx is completed a timer exists
+			//  - else as there is no more timers, no messages are expected to be received and as 
+			//    there is no more sessions, no message could be sent.
+			return (_timers.isEmpty()) && (_appSessions.isEmpty());
 		}
 		
 		protected long nextExecutionTime()

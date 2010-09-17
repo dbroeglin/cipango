@@ -58,6 +58,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cipango.console.printer.AbstractLogPrinter.Output;
+import org.cipango.console.printer.CallsPrinter;
 import org.cipango.console.printer.DarPrinter;
 import org.cipango.console.printer.DiameterLogPrinter;
 import org.cipango.console.printer.DiameterStatisticsPrinter;
@@ -277,6 +278,8 @@ public class ConsoleFilter implements Filter
 				printer.addLast(new SetPrinter(traps, "snmp.trap", _mbsc));
 				request.setAttribute(Attributes.CONTENT, printer);
 			}
+			else if (command.equals(MenuPrinter.CALLS.getName()))
+				request.setAttribute(Attributes.CONTENT, new CallsPrinter(_mbsc, request.getParameter("callID")));
 			else if (command.equals("message.log"))
 			{
 				forward = false;

@@ -935,25 +935,24 @@ public class Session implements SessionIf
 			
 			accessed();
 			
-			updateState(response, true);
-			
-			if (response.getStatus() < 300 && (response.isInvite() || response.isSubscribe()))
-				setRemoteTarget(response);
-			
-			if (response.isInvite())
+			if (response.isInvite() && response.is2xx())
 			{
 				long cseq = response.getCSeq().getNumber();
 				ClientInvite invite = getClientInvite(cseq, true);
-				if (invite._ack != null)
+				
+				if (invite._2xx != null)
 				{
-					try
+					if (invite._ack != null)
 					{
-						ClientTransaction tx = (ClientTransaction) invite._ack.getTransaction();
-						getServer().getConnectorManager().send(invite._ack, tx.getConnection());
-					}
-					catch (Exception e)
-					{
-						Log.ignore(e);
+						try
+						{
+							ClientTransaction tx = (ClientTransaction) invite._ack.getTransaction();
+							getServer().getConnectorManager().send(invite._ack, tx.getConnection());
+						}
+						catch (Exception e)
+						{
+							Log.ignore(e);
+						}
 					}
 					return;
 				}
@@ -962,6 +961,13 @@ public class Session implements SessionIf
 					invite._2xx = response;
 				}
 			}
+			
+			updateState(response, true);
+			
+			if (response.getStatus() < 300 && (response.isInvite() || response.isSubscribe()))
+				setRemoteTarget(response);
+			
+			
 			
 			if (isValid())
 				invokeServlet(response);

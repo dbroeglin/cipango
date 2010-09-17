@@ -289,18 +289,6 @@ public class Session implements SessionIf
 		if (Log.isDebugEnabled())
 			Log.debug("invalidating SipSession " + this);
 		
-		for (ClientTransaction tx : getCallSession().getClientTransactions(this))
-		{
-			if (!tx.isCompleted())
-				tx.terminate();
-		}
-		
-		for (ServerTransaction tx : getCallSession().getServerTransactions(this))
-		{
-			if (!tx.isCompleted())
-				tx.terminate();
-		}
-		
 		_valid = false;
 		_appSession.removeSession(this);
 	}

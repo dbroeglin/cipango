@@ -64,53 +64,52 @@ module Sipatra
       throw :pass
     end
     
+    def request?
+      !msg.respond_to?(:getRequest)
+    end
+    
+    def response?
+      msg.respond_to?(:getRequest)
+    end
+    
     private
     
     def msg_type
-      msg.respond_to?(:getRequest) ? :response : :request
+      response? ? :response : :request
     end
     
     def eval_options(opts)
-      opts.each_key { |key|
-        if header? key
-          match_header = header[key].match opts[key]
-          if match_header
-            @params[key] = match_header.to_a
-          end
-        end
+      opts.each_pair { |key, condition|
+        pass unless header? key
+        header_match = condition.match header[key]
+        @params[key] = header_match.to_a if header_match
       }
     end
     
     def eval_condition(arg, keys, opts)
       #clear (for multi usage)
       @params.clear
-      if msg.respond_to? :requestURI
+      if request?
         match = arg.match msg.requestURI.to_s
         if match
           eval_options(opts)
-          params=
           if keys.any?
             values = match.captures.to_a #Array of matched values
-            keys.zip(values).inject({}) do |hash,(k,v)| #keys.zip(values) build an Array containaing Arrays of containing 2 elements "key and value"
-              hash[k] = v
-              hash
+            keys.zip(values).each do |(k, v)|
+              @params[k] = v
             end
           elsif(match.length > 1)
-            {:uri => match.to_a}
-          else
-            {}
+            @params[:uri] = match.to_a
           end
-          @params.merge!(params)
+          return true
         end
-        return match
       else
         if ((arg == 0) or (arg == msg.status))
           eval_options(opts)
           return true
-        else
-          return false
         end
       end
+      return false
     end
     
     def process_handler(handlers_hash, method_or_joker)
@@ -131,13 +130,11 @@ module Sipatra
     end
     
     def call!(handlers)
-      puts Benchmark.measure { 
-        filter! :before
-        catch(:halt) do
-          process_handler(handlers, msg.method)
-          process_handler(handlers, "_")
-        end
-      }
+      filter! :before
+      catch(:halt) do
+        process_handler(handlers, msg.method)
+        process_handler(handlers, "_")
+      end
     ensure 
       filter! :after
     end

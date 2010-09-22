@@ -6,28 +6,28 @@ class TestApp < Sipatra::Base
   end
 end
 
-def mock_request(method, uri, header_value = nil)
+def mock_request(method, uri, headers = {})
   unless @mock_request
     @mock_request = mock('MockSipRequest')
     @mock_request.stub!(:method => method, :requestURI => uri) 
-    if !header_value.nil?
-      # TODO: ???
-      @mock_request.should_receive(:addHeader).any_number_of_times
-      @mock_request.should_receive(:getHeader).any_number_of_times.and_return(header_value)
-    end
+    
+    @mock_request.stub!(:getHeader).and_return(nil)
+    headers.each_pair { |name, value|
+      @mock_request.should_receive(:getHeader).with(name.to_s).any_number_of_times.and_return(value)
+    }    
   end
+  @mock_request.stub!(:respond_to?).with(:getRequest).and_return(false)
   @app.msg = @mock_request
 end
 
-def mock_response(method, status_code, header_value = nil)
+def mock_response(method, status_code, headers = {})
   unless @mock_response
     @mock_response = mock('MockSipResponse')
     @mock_response.stub!(:method => method, :status => status_code)
-    if !header_value.nil?
-      # TODO: ???
-      @mock_response.should_receive(:addHeader).any_number_of_times
-      @mock_response.should_receive(:getHeader).any_number_of_times.and_return(header_value)
-    end
+    @mock_response.stub!(:getHeader).and_return(nil)
+    headers.each_pair { |name, value|
+      @mock_response.should_receive(:getHeader).with(name.to_s).any_number_of_times.and_return(value)
+    }    
   end
   @mock_response.stub! :getRequest # needed to decide if the message is a response or a request
   @app.msg = @mock_response
@@ -272,15 +272,16 @@ describe Sipatra::Base do
   describe 'params with conditions' do
   
     before do
-      @app.msg = mock_request('INVITE', 'sip:user@domain.com', 'sip:user:pass@domain.com')
+      @app.msg = mock_request('INVITE', 'sip:user@domain.com', 
+        :Header1 => 'sip:user:pass@domain.com',
+        :Header2 => 'sip:user:pass@domain.com')
     end
   
     describe "when receiving do_request" do
-      it "should have access to params with conditions " do
-        subject.class.invite(/sip:(.*)@(.*)/, 
+      it "handler with conditions on Header1 and Header2 should be called" do
+        subject.class.invite /sip:(.*)@(.*)/, 
           :Header1 => /sip:(.*):(.*)@(.*)/, 
-          :Header2 => /sip:(.*)@(.*)/, 
-          :Header3 => /tel:(.*)/) do
+          :Header2 => /sip:(.*)@(.*)/ do
           must_be_called
         end
         subject.should_receive(:must_be_called)
@@ -292,13 +293,25 @@ describe Sipatra::Base do
         subject.params[:Header2].should == %w(sip:user:pass@domain.com user:pass domain.com)
         subject.params[:Header3].should == nil
       end
+      
+      it "handler with conditions on Header1 and Header3 should NOT be called" do
+        subject.class.invite /sip:(.*)@(.*)/, 
+          :Header1 => /sip:(.*):(.*)@(.*)/, 
+          :Header3 => /.*/ do
+          must_not_be_called
+        end
+        subject.should_not_receive(:must_be_called)
+        subject.do_request
+      end
     end
   end
 
   describe 'responses with params' do
   
     before do
-      @app.msg = mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      @app.msg = mock_response 'INVITE', 200,
+        :Header1 => 'sip:user:pass@domain.com',
+        :Header2 => 'sip:user:pass@domain.com'
     end
   
     it 'should have an empty size by default' do
@@ -379,8 +392,7 @@ describe Sipatra::Base do
       it "should have access to params " do
         subject.class.response :INVITE, 200, 
           :Header1 => /sip:(.*):(.*)@(.*)/, 
-          :Header2 => /sip:(.*)@(.*)/, 
-          :Header3 => /tel:(.*)/ do
+          :Header2 => /sip:(.*)@(.*)/ do
             must_be_called
         end
         subject.should_receive(:must_be_called)
@@ -391,30 +403,42 @@ describe Sipatra::Base do
         subject.params[:Header2].should == %w(sip:user:pass@domain.com user:pass domain.com)
         subject.params[:Header3].should == nil
       end
+
+      it "should NOT have access to params " do
+        subject.class.response :INVITE, 200, 
+          :Header1 => /sip:(.*):(.*)@(.*)/, 
+          :Header2 => /sip:(.*)@(.*)/, 
+          :Header3 => /tel:(.*)/ do
+            must_not_be_called
+        end
+        subject.should_not_receive(:must_not_be_called)
+        subject.do_response
+      end
     
       it "should have access to params when no status nor method are set " do
-        subject.class.response(:Header => /sip:(.*):(.*)@.*/, :Header2 => /sip:(.*)@.*/, :Header3 => /tel:(.*)/) do
+        subject.class.response(:Header1 => /sip:(.*):(.*)@.*/, 
+          :Header2 => /sip:(.*)@.*/) do
           must_be_called
         end
         subject.should_receive(:must_be_called)
         subject.do_response
       
         subject.params.size.should == 2
-        subject.params[:Header].size.should == 3
+        subject.params[:Header1].size.should == 3
         subject.params[:Header2].size.should == 2
         subject.params[:Header3].should == nil
       end
     
       it "should have access to params only status is set " do
-        subject.class.response(200, :Header => /sip:(.*):(.*)@.*/, :Header4 => /sip:(.*)@(.*)/) do
+        subject.class.response(200, :Header1 => /sip:(.*):(.*)@.*/, :Header2 => /sip:(.*)@(.*)/) do
           must_be_called
         end
         subject.should_receive(:must_be_called)
         subject.do_response
       
         subject.params.size.should == 2
-        subject.params[:Header].size.should == 3
-        subject.params[:Header4].size.should == 3
+        subject.params[:Header1].size.should == 3
+        subject.params[:Header2].size.should == 3
       end
     end  
   end
@@ -428,7 +452,7 @@ describe Sipatra::Base do
       subject.class.before_filters.size.should == 1
       mock_request('INVITE', 'sip:uri')
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
     end
     
@@ -441,7 +465,7 @@ describe Sipatra::Base do
       mock_request('INVITE', 'sip:uri')
       subject.do_request
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
     end
 
@@ -453,7 +477,7 @@ describe Sipatra::Base do
       subject.class.before_filters.size.should == 1
       mock_request('INVITE', 'sip:uri')
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
       subject.do_response
     end    
@@ -468,7 +492,7 @@ describe Sipatra::Base do
       subject.class.after_filters.size.should == 1
       mock_request('INVITE', 'sip:uri')
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
     end
 
@@ -481,7 +505,7 @@ describe Sipatra::Base do
       mock_request('INVITE', 'sip:uri')
       subject.do_request
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
     end
 
@@ -493,7 +517,7 @@ describe Sipatra::Base do
       subject.class.after_filters.size.should == 1
       mock_request('INVITE', 'sip:uri')
       subject.do_request
-      mock_response('INVITE', 200, 'sip:user:pass@domain.com')
+      mock_response('INVITE', 200)
       subject.do_response
       subject.do_response
 

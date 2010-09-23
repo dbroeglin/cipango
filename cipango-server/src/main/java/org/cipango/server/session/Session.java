@@ -73,8 +73,6 @@ import org.cipango.util.TimerTask;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
 
-import com.sun.corba.se.spi.activation._ServerImplBase;
-
 public class Session implements SessionIf
 {
 	protected String _id;
@@ -960,7 +958,7 @@ public class Session implements SessionIf
 				long cseq = response.getCSeq().getNumber();
 				ClientInvite invite = getClientInvite(cseq, true);
 				
-				if (invite._2xx != null)
+				if (invite._2xx != null || invite._ack != null)
 				{
 					if (invite._ack != null)
 					{

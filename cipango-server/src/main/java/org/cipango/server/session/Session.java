@@ -50,6 +50,7 @@ import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
+import org.cipango.server.session.Session.UA.ServerInvite.Reliable1xx;
 import org.cipango.server.session.scope.ScopedAppSession;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
@@ -58,6 +59,7 @@ import org.cipango.server.transaction.ServerTransactionListener;
 import org.cipango.server.transaction.Transaction;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sip.NameAddr;
+import org.cipango.sip.RAck;
 import org.cipango.sip.SipException;
 import org.cipango.sip.SipFields;
 import org.cipango.sip.SipHeaders;
@@ -436,7 +438,7 @@ public class Session implements SessionIf
     }
 	// =====
 	
-	public void handleRequest(SipRequest request) throws SipException
+	public void handleRequest(SipRequest request) throws SipException, IOException
 	{
 		accessed();
 		
@@ -866,7 +868,7 @@ public class Session implements SessionIf
 				fields.setAddress(SipHeaders.CONTACT_BUFFER, getContact());
 		}
 		
-		public void handleRequest(SipRequest request) throws SipException
+		public void handleRequest(SipRequest request) throws IOException, SipException
 		{
 			if (request.getCSeq().getNumber() <= _remoteCSeq && !request.isAck() && !request.isCancel())
 				throw new SipException(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Out of order request");
@@ -892,7 +894,25 @@ public class Session implements SessionIf
 						request.setHandled(true);
 				}
 			}
-			// TODO PRACK
+			else if (request.isPrack())
+			{
+				RAck rack = null;
+				
+				try 
+				{
+					rack = request.getRAck();
+				}
+				catch (Exception e)
+				{
+					throw new SipException(SipServletResponse.SC_BAD_REQUEST, e.getMessage());
+				}
+				
+				ServerInvite invite = getServerInvite(rack.getCSeq(), false);
+				
+				if (invite == null || !invite.prack(rack.getRSeq()))
+					throw new SipException(SipServletResponse.SC_CALL_LEG_DONE, "No matching 100 rel for RAck " + rack);
+				 
+			}
 		}
 		
 		public void handleCancel(ServerTransaction transaction, SipRequest cancel) throws IOException 
@@ -961,13 +981,25 @@ public class Session implements SessionIf
 					invite._2xx = response;
 				}
 			}
+			else if (response.isReliable1xx())
+			{
+				long rseq = response.getRSeq();
+				if (_remoteCSeq != -1 && (_remoteCSeq + 1 != rseq))
+				{
+					if (Log.isDebugEnabled())
+						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteCSeq+1);
+					return;
+				}
+				else
+					_remoteCSeq = rseq;
+			}
+			else
+				response.setCommitted(true);
 			
 			updateState(response, true);
 			
 			if (response.getStatus() < 300 && (response.isInvite() || response.isSubscribe()))
 				setRemoteTarget(response);
-			
-			
 			
 			if (isValid())
 				invokeServlet(response);
@@ -1235,6 +1267,21 @@ public class Session implements SessionIf
 				reliable1xx.start();
 			}
 			
+			public boolean prack(long rseq)
+			{
+				for (int i = LazyList.size(_reliable1xxs); i-->0;)
+				{
+					Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(_reliable1xxs, i);
+					if (reliable1xx._rseq == rseq)
+					{
+						reliable1xx.prack();
+						_reliable1xxs = LazyList.remove(_reliable1xxs, i);
+						return true;
+					}
+				}
+				return false;
+			}
+			
 			public void stop1xxRetrans()
 			{
 				for (int i = LazyList.size(_reliable1xxs); i-->0;)
@@ -1301,11 +1348,12 @@ public class Session implements SessionIf
 				private static final int TIMER_RETRANS_1XX = 0;
 				private static final int TIMER_WAIT_PRACK = 1;
 				
+				private long _rseq;
 				private SipResponse _1xx;
 				private TimerTask[] _timers = new TimerTask[2];
 				private long _1xxRetransDelay = Transaction.__T1;
 				
-				public Reliable1xx(SipResponse response) { _1xx = response; }
+				public Reliable1xx(SipResponse response) { _1xx = response; _rseq = _1xx.getRSeq(); }
 				
 				public void start()
 				{

@@ -48,7 +48,9 @@ import org.cipango.server.session.SessionManager;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
+import org.cipango.sip.CSeq;
 import org.cipango.sip.NameAddr;
+import org.cipango.sip.RAck;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipMethods;
 import org.cipango.sip.URIFactory;
@@ -553,6 +555,17 @@ public class SipRequest extends SipMessage implements SipServletRequest
     {
     	return isInvite() || isSubscribe() || isNotify() || isRefer() || isUpdate();
     }
+	
+	
+	public RAck getRAck() throws ServletParseException
+	{
+		String s = getFields().getString(SipHeaders.RACK_BUFFER);
+		
+		if (s == null)
+			return null;
+		
+		return new RAck(s);
+	}
 	
 	public Address removeTopRoute() 
     {

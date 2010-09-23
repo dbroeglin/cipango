@@ -6,9 +6,10 @@
 @set SIPP_EXE="C:\Program Files\sipp\sipp"
 
 @rem The limit for the load message
-@set NB_MESSAGE= 1
+@set NB_MESSAGE= 50
 
-@set AS=192.168.2.10:5060
+@set AS=192.168.2.10
+
 
 @rem The tester UAS port (default 5062)
 @set SIPP_UAS_PORT=5062
@@ -19,9 +20,12 @@
 @rem The IP address of the tester host 
 @set SIPP_HOST=192.168.2.10
 
+@set SIPP_UAC_HOST=%SIPP_HOST%
+@set SIPP_UAS_HOST=%SIPP_HOST%
+
 @rem SIPP options like -nr (to disable retransmission in UDP mode) 
 @rem or -nd (for no default)
-@set SIPP_OPTIONS=
+@set SIPP_OPTIONS=-t u1
 
 @rem default -trace_err -trace_screen
 @rem for debugging  -trace_msg

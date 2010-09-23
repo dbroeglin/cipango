@@ -31,6 +31,7 @@ import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.util.CommandUtil;
 import org.cipango.diameter.util.DiameterVisitor;
+import org.cipango.diameter.util.PrettyPrinter;
 import org.cipango.diameter.util.Visitable;
 
 /**
@@ -213,7 +214,9 @@ public abstract class DiameterMessage implements Visitable, DiameterServletMessa
 	
 	public String toString()
 	{
-		return "[appId=" + _applicationId + ",e2eId=" + _endToEndId + ",hopId=" + _hopByHopId + "] " + _command + " :" + _avps;
+		PrettyPrinter p = new PrettyPrinter();
+		accept(p);
+		return p.toString();
 	}
 	
 	public Object getAttribute(String name) 

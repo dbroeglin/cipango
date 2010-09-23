@@ -28,17 +28,10 @@ public class UasServlet extends SipServlet {
 	IOException {
 	if (!"ACK".equals(req1.getMethod())) {
 		
-		SipServletResponse resp;
-		if ("INVITE".equals(req1.getMethod())) 
-		{
-			resp = req1.createResponse(200);
-		}
-		else
-		{
-			resp = req1.createResponse(200);
-			req1.getApplicationSession().invalidate();
-		}
+		SipServletResponse resp = req1.createResponse(200);
 		resp.send();
+		if (!"INVITE".equals(req1.getMethod())) 
+			req1.getApplicationSession().invalidate();
 	}
 }
 

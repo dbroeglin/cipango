@@ -468,12 +468,12 @@ public class SipRequest extends SipMessage implements SipServletRequest
 		return getLocalPort();
 	}
 	
-	
+	@Override
 	public Object getAttribute(String name) 
 	{
 		if ("javax.sip.request.poppedRoute".equals(name))
 		{
-			return getPoppedRoute();
+			return getPoppedRoute().getURI();
 		}
 		else 
 		{

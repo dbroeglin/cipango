@@ -29,7 +29,7 @@ public class B2bServlet extends SipServlet
 		SipServletRequest newRequest;
 		if (request.isInitial())
 		{
-			newRequest = helper.createRequest(request);
+			newRequest = helper.createRequest(request, true, null);
 			newRequest.getSession().setHandler(getServletName());
 		}
 		else

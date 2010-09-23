@@ -73,6 +73,8 @@ import org.cipango.util.TimerTask;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
 
+import com.sun.corba.se.spi.activation._ServerImplBase;
+
 public class Session implements SessionIf
 {
 	protected String _id;
@@ -768,8 +770,6 @@ public class Session implements SessionIf
 		return _state == State.TERMINATED || !_valid;
 	}
 	
-	public List<SipServletResponse> getUncommitted200(UAMode mode) { return null; }
-	
 	public class UA implements ClientTransactionListener, ServerTransactionListener
 	{
 		private UAMode _mode;
@@ -1220,6 +1220,41 @@ public class Session implements SessionIf
 					Log.debug("added server invite context with cseq " + cseq);
 			}
 			return invite;
+		}
+		
+		public List<SipServletResponse> getUncommitted2xx(UAMode mode)
+		{
+			List<SipServletResponse> list = null;
+			if (mode == UAMode.UAS)
+			{
+				for (int i = LazyList.size(_serverInvites); i-->0;)
+				{
+					ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
+					if (invite._2xx != null && !invite._2xx.isCommitted())
+					{
+						if (list == null)
+							list = new ArrayList<SipServletResponse>();
+						list.add(invite._2xx);
+					}
+				}
+			}
+			else
+			{
+				for (int i = LazyList.size(_clientInvites); i-->0;)
+				{
+					ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
+					if (invite._2xx != null && !invite._2xx.isCommitted())
+					{
+						if (list == null)
+							list = new ArrayList<SipServletResponse>();
+						list.add(invite._2xx);
+					}
+				}
+			}
+			if (list == null)
+				return Collections.emptyList();
+			else
+				return list;
 		}
 		
 		class InviteContext

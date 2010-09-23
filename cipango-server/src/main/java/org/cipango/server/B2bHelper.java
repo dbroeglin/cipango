@@ -223,6 +223,9 @@ public class B2bHelper implements B2buaHelper
 		
 		Session session = ((SessionIf) sipSession).getSession();
 		
+		if (!session.isUA())
+			throw new IllegalArgumentException("SipSession " + session + " is not UA");
+		
 		List<SipServletMessage> messages = new ArrayList<SipServletMessage>();
 		if (mode == UAMode.UAS)
 		{
@@ -234,8 +237,15 @@ public class B2bHelper implements B2buaHelper
 		}
 		else 
 		{
-			// TODO
+			for (ClientTransaction tx : session.getCallSession().getClientTransactions(session))
+			{
+				if (!tx.isCompleted())
+					messages.add(tx.getRequest());
+			}
 		}
+		
+		messages.addAll(session.getUA().getUncommitted2xx(mode));
+		
 		Collections.sort(messages, new Comparator() {
 			public int compare(Object message1, Object message2)
 			{

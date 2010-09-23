@@ -987,7 +987,7 @@ public class Session implements SessionIf
 				if (_remoteRSeq != -1 && (_remoteRSeq + 1 != rseq))
 				{
 					if (Log.isDebugEnabled())
-						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteCSeq+1);
+						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteRSeq+1);
 					return;
 				}
 				else

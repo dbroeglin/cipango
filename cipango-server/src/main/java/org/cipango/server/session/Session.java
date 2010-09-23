@@ -984,14 +984,14 @@ public class Session implements SessionIf
 			else if (response.isReliable1xx())
 			{
 				long rseq = response.getRSeq();
-				if (_remoteRSeq != -1 && (_remoteCSeq + 1 != rseq))
+				if (_remoteRSeq != -1 && (_remoteRSeq + 1 != rseq))
 				{
 					if (Log.isDebugEnabled())
 						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteCSeq+1);
 					return;
 				}
 				else
-					_remoteCSeq = rseq;
+					_remoteRSeq = rseq;
 			}
 			else
 				response.setCommitted(true);
@@ -1085,6 +1085,9 @@ public class Session implements SessionIf
 			_remoteCSeq = -1;
 			_routeSet = null;
 			_secure = false;
+			
+			_remoteRSeq = -1;
+			_localRSeq = 1;
 		}
 		
 		protected void createDialog(SipResponse response, boolean uac)

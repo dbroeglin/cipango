@@ -984,7 +984,7 @@ public class Session implements SessionIf
 			else if (response.isReliable1xx())
 			{
 				long rseq = response.getRSeq();
-				if (_remoteCSeq != -1 && (_remoteCSeq + 1 != rseq))
+				if (_remoteRSeq != -1 && (_remoteCSeq + 1 != rseq))
 				{
 					if (Log.isDebugEnabled())
 						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteCSeq+1);

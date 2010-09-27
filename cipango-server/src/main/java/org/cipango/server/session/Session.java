@@ -48,6 +48,7 @@ import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
+import org.cipango.server.SipProxy;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.cipango.server.session.scope.ScopedAppSession;
@@ -431,10 +432,28 @@ public class Session implements SessionIf
 	
 	public void sendResponse(SipResponse response, ServerTransaction tx, boolean reliable) throws IOException
     {
-		if (!isUA())
+		if (_role == Role.UNDEFINED)
 			createUA(UAMode.UAS);
-		_ua.sendResponse(response, reliable);
+		
+		if (isUA())
+			_ua.sendResponse(response, reliable);
+		else
+			sendVirtual(response);
     }
+	
+	public void sendVirtual(SipResponse response) throws IOException
+	{
+		// TODO to be completed
+		_role = Role.UAS;
+		_ua = new UA();
+		
+		NameAddr tmp = _remoteParty;
+		_remoteParty = _localParty;
+		_localParty = tmp;
+		
+		_ua.sendResponse(response, false);
+	}
+	
 	// =====
 	
 	public void handleRequest(SipRequest request) throws SipException, IOException
@@ -885,9 +904,9 @@ public class Session implements SessionIf
 				}
 				else
 				{
-					if (invite._2xx != null)
+					if (invite.getResponse() != null)
 						invite.ack();
-					else // retrans
+					else // retrans or late
 						request.setHandled(true);
 				}
 			}
@@ -1157,31 +1176,15 @@ public class Session implements SessionIf
 			}
 		}
 		
-		private InviteContext getInviteContext(Object contexts, long cseq)
-		{
-			for (int i = LazyList.size(contexts); i-->0;)
-			{
-				InviteContext context = (InviteContext) LazyList.get(contexts, i);
-				if (context._cseq == cseq)
-					return context;
-			}
-			return null;
-		}
-		
-		private int getInviteContextIndex(Object contexts, long cseq)
-		{
-			for (int i = LazyList.size(contexts); i-->0;)
-			{
-				InviteContext invite = (InviteContext) LazyList.get(contexts, i);
-	            if (invite._cseq == cseq)
-	            	return i ;
-			}
-			return -1;
-		}
-		
 		private ServerInvite getServerInvite(long cseq, boolean create)
 		{
-			ServerInvite invite = (ServerInvite) getInviteContext(_serverInvites, cseq);
+			ServerInvite invite = null;
+			for (int i = LazyList.size(_serverInvites); i-->0;)
+			{
+				invite = (ServerInvite) LazyList.get(_serverInvites, i);
+	            if (invite.getSeq() == cseq)
+	            	return invite;
+			}
 			if (invite == null && create)
 			{
 				invite = new ServerInvite(cseq);
@@ -1193,28 +1196,39 @@ public class Session implements SessionIf
 			return invite;
 		}
 	
-		private void removeServerInvite(long cseq)
+		private ServerInvite removeServerInvite(long cseq)
 		{
-			int i = getInviteContextIndex(_serverInvites, cseq);
-			if (i != -1)
+			for (int i = LazyList.size(_serverInvites); i-->0;)
 			{
-				_serverInvites = LazyList.remove(_serverInvites, i);
+				ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
+				if (invite.getSeq() == cseq)
+				{
+					_serverInvites = LazyList.remove(_serverInvites, i);
             	
-            	if (Log.isDebugEnabled())
-            		Log.debug("removed server invite context for cseq " + cseq);
+					if (Log.isDebugEnabled())
+						Log.debug("removed server invite context for cseq " + cseq);
+					return invite;
+				}
 			}
+			return null;
 	    }
 		
 		private ClientInvite getClientInvite(long cseq, boolean create)
 		{
-			ClientInvite invite = (ClientInvite) getInviteContext(_clientInvites, cseq);
+			ClientInvite invite = null;
+			for (int i = LazyList.size(_clientInvites); i-->0;)
+			{
+				invite = (ClientInvite) LazyList.get(_clientInvites, i);
+	            if (invite.getCSeq() == cseq)
+	            	return invite;
+			}
 			if (invite == null && create)
 			{
 				invite = new ClientInvite(cseq);
 				_clientInvites = LazyList.add(_clientInvites, invite);
 				
 				if (Log.isDebugEnabled())
-					Log.debug("added server invite context with cseq " + cseq);
+					Log.debug("added client invite context with cseq " + cseq);
 			}
 			return invite;
 		}
@@ -1227,11 +1241,12 @@ public class Session implements SessionIf
 				for (int i = LazyList.size(_serverInvites); i-->0;)
 				{
 					ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
-					if (invite._2xx != null && !invite._2xx.isCommitted())
+					SipResponse response = invite.getResponse();
+					if (response != null && !response.isCommitted())
 					{
 						if (list == null)
 							list = new ArrayList<SipServletResponse>();
-						list.add(invite._2xx);
+						list.add(response);
 					}
 				}
 			}
@@ -1254,52 +1269,119 @@ public class Session implements SessionIf
 				return list;
 		}
 		
-		class InviteContext
+		class ClientInvite
 		{
-			protected long _cseq;
-			public InviteContext(long cseq) { _cseq = cseq; }
-		}
-		
-		class ClientInvite extends InviteContext
-		{
+			private long _cseq;
 			private SipRequest _ack;
 			private SipResponse _2xx;
-			
-			public ClientInvite(long cseq) { super(cseq); }
+		
+			public ClientInvite(long cseq) { _cseq = cseq; }
+			public long getCSeq() { return _cseq; }
 		}
 		
-		class ServerInvite extends InviteContext
+		abstract class ReliableResponse
 		{
-			private static final int TIMER_RETRANS_2XX = 0;
+			private static final int TIMER_RETRANS = 0;
 			private static final int TIMER_WAIT_ACK = 1;
 			
-			private SipResponse _2xx;
+			private long _seq;
+			protected SipResponse _response;
+			private TimerTask[] _timers;
+			private long _retransDelay = Transaction.__T1;
+			
+			public ReliableResponse(long seq) { _seq = seq; }
+			
+			public long getSeq() { return _seq; }
+			public SipResponse getResponse() { return _response; }
+			
+			public void startRetrans(SipResponse response)
+			{
+				_response = response;
+				
+				_timers = new TimerTask[2];
+				_timers[TIMER_RETRANS] = getCallSession().schedule(new Timer(TIMER_RETRANS), _retransDelay);
+				_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64*Transaction.__T1);
+			}
+			
+			public void stopRetrans()
+			{
+				cancelTimer(TIMER_RETRANS);
+				_response = null;
+			}
+			
+			public void ack()
+			{
+				stopRetrans();
+				cancelTimer(TIMER_WAIT_ACK);
+			}
+			
+			private void cancelTimer(int id)
+			{
+				TimerTask timer = _timers[id];
+				if (timer != null)
+					getCallSession().cancel(timer);
+				_timers[id] = null;
+			}
+			
+			/** 
+			 * @return the delay for the next retransmission, -1 to stop retransmission
+			 */
+			public abstract long retransmit(long delay);
+			public abstract void noAck();
+			
+			protected void timeout(int id)
+			{
+				switch(id)
+				{
+				case TIMER_RETRANS:
+					if (_response != null)
+					{
+						_retransDelay = retransmit(_retransDelay);
+						if (_retransDelay > 0)
+							_timers[TIMER_RETRANS] = getCallSession().schedule(new Timer(TIMER_RETRANS), _retransDelay);
+					}
+					break;
+				case TIMER_WAIT_ACK:
+					cancelTimer(TIMER_RETRANS);
+					if (_response != null)
+					{
+						noAck();
+						_response = null;
+					}
+					break;
+				default:
+					throw new IllegalArgumentException("unknown id " + id);
+				}
+				
+			}
+			
+			class Timer implements Runnable
+			{
+				private int _id;
+				
+				public Timer(int id) { _id = id; }
+				public void run() { timeout(_id); }
+				@Override public String toString() { return _id == TIMER_RETRANS ? "retrans" : "wait-ack"; }
+			}
+		}
+		
+		class ServerInvite extends ReliableResponse
+		{
 			private Object _reliable1xxs;
 			
-			private TimerTask[] _timers;
-			
-			private long _timer2xxDelay = Transaction.__T1;
-			
-			public ServerInvite(long cseq) 
-			{
-				super(cseq);
-			}
+			public ServerInvite(long cseq) { super(cseq); }
 			
 			public void set2xx(SipResponse response)
 			{
-				_2xx = response;
 				stop1xxRetrans();
-				
-				_timers = new TimerTask[2];
-				scheduleRetrans2xx();
-				_timers[TIMER_WAIT_ACK] = getCallSession().schedule(new Timer(TIMER_WAIT_ACK), 64*Transaction.__T1);
+				startRetrans(response);
 			}
 			
 			public void addReliable1xx(SipResponse response)
 			{
-				Reliable1xx reliable1xx = new Reliable1xx(response);
+				Reliable1xx reliable1xx = new Reliable1xx(response.getRSeq());
 				_reliable1xxs = LazyList.add(_reliable1xxs, reliable1xx);
-				reliable1xx.start();
+				reliable1xx.startRetrans(response);
 			}
 			
 			public boolean prack(long rseq)
@@ -1307,9 +1389,9 @@ public class Session implements SessionIf
 				for (int i = LazyList.size(_reliable1xxs); i-->0;)
 				{
 					Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(_reliable1xxs, i);
-					if (reliable1xx._rseq == rseq)
+					if (reliable1xx.getSeq() == rseq)
 					{
-						reliable1xx.prack();
+						reliable1xx.ack();
 						_reliable1xxs = LazyList.remove(_reliable1xxs, i);
 						return true;
 					}
@@ -1326,130 +1408,36 @@ public class Session implements SessionIf
 				}
 			}
 			
-			public void scheduleRetrans2xx()
+			public void noAck() 
 			{
-				_timers[TIMER_RETRANS_2XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_2XX), _timer2xxDelay);
+				_appSession.noAck(getResponse().getRequest(), getResponse());
+			}
+
+			public long retransmit(long delay) 
+			{
+				ServerTransaction tx = (ServerTransaction) getResponse().getTransaction();
+				tx.send(getResponse());
+				return Math.min(delay*2, Transaction.__T2);
 			}
 			
-			public void ack()
+			class Reliable1xx extends ReliableResponse
 			{
-				_2xx = null;
-				cancelTimer(TIMER_RETRANS_2XX);
-				cancelTimer(TIMER_WAIT_ACK);
-			}
-			
-			protected void cancelTimer(int id)
-			{
-				TimerTask timer = _timers[id];
-				if (timer != null)
-					getCallSession().cancel(timer);
-				_timers[id] = null;
-			}
-			
-			public void timeout(int id)
-			{
-				switch(id)
+				public Reliable1xx(long rseq) { super(rseq); }
+				
+				public long retransmit(long delay)
 				{
-				case TIMER_RETRANS_2XX:
-					if (_2xx != null)
+					ServerTransaction tx = (ServerTransaction) getResponse().getTransaction();
+					if (tx.getState() == Transaction.STATE_PROCEEDING)
 					{
-						ServerTransaction tx = (ServerTransaction) _2xx.getTransaction();
-						tx.send(_2xx);
-						_timer2xxDelay = Math.min(_timer2xxDelay*2, Transaction.__T2);
-						scheduleRetrans2xx();
+						tx.send(getResponse());
+						return delay*2;
 					}
-					break;
-				case TIMER_WAIT_ACK:
-					cancelTimer(TIMER_RETRANS_2XX);
-					//System.out.println("no ack");
-					_appSession.noAck(_2xx.getRequest(), _2xx);
-					break;
-				default:
-					throw new IllegalStateException("unknown id " + id);
-				}
-			}
-			
-			class Timer implements Runnable
-			{
-				private int _id;
-				
-				public Timer(int id) { _id = id; }
-				public void run() { timeout(_id); }
-				public String toString() { return _id == TIMER_RETRANS_2XX ? "retrans-2xx" : "wait-ack"; }
-			}
-			
-			class Reliable1xx
-			{
-				private static final int TIMER_RETRANS_1XX = 0;
-				private static final int TIMER_WAIT_PRACK = 1;
-				
-				private long _rseq;
-				private SipResponse _1xx;
-				private TimerTask[] _timers = new TimerTask[2];
-				private long _1xxRetransDelay = Transaction.__T1;
-				
-				public Reliable1xx(SipResponse response) { _1xx = response; _rseq = _1xx.getRSeq(); }
-				
-				public void start()
-				{
-					_timers[TIMER_RETRANS_1XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_1XX), _1xxRetransDelay);
-					_timers[TIMER_WAIT_PRACK] = getCallSession().schedule(new Timer(TIMER_WAIT_PRACK), 64*Transaction.__T1);
+					return -1;
 				}
 				
-				protected void cancelTimer(int id)
+				public void noAck()
 				{
-					TimerTask timer = _timers[id];
-					if (timer != null)
-						getCallSession().cancel(timer);
-					_timers[id] = null;
-				}
-				
-				protected void stopRetrans()
-				{
-					cancelTimer(TIMER_RETRANS_1XX);
-					_1xx = null;
-				}
-				
-				protected void prack()
-				{
-					stopRetrans();
-					cancelTimer(TIMER_WAIT_PRACK);
-				}
-				
-				protected void timeout(int id)
-				{
-					switch (id)
-					{
-					case TIMER_RETRANS_1XX:
-						if (_1xx != null)
-						{
-							ServerTransaction transaction = (ServerTransaction) _1xx.getTransaction();
-							if (transaction.getState() == Transaction.STATE_PROCEEDING)
-							{
-								transaction.send(_1xx);
-								_1xxRetransDelay = _1xxRetransDelay*2;
-								_timers[TIMER_RETRANS_1XX] = getCallSession().schedule(new Timer(TIMER_RETRANS_1XX), _1xxRetransDelay);
-							}
-						}
-						break;
-					case TIMER_WAIT_PRACK:
-						cancelTimer(TIMER_RETRANS_1XX);
-						if (_1xx != null)
-						{
-							// TODO remove reliable
-							_appSession.noPrack(_1xx.getRequest(), _1xx);
-							_1xx = null;
-						}
-					}
-				}
-				
-				class Timer implements Runnable
-				{
-					private int _id;
-					
-					public Timer(int id) { _id = id; }
-					public void run() { timeout(_id); }
-					@Override public String toString() { return _id == TIMER_RETRANS_1XX ? "retrans-1xx" : "wait-prack"; }
+					_appSession.noPrack(getResponse().getRequest(), getResponse());
 				}
 			}
 		}

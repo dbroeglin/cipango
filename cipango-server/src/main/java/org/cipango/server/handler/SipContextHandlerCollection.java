@@ -68,30 +68,24 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
     {
 		super();
 		setContextClass(SipAppContext.class);
-		
-		CallSessionHandler callSessionHandler = new CallSessionHandler();
-		TransactionManager transactionHandler = new TransactionManager();
-		SipSessionHandler sipSessionHandler = new SipSessionHandler();
-		
-		callSessionHandler.setHandler(transactionHandler);
-		transactionHandler.setHandler(sipSessionHandler);
-		
-		_handler = callSessionHandler;
 	}
 	
 	@Override
 	protected void doStart() throws Exception
 	{
+		CallSessionHandler callSessionHandler = new CallSessionHandler();
+		SipSessionHandler sipSessionHandler = new SipSessionHandler();
+		
+		TransactionManager transactionManager = ((Server) getServer()).getTransactionManager();
+		callSessionHandler.setHandler(transactionManager);
+		transactionManager.setHandler(sipSessionHandler);
+		
+		_handler = callSessionHandler;
+		_handler.setServer(getServer());
+		
 		if (_handler instanceof LifeCycle)
 			((LifeCycle) _handler).start();
 		super.doStart();
-	}
-	
-	@Override
-	public void setServer(org.eclipse.jetty.server.Server server)
-	{
-		_handler.setServer(server);
-		super.setServer(server);
 	}
 	
 	public SipAppContext[] getSipContexts()

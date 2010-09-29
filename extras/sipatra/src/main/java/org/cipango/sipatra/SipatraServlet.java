@@ -46,7 +46,6 @@ public class SipatraServlet extends SipServlet
   public static final String INIT_MARKER = "SIPATRA_INITIALIZED";
 	private ScriptingContainer _container;
 	private ServletContext _servletContext;
-  private ThreadLocal _localContainer = new ThreadLocal();
   String _appPath;
   
   public ScriptingContainer getContainer() {
@@ -56,6 +55,7 @@ public class SipatraServlet extends SipServlet
   	  _container.runScriptlet(PathType.ABSOLUTE, _appPath + "/application.rb");
   		_container.setAttribute(INIT_MARKER, true);
     }
+    _container.clear();
     return _container;
   }
 

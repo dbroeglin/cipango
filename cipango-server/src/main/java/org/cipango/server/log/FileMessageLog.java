@@ -136,7 +136,8 @@ public class FileMessageLog extends AbstractMessageLog implements AccessLog
 		
     	synchronized (_lock)
 		{
-    		_out.close();
+    		if (_out != null)
+    			_out.close();
 			File file= new File(_filename);
             File dir = new File(file.getParent());
             String fn=file.getName();
@@ -157,7 +158,8 @@ public class FileMessageLog extends AbstractMessageLog implements AccessLog
 	                }
 	            }
             }
-            _out = new RolloverFileOutputStream(_filename, _append, _retainDays);
+            if (_out != null)
+            	_out = new RolloverFileOutputStream(_filename, _append, _retainDays);
 		}
     }
 }

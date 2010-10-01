@@ -48,7 +48,6 @@ import org.cipango.server.ID;
 import org.cipango.server.Server;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
-import org.cipango.server.SipProxy;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
 import org.cipango.server.session.scope.ScopedAppSession;
@@ -871,6 +870,8 @@ public class Session implements SessionIf
 			
 			if (_routeSet != null)
 			{
+				fields.remove(SipHeaders.ROUTE_BUFFER);
+				
 				for (String route: _routeSet)
 				{
 					fields.addString(SipHeaders.ROUTE_BUFFER, route);

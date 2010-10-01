@@ -160,24 +160,25 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 					_state = HANDLING;
 			}
 			
-			CallSession callSession = null;
-			SessionScope scope = null;
-			
-			while (callSession == null)
-			{	
-				scope = _server.getSessionManager().openScope(_id);
-				
-				callSession = scope.getCallSession();
-				
-				if (callSession == null)
-					try { Thread.sleep(500); } catch (InterruptedException e) { } // TODO
-			}
-			
-			try
+			do
 			{
-				SipMessage message = null;
-				do
+				CallSession callSession = null;
+				SessionScope scope = null;
+				
+				while (callSession == null)
+				{	
+					scope = _server.getSessionManager().openScope(_id);
+					
+					callSession = scope.getCallSession();
+					
+					if (callSession == null)
+						try { Thread.sleep(20); } catch (InterruptedException e) { } // TODO
+				}
+				
+				try
 				{
+					SipMessage message = null;
+				
 					while ((message = poll()) != null)
 					{
 						try
@@ -191,12 +192,12 @@ public class CallSessionHandler extends HandlerWrapper implements SipHandler
 						}
 					}
 				}
-				while (!isDone());
+				finally 
+				{
+					scope.close();
+				}
 			}
-			finally 
-			{
-				scope.close();
-			}
+			while (!isDone());
 		}
 	}
 }

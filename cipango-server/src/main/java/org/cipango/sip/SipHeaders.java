@@ -357,7 +357,7 @@ public class SipHeaders
 			name = getCompact(s.charAt(0));
 		
 		if (name == null)
-			name = CACHE.get(s);
+			name = (CachedBuffer) CACHE.lookup(s);
 		
 		return name;
 	}

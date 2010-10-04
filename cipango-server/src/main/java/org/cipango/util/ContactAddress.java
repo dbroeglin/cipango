@@ -50,7 +50,8 @@ public class ContactAddress extends AddressProxy
     	return name.equalsIgnoreCase(SipURIImpl.METHOD_PARAM)
     		|| name.equalsIgnoreCase(SipURIImpl.TTL_PARAM)
     		|| name.equalsIgnoreCase(SipURIImpl.MADDR_PARAM)
-    		|| name.equalsIgnoreCase(SipURIImpl.LR_PARAM);
+    		|| name.equalsIgnoreCase(SipURIImpl.LR_PARAM)
+    		|| name.startsWith("org.cipango");
     }
 
 	class ContactUri extends SipURIProxy

@@ -349,6 +349,19 @@ public class SipHeaders
 		return buffer;
 	}
 	
+	public static CachedBuffer getCachedName(String s)
+	{
+		CachedBuffer name = null;
+		
+		if (s.length() == 1)
+			name = getCompact(s.charAt(0));
+		
+		if (name == null)
+			name = CACHE.get(s);
+		
+		return name;
+	}
+	
 	public static final HeaderInfo[] __types = new HeaderInfo[85];
     
 	static 

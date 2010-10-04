@@ -17,14 +17,19 @@ package org.cipango.server;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
 import javax.servlet.sip.ar.SipApplicationRoutingDirective;
@@ -35,7 +40,11 @@ import org.cipango.server.session.SessionIf;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipParams;
+import org.cipango.sip.SipHeaders.HeaderInfo;
+import org.cipango.util.ContactAddress;
+import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
 public class B2bHelper implements B2buaHelper
 {
@@ -97,10 +106,11 @@ public class B2bHelper implements B2buaHelper
 			throw new TooManyHopsException("Max-Forwards of original request is equal to 0");
 		
 		SipRequest request = (SipRequest) createRequest(origRequest);
+		addHeaders(request, headerMap);
+		
 		if (linked)
 			linkRequest((SipRequest) origRequest, request);
 		
-		// TODO add header map
 		return request;
 	}
 
@@ -122,9 +132,11 @@ public class B2bHelper implements B2buaHelper
 		SipRequest srcRequest = (SipRequest) origRequest;
 		
 		SipRequest request = (SipRequest) session.getUA().createRequest(srcRequest);
+		request.setInitial(false);
+		addHeaders(request, headerMap);
+		
 		linkRequest(srcRequest, request);
 		
-		// TOD add header map
 		return request;
 		/*
 		SipRequest request = (SipRequest) session.createRequest(origRequest.getMethod());
@@ -310,5 +322,103 @@ public class B2bHelper implements B2buaHelper
 		request2.setLinkedRequest(request1);
 		
 		linkSipSessions(request1.session(), request2.session());
+	}
+	
+	protected void addHeaders(SipRequest request, Map<String, List<String>> headerMap)
+	{
+		if (headerMap != null)
+		{
+			for (Entry<String, List<String>> entry : headerMap.entrySet())
+			{
+				String s = entry.getKey();
+				
+				CachedBuffer name = SipHeaders.getCachedName(s);
+				HeaderInfo hi = SipHeaders.getType(name);
+				
+				if (hi.isSystem())
+				{
+					int ordinal = hi.getOrdinal();
+					if (ordinal == SipHeaders.CONTACT_ORDINAL)
+					{
+						NameAddr contact = (NameAddr) request.getFields().getAddress(SipHeaders.CONTACT_BUFFER);
+						if (contact != null)
+						{
+							List<String> contacts = entry.getValue();
+							if (contacts.size() > 0)
+								mergeContact(contacts.get(0), contact);
+						}
+					}
+					else if (ordinal == SipHeaders.FROM_ORDINAL || ordinal == SipHeaders.TO_ORDINAL)
+					{
+						// TODO merge RFC496
+					}
+					else if (ordinal == SipHeaders.ROUTE_ORDINAL && request.isInitial())
+					{
+						request.getFields().remove(SipHeaders.ROUTE_BUFFER);
+						for (String route : entry.getValue())
+						{
+							request.getFields().addString(SipHeaders.ROUTE_BUFFER, route);
+						}
+					}
+					else
+					{
+						throw new IllegalArgumentException("Header " + s + " is system.");
+					}
+				}
+				else
+				{
+					request.getFields().remove(name);
+					
+					for (String value : entry.getValue())
+					{
+						request.getFields().addString(name, value);
+					}
+				}
+			}
+		}
+	}
+	
+	protected void mergeContact(String src, Address dest)
+	{
+		try
+		{
+			NameAddr source = new NameAddr(src);
+			
+			SipURI srcUri = (SipURI) source.getURI();
+			SipURI destUri = (SipURI) dest.getURI();
+			
+			String user = srcUri.getUser();
+			if (user != null)
+				destUri.setUser(user);
+			
+			Iterator<String> it = srcUri.getHeaderNames();
+			while (it.hasNext())
+			{
+				String name = it.next();
+				destUri.setHeader(name, srcUri.getHeader(name));
+			}
+			
+			it = srcUri.getParameterNames();
+			while (it.hasNext())
+			{
+				String name = it.next();
+				if (!ContactAddress.isReservedUriParam(name))
+					destUri.setParameter(name, srcUri.getParameter(name));
+			}
+			String displayName = source.getDisplayName();
+			if (displayName != null)
+				dest.setDisplayName(displayName);
+			
+			it = source.getParameterNames();
+			while (it.hasNext())
+			{
+				String name = it.next();
+				dest.setParameter(name, source.getParameter(name));
+			}
+		}
+		catch (Exception e)
+		{
+			throw new IllegalArgumentException("Invalid Contact: " + src);
+		}
 	}
 }

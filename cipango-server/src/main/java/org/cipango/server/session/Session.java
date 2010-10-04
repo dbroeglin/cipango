@@ -770,6 +770,14 @@ public class Session implements SessionIf
 		return "[" + _id + ",state=" + _state + ", _role = " + _role + "]";
 	}
 	
+	@Override
+	public boolean equals(Object o)
+	{
+		if (!(o instanceof SessionIf))
+			return false;
+		return super.equals(((SessionIf) o).getSession());
+	}
+	
 	public void setLinkedSession(Session session) 
 	{ 
 		_linkedSessionId = session != null ? session.getId() : null;

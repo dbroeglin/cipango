@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.servlet.sip.Address;
@@ -37,12 +36,13 @@ import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.Session;
 import org.cipango.server.session.SessionIf;
+import org.cipango.server.session.scope.ScopedSession;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ServerTransaction;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipHeaders;
-import org.cipango.sip.SipParams;
 import org.cipango.sip.SipHeaders.HeaderInfo;
+import org.cipango.sip.SipParams;
 import org.cipango.util.ContactAddress;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 
@@ -122,7 +122,7 @@ public class B2bHelper implements B2buaHelper
 					+ " does not belong to same application session as original request");
 		
 		SipSession linkedSession = getLinkedSession(origRequest.getSession());
-		if (linkedSession != null && linkedSession != sipSession)
+		if (linkedSession != null && !linkedSession.equals(sipSession))
 			throw new IllegalArgumentException("Original request is already linked to another sipSession");
 	
 		if (getLinkedSipServletRequest(origRequest) != null)
@@ -213,7 +213,8 @@ public class B2bHelper implements B2buaHelper
 	{
 		if (!session.isValid())
 			throw new IllegalArgumentException("SipSession " + session + " is not valid");
-		return ((SessionIf) session).getSession().getLinkedSession();
+		Session linked = ((SessionIf) session).getSession().getLinkedSession();
+		return linked == null ?  null : new ScopedSession(linked);
 	}
 
 	/**
@@ -227,7 +228,7 @@ public class B2bHelper implements B2buaHelper
 	/**
 	 * @see B2buaHelper#getPendingMessages(SipSession, UAMode)
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<SipServletMessage> getPendingMessages(SipSession sipSession, UAMode mode) 
 	{
 		if (!sipSession.isValid())
@@ -378,7 +379,7 @@ public class B2bHelper implements B2buaHelper
 		}
 	}
 	
-	protected void mergeContact(String src, Address dest)
+	public static void mergeContact(String src, Address dest)
 	{
 		try
 		{

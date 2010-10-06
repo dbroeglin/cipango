@@ -1,3 +1,16 @@
+cipango-2.0.0pre0 - 6 October 2010
+.+ CIPANGO-92 In Diameter, applications are not notified when no answer has been received
+.+ CIPANGO-78 No new TCP Connection is opened if original request TCP connection is closed while sending Responses
+.+ CIPANGO-40 Servlet could be invoked twice in proxy mode for the same response
+.+ CIPANGO-87 add support for invfix
+.+ CIPANGO-88 invalid servlet-api maven dependency
+.+ CIPANGO-86 Diameter AVP Hop-by-hop and end-to-end ID are not initialized with random values
+.+ CIPANGO-91 Top route is not removed when remote server use NAPTR
+.+ CIPANGO-90 Application router is notified of unavailable applications
+.+ CIPANGO-83 In Experimental-Result AVP, Vendor-Id is before Experimental-Result-Code
+.+ CIPANGO-84 Outgoing diameter requests does not use the specified interface
+.+ CIPANGO-85 Padding bytes in diameter are not set to zero 
+
 cipango-1.0.0 - 30 June 2010
  + CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session
  + CIPANGO-77 When a response is forwarded in TCP, it does not reuse the initial TCP connection

@@ -183,12 +183,18 @@ public class DiameterSocketConnector extends AbstractDiameterConnector
 					
 					Buffer b = new ByteArrayBuffer(length);
 
+					int totalRead = 4;
 					b.put(fb);
-					read = fill(b);
-
-					if (read == -1)
-						throw new EofException();
 					
+					while (totalRead < length)
+					{
+						read = fill(b);
+	
+						if (read == -1)
+							throw new EofException();
+						totalRead += read;
+					}
+										
 					DiameterMessage message = Codecs.__message.decode(b);
 					message.setConnection(this);
 					message.setNode(getNode());

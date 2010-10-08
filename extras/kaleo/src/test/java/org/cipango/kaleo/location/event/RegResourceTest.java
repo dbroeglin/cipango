@@ -51,7 +51,7 @@ public class RegResourceTest extends TestCase
 		Contact contact = reginfo.getRegistrationArray(0).getContactArray(0);
 		assertEquals(Event.REGISTERED, contact.getEvent());
 		assertEquals("sip:alice@localhost", contact.getUri());
-		assertTrue(contact.getExpires().intValue() > 98 && contact.getExpires().intValue() <= 100);
+		//assertTrue(contact.getExpires().intValue() > 98 && contact.getExpires().intValue() <= 100);
 		
 		registration.addBinding(new Binding(new UriImpl("sip:alice@localhost:5070"), "567@localhost", 1, now + 200000));
 		assertEquals(2, reginfo.getRegistrationArray(0).getContactArray().length);

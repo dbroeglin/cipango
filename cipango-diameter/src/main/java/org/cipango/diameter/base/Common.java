@@ -118,7 +118,9 @@ public abstract class Common
 		
 		public Buffer encode(Buffer buffer, String value) throws IOException
 		{
-			buffer.put(value.getBytes(StringUtil.__UTF8));
+			byte[] bytes = value.getBytes(StringUtil.__UTF8);
+			buffer = ensureSpace(buffer, bytes.length);
+			buffer.put(bytes);
 			return buffer;
 		}
 	};
@@ -146,6 +148,7 @@ public abstract class Common
 		public Buffer encode(Buffer buffer, InetAddress address) throws IOException
 		{
 			int type = address instanceof Inet4Address ? IPV4 : IPV6;
+			buffer = ensureSpace(buffer, 2 + (type == IPV4 ? 4 : 16));
 			buffer.put((byte) 0); buffer.put((byte) type);
 			
 			buffer.put(address.getAddress());
@@ -168,6 +171,7 @@ public abstract class Common
 		
 		public Buffer encode(Buffer buffer, Date date) throws IOException
 		{
+			buffer = ensureSpace(buffer, 4);
 			byte[] data = new byte[4];
 			long nptDate = TimeStamp.getNtpTime(date.getTime()).ntpValue();
 

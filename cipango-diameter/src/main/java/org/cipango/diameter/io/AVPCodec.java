@@ -70,6 +70,7 @@ public class AVPCodec extends AbstractCodec<AVP<?>>
 	@SuppressWarnings("unchecked")
 	public Buffer encode(Buffer buffer, AVP avp) throws IOException
 	{
+		buffer = ensureSpace(buffer, 12);
 		int flags = AVP_MANDATORY_FLAG;
 		
 		int start = buffer.putIndex();
@@ -81,8 +82,9 @@ public class AVPCodec extends AbstractCodec<AVP<?>>
 			putInt(buffer, avp.getType().getVendorId());
 		}
 		
-		avp.getType().getDataFormat().encode(buffer, avp.getValue());
+		buffer = avp.getType().getDataFormat().encode(buffer, avp.getValue());
 		
+		buffer = ensureSpace(buffer, 8);
 		
 		pokeInt(buffer, start+4, flags << 24 | (buffer.putIndex() - start) & 0xffffff);
 		while (buffer.putIndex() % 4 != 0)

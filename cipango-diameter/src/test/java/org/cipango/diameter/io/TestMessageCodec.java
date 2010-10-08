@@ -2,15 +2,21 @@ package org.cipango.diameter.io;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
 import org.cipango.diameter.Dictionary;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.IMS;
+import org.cipango.diameter.ims.Sh;
 import org.cipango.diameter.node.DiameterAnswer;
 import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.io.Buffer;
@@ -23,6 +29,7 @@ public class TestMessageCodec extends TestCase
 		Dictionary.getInstance().load(Common.class);
 		Dictionary.getInstance().load(IMS.class);
 		Dictionary.getInstance().load(Cx.class);
+		Dictionary.getInstance().load(Sh.class);
 		Dictionary.getInstance().load(IMS.class);
 	}
 	
@@ -61,13 +68,47 @@ public class TestMessageCodec extends TestCase
 	{
 		DiameterAnswer answer = new DiameterAnswer();
 		answer.setCommand(Common.CEA);
-		answer.setAVPList(new AVPList());
+		AVPList l = new AVPList();
+		answer.setAVPList(l);
 		answer.setResultCode(Common.DIAMETER_SUCCESS);
-		
+
 		Buffer buffer = new ByteArrayBuffer(512);
-		DiameterMessage message = Codecs.__message.decode(Codecs.__message.encode(buffer, answer));
+		buffer = Codecs.__message.encode(buffer, answer);
+		DiameterMessage message = Codecs.__message.decode(buffer);
 		assertFalse(message.isRequest());
 		assertEquals(Common.CEA, message.getCommand());
+	}
+	
+	public void testEncodeSmallBuffer() throws Exception
+	{
+		DiameterAnswer answer = new DiameterAnswer();
+		answer.setCommand(Sh.UDA);
+		AVPList l = new AVPList();
+		answer.setAVPList(l);
+		answer.setResultCode(Common.DIAMETER_SUCCESS);
+		answer.setEndToEndId(33);
+		answer.setHopByHopId(51648);
+		l.add(Common.DIAMETER_SUCCESS.getAVP());
+		l.add(new AVP<String>(Common.ORIGIN_HOST, "cipango.org"));
+		l.add(new AVP<InetAddress>(Common.HOST_IP_ADDRESS, InetAddress.getLocalHost()));
+		l.add(new AVP<Integer>(Common.FIRMWARE_REVISION, 2));
+		l.add(new AVP<byte[]>(Sh.USER_DATA, "<shData>dasaiTag<shData>".getBytes()));
+
+		for (int i = 24; i < 256; i++)
+		{
+			Buffer buffer = new ByteArrayBuffer(i);
+			buffer = Codecs.__message.encode(buffer, answer);
+			// System.out.println(buffer.putIndex() + " / " + i);
+			DiameterMessage message = Codecs.__message.decode(buffer);
+			// System.out.println(message);
+			assertFalse(message.isRequest());
+			assertEquals(answer.getEndToEndId(), message.getEndToEndId());
+			assertEquals(answer.getHopByHopId(), message.getHopByHopId());
+			assertEquals(Sh.UDA, message.getCommand());
+			assertEquals(Common.DIAMETER_SUCCESS.getCode(), message.get(Common.RESULT_CODE).intValue());
+			assertEquals(InetAddress.getLocalHost(), message.get(Common.HOST_IP_ADDRESS));
+			assertEquals("<shData>dasaiTag<shData>", new String(message.get(Sh.USER_DATA)));
+		}
 	}
 	
 	

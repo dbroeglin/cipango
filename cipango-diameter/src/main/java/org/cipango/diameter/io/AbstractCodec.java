@@ -13,6 +13,8 @@ public abstract class AbstractCodec<T> implements DiameterCodec<T>
 				space *= 2;
 			ByteArrayBuffer larger = new ByteArrayBuffer(buffer.capacity() + space);
 			larger.put(buffer);
+			//larger.setMarkIndex(buffer.markIndex());
+			larger.setGetIndex(buffer.getIndex());
 			return larger;
 		}
 		return buffer;

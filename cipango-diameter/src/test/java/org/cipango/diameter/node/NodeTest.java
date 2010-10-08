@@ -3,22 +3,26 @@ package org.cipango.diameter.node;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import javax.swing.event.AncestorEvent;
-
 import junit.framework.TestCase;
 
+import org.cipango.diameter.AVP;
+import org.cipango.diameter.AVPList;
 import org.cipango.diameter.api.DiameterServletAnswer;
 import org.cipango.diameter.api.DiameterServletRequest;
 import org.cipango.diameter.base.Common;
+import org.cipango.diameter.base.Common.AuthSessionState;
+import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.Sh;
+import org.cipango.diameter.ims.Sh.DataReference;
 
 public class NodeTest extends TestCase
 {
 	public void testConnect() throws Exception
 	{
-		//Log.getLog().setDebugEnabled(true);
+		//org.eclipse.jetty.util.log.Log.getLog().setDebugEnabled(true);
 		
 		Node client = new Node(38681);
+		client.getConnectors()[0].setHost("127.0.0.1");
 		client.setIdentity("client");
 		
 		Peer peer = new Peer("server");
@@ -49,6 +53,7 @@ public class NodeTest extends TestCase
 		//Log.getLog().setDebugEnabled(true);
 		
 		Node client = new Node(38681);
+		client.getConnectors()[0].setHost("127.0.0.1");
 		client.setIdentity("client");
 		
 		Peer peer = new Peer("server");
@@ -73,6 +78,11 @@ public class NodeTest extends TestCase
 		DiameterRequest udr = new DiameterRequest(client, Sh.UDR, Sh.SH_APPLICATION_ID.getId(), "123");
 		udr.getAVPs().add(Common.DESTINATION_REALM, "server");
 		udr.getAVPs().add(Common.DESTINATION_HOST, "server");
+		udr.getAVPs().add(Sh.DATA_REFERENCE, DataReference.SCSCFName);
+		AVP<AVPList> userIdentity = new AVP<AVPList>(Sh.USER_IDENTITY, new AVPList());
+        userIdentity.getValue().add(Cx.PUBLIC_IDENTITY, "sip:alice@cipango.org");
+		udr.getAVPs().add(userIdentity);
+		udr.getAVPs().add(Common.AUTH_SESSION_STATE, AuthSessionState.NO_STATE_MAINTAINED);
 		
 		udr.send();
 		Thread.sleep(1000);

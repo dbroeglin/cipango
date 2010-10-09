@@ -5,8 +5,6 @@ require 'benchmark'
 module Sipatra
   VERSION = '1.0.0'
   
-  java_import javax.servlet.sip.SipServletResponse
-
   module SessionExtension
     def [](name)
       getAttribute(name.to_s)

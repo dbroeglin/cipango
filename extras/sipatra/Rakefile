@@ -43,6 +43,10 @@ task :spec => :check_dependencies
 
 task :default => :spec
 
+task :clean do
+  rm_rf Dir["lib/sipatra", "lib/sipatra.rb"]
+end
+
 begin
   require 'yard'
   YARD::Rake::YardocTask.new
@@ -62,5 +66,5 @@ directory "lib/sipatra" do
 end
 
 file "lib/sipatra.rb" => "lib/sipatra" do
-  cp_r Dir["src/main/resources/sipatra*"], "lib/"
+  cp_r FileList["src/main/resources/sipatra.rb", "src/main/resources/sipatra"], "lib/"
 end

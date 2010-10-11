@@ -103,8 +103,8 @@ public class CallSessionViewer
 			printAttr(sb, "accessed", new Date(session.getLastAccessedTime()), 5);
 			printAttr(sb, "role", session._role, 5);
 			printAttr(sb, "state", session._state, 5);
-			printAttr(sb, "invalidateWhenReady", appSession.getInvalidateWhenReady(), 5);
-			printAttr(sb, "attributes", appSession._attributes, 5);
+			printAttr(sb, "invalidateWhenReady", session.getInvalidateWhenReady(), 5);
+			printAttr(sb, "attributes", session._attributes, 5);
 			printAttr(sb, "localParty", session._localParty, 5);
 			printAttr(sb, "remoteParty", session._remoteParty, 5);
 			printAttr(sb, "region", session._region, 5);

@@ -24,13 +24,17 @@ import javax.servlet.sip.URI;
 
 import org.cipango.server.ID;
 import org.cipango.server.SipConnection;
+import org.cipango.server.SipConnector;
 import org.cipango.server.SipConnectors;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
+import org.cipango.server.log.AccessLog;
 import org.cipango.sip.SipMethods;
+import org.cipango.sip.SipParams;
 import org.cipango.sip.SipVersions;
 import org.cipango.sip.Via;
 import org.cipango.util.TimerTask;
+import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.util.log.Log;
 
 /**
@@ -437,7 +441,55 @@ public class ClientTransaction extends Transaction
 	{
 		// could not use request.createResponse() because the request is committed. 
 		SipResponse responseB = new SipResponse(_request, SipServletResponse.SC_REQUEST_TIMEOUT, null);
-		responseB.setToTag(ID.newTag());
+		if (responseB.getTo().getParameter(SipParams.TAG) == null)
+			responseB.setToTag(ID.newTag());
+		
+		AccessLog accessLog = getServer().getConnectorManager().getAccessLog();
+		if (accessLog != null)
+			accessLog.messageReceived(responseB, new TimeoutConnection());
+		
 		return responseB;
 	}
+	
+	class TimeoutConnection implements SipConnection
+	{
+		
+		public SipConnector getConnector()
+		{
+			return getConnection().getConnector();
+		}
+
+		public InetAddress getLocalAddress()
+		{
+			return getConnection().getLocalAddress();
+		}
+
+		public int getLocalPort()
+		{
+			return getConnection().getLocalPort();
+		}
+
+		public InetAddress getRemoteAddress()
+		{
+			return getConnection().getLocalAddress();
+		}
+
+		public int getRemotePort()
+		{
+			return getConnection().getLocalPort();
+		}
+
+		public void write(Buffer buffer) throws IOException
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		public boolean isOpen()
+		{
+			return false;
+		}
+		
+	}
 }
+
+

@@ -86,7 +86,7 @@ public class JmxMessageLog extends AbstractMessageLog
 		if (_messages != null)
 		{
 			// Log only once message to loopback
-			if (direction == IN
+			if (direction == OUT
 					&& connection.getLocalAddress().equals(connection.getRemoteAddress())
 					&& connection.getLocalPort() == connection.getRemotePort())
 				return;

@@ -1,4 +1,3 @@
-require 'java'
 require 'sipatra/helpers'
 require 'benchmark'
 

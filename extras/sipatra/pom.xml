@@ -9,7 +9,7 @@
   <artifactId>sipatra</artifactId>
   <name>Ruby DSL for SIP Servlets</name>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.0.2-SNAPSHOT</version>
   <dependencies>
     <dependency>
       <groupId>org.jruby</groupId>
@@ -25,7 +25,6 @@
       <artifactId>sip-api</artifactId>
     </dependency>
   </dependencies>
-  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

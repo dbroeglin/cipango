@@ -1,9 +1,19 @@
 require 'rake/clean'
 require 'fileutils'
 require 'spec/rake/spectask'
+require 'rexml/document'
 
-Version = "1.0-SNAPSHOT"
-JarName = "sipatra-#{Version}.jar"
+
+JarVersion = File::open("pom.xml") do |f|
+  REXML::Document::new(f).elements["project/version"].text
+end
+JarName = "sipatra-#{JarVersion}.jar"
+JarFile = "lib/sipatra/#{JarName}"
+GemFiles = FileList["src/main/resources/**/*.rb"].to_a.map do |file|
+  file.gsub(%r{src/main/resources}, "lib")
+end
+GemFiles << JarFile
+GemFiles << "lib/sipatra-jars.rb"
 
 begin
   require 'jeweler'
@@ -16,12 +26,22 @@ begin
     gem.authors = ["Dominique Broeglin", "Jean-Baptiste Morin"]
     gem.add_development_dependency "rspec", ">= 1.2.9"
     
-    gem.files = FileList['lib/**/*.rb', 'lib/**/*/jar'].to_a
+    gem.files = GemFiles
     
     # gem.add_development_dependency "yard", ">= 0"
     # gem is a Gem::Specification... see http://www.rubygems.org/read/chapter/20 for additional settings
   end
   Jeweler::GemcutterTasks.new
+  
+  namespace :gemspec do
+    task :generate => GemFiles
+  end
+  
+  file "VERSION" do
+    File::open("VERSION", "w") { |f| f.write JarVersion.gsub(/-SNAPSHOT/, '') }
+  end
+  
+  task :version_required => "VERSION"
 rescue LoadError
   puts "Jeweler (or a dependency) not available. Install it with: gem install jeweler"
 end
@@ -44,7 +64,7 @@ task :spec => :check_dependencies
 task :default => :spec
 
 task :clean do
-  rm_rf Dir["lib/sipatra", "lib/sipatra.rb"]
+  rm_rf Dir["lib/sipatra", "lib/sipatra.rb", "VERSION", "sipatra.gemspec"]
 end
 
 begin
@@ -56,15 +76,13 @@ rescue LoadError
   end
 end
 
-file "lib/sipatra/#{JarName}" => "lib/sipatra" do
-  system "maven package"
+rule %r{^lib/sipatra.*rb} => [ proc { |tn| tn.sub(/lib/, 'src/main/resources') } ] do |t|
+  mkdir_p "lib/sipatra"
+  cp t.source, t.name
+end
+
+file "lib/sipatra/#{JarName}" => ["lib/sipatra", "lib/sipatra.rb"] do
+  system "mvn package"
   cp "target/#{JarName}", "lib/sipatra"
 end
 
-directory "lib/sipatra" do
-  mkdir_p "lib/sipatra"
-end
-
-file "lib/sipatra.rb" => "lib/sipatra" do
-  cp_r FileList["src/main/resources/sipatra.rb", "src/main/resources/sipatra"], "lib/"
-end

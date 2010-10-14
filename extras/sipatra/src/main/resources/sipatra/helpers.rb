@@ -50,7 +50,7 @@ module Sipatra
     :service_unavailable => 503,
     :session_interval_too_small => 422,
     :session_progress => 183,
-    :temporarly_unavailable => 480,
+    :temporarily_unavailable => 480,
     :too_many_hops => 483,
     :trying => 100,
     :unauthorized => 401,

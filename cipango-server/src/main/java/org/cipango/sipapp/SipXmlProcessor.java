@@ -296,7 +296,7 @@ public class SipXmlProcessor
 			}
 			holder.setInitOrder(order);
 		}
-		_servlets = LazyList.add(_servlets, holder);
+		addSipServlet(holder);
 	}
 	
 	protected void initServletMapping(XmlParser.Node node) 
@@ -396,6 +396,11 @@ public class SipXmlProcessor
 		{
 			throw new IllegalArgumentException("Unknown rule: " + name);
 		}
+	}
+	
+	public void addSipServlet(SipServletHolder holder)
+	{
+		_servlets = LazyList.add(_servlets, holder);
 	}
 	
     public void initProxyConfig(XmlParser.Node node)

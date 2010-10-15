@@ -16,9 +16,9 @@ package org.cipango.annotations;
 import java.util.Iterator;
 import java.util.List;
 
-import org.cipango.plus.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
+import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AnnotationParser.AnnotationHandler;
 import org.eclipse.jetty.annotations.AnnotationParser.Value;
 import org.eclipse.jetty.util.log.Log;
@@ -26,9 +26,11 @@ import org.eclipse.jetty.util.log.Log;
 public class SipServletAnnotationHandler implements AnnotationHandler
 {
 	private SipAppContext _sac;
+	private SipXmlProcessor _processor;
 	
-	public SipServletAnnotationHandler(SipAppContext context)
+	public SipServletAnnotationHandler(SipAppContext context, SipXmlProcessor processor)
 	{
+		_processor = processor;
 		_sac = context;
 	}
 	
@@ -58,7 +60,9 @@ public class SipServletAnnotationHandler implements AnnotationHandler
 		if (holder.getName() == null)
 			holder.setName(className.substring(className.lastIndexOf('.') + 1));
 		holder.setClassName(className);
+		
 		_sac.addSipServlet(holder);
+		_processor.addSipServlet(holder);
 	}
 
 	public void handleMethod(String className, String methodName, int access, String desc, String signature,

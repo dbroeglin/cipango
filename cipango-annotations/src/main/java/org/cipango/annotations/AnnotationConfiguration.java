@@ -64,7 +64,7 @@ public class AnnotationConfiguration extends AbstractConfiguration
         parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipApplication", sipApplicationAnnotationHandler);
         parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipApplicationKey", new SipApplicationKeyAnnotationHandler(sac));
         parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipListener", new SipListenerAnnotationHandler(sac, sipXmlProcessor));
-        parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet", new SipServletAnnotationHandler(sac));
+        parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet", new SipServletAnnotationHandler(sac, sipXmlProcessor));
         
         ResourceAnnotationHandler resourceAnnotationHandler = new ResourceAnnotationHandler(sac);
         parser.registerAnnotationHandler("javax.annotation.Resource", resourceAnnotationHandler);

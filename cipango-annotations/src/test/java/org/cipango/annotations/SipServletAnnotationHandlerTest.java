@@ -19,6 +19,7 @@ import org.cipango.annotations.resources.AnnotedServlet;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
+import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AnnotationParser;
 
 public class SipServletAnnotationHandlerTest extends TestCase
@@ -34,7 +35,7 @@ public class SipServletAnnotationHandlerTest extends TestCase
 		_sac.setServletHandler(new org.cipango.plus.servlet.SipServletHandler());
 		_parser = new AnnotationParser();
         _parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet",
-        		new SipServletAnnotationHandler(_sac));
+        		new SipServletAnnotationHandler(_sac, new SipXmlProcessor(_sac)));
 	}
 	
 	public void testAnnotedServlet() throws Exception

@@ -13,6 +13,7 @@ cipango-2.0.0pre0 - 6 October 2010
  + CIPANGO-56 callsessionhandler is not optimized
  + CIPANGO-41 diameter primitives as classes
  + CIPANGO-8  diameter message processing not related to call context
+ + CIPANGO-5  update state in proxy mode
 
 cipango-1.0.0 - 30 June 2010
  + CIPANGO-67 SipFactory.createApplicationSession() returns an invalidated SIP application session

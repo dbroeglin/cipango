@@ -48,7 +48,7 @@ public class SipatraServlet extends SipServlet
 	private ServletContext _servletContext;
   String _appPath;
   
-  public ScriptingContainer getContainer() {
+  private ScriptingContainer getContainer() {
     if (_container.getAttribute(INIT_MARKER) == null) {
   		_container.runScriptlet("ENV['SIPATRA_PATH'] = '" + _appPath.replaceAll("'", "\'") + "'");
   		_container.runScriptlet(PathType.CLASSPATH, "sipatra.rb");
@@ -70,10 +70,14 @@ public class SipatraServlet extends SipServlet
 	{
 		super.init(config);
 
-
-	  _appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
 		_servletContext = config.getServletContext();
-		
+    _appPath = System.getProperty("org.cipango.sipatra.script.path");
+    if (_appPath == null || "".equals(_appPath)) {
+      _appPath = _servletContext.getInitParameter("org.cipango.sipatra.script.path");
+      if (_appPath == null || "".equals(_appPath)) {
+        _appPath = getServletContext().getRealPath("/WEB-INF/sipatra");
+      }      
+    }		
     _container = new ScriptingContainer(LocalContextScope.THREADSAFE);
 
     // TODO: handle RUBY LOAD PATH to allow non JRuby dev

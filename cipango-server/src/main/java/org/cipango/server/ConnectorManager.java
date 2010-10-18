@@ -578,7 +578,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
 	public long getNbParseError()
 	{
 		long val = _nbParseErrors;
-		for (int i = 0; i <_connectors.length; i++)
+		for (int i = 0; _connectors != null && i <_connectors.length; i++)
 		{
 			val += _connectors[i].getNbParseError();
 		}
@@ -592,7 +592,7 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
             _statsStartedAt = _statsStartedAt == -1 ? -1 : System.currentTimeMillis();
             _messagesReceived = _messagesSent = 0;
             _nbParseErrors = 0;
-            for (int i = 0; i <_connectors.length; i++)
+            for (int i = 0; _connectors != null && i <_connectors.length; i++)
             {
 				 _connectors[i].statsReset();
 			}

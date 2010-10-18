@@ -153,10 +153,13 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
         	}
         }
         
-        for (int i = 0; i < _connectors.length; i++)
+        if (_connectors != null)
         {
-            SipConnector connector = _connectors[i];
-            connector.start();
+	        for (int i = 0; i < _connectors.length; i++)
+	        {
+	            SipConnector connector = _connectors[i];
+	            connector.start();
+	        }
         }
     }
 

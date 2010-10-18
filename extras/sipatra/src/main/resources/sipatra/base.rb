@@ -1,22 +1,9 @@
 require 'sipatra/helpers'
+require 'sipatra/extension_modules'
 require 'benchmark'
 
 module Sipatra
   VERSION = '1.0.0'
-  
-  module SessionExtension
-    def [](name)
-      getAttribute(name.to_s)
-    end
-    
-    def []=(name, value)
-      if value.nil?
-        removeAttribute(name.to_s)
-      else
-        setAttribute(name.to_s, value)
-      end
-    end
-  end
   
   class Base
     include HelperMethods
@@ -28,8 +15,9 @@ module Sipatra
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
-      @context, @sip_factory, session, @msg = args
-      self.session = session # force a call to the attribute writer
+      @context, @sip_factory, @session, @msg = args
+      session.extend Sipatra::SessionExtension
+      msg.extend Sipatra::MessageExtension
     end
     
     def session=(session)

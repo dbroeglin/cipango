@@ -55,8 +55,7 @@ describe 'Sipatra::Base subclasses' do
   
   before do  
     @app = Class::new(Sipatra::Base).new
-    mock_request('INVITE', 'sip:uri')
-    @app.session = mock('SipSessionMock')
+    @app.set_bindings nil, nil, mock('SipSessionMock'), mock_request('INVITE', 'sip:uri')
   end
   
   subject do
@@ -102,6 +101,10 @@ describe 'Sipatra::Base subclasses' do
       
     @app.session['foo'] = nil
     @app.session[:foo]  = nil
+  end
+  
+  it "msg.uri should return msg.requestUri" do
+    @app.msg.uri.should == "sip:uri"
   end
   
   describe "when receiving do_request (with URI sip:uri)" do

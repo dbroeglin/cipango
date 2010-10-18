@@ -21,6 +21,10 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
     @mock_response ||= mock('SipServletResponse')
   end
   
+  subject do
+    FakeApp::new
+  end
+  
   before do
     subject.stub!(:msg).and_return(Object::new)
   end

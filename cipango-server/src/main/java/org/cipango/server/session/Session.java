@@ -599,9 +599,16 @@ public class Session implements SessionIf
 				break;
 			case EARLY:
 				if (200 <= status && status < 300)
+				{
 					setState(State.CONFIRMED);
+				}
 				else if (status >= 300)
-					setState(State.TERMINATED);
+				{
+					if (uac)
+						setState(State.INITIAL);
+					else
+						setState(State.TERMINATED);
+				}
 				break;
 			}
 		}

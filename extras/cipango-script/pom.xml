@@ -9,12 +9,12 @@
   <artifactId>cipango-script</artifactId>
   <name>Sipatra SIP application</name>
   <packaging>war</packaging>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   <dependencies>
     <dependency>
       <groupId>org.cipango</groupId>
       <artifactId>sipatra</artifactId>
-      <version>0.0.2-SNAPSHOT</version>
+      <version>0.0.3-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <properties>

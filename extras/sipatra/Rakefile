@@ -74,7 +74,7 @@ rule %r{^lib/sipatra.*rb} => [ proc { |tn| tn.sub(/lib/, 'src/main/resources') }
 end
 
 file "lib/sipatra/#{JarName}" => ["lib/sipatra", "lib/sipatra.rb"] do
-  system "mvn package"
+  system "mvn install"
   cp "target/#{JarName}", "lib/sipatra"
 end
 

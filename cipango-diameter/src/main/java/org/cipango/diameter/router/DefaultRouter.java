@@ -17,7 +17,6 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import org.cipango.diameter.node.DiameterRequest;
-import org.cipango.diameter.node.Node;
 import org.cipango.diameter.node.Peer;
 
 
@@ -28,6 +27,8 @@ public class DefaultRouter implements DiameterRouter
 	
 	public Peer getRoute(DiameterRequest request)
 	{
+		if (request.getDestinationHost() == null)
+			return null;
 		return _peers.get(request.getDestinationHost());
 	}
 

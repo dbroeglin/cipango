@@ -58,6 +58,11 @@
         <artifactId>wagon-webdav</artifactId>
         <version>1.0-beta-2</version>
       </extension>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+         <artifactId>wagon-ssh-external</artifactId>
+         <version>1.0-beta-6</version>
+      </extension>
     </extensions>
     
     <pluginManagement>
@@ -212,5 +217,12 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <distributionManagement>
+    <repository>
+      <id>ssh-repository</id>
+      <url>scpexe://repository.cipango.org/var/www/repository</url>
+    </repository>
+  </distributionManagement>
 
 </project>

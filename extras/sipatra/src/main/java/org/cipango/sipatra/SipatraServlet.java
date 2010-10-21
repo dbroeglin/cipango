@@ -166,22 +166,39 @@ public class SipatraServlet extends SipServlet
 
 	private void invokeMethod(SipServletMessage message, String methodName) 
 	{
-		try
+		ScriptingContainer container = null;
+		try 
 		{
-			ScriptingContainer container = (ScriptingContainer) _pool.borrowObject();
-			Object app = container.runScriptlet("Sipatra::Application::new");
+			container = (ScriptingContainer) _pool.borrowObject();
+			try 
+			{
+				Object app = container.runScriptlet("Sipatra::Application::new");
 
-			container.callMethod(app, "set_bindings", new Object[] { 
-					_servletContext,  
-					_servletContext.getAttribute(SipServlet.SIP_FACTORY), 
-					message.getSession(), 
-					message});
-			container.callMethod(app, methodName);
-			_pool.returnObject(container);
-		}
-		catch (Exception e) 
+				container.callMethod(app, "set_bindings", new Object[] { 
+						_servletContext,  
+						_servletContext.getAttribute(SipServlet.SIP_FACTORY), 
+						message.getSession(), 
+						message});
+				container.callMethod(app, methodName);
+			} 
+			catch(Exception e) 
+			{
+				_pool.invalidateObject(container);
+				container = null;
+			} 
+			finally 
+			{
+				if(container != null) 
+				{
+					_pool.returnObject(container);
+				}
+			}
+		} 
+		catch(Exception e) 
 		{
-			_log.error("ERROR >> While processing message througth "+methodName, e);
+			_log.error("ERROR >> Failed to borrow a JRuby Runtime ", e);
+			// TODO: failed to borrow a runtime... What should we do?
+			//throw e?
 		}
 	}
 }

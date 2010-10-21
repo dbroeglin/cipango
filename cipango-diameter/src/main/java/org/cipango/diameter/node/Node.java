@@ -608,7 +608,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			{
 				if (isStarted())
 				{
-					if (!_peer.isStopped())
+					if (!_peer.isStopped() && !_peer.isOpen())
 					{
 						Log.debug("restarting peer: " + _peer);
 						_peer.start();

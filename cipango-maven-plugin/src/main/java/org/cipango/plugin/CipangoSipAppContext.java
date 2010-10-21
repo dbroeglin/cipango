@@ -39,6 +39,13 @@ public class CipangoSipAppContext extends SipAppContext
         setConfigurationClasses(configs);
     }
     
+    @Override
+    public void setConfigurationClasses(String[] c)
+    {
+    	super.setConfigurationClasses(c);
+    	configs = c;
+    }
+    
     public void addConfiguration(String configuration)
     {
     	 if (isRunning())

@@ -348,6 +348,7 @@ public class Peer
 	 */
 	public synchronized void rConnCER(DiameterRequest cer)
 	{
+		_lastAccessed = System.currentTimeMillis();
 		_state.rConnCER(cer);
 	}
 	

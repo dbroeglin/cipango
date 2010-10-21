@@ -186,7 +186,7 @@ public class ConsoleFilter implements Filter
 		if (!_jmxAvailable)
 		{
 			response.sendError(503 ,"JMX is not enabled, unable to use cipango console. Please start Cipango with:\n" +
-			"\tjava -Dcom.sun.management.jmxremote -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
+			"\tjava -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
 			return;
 		}
 		

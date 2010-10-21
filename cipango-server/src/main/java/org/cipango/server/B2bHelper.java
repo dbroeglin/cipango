@@ -236,8 +236,10 @@ public class B2bHelper implements B2buaHelper
 		
 		Session session = ((SessionIf) sipSession).getSession();
 		
-		if (!session.isUA())
-			throw new IllegalArgumentException("SipSession " + session + " is not UA");
+		if (session.isProxy())
+			throw new IllegalArgumentException("SipSession " + session + " is proxy");
+		if (session.getUA() == null)
+			session.createUA(mode);
 		
 		List<SipServletMessage> messages = new ArrayList<SipServletMessage>();
 		if (mode == UAMode.UAS)

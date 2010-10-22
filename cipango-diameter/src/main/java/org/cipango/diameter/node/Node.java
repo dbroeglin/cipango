@@ -30,8 +30,8 @@ import org.cipango.diameter.app.DiameterContext;
 import org.cipango.diameter.base.Common;
 import org.cipango.diameter.bio.DiameterSocketConnector;
 import org.cipango.diameter.log.BasicMessageLog;
-import org.cipango.diameter.router.DiameterRouter;
 import org.cipango.diameter.router.DefaultRouter;
+import org.cipango.diameter.router.DiameterRouter;
 import org.cipango.server.Server;
 import org.cipango.server.session.SessionManager.SessionScope;
 import org.eclipse.jetty.util.LazyList;
@@ -159,6 +159,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	public synchronized void removePeer(Peer peer)
 	{		
 		Peer[] peers = (Peer[]) LazyList.removeFromArray(_peers, peer);
+		peers = peers.clone();
 		
 		if (_server != null)
 			_server.getContainer().update(this, _peers, peers, "peers", true);
@@ -169,6 +170,12 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		
 		if( isStarted())
 			_router.peerRemoved(peer);
+	}
+	
+
+	public Peer[] getPeers()
+	{
+		return _peers;
 	}
 	
 	@Override

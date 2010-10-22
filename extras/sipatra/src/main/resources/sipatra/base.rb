@@ -119,7 +119,6 @@ module Sipatra
       catch(:halt) do
         process_handler(handlers, msg.method)
         process_handler(handlers, "_")
-        filter! :default
       end
     ensure 
       filter! :after
@@ -190,16 +189,12 @@ module Sipatra
       def after(msg_type = nil, &block)
         add_filter(:after, msg_type, &block)
       end
-      
-      def default(msg_type = nil, &block)
-        add_filter(:default, msg_type, &block)
-      end
             
       def reset!
         @req_handlers          = {}
         @resp_handlers         = {}
         @extensions            = []
-        @filters               = {:before => [], :after => [], :default => []}
+        @filters               = {:before => [], :after => []}
       end
 
       def inherited(subclass)
@@ -213,10 +208,6 @@ module Sipatra
 
       def after_filters
         filters[:after]
-      end
-      
-      def default_filters
-        filters[:default]
       end
       
       private

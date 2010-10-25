@@ -23,6 +23,7 @@ import org.cipango.diameter.api.DiameterFactory;
 import org.cipango.diameter.api.DiameterListener;
 import org.cipango.diameter.node.DiameterFactoryImpl;
 import org.cipango.diameter.node.Node;
+import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.Configuration;
 
@@ -61,6 +62,7 @@ public class DiameterConfiguration implements Configuration
 		DiameterFactoryImpl factory = new DiameterFactoryImpl();
 		Node node = (Node) context.getServer().getAttribute(Node.class.getName());
 		factory.setNode(node);
+		factory.setAppContext((SipAppContext) context);
 		
 		context.getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		

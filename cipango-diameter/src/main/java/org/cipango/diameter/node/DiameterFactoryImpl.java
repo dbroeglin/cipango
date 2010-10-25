@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2008-2009 NEXCOM Systems
+// Copyright 2008-2010 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@ import org.cipango.diameter.DiameterCommand;
 import org.cipango.diameter.api.DiameterFactory;
 import org.cipango.diameter.api.DiameterServletRequest;
 import org.cipango.diameter.base.Common;
+import org.cipango.sipapp.SipAppContext;
 
 public class DiameterFactoryImpl implements DiameterFactory
 {
 	private Node _node;
+	private SipAppContext _appContext;
 	
 	public DiameterServletRequest createRequest(SipApplicationSession appSession, ApplicationId id,
 			DiameterCommand command, String destinationRealm)
@@ -43,6 +45,7 @@ public class DiameterFactoryImpl implements DiameterFactory
 		
 		request.getAVPs().add(id.getAVP());
 		request.setApplicationSession(appSession);
+		request.setContext(_appContext);
 		request.setUac(true);
 		return request;
 	}
@@ -68,4 +71,15 @@ public class DiameterFactoryImpl implements DiameterFactory
 	{
 		return _node;
 	}
+
+	public SipAppContext getAppContext()
+	{
+		return _appContext;
+	}
+
+	public void setAppContext(SipAppContext appContext)
+	{
+		_appContext = appContext;
+	}
+
 }

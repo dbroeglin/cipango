@@ -34,9 +34,9 @@ public class SessionManager
 	
 	private CounterStatistic _sessionsCounter = new CounterStatistic();
 	
-	public Session createSession(SipApplicationSession appSession)
+	public Session createSession(DiameterRequest request)
 	{
-		Session diameterSession = new Session(appSession, newSessionId());
+		Session diameterSession = new Session(request.getApplicationSession(), newSessionId(), request.getContext());
 		synchronized (_sessions)
 		{
 			_sessions.put(diameterSession.getId(), diameterSession);
@@ -46,14 +46,7 @@ public class SessionManager
 		diameterSession.setNode(_node);
 		return diameterSession;
 	}
-	
-	protected Session newSession()
-	{
-		Session diameterSession = new Session(null, newSessionId());
 		
-		return diameterSession;
-	}
-	
 	public Session get(String id)
 	{
 		synchronized(_sessions)

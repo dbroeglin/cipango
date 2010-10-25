@@ -30,6 +30,7 @@ import org.cipango.diameter.base.Common;
 import org.cipango.diameter.base.Common.AuthSessionState;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.scope.ScopedAppSession;
+import org.cipango.sipapp.SipAppContext;
 
 /**
  * Point-to-point Diameter relationship. 
@@ -45,15 +46,17 @@ public class Session implements DiameterSession
 	private String _destinationHost;
 	
 	private SipApplicationSession _appSession;
+	private SipAppContext _context;
 	
 	private boolean _valid = true;
 	
 	private Map<String, Object> _attributes;
 		
-	public Session(SipApplicationSession appSession, String sessionId)
+	public Session(SipApplicationSession appSession, String sessionId, SipAppContext context)
 	{
 		_sessionId = sessionId;
 		_appSession = appSession;
+		_context = context;
 	}
 	
 	public SipApplicationSession getApplicationSession()
@@ -95,6 +98,8 @@ public class Session implements DiameterSession
 		
 		if (maintained)
 			request.getAVPs().add(Common.AUTH_SESSION_STATE, AuthSessionState.STATE_MAINTAINED);
+		
+		request.setContext(_context);
 		
 		return request;
 	}

@@ -27,6 +27,7 @@ import org.cipango.diameter.api.DiameterSession;
 import org.cipango.diameter.base.Common;
 import org.cipango.server.session.AppSession;
 import org.cipango.server.session.scope.ScopedAppSession;
+import org.cipango.sipapp.SipAppContext;
 
 public class DiameterRequest extends DiameterMessage implements DiameterServletRequest
 {
@@ -37,6 +38,8 @@ public class DiameterRequest extends DiameterMessage implements DiameterServletR
 	private static synchronized int nextEndId() { return __endId++; }
 
 	private SipApplicationSession _appSession;
+	
+	private SipAppContext _context;
 
 	private boolean _uac;
 	
@@ -92,7 +95,7 @@ public class DiameterRequest extends DiameterMessage implements DiameterServletR
 	{
 		if (_session == null && create)
 		{
-			_session = _node.getSessionManager().createSession(getApplicationSession());
+			_session = _node.getSessionManager().createSession(this);
 			if (isUac())
 			{
 				_session.setDestinationHost(getDestinationHost());
@@ -121,5 +124,13 @@ public class DiameterRequest extends DiameterMessage implements DiameterServletR
 	public void setUac(boolean uac)
 	{
 		_uac = uac;
+	}
+	public SipAppContext getContext()
+	{
+		return _context;
+	}
+	protected void setContext(SipAppContext context)
+	{
+		_context = context;
 	}
 }

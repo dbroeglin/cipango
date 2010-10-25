@@ -23,6 +23,7 @@ import org.cipango.diameter.api.DiameterErrorEvent;
 import org.cipango.diameter.api.DiameterErrorListener;
 import org.cipango.diameter.api.DiameterListener;
 import org.cipango.diameter.api.DiameterServletMessage;
+import org.cipango.diameter.node.DiameterAnswer;
 import org.cipango.diameter.node.DiameterHandler;
 import org.cipango.diameter.node.DiameterMessage;
 import org.cipango.diameter.node.DiameterRequest;
@@ -72,9 +73,15 @@ public class DiameterContext implements DiameterHandler
 	{
 		DiameterListener[] listeners = null;
 		SipAppContext context = null;
-		AppSessionIf appSession = (AppSessionIf) message.getApplicationSession();
-		if (appSession != null)
-			context = appSession.getAppSession().getContext();
+		if (message instanceof DiameterAnswer)
+			context = ((DiameterAnswer) message).getRequest().getContext();
+		
+		if (context == null)
+		{
+			AppSessionIf appSession = (AppSessionIf) message.getApplicationSession();
+			if (appSession != null)
+				context = appSession.getAppSession().getContext();
+		}
 		
 		if (context == null)
 			context = _defaultContext;

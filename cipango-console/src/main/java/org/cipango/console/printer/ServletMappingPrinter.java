@@ -15,6 +15,7 @@ package org.cipango.console.printer;
 
 import java.io.Writer;
 
+import javax.management.AttributeNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
@@ -36,17 +37,27 @@ public class ServletMappingPrinter implements HtmlPrinter
 		out.write("<h2>Servlets</h2>");
 		for (int i = 0; i < _appContexts.length; i++)
 		{
-			String contextPath = (String) _connection.getAttribute(
-					_appContexts[i], "name");
-			ObjectName servletHandler = (ObjectName) _connection.getAttribute(_appContexts[i], "servletHandler");
-			printAppContext(contextPath, servletHandler, out);
+			
+			String contextPath;
+			try 
+			{
+				contextPath = (String) _connection.getAttribute(_appContexts[i], "name");
+
+				ObjectName servletHandler = (ObjectName) _connection.getAttribute(_appContexts[i], "servletHandler");
+				printAppContext(contextPath, servletHandler, out);
+			}
+			catch (AttributeNotFoundException e) {
+				contextPath = (String) _connection.getAttribute(_appContexts[i], "contextPath");
+				out.write("<h3>" + contextPath + "</h3>\n");
+				out.write("No SIP servlets for this application");
+			}
 		}
 	}
 
 	private void printAppContext(String name, ObjectName servletHandler,
 			Writer out) throws Exception
 	{
-		out.write("<h3>" + name + "</h3>");
+		out.write("<h3>" + name + "</h3>\n");
 		ObjectName[] sipServletMappings = (ObjectName[]) _connection
 				.getAttribute(servletHandler, "sipServletMappings");
 

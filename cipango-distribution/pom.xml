@@ -45,12 +45,15 @@
           </execution>
           <execution>
             <id>generate-resources</id>
-            <phase>generate-resources</phase>
+            <phase>compile</phase>
             <goals>
               <goal>run</goal>
             </goals>
             <configuration>
               <tasks>
+                <copy todir="${assembly-directory}">
+                  <fileset dir="target/jetty/jetty-distribution-${jetty.version}"/>
+                </copy>
                 <copy file="../VERSION.txt" tofile="${assembly-directory}/VERSION-CIPANGO.txt" />
                 <copy file="../README.txt" tofile="${assembly-directory}/README-CIPANGO.txt" />
                 <copy file="../NOTICE.txt" tofile="${assembly-directory}/NOTICE-CIPANGO.txt" />
@@ -61,20 +64,6 @@
                 </copy>
               </tasks>
             </configuration>
-          </execution>
-           <execution>
-            <id>install</id>
-            <phase>install</phase>
-            <configuration>
-              <tasks if="jetty.home">
-                <copy todir="${jetty.home}">
-                  <fileset dir="${assembly-directory}"/>
-                </copy>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
@@ -115,6 +104,13 @@
             </goals>
             <configuration>
               <artifactItems>
+                <artifactItem>
+                  <groupId>org.eclipse.jetty</groupId>
+                  <artifactId>jetty-distribution</artifactId>
+                  <overWrite>false</overWrite>
+                  <type>tar.gz</type>
+                  <outputDirectory>target/jetty</outputDirectory>
+                </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
                   <artifactId>cipango-annotations</artifactId>

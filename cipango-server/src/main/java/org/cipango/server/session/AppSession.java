@@ -577,7 +577,8 @@ public class AppSession implements AppSessionIf
 			session.invalidateIfReady();
 		}
 		
-		if (isValid() && getInvalidateWhenReady() && isReadyToInvalidate())
+		if (isValid() && getInvalidateWhenReady() && _sessions.size() == 0 && LazyList.size(_otherSessions) == 0
+				&& (_timers == null || _timers.isEmpty()))
 		{
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length >0)

@@ -566,19 +566,27 @@ public class AppSession implements AppSessionIf
 			if (!session.isReadyToInvalidate())
 				return false;
 		}
+		
+		if (LazyList.size(_otherSessions) != 0)
+			return false;
+		
 		return (_timers == null || _timers.isEmpty());
 	}
 	
 	public void invalidateIfReady()
 	{
+		boolean invalidateSessionsWhenReady = true;
+		
 		for (int i = 0; i < _sessions.size(); i++)
 		{
 			Session session = _sessions.get(i);
-			session.invalidateIfReady();
+			if (session.getInvalidateWhenReady())
+				session.invalidateIfReady();
+			else
+				invalidateSessionsWhenReady = false;
 		}
 		
-		if (isValid() && getInvalidateWhenReady() && _sessions.size() == 0 && LazyList.size(_otherSessions) == 0
-				&& (_timers == null || _timers.isEmpty()))
+		if (isValid() && getInvalidateWhenReady() && invalidateSessionsWhenReady && isReadyToInvalidate())
 		{
 			SipApplicationSessionListener[] listeners = getContext().getSipApplicationSessionListeners();
 			if (listeners.length >0)

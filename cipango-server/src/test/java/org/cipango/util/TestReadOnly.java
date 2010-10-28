@@ -14,6 +14,11 @@
 
 package org.cipango.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import javax.servlet.sip.Address;
 import javax.servlet.sip.Parameterable;
 import javax.servlet.sip.SipURI;
@@ -53,6 +58,7 @@ public class TestReadOnly extends TestCase
 		assertEquals(orig.toString(), readOnly.toString());
 		Address clone = (Address) readOnly.clone();
 		clone.setParameter("a", "b");
+		testSerializable(readOnly);
 	}
 	
 	public void testParameterable() throws Exception 
@@ -70,6 +76,7 @@ public class TestReadOnly extends TestCase
 		assertEquals(orig.toString(), readOnly.toString());
 		Parameterable clone = (Parameterable) readOnly.clone();
 		clone.setParameter("a", "b");
+		testSerializable(readOnly);
 	}
 	
 	public void testSipUri() throws Exception 
@@ -87,6 +94,7 @@ public class TestReadOnly extends TestCase
 		assertEquals(orig.toString(), readOnly.toString());
 		URI clone = (URI) readOnly.clone();
 		clone.setParameter("a", "b");
+		testSerializable(readOnly);
 	}
 	
 	public void testTelUrl() throws Exception 
@@ -102,6 +110,7 @@ public class TestReadOnly extends TestCase
 		assertEquals(orig.toString(), readOnly.toString());
 		URI clone = (URI) readOnly.clone();
 		clone.setParameter("a", "b");
+		testSerializable(readOnly);
 	}
 	
 	public void testURI() throws Exception 
@@ -117,5 +126,16 @@ public class TestReadOnly extends TestCase
 		assertEquals(orig.toString(), readOnly.toString());
 		URI clone = (URI) readOnly.clone();
 		clone.setParameter("a", "b");
+		testSerializable(readOnly);
+	}
+	
+	public void testSerializable(Object o) throws Exception 
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream os = new ObjectOutputStream(baos);
+		os.writeObject(o);
+		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		ObjectInputStream is = new ObjectInputStream(bais);
+		assertEquals(o, is.readObject());
 	}
 }

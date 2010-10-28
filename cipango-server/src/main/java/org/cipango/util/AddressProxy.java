@@ -14,6 +14,7 @@
 
 package org.cipango.util;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -23,7 +24,7 @@ import javax.servlet.sip.URI;
 
 import org.cipango.sip.NameAddr;
 
-public class AddressProxy implements Address
+public class AddressProxy implements Address, Serializable
 {
 	private Address _address;
 	

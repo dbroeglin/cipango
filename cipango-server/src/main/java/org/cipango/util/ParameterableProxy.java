@@ -14,13 +14,14 @@
 
 package org.cipango.util;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.servlet.sip.Parameterable;
 
-public class ParameterableProxy implements Parameterable
+public class ParameterableProxy implements Parameterable, Serializable
 {
 	private Parameterable _parameterable;
 	

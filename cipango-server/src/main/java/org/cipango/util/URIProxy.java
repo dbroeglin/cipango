@@ -14,11 +14,12 @@
 
 package org.cipango.util;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
 import javax.servlet.sip.URI;
 
-public class URIProxy implements URI
+public class URIProxy implements URI, Serializable
 {
 	private URI _uri;
 	

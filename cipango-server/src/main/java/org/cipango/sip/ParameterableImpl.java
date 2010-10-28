@@ -14,6 +14,7 @@
 
 package org.cipango.sip;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -28,7 +29,7 @@ import org.cipango.sip.SipHeaders.HeaderInfo;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
 
-public class ParameterableImpl implements Parameterable
+public class ParameterableImpl implements Parameterable, Serializable
 {
 	private String _value;
 	private HashMap<String, String> _parameters = new HashMap<String, String>();

@@ -125,11 +125,23 @@ public class Session implements SessionIf
 		_callId = other._callId;
 		_localParty = (NameAddr) other._localParty.clone();
 		_remoteParty = (NameAddr) other._remoteParty.clone();
-		_remoteParty.setParameter(SipParams.TAG, null);
 		
 		_role = other._role;
+		
+		if (_role == Role.UAS)
+			_localParty.removeParameter(SipParams.TAG);
+		else
+			_remoteParty.removeParameter(SipParams.TAG);
+		
 		if (other._ua != null)
 			_ua = new UA();
+		
+		
+		if (other._attributes != null)
+		{
+			_attributes = newAttributeMap();
+			_attributes.putAll(other._attributes);
+		}
 	}
 	
 	/**

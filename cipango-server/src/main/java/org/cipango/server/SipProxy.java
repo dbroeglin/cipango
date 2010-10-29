@@ -200,7 +200,6 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	/**
 	 * @see Proxy#getProxyBranches()
 	 */
-	@SuppressWarnings("unchecked")
 	public List<ProxyBranch> getProxyBranches()
 	{
 		return LazyList.getList(_branches);
@@ -558,6 +557,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
             	Log.debug("new branch(es) created in callback {}", _branches, null);
             return;
         }
+        _best.session().updateState(_best, false);
 		forward(_best);
 	}
 	
@@ -580,7 +580,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
         }
         */
         _tx.send(response);
-		response.setCommitted(true); 
+		response.setCommitted(true);
 	}    
 	
 	class TimeoutC implements Runnable, Serializable
@@ -729,7 +729,6 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 		/**
 		 * @see ProxyBranch#getRecursedProxyBranches()
 		 */
-		@SuppressWarnings("unchecked")
 		public List<ProxyBranch> getRecursedProxyBranches() 
 		{
 			return LazyList.getList(_recursedBranches);
@@ -936,9 +935,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        }
 			
 	        response.setSession(session);
-			
-			session.updateState(response, false);
-			
+						
 			response.removeTopVia();
 			response.setProxyBranch(this);
 			
@@ -946,10 +943,9 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        {
 				if (response.isInvite())
 					updateTimerC();
-	                
-				// TODO session register
-	            invokeServlet(response);
 	            
+				session.updateState(response, false);
+				invokeServlet(response);
 				forward(response);
 			} 
 	        else 
@@ -962,7 +958,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	            {
 					try 
 	                {
-						Iterator it = response.getAddressHeaders(SipHeaders.CONTACT);
+						Iterator<Address> it = response.getAddressHeaders(SipHeaders.CONTACT);
 						while (it.hasNext()) 
 	                    {
 							Address contact = (Address) it.next();
@@ -996,7 +992,7 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 				
 				if (status < 300) 
 	            {
-					// TODO session register
+					session.updateState(response, false);
 	                invokeServlet(response);
 					forward(response);
 					

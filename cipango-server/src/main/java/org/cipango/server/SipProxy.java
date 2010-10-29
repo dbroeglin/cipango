@@ -557,7 +557,6 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
             	Log.debug("new branch(es) created in callback {}", _branches, null);
             return;
         }
-        _best.session().updateState(_best, false);
 		forward(_best);
 	}
 	
@@ -579,6 +578,8 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
             }
         }
         */
+		if (response.getStatus() >= 300)
+			response.session().updateState(response, false);
         _tx.send(response);
 		response.setCommitted(true);
 	}    
@@ -935,7 +936,9 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 	        }
 			
 	        response.setSession(session);
-						
+			if (status < 300)
+				session.updateState(response, false);
+	        
 			response.removeTopVia();
 			response.setProxyBranch(this);
 			
@@ -944,7 +947,6 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 				if (response.isInvite())
 					updateTimerC();
 	            
-				session.updateState(response, false);
 				invokeServlet(response);
 				forward(response);
 			} 
@@ -992,7 +994,6 @@ public class SipProxy implements Proxy, ServerTransactionListener, Serializable
 				
 				if (status < 300) 
 	            {
-					session.updateState(response, false);
 	                invokeServlet(response);
 					forward(response);
 					

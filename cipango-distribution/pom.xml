@@ -21,29 +21,6 @@
         <version>1.4</version>
         <executions>
           <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks if="jetty.home">
-                <delete includeemptydirs="true" failonerror="false">
-                  <fileset dir="${jetty.home}">
-                    <include name="lib/sip-api*.jar"/>
-                    <include name="etc/cipango*.xml"/>
-                    <include name="etc/dar.properties"/>
-                    <include name="etc/sipdefault.xml"/>
-                    <include name="*-CIPANGO.txt"/>
-                    <include name="start-cipango.ini"/>
-                    <include name="lib/sip"/>
-                    <include name="lib/ext/cipango-*.jar"/>
-                  </fileset>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-          <execution>
             <id>generate-resources</id>
             <phase>compile</phase>
             <goals>

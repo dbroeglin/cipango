@@ -1,3 +1,10 @@
+cipango-2.0.0pre2 - 29 October 2010
+ + Upgrade distribution mechanism: no more need to have system property jetty.home
+ + CIPANGO-108 SipApplicationSession can be invalidated to early due to Invalid when ready mechanism
+ + CIPANGO-105 Cipango-console: "Applications" Tab
+ + CIPANGO-110 SipRequest.getFrom() is not serializable 
+ + CIPANGO-107 Session state is set to TERMINATED when received a 4xx in proxy mode
+
 cipango-2.0.0pre1 - 25 October 2010
  + CIPANGO-100 Application are not notified of answer when no SipApplicationSession are set in DiameterFactory.createRequest()
  + CIPANGO-98  Cannot start Cipango Diameter without SIP connectors

@@ -1,3 +1,11 @@
+cipango (2.0.0pre2) unstable; urgency=low
+ *  CIPANGO-108 SipApplicationSession can be invalidated to early due to Invalid when ready mechanism
+ *  CIPANGO-105 Cipango-console: "Applications" Tab
+ *  CIPANGO-110 SipRequest.getFrom() is not serializable 
+ *  CIPANGO-107 Session state is set to TERMINATED when received a 4xx in proxy mode
+
+ -- Nexcom Systems <nicolas@cipango.org>  Fri, 29 October 2010 16:15:00 +0200
+
 cipango (2.0.0pre1) unstable; urgency=low
 
  *  CIPANGO-100 Application are not notified of answer when no SipApplicationSession are set in DiameterFactory.createRequest()

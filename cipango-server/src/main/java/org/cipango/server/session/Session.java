@@ -134,8 +134,7 @@ public class Session implements SessionIf
 			_remoteParty.removeParameter(SipParams.TAG);
 		
 		if (other._ua != null)
-			_ua = new UA();
-		
+			_ua = new UA(other._ua);
 		
 		if (other._attributes != null)
 		{
@@ -670,7 +669,9 @@ public class Session implements SessionIf
 	{
 		if (_role != Role.UNDEFINED)
 			throw new IllegalStateException("Session is " + _role);
-		_ua = new UA(mode);
+		
+		_role = mode == UAMode.UAC ? Role.UAC : Role.UAS;
+		_ua = new UA();
 	}
 	
 	public boolean isProxy()
@@ -828,15 +829,12 @@ public class Session implements SessionIf
 		protected long _remoteRSeq = -1;
 		protected long _localRSeq = 1;
 		 
-		public UA(UAMode mode)
-		{
-			if (_role != Role.UNDEFINED)
-				throw new IllegalStateException("session is " + _role);
-			
-			_role = mode == UAMode.UAC ? Role.UAC : Role.UAS;
-		}
-		
 		protected UA() { }
+		
+		protected UA(UA other)
+		{
+			_localCSeq = other._localCSeq;
+		}
 		
 		public SipRequest createRequest(SipRequest srcRequest)
 		{
@@ -1206,22 +1204,23 @@ public class Session implements SessionIf
 		
 		private ServerInvite getServerInvite(long cseq, boolean create)
 		{
-			ServerInvite invite = null;
 			for (int i = LazyList.size(_serverInvites); i-->0;)
 			{
-				invite = (ServerInvite) LazyList.get(_serverInvites, i);
+				ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
 	            if (invite.getSeq() == cseq)
 	            	return invite;
 			}
-			if (invite == null && create)
+			if (create)
 			{
-				invite = new ServerInvite(cseq);
+				ServerInvite invite = new ServerInvite(cseq);
 				_serverInvites = LazyList.add(_serverInvites, invite);
 				
 				if (Log.isDebugEnabled())
 					Log.debug("added server invite context with cseq " + cseq);
+				
+				return invite;
 			}
-			return invite;
+			return null;
 		}
 	
 		private ServerInvite removeServerInvite(long cseq)
@@ -1243,22 +1242,22 @@ public class Session implements SessionIf
 		
 		private ClientInvite getClientInvite(long cseq, boolean create)
 		{
-			ClientInvite invite = null;
 			for (int i = LazyList.size(_clientInvites); i-->0;)
 			{
-				invite = (ClientInvite) LazyList.get(_clientInvites, i);
+				ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
 	            if (invite.getCSeq() == cseq)
 	            	return invite;
 			}
-			if (invite == null && create)
+			if (create)
 			{
-				invite = new ClientInvite(cseq);
+				ClientInvite invite = new ClientInvite(cseq);
 				_clientInvites = LazyList.add(_clientInvites, invite);
 				
 				if (Log.isDebugEnabled())
 					Log.debug("added client invite context with cseq " + cseq);
+				return invite;
 			}
-			return invite;
+			return null;
 		}
 		
 		public List<SipServletResponse> getUncommitted2xx(UAMode mode)

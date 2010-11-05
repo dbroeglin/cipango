@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
 import javax.servlet.sip.SipServletMessage;
@@ -353,7 +354,24 @@ public class B2bHelper implements B2buaHelper
 					}
 					else if (ordinal == SipHeaders.FROM_ORDINAL || ordinal == SipHeaders.TO_ORDINAL)
 					{
-						// TODO merge RFC496
+						List<String> l = entry.getValue();
+						if (l.size() > 0)
+						{
+							try
+							{
+								Address address = new NameAddr(l.get(0));
+								if (ordinal == SipHeaders.FROM_ORDINAL)
+									address.setParameter(SipParams.TAG, request.from().getParameter(SipParams.TAG));
+								else
+									address.removeParameter(SipParams.TAG);
+								request.getFields().setAddress(name, address);
+								// TODO from/to session ?
+							}
+							catch (ServletException e)
+							{
+								throw new IllegalArgumentException("Invalid " + name + " header ", e);
+							}
+						}
 					}
 					else if (ordinal == SipHeaders.ROUTE_ORDINAL && request.isInitial())
 					{

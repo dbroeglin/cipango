@@ -721,6 +721,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
 		clone._subscriberURI = null;
 		clone._proxy = null;
 		clone._initialPoppedRoute = null;
+		clone._requestUri = _requestUri.clone();
 		return clone;
 	}
 	

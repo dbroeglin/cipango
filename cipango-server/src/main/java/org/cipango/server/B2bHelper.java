@@ -338,21 +338,11 @@ public class B2bHelper implements B2buaHelper
 				
 				CachedBuffer name = SipHeaders.getCachedName(s);
 				HeaderInfo hi = SipHeaders.getType(name);
+				int ordinal = hi.getOrdinal();
 				
 				if (hi.isSystem())
 				{
-					int ordinal = hi.getOrdinal();
-					if (ordinal == SipHeaders.CONTACT_ORDINAL)
-					{
-						NameAddr contact = (NameAddr) request.getFields().getAddress(SipHeaders.CONTACT_BUFFER);
-						if (contact != null)
-						{
-							List<String> contacts = entry.getValue();
-							if (contacts.size() > 0)
-								mergeContact(contacts.get(0), contact);
-						}
-					}
-					else if (ordinal == SipHeaders.FROM_ORDINAL || ordinal == SipHeaders.TO_ORDINAL)
+					if (ordinal == SipHeaders.FROM_ORDINAL || ordinal == SipHeaders.TO_ORDINAL)
 					{
 						List<String> l = entry.getValue();
 						if (l.size() > 0)
@@ -384,6 +374,16 @@ public class B2bHelper implements B2buaHelper
 					else
 					{
 						throw new IllegalArgumentException("Header " + s + " is system.");
+					}
+				}
+				else if (ordinal == SipHeaders.CONTACT_ORDINAL)
+				{
+					NameAddr contact = (NameAddr) request.getFields().getAddress(SipHeaders.CONTACT_BUFFER);
+					if (contact != null)
+					{
+						List<String> contacts = entry.getValue();
+						if (contacts.size() > 0)
+							mergeContact(contacts.get(0), contact);
 					}
 				}
 				else

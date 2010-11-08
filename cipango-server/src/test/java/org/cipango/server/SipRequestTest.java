@@ -158,7 +158,7 @@ public class SipRequestTest extends TestCase
 		assertEquals("Not same number of address", expected.size(), it.nextIndex());
 	}
 	
-	public SipMessage getMessage(String msg) throws Exception
+	public static SipMessage getMessage(String msg) throws Exception
 	{
 		EventHandler handler = new EventHandler();
 		SipParser parser = new SipParser(new ByteArrayBuffer(msg.getBytes()), handler);
@@ -250,7 +250,7 @@ public class SipRequestTest extends TestCase
 		return i;
 	}
 	
-	private static final String INVITE = "INVITE sips:ss2.biloxi.example.com SIP/2.0\r\n"
+	public static final String INVITE = "INVITE sips:ss2.biloxi.example.com SIP/2.0\r\n"
 		+ "Via: SIP/2.0/TLS client.biloxi.example.com:5061;branch=z9hG4bKnashds7\r\n"
 		+ "Max-Forwards: 70\r\n"
 		+ "From: Bob <sips:bob@biloxi.example.com>;tag=a73kszlfl\r\n"

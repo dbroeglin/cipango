@@ -179,7 +179,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
      */
     public URI getRequestURI() 
     {
-    	if (_requestUri == null)
+    	if (_requestUri == null && _sRequestUri != null)
     	{
 			try
 			{

@@ -26,6 +26,8 @@ import javax.servlet.sip.TelURL;
 // TODO extends from URIImpl
 public class TelURLImpl implements TelURL, Serializable 
 {	
+	static final long serialVersionUID = 5887052588082246867L;
+	
 	private String _uri;
 	private String _scheme;
 	private String _number;

@@ -26,6 +26,8 @@ import org.eclipse.jetty.io.ByteArrayBuffer;
 
 public class Via implements Serializable, Cloneable
 {	
+    static final long serialVersionUID = 406731255735133275L;
+    
     public static final String MAGIC_COOKIE = "z9hG4bK";
     
     private static final String BRANCH_PARAM 	= "branch";

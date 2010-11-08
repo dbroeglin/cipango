@@ -26,6 +26,8 @@ import org.cipango.sip.NameAddr;
 
 public class AddressProxy implements Address, Serializable
 {
+    static final long serialVersionUID = 3124500907098139606L;
+	
 	private Address _address;
 	
 	public AddressProxy(Address address)

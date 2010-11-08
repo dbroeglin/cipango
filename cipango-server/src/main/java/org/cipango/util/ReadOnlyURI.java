@@ -18,6 +18,8 @@ import javax.servlet.sip.URI;
 
 public class ReadOnlyURI extends URIProxy
 {
+    static final long serialVersionUID = 1584249591435836163L;
+    
 	public ReadOnlyURI(URI uri)
 	{
 		super(uri);

@@ -18,6 +18,8 @@ import javax.servlet.sip.SipURI;
 
 public class ReadOnlySipURI extends SipURIProxy
 {
+    static final long serialVersionUID = -7475677998794418076L;
+    
     public ReadOnlySipURI(SipURI uri)
     {
         super(uri);

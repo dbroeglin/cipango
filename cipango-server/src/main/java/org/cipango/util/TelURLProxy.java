@@ -18,6 +18,8 @@ import javax.servlet.sip.TelURL;
 
 public class TelURLProxy extends URIProxy implements TelURL
 {
+    static final long serialVersionUID = -3739264693978176010L;
+    
 	private TelURL _telURL;
 
 	public TelURLProxy(TelURL telURL)

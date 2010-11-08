@@ -18,6 +18,8 @@ import javax.servlet.sip.Parameterable;
 
 public class ReadOnlyParameterable extends ParameterableProxy
 {
+    static final long serialVersionUID = 8976005668858290469L;
+    
 	public ReadOnlyParameterable(Parameterable parameterable)
 	{
 		super(parameterable);

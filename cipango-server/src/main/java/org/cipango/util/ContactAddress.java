@@ -22,6 +22,8 @@ import org.cipango.sip.SipURIImpl;
 
 public class ContactAddress extends AddressProxy
 {
+	static final long serialVersionUID = -8836164772214811618L;
+	
 	public ContactAddress(Address address)
 	{
 		super(address);

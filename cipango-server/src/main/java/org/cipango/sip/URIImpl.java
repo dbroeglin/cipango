@@ -25,6 +25,8 @@ import javax.servlet.sip.URI;
 
 public class URIImpl implements URI, Serializable 
 {	
+	 static final long serialVersionUID = -8927516108461106171L;
+	
 	private String _uri;
 	private String _scheme;
 	private String _file;

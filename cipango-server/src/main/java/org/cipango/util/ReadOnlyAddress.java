@@ -21,6 +21,8 @@ import javax.servlet.sip.URI;
 
 public class ReadOnlyAddress extends AddressProxy
 {
+    static final long serialVersionUID = -3619796190467302288L;
+    
 	public ReadOnlyAddress(Address address)
 	{
 		super(address);

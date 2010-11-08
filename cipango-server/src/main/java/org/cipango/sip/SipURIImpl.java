@@ -26,6 +26,8 @@ import javax.servlet.sip.URI;
 
 public class SipURIImpl extends URIImpl implements SipURI 
 {	
+	static final long serialVersionUID = 5118485527934946592L;
+	
 	public static final String TRANSPORT_PARAM = "transport";
 	public static final String TTL_PARAM = "ttl";
 	public static final String MADDR_PARAM = "maddr";

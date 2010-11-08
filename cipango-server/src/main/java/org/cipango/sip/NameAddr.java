@@ -29,6 +29,8 @@ import org.cipango.sip.SipHeaders.HeaderInfo;
 
 public class NameAddr implements Address, Serializable
 {
+    static final long serialVersionUID = -6854832441383110449L;
+    
 	private String _nameAddr;
 	private String _displayName; 
 	private URI _uri;

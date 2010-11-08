@@ -21,6 +21,8 @@ import javax.servlet.sip.URI;
 
 public class URIProxy implements URI, Serializable
 {
+    static final long serialVersionUID = -8180882040956292252L;
+    
 	private URI _uri;
 	
 	public URIProxy(URI uri)

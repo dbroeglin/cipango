@@ -23,6 +23,8 @@ import javax.servlet.sip.Parameterable;
 
 public class ParameterableProxy implements Parameterable, Serializable
 {
+    static final long serialVersionUID = -986063363952358747L;
+    
 	private Parameterable _parameterable;
 	
 	public ParameterableProxy(Parameterable parameterable)

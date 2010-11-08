@@ -19,6 +19,8 @@ import javax.servlet.sip.SipURI;
 
 public class SipURIProxy extends URIProxy implements SipURI
 {
+    static final long serialVersionUID = -8783776759537945045L;
+    
     private SipURI _uri;
     
     public SipURIProxy(SipURI uri)

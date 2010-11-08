@@ -890,7 +890,7 @@ public class Session implements SessionIf
 			
 			if (_remoteTarget != null)
 				request.setRequestURI((URI) _remoteTarget.clone());
-			else
+			else if (request.getRequestURI() == null)
 				request.setRequestURI(request.to().getURI());
 			
 			if (_routeSet != null)

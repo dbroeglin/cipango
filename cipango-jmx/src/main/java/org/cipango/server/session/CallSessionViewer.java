@@ -111,16 +111,18 @@ public class CallSessionViewer
 			printAttr(sb, "Call-ID", session._callId, 5);
 			printAttr(sb, "linkedSessionId", session._linkedSessionId, 5);
 			printAttr(sb, "subscriberURI", session._subscriberURI, 5);
+			printAttr(sb, "handler", session.getHandler(), 5);
 			UA ua = session._ua;
 			if (ua != null)
 			{
-				printAttr(sb, "local CSeq", ua._localCSeq, 5);
-				printAttr(sb, "Remote CSeq", ua._remoteCSeq, 5);
-				printAttr(sb, "Remote Target", ua._remoteTarget, 5);
-				printAttr(sb, "route Set", ua._routeSet, 5);
-				printAttr(sb, "Secure", ua._secure, 5);
-				printAttr(sb, "local RSeq", ua._localRSeq, 5);
-				printAttr(sb, "Remote RSeq", ua._remoteRSeq, 5);
+				sb.append("\t\t\t\t\t+ [ua]\n");
+				printAttr(sb, "local CSeq", ua._localCSeq, 6);
+				printAttr(sb, "Remote CSeq", ua._remoteCSeq, 6);
+				printAttr(sb, "Remote Target", ua._remoteTarget, 6);
+				printAttr(sb, "route Set", ua._routeSet, 6);
+				printAttr(sb, "Secure", ua._secure, 6);
+				printAttr(sb, "local RSeq", ua._localRSeq, 6);
+				printAttr(sb, "Remote RSeq", ua._remoteRSeq, 6);
 			}
 			
 		}

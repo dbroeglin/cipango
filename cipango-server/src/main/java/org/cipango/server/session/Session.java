@@ -988,7 +988,15 @@ public class Session implements SessionIf
 			{
 				Session derived = _appSession.getSession(response);
 				if (derived == null)
+				{
 					derived = _appSession.createDerivedSession(Session.this);
+					if (_linkedSessionId != null)
+					{
+						Session linkDerived = _appSession.createDerivedSession(getLinkedSession());
+						linkDerived.setLinkedSession(derived);
+						derived.setLinkedSession(linkDerived);
+					}
+				}
 				derived._ua.handleResponse(response);
 				return;
 			}
@@ -1443,7 +1451,18 @@ public class Session implements SessionIf
 			public long retransmit(long delay) 
 			{
 				ServerTransaction tx = (ServerTransaction) getResponse().getTransaction();
-				tx.send(getResponse());
+				if (tx != null)
+					tx.send(getResponse());
+				else
+				{
+					try
+					{
+						getServer().getConnectorManager().sendResponse(getResponse());
+					}
+					catch (IOException e) {
+						Log.debug(e);
+					}
+				}
 				return Math.min(delay*2, Transaction.__T2);
 			}
 			

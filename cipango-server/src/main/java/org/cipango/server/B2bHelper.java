@@ -182,29 +182,49 @@ public class B2bHelper implements B2buaHelper
 			throw new IllegalArgumentException("SipSession " + sipSession + " is not valid");
 		
 		Session session = ((SessionIf) sipSession).getSession();
-		for (ServerTransaction tx : session.getCallSession().getServerTransactions(session))
+		Iterator<Session> it = findCloneSessions(session).iterator();
+		while (it.hasNext())
 		{
-			SipRequest request = tx.getRequest();
-			if (request.isInitial())
+			Session session2 = (Session) it.next();
+			
+			for (ServerTransaction tx : session.getCallSession().getServerTransactions(session2))
 			{
-				if (tx.isCompleted())
+				SipRequest request = tx.getRequest();
+				if (request.isInitial() && request.isInvite())
 				{
-					if (status >= 300)
-						throw new IllegalStateException("Cannot send response with status" + status 
-								+ " since final response has already been sent");
-					SipResponse response = new SipResponse(request, status, reason);
-					Session derived = session.appSession().createDerivedSession(session);
-					response.setSession(derived);
-					response.setTransaction(null);
-					return response;
-				}
-				else
-				{
-					return request.createResponse(status, reason);
+					if (tx.isCompleted())
+					{
+						if (status >= 300)
+							throw new IllegalStateException("Cannot send response with status" + status 
+									+ " since final response has already been sent");
+						SipResponse response = new SipResponse(request, status, reason);
+						response.setSession(session);
+						response.setTransaction(null);
+						return response;
+					}
+					else
+					{
+						return request.createResponse(status, reason);
+					}
 				}
 			}
 		}
 		return null;
+	}
+	
+	private List<Session> findCloneSessions(Session session)
+	{
+		Iterator<?> it = session.appSession().getSessions("sip");
+		List<Session> l = new ArrayList<Session>();
+		while (it.hasNext())
+		{
+			Session sipSession = (Session) it.next();
+			if (sipSession.getRemoteParty().equals(session.getRemoteParty())
+					&& sipSession.getCallId().equals(session.getCallId()))
+				l.add(sipSession);
+			
+		}
+		return l;
 	}
 
 	/**

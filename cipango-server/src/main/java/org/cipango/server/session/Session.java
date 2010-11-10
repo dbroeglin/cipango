@@ -51,8 +51,6 @@ import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
-import org.cipango.server.session.Session.UA.ClientInvite.Reliable1xxClient;
-import org.cipango.server.session.Session.UA.ServerInvite.Reliable1xx;
 import org.cipango.server.session.scope.ScopedAppSession;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
@@ -69,10 +67,7 @@ import org.cipango.sip.SipMethods;
 import org.cipango.sip.SipParams;
 import org.cipango.sipapp.SipAppContext;
 import org.cipango.util.ReadOnlyAddress;
-
 import org.cipango.util.TimerTask;
-
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
 
@@ -1299,7 +1294,7 @@ public class Session implements SessionIf
 					ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
 					for (int j = LazyList.size(invite._reliable1xxs); j-->0;)
 					{
-						Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(invite._reliable1xxs, j);
+						ServerInvite.Reliable1xx reliable1xx = (ServerInvite.Reliable1xx) LazyList.get(invite._reliable1xxs, j);
 						SipResponse response = reliable1xx.getResponse();
 						if (response != null && !response.isCommitted())
 						{
@@ -1317,7 +1312,7 @@ public class Session implements SessionIf
 					ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
 					for (int j = LazyList.size(invite._reliable1xxs); j-->0;)
 					{
-						Reliable1xxClient reliable1xx = (Reliable1xxClient) LazyList.get(invite._reliable1xxs, j);
+						ClientInvite.Reliable1xxClient reliable1xx = (ClientInvite.Reliable1xxClient) LazyList.get(invite._reliable1xxs, j);
 						SipResponse response = reliable1xx.getResponse();
 						if (response != null && !response.isCommitted())
 						{

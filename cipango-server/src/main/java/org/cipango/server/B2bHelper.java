@@ -58,6 +58,9 @@ public class B2bHelper implements B2buaHelper
 
 	public SipServletRequest createCancel(SipSession sipSession) 
 	{
+		if (sipSession == null)
+			throw new NullPointerException("SipSession is null");
+		
 		Session session = ((SessionIf) sipSession).getSession();
 		for (ClientTransaction tx : session.getCallSession().getClientTransactions(session))
 		{
@@ -118,6 +121,9 @@ public class B2bHelper implements B2buaHelper
 	public SipServletRequest createRequest(SipSession sipSession, SipServletRequest origRequest, 
 			Map<String, List<String>> headerMap) throws IllegalArgumentException 
 	{
+		if (sipSession == null)
+			throw new NullPointerException("SipSession is null");
+		
 		if (!sipSession.getApplicationSession().equals(origRequest.getApplicationSession()))
 			throw new IllegalArgumentException("SipSession " + sipSession 
 					+ " does not belong to same application session as original request");
@@ -178,6 +184,9 @@ public class B2bHelper implements B2buaHelper
 	 */
 	public SipServletResponse createResponseToOriginalRequest(SipSession sipSession, int status, String reason) 
 	{
+		if (sipSession == null)
+			throw new NullPointerException("SipSession is null");
+		
 		if (!sipSession.isValid())
 			throw new IllegalArgumentException("SipSession " + sipSession + " is not valid");
 		
@@ -190,16 +199,17 @@ public class B2bHelper implements B2buaHelper
 			for (ServerTransaction tx : session.getCallSession().getServerTransactions(session2))
 			{
 				SipRequest request = tx.getRequest();
-				if (request.isInitial() && request.isInvite())
+				if (request.isInitial())
 				{
-					if (tx.isCompleted())
+					if (!session2.equals(session))
 					{
 						if (status >= 300)
 							throw new IllegalStateException("Cannot send response with status" + status 
 									+ " since final response has already been sent");
 						SipResponse response = new SipResponse(request, status, reason);
 						response.setSession(session);
-						response.setTransaction(null);
+						if (response.is2xx())
+							response.setTransaction(null);
 						return response;
 					}
 					else
@@ -232,6 +242,9 @@ public class B2bHelper implements B2buaHelper
 	 */
 	public SipSession getLinkedSession(SipSession session) 
 	{
+		if (session == null)
+			throw new NullPointerException("SipSession is null");
+		
 		if (!session.isValid())
 			throw new IllegalArgumentException("SipSession " + session + " is not valid");
 		Session linked = ((SessionIf) session).getSession().getLinkedSession();
@@ -252,6 +265,9 @@ public class B2bHelper implements B2buaHelper
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public List<SipServletMessage> getPendingMessages(SipSession sipSession, UAMode mode) 
 	{
+		if (sipSession == null)
+			throw new NullPointerException("SipSession is null");
+		
 		if (!sipSession.isValid())
 			throw new IllegalArgumentException("SipSession " + sipSession + " is not valid");
 		
@@ -281,6 +297,7 @@ public class B2bHelper implements B2buaHelper
 		}
 		
 		messages.addAll(session.getUA().getUncommitted2xx(mode));
+		messages.addAll(session.getUA().getUncommitted1xx(mode));
 		
 		Collections.sort(messages, new Comparator() {
 			public int compare(Object message1, Object message2)
@@ -324,6 +341,9 @@ public class B2bHelper implements B2buaHelper
 	 */
 	public void unlinkSipSessions(SipSession sipSession) 
 	{
+		if (sipSession == null)
+			throw new NullPointerException("SipSession is null");
+		
 		Session session = ((SessionIf) sipSession).getSession();
 		checkNotTerminated(session);
 		

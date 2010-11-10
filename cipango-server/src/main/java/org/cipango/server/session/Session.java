@@ -30,6 +30,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.Proxy;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -50,6 +51,8 @@ import org.cipango.server.SipConnectors;
 import org.cipango.server.SipMessage;
 import org.cipango.server.SipRequest;
 import org.cipango.server.SipResponse;
+import org.cipango.server.session.Session.UA.ClientInvite.Reliable1xxClient;
+import org.cipango.server.session.Session.UA.ServerInvite.Reliable1xx;
 import org.cipango.server.session.scope.ScopedAppSession;
 import org.cipango.server.transaction.ClientTransaction;
 import org.cipango.server.transaction.ClientTransactionListener;
@@ -69,6 +72,7 @@ import org.cipango.util.ReadOnlyAddress;
 
 import org.cipango.util.TimerTask;
 
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
 
@@ -1040,8 +1044,10 @@ public class Session implements SessionIf
 						Log.debug("Dropping 100rel with rseq {} since expecting {}", rseq, _remoteRSeq+1);
 					return;
 				}
-				else
-					_remoteRSeq = rseq;
+				_remoteRSeq = rseq;
+				long cseq = response.getCSeq().getNumber();
+				ClientInvite invite = getClientInvite(cseq, true);
+				invite.addReliable1xx(response);
 			}
 			else
 				response.setCommitted(true);
@@ -1124,6 +1130,21 @@ public class Session implements SessionIf
 				{
 					invite._2xx = null;
 					invite._ack = request;
+				}
+			}
+			else if (request.isPrack())
+			{
+				ClientInvite invite = getClientInvite(request.getCSeq().getNumber(), false);
+				if (invite != null)
+				{
+					try
+					{
+						invite.prack(request.getRAck().getRSeq());
+					}
+					catch (ServletParseException e)
+					{
+						Log.ignore(e);
+					}
 				}
 			}
 		}
@@ -1268,6 +1289,51 @@ public class Session implements SessionIf
 			return null;
 		}
 		
+		public List<SipServletResponse> getUncommitted1xx(UAMode mode)
+		{
+			List<SipServletResponse> list = null;
+			if (mode == UAMode.UAS)
+			{
+				for (int i = LazyList.size(_serverInvites); i-->0;)
+				{
+					ServerInvite invite = (ServerInvite) LazyList.get(_serverInvites, i);
+					for (int j = LazyList.size(invite._reliable1xxs); j-->0;)
+					{
+						Reliable1xx reliable1xx = (Reliable1xx) LazyList.get(invite._reliable1xxs, j);
+						SipResponse response = reliable1xx.getResponse();
+						if (response != null && !response.isCommitted())
+						{
+							if (list == null)
+								list = new ArrayList<SipServletResponse>();
+							list.add(response);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i = LazyList.size(_clientInvites); i-->0;)
+				{
+					ClientInvite invite = (ClientInvite) LazyList.get(_clientInvites, i);
+					for (int j = LazyList.size(invite._reliable1xxs); j-->0;)
+					{
+						Reliable1xxClient reliable1xx = (Reliable1xxClient) LazyList.get(invite._reliable1xxs, j);
+						SipResponse response = reliable1xx.getResponse();
+						if (response != null && !response.isCommitted())
+						{
+							if (list == null)
+								list = new ArrayList<SipServletResponse>();
+							list.add(response);
+						}
+					}
+				}
+			}
+			if (list == null)
+				return Collections.emptyList();
+			else
+				return list;
+		}
+		
 		public List<SipServletResponse> getUncommitted2xx(UAMode mode)
 		{
 			List<SipServletResponse> list = null;
@@ -1309,9 +1375,39 @@ public class Session implements SessionIf
 			private long _cseq;
 			private SipRequest _ack;
 			private SipResponse _2xx;
+			private Object _reliable1xxs;
 		
 			public ClientInvite(long cseq) { _cseq = cseq; }
 			public long getCSeq() { return _cseq; }
+			
+			public void addReliable1xx(SipResponse response)
+			{
+				Reliable1xxClient reliable1xx = new Reliable1xxClient(response);
+				_reliable1xxs = LazyList.add(_reliable1xxs, reliable1xx);
+			}
+			
+			public boolean prack(long rseq)
+			{
+				for (int i = LazyList.size(_reliable1xxs); i-->0;)
+				{
+					Reliable1xxClient reliable1xx = (Reliable1xxClient) LazyList.get(_reliable1xxs, i);
+					if (reliable1xx.getRSeq() == rseq)
+					{
+						_reliable1xxs = LazyList.remove(_reliable1xxs, i);
+						return true;
+					}
+				}
+				return false;
+			}
+			
+			class Reliable1xxClient
+			{
+				private SipResponse _1xx;
+				
+				public Reliable1xxClient(SipResponse response) { _1xx = response; }
+				public long getRSeq() { return _1xx.getRSeq(); }
+				public SipResponse getResponse() { return _1xx; }
+			}
 		}
 		
 		abstract class ReliableResponse

@@ -16,8 +16,6 @@ package org.cipango.sip;
 
 import javax.servlet.sip.TelURL;
 
-import org.cipango.sip.URIFactory;
-
 import junit.framework.TestCase;
 
 public class TelURLTest extends TestCase
@@ -38,4 +36,12 @@ public class TelURLTest extends TestCase
 		try	{ url.setPhoneNumber("+1-212-555-0101", "atlanta.com"); fail();} catch (IllegalArgumentException e) {}
 	}	
 	
+	public void testParameters() throws Exception
+	{
+		String tel = "tel:863-1234;phone-context=+1-914-555";
+		TelURL url = (TelURL) URIFactory.parseURI(tel);
+		assertEquals("863-1234", url.getPhoneNumber());
+		assertEquals("+1-914-555", url.getPhoneContext());
+		assertFalse(url.isGlobal());
+	}
 }

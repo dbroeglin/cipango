@@ -79,6 +79,7 @@ public class AnnotationConfiguration extends AbstractConfiguration
         parseWebInfClasses(context, parser);
        
         resourceAnnotationHandler.normalizeSipInjections();
+        sipXmlProcessor.setListeners(context.getEventListeners());
         sipXmlProcessor.initListeners();
         sac.setEventListeners(sipXmlProcessor.getListeners());
         if (sipApplicationAnnotationHandler.getMainServletName() != null)

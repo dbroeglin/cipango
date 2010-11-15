@@ -169,7 +169,7 @@ public class SipXmlProcessor
 		SipServletHandler servletHandler = (SipServletHandler) _context.getServletHandler();
 		
 		_servlets = LazyList.array2List(servletHandler.getSipServlets());
-		_listeners = LazyList.array2List(_context.getEventListeners());
+		setListeners(_context.getEventListeners());
 		
 		Iterator it = config.iterator();
 		XmlParser.Node node = null;
@@ -211,6 +211,11 @@ public class SipXmlProcessor
 		
 		_context.setName(_appName);
 		_context.setEventListeners((EventListener[]) LazyList.toArray(_listeners, EventListener.class));
+	}
+	
+	public void setListeners(EventListener[] listeners)
+	{
+		_listeners = LazyList.array2List(listeners);
 	}
 	
 	protected void initSipXmlElement(XmlParser.Node node) throws Exception 

@@ -129,7 +129,7 @@ public class DiameterRequest extends DiameterMessage implements DiameterServletR
 	{
 		return _context;
 	}
-	protected void setContext(SipAppContext context)
+	public void setContext(SipAppContext context)
 	{
 		_context = context;
 	}

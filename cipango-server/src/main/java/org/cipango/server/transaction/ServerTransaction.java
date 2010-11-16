@@ -63,7 +63,8 @@ public class ServerTransaction extends Transaction
 	
     public void setListener(ServerTransactionListener listener)
     {
-        _listener = listener;
+    	if (_listener == null)
+    		_listener = listener;
     }
     
     public void cancel(SipRequest cancel) throws IOException

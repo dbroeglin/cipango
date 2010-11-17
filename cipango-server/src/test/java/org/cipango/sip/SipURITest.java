@@ -204,6 +204,21 @@ public class SipURITest extends TestCase
 		SipURI uri = sipURI("sip:+1234@example.com;user=phone;f%3Doo=%22bar%22?Subject=hello%20world");		
 		assertEquals("\"bar\"", uri.getParameter("f=oo"));
 		assertEquals("hello world", uri.getHeader("Subject"));
+		
+		uri = sipURI("sip:inside@example.com;lr");		
+		SipURI uri2 = sipURI("sip:middle@example.com");
+		uri2.setHeader("To", uri.toString());
+		SipURI uri3 = sipURI("sip:outside@example.com");
+		uri3.setHeader("From", uri2.toString());
+		// System.out.println(uri3);
+		
+		SipURI uri3b = sipURI(uri3.toString());
+		assertEquals(uri3.toString(), uri3b.toString());
+		SipURI uri2b = sipURI(uri3b.getHeader("From"));
+		assertEquals(uri2.toString(), uri2b.toString());
+		SipURI uri1b = sipURI(uri2b.getHeader("To"));
+		assertEquals(uri.toString(), uri1b.toString());
+
 	}
 	
 	public void testNew() throws Exception

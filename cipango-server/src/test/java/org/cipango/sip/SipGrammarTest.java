@@ -40,6 +40,13 @@ public class SipGrammarTest extends TestCase
 		assertFalse(SipGrammar.isLWS('a'));
 	}
 	
+
+	public void testEscape()
+	{
+		assertTrue(SipGrammar.__header.contains('%'));
+		assertEquals("%253B%40", SipGrammar.escape("%3B@", SipGrammar.__header));
+	}
+	
 	public void testURIScheme()
 	{
 		assertTrue(SipGrammar.isURIScheme("http"));

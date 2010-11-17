@@ -99,7 +99,7 @@ public class SipGrammar
 		for (int i = 0; i < s.length(); i++)
 		{
 			int c = s.charAt(i);
-			if (charset.contains(c))
+			if (charset.contains(c) && c != '%')
 			{
 				if (escaped != null) 
 					escaped.append((char) c);

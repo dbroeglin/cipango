@@ -75,14 +75,20 @@ module Sipatra
         method_definitions += <<-RUBY
           def []=(name, values)
             name = name.to_s
-            @app.msg.remove#{address ? "Address" : ""}Header(name)
-            values.each { |value| @app.msg.add#{address ? "Address" : ""}Header(name, value.to_s) }
+            @app.msg.removeHeader(name)
+            if !values.nil?
+              values.each { |value| @app.msg.add#{address ? "Address" : ""}Header(name, value#{address ? ", true" : ""})}
+            end
           end 
         RUBY
       else
         method_definitions += <<-RUBY
           def []=(name, value)
-            @app.msg.set#{address ? "Address" : ""}Header(name.to_s, value)
+            if !value.nil?
+              @app.msg.set#{address ? "Address" : ""}Header(name.to_s, value)
+            else
+              @app.msg.removeHeader(name.to_s)
+            end
           end 
         RUBY
       end
@@ -125,8 +131,8 @@ module Sipatra
         msg.addHeader(name.to_s, value)
       end
       
-      def add_address_header(name, value)
-        msg.addAddressHeader(name.to_s, value)
+      def add_address_header(name, value, first = true)
+        msg.addAddressHeader(name.to_s, value, first)
       end
       
       def header?(name)
@@ -186,11 +192,11 @@ module Sipatra
         case symbol_or_int
           when Integer: return symbol_or_int
           when Symbol: 
-            code = STATUS_CODES_MAP[symbol_or_int]
-            raise ArgumentError, "Unknown status code symbol: '#{symbol_or_int}'" unless code
-            code
-          else
-            raise ArgumentError, "Status code value should be a Symbol or Int not '#{symbol_or_int.class}'"
+          code = STATUS_CODES_MAP[symbol_or_int]
+          raise ArgumentError, "Unknown status code symbol: '#{symbol_or_int}'" unless code
+          code
+        else
+          raise ArgumentError, "Status code value should be a Symbol or Int not '#{symbol_or_int.class}'"
         end
       end
     end

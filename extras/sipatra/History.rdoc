@@ -1,5 +1,6 @@
 = 0.0.3
 
+ * Corrected specs to match header corrections, reverted to value.to_s for non-Address headers
  * JRuby 1.5.5 + fix minor bugs in header helpers methods
  * Using SingleThread JRuby runtime initialization with a Pool of runtimes.
 

@@ -77,7 +77,9 @@ module Sipatra
             name = name.to_s
             @app.msg.removeHeader(name)
             if !values.nil?
-              values.each { |value| @app.msg.add#{address ? "Address" : ""}Header(name, value#{address ? ", true" : ""})}
+              values.each do |value| 
+                @app.msg.add#{address ? "Address" : ""}Header(name, value#{address ? ", true" : ".to_s"})
+              end
             end
           end 
         RUBY

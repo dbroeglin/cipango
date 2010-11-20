@@ -193,12 +193,16 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   
   it 'should respond to headers[]=' do
     values = ['foo', :bar]
-    subject.msg.should_receive(:removeHeader).with('toto')
-    values.each { |value| subject.msg.should_receive(:addHeader).with('toto', value.to_s) }
-    subject.msg.should_receive(:removeHeader).with('toto')
-    values.each { |value| subject.msg.should_receive(:addHeader).with('toto', value.to_s) }
     
-    
+    subject.msg.should_receive(:removeHeader).with('toto')
+    values.each do |value| 
+      subject.msg.should_receive(:addHeader).with('toto', value.to_s) 
+    end
+    subject.msg.should_receive(:removeHeader).with('toto')
+    values.each do |value| 
+      subject.msg.should_receive(:addHeader).with('toto', value.to_s) 
+    end
+
     subject.headers[:toto] = values
     subject.headers['toto'] = values
   end
@@ -226,11 +230,14 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   
   it 'should not respond to address_headers[]=' do
     values = ['foo', :bar]
-    subject.msg.should_receive(:removeAddressHeader).with('toto')
-    values.each { |value| subject.msg.should_receive(:addAddressHeader).with('toto', value.to_s) }
-    subject.msg.should_receive(:removeAddressHeader).with('toto')
-    values.each { |value| subject.msg.should_receive(:addAddressHeader).with('toto', value.to_s) }
-    
+    subject.msg.should_receive(:removeHeader).with('toto')
+    values.each do |value| 
+      subject.msg.should_receive(:addAddressHeader).with('toto', value, true) 
+    end
+    subject.msg.should_receive(:removeHeader).with('toto')
+    values.each do |value| 
+      subject.msg.should_receive(:addAddressHeader).with('toto', value, true) 
+    end  
     
     subject.address_headers[:toto] = values
     subject.address_headers['toto'] = values
@@ -251,8 +258,10 @@ describe 'When', Sipatra::HelperMethods, 'is included', FakeApp do
   end
   
   it 'should add an address header' do
-    subject.msg.should_receive(:addAddressHeader).twice.with('toto', 'test2')
+    subject.msg.should_receive(:addAddressHeader).with('titi', 'test1', false)
+    subject.msg.should_receive(:addAddressHeader).twice.with('toto', 'test2', true)
     
+    subject.add_address_header(:titi, 'test1', false)
     subject.add_address_header(:toto, 'test2')
     subject.add_address_header('toto', 'test2')
   end

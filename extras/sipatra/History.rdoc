@@ -1,0 +1,14 @@
+= 0.0.3
+
+ * JRuby 1.5.5 + fix minor bugs in header helpers methods
+ * Using SingleThread JRuby runtime initialization with a Pool of runtimes.
+
+= 0.0.2
+
+ * More versatile deployment
+ * Full gem deployment
+ * Using ThreadLocal JRuby runtime initialization
+
+= 0.0.1
+
+ * First version

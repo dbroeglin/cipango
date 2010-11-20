@@ -29,6 +29,7 @@ import org.cipango.sipatra.ruby.JRubyRuntimeFactory;
 import org.cipango.sipatra.ruby.JRubyRuntimePool;
 import org.jruby.embed.ScriptingContainer;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sipatra Main Servlet
@@ -37,18 +38,17 @@ import org.slf4j.Logger;
  */
 public class SipatraServlet extends SipServlet 
 {
-	private Logger _log = org.slf4j.LoggerFactory.getLogger(SipatraServlet.class);
+	private static final Logger _log = LoggerFactory.getLogger(SipatraServlet.class);
 
-	private static final String SIPATRA_PATH_PROPERTY 				= "org.cipango.sipatra.script.path";
-	private static final String SIPATRA_POOL_MAX_ACTIVE_PROPERTY 	= "org.cipango.sipatra.pool.maxActive";
-	private static final String SIPATRA_POOL_MAX_IDLE_PROPERTY 		= "org.cipango.sipatra.pool.maxIdle";
-	private static final String SIPATRA_POOL_MAX_WAIT_PROPERTY 		= "org.cipango.sipatra.pool.maxWait";
-	private static final String SIPATRA_POOL_MIN_IDLE_PROPERTY 		= "org.cipango.sipatra.pool.minIdle";
+	private static final String SIPATRA_PATH_PROPERTY 				      = "org.cipango.sipatra.script.path";
+	private static final String SIPATRA_POOL_MAX_ACTIVE_PROPERTY 	  = "org.cipango.sipatra.pool.maxActive";
+	private static final String SIPATRA_POOL_MAX_IDLE_PROPERTY 		  = "org.cipango.sipatra.pool.maxIdle";
+	private static final String SIPATRA_POOL_MAX_WAIT_PROPERTY 		  = "org.cipango.sipatra.pool.maxWait";
+	private static final String SIPATRA_POOL_MIN_IDLE_PROPERTY 		  = "org.cipango.sipatra.pool.minIdle";
 	private static final String SIPATRA_POOL_MIN_EVICTABLE_PROPERTY	= "org.cipango.sipatra.pool.minEvictableIdleTimeMillis";
-	private static final String SIPATRA_POOL_INIT_POOL_SIZE			= "org.cipango.sipatra.pool.init.size";
+	private static final String SIPATRA_POOL_INIT_POOL_SIZE			    = "org.cipango.sipatra.pool.init.size";
 
 	private ServletContext _servletContext;
-
 	private JRubyRuntimePool _pool;
 
 	/**

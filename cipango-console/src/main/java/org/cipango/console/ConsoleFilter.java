@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.security.Principal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -188,6 +189,13 @@ public class ConsoleFilter implements Filter
 			response.sendError(503 ,"JMX is not enabled, unable to use cipango console. Please start Cipango with:\n" +
 			"\tjava -jar start.jar --ini=start-cipango.ini --pre=etc/cipango-jmx.xml");
 			return;
+		}
+		
+		Principal principal = request.getUserPrincipal();
+		if (principal != null && !principal.equals(request.getSession().getAttribute(Principal.class.getName())))
+		{		
+			_logger.info("User " + principal.getName() + " has logged in console");
+			request.getSession().setAttribute(Principal.class.getName(), principal);
 		}
 		
 		MenuPrinter menuPrinter = new MenuPrinter(_mbsc, command, request.getContextPath());
@@ -393,12 +401,17 @@ public class ConsoleFilter implements Filter
 		
 		String sObjectName = request.getParameter(Parameters.OBJECT_NAME);
 		
-		
 		if (action != null && sObjectName != null)
 		{
 			ObjectName objectName = ObjectNameFactory.create(sObjectName);
 			if (action.equals("undeploy"))
-				_deployer.undeploy(objectName);			
+			{
+				_deployer.undeploy(objectName);	
+				String name = objectName.getKeyProperty("name");
+				request.getSession().setAttribute(Attributes.INFO, "Successfull request to undeploy application " + name);
+				Log.info("User " + request.getUserPrincipal() 
+						+ " requested to undeploy application " + name);
+			}
 			else
 			{
 				_mbsc.invoke(objectName, action, null, null);
@@ -480,10 +493,11 @@ public class ConsoleFilter implements Filter
 					item = it.next();
 					if (!item.isFormField())
 					{
-						
-							_deployer.deploy(item.getName(), item.get());
-							request.getSession().setAttribute(Attributes.INFO, "Successful request to deploy "
-									+ item.getName());
+						_deployer.deploy(item.getName(), item.get());
+						request.getSession().setAttribute(Attributes.INFO,
+								"Successful request to deploy " + item.getName());
+						Log.info("User " + request.getUserPrincipal() 
+								+ " requested to deploy application: " + item.getName());
 					}
 				}
 			}

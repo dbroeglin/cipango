@@ -76,13 +76,9 @@ public class SipAppDeployer extends WebAppDeployer
 	
 	            if (context.toLowerCase().endsWith(".war")
 	            		|| context.toLowerCase().endsWith(".jar")
-	            		|| context.toLowerCase().endsWith(".sar")
-	            		|| context.toLowerCase().endsWith(".ssar")) 
+	            		|| context.toLowerCase().endsWith(".sar")) 
 	            {
-	            	if (context.toLowerCase().endsWith(".ssar"))
-	            		context = context.substring(0, context.length() - 5);
-	            	else 
-	            		context = context.substring(0, context.length() - 4);
+	            	context = context.substring(0, context.length() - 4);
 	                Resource unpacked = r.addPath(context);
 	                if (unpacked != null && unpacked.exists() && unpacked.isDirectory())
 	                    continue;

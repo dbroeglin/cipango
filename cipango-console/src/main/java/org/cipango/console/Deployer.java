@@ -191,8 +191,15 @@ public class Deployer
 		
 	private File getDeployDir() throws JMException, IOException
 	{
-		String directory = (String) _connection.getAttribute(ConsoleFilter.SIP_APP_DEPLOYER, "webAppDir");
-		return new File(directory);
+		if (_connection.isRegistered(ConsoleFilter.SIP_APP_DEPLOYER))
+		{
+			String directory = (String) _connection.getAttribute(ConsoleFilter.SIP_APP_DEPLOYER, "webAppDir");
+			return new File(directory);
+		}
+		else
+		{
+			return new File(System.getProperty("jetty.home", "."), "sipapps");
+		}
 	}
 	
 	private void assertValidArchive(byte[] sarContent)

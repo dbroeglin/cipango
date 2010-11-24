@@ -1,3 +1,12 @@
+cipango-2.0.0pre3 - 24 November 2010
+ + CIPANGO-111 B2BUaHelper - createRequest - "From" not changed
+ + CIPANGO-112 When a 200/INVITE from a reInvite is received, the ACK of initial INVITE is sent
+ + CIPANGO-113 B2bHelper.createRequest set the request-URI to the to header.
+ + CIPANGO-114 B2bHelper.createResponseToOriginalRequest() does not work in fork cases
+ + CIPANGO-115 B2bHelper.getPendingMessages() does not work with 100rel
+ + CIPANGO-116 B2bHelper.createCancel returns null in case of fork
+ + CIPANGO-117 Error when encoding a URI wich contains an URI wich also contains an URI
+
 cipango-2.0.0pre2 - 29 October 2010
  + Upgrade distribution mechanism: no more need to have system property jetty.home
  + CIPANGO-108 SipApplicationSession can be invalidated to early due to Invalid when ready mechanism

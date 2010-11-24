@@ -165,6 +165,9 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	
 	public String getConfig()
 	{
+		if (_routerInfoMap == null)
+			return null;
+		
 		StringBuilder sb = new StringBuilder();
 		Iterator<String> it = _routerInfoMap.keySet().iterator();
 		while (it.hasNext())

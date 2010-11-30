@@ -7,13 +7,18 @@ require 'rexml/document'
 JarVersion = File::open("pom.xml") do |f|
   REXML::Document::new(f).elements["project/version"].text
 end
-JarName = "sipatra-#{JarVersion}.jar"
-JarFile = "lib/sipatra/#{JarName}"
-GemFiles = FileList["src/main/resources/**/*.rb"].to_a.map do |file|
+PackageName  = "sipatra-#{JarVersion}"
+JarName      = "#{PackageName}.jar"
+JarFile      = "lib/sipatra/#{JarName}"
+GemFiles     = FileList["src/main/resources/**/*.rb"].to_a.map do |file|
   file.gsub(%r{src/main/resources}, "lib")
-end
+end + FileList["lib/sipatra/*"]
 GemFiles << JarFile
 GemFiles << "lib/sipatra-jars.rb"
+
+puts "-" * 70
+puts "PackageName: #{PackageName}"
+puts "-" * 70
 
 begin
   require 'jeweler'
@@ -56,7 +61,7 @@ task :spec => :check_dependencies
 task :default => :spec
 
 task :clean do
-  rm_rf Dir["lib/sipatra", "lib/sipatra.rb", "VERSION", "sipatra.gemspec"]
+  rm_rf Dir["lib/sipatra", "lib/sipatra.rb", "VERSION", "sipatra.gemspec", "target"]
 end
 
 begin
@@ -74,7 +79,7 @@ rule %r{^lib/sipatra.*rb} => [ proc { |tn| tn.sub(/lib/, 'src/main/resources') }
 end
 
 file "lib/sipatra/#{JarName}" => ["lib/sipatra", "lib/sipatra.rb"] do
-  system "mvn install"
-  cp "target/#{JarName}", "lib/sipatra"
+  system "mvn -o package"
+  cp Dir["target/#{PackageName}-dist/*"], "lib/sipatra"
 end
 

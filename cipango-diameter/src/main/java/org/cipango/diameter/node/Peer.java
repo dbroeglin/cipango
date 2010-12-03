@@ -437,7 +437,8 @@ public class Peer
 				}
 				catch (IOException e)
 				{
-					Log.debug("Failed to connect to peer " + Peer.this);
+					Log.ignore(e);
+					Log.debug("Failed to connect to peer {} due to {}", Peer.this, e);
 				}
 				synchronized (Peer.this)
 				{

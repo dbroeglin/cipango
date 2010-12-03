@@ -16,6 +16,7 @@ package org.cipango.diameter.node;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -94,6 +95,17 @@ public class Peer
 	
 	public InetAddress getAddress()
 	{
+		if (_address == null)
+		{
+			try 
+			{
+				_address = InetAddress.getByName(_host);
+			} 
+			catch (UnknownHostException e) 
+			{
+				Log.debug("Host {} is not resolvable", _host);
+			}
+		}
 		return _address;
 	}
 	

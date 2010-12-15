@@ -14,11 +14,21 @@
 
 package org.cipango.kaleo;
 
-/**
- * A resource identified by its URI.
- * 
- */
-public interface Resource 
-{
-	String getUri();
+public abstract class AbstractResource implements Resource
+{	
+	private String _uri;
+	
+	public AbstractResource(String uri)
+	{
+		_uri = uri;
+	}
+	
+	public String getUri()
+	{
+		return _uri;
+	}
+	
+	public abstract long nextTimeout();
+	public abstract void doTimeout(long time);
+	public abstract boolean isDone();
 }

@@ -22,9 +22,10 @@ import org.cipango.kaleo.presence.policy.XcapPolicy;
 import org.cipango.kaleo.presence.policy.PolicyManager;
 import org.cipango.kaleo.presence.policy.XcapPolicyManager;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
-import org.mortbay.util.ajax.JSON;
-import org.mortbay.util.ajax.JSON.Convertor;
-import org.mortbay.util.ajax.JSON.Output;
+import org.eclipse.jetty.util.ajax.JSON;
+import org.eclipse.jetty.util.ajax.JSON.Convertor;
+import org.eclipse.jetty.util.ajax.JSON.Output;
+
 
 public class APIServlet extends HttpServlet
 {

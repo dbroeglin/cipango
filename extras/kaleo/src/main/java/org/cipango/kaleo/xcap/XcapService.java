@@ -38,7 +38,7 @@ import org.cipango.kaleo.xcap.util.RequestUtil;
 import org.cipango.kaleo.xcap.util.XcapUtil;
 import org.iso_relax.verifier.VerifierConfigurationException;
 import org.jaxen.JaxenException;
-import org.mortbay.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;

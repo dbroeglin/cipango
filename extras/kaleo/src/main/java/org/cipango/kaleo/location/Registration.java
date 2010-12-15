@@ -20,25 +20,19 @@ import java.util.List;
 
 import javax.servlet.sip.URI;
 
-import org.cipango.kaleo.Resource;
+import org.cipango.kaleo.AbstractResource;
 import org.cipango.kaleo.location.event.ContactDocument.Contact.Event;
 import org.cipango.kaleo.location.event.RegistrationDocument.Registration.State;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 
-public class Registration implements Resource
+public class Registration extends AbstractResource
 {
-	private String _aor;
 	private List<Binding> _bindings = new ArrayList<Binding>(1);
 	private Object _listeners; //LazyList<RegistrationListener>
 	
 	public Registration(String aor)
 	{
-		_aor = aor;
-	}
-	
-	public String getUri()
-	{
-		return _aor;
+		super(aor);
 	}
 	
 	public void addBinding(Binding binding)
@@ -83,7 +77,7 @@ public class Registration implements Resource
 			_bindings.clear();
 		}
 		for (int i = 0; i < LazyList.size(_listeners); i++)
-			((RegistrationListener) LazyList.get(_listeners, i)).allBindingsRemoved(_aor);
+			((RegistrationListener) LazyList.get(_listeners, i)).allBindingsRemoved(getUri());
 
 	}
 	
@@ -115,7 +109,7 @@ public class Registration implements Resource
 		else
 			state = State.ACTIVE;
 		for (int i = 0; i < LazyList.size(_listeners); i++)
-			((RegistrationListener) LazyList.get(_listeners, i)).bindingChanged(_aor, binding, event, state);
+			((RegistrationListener) LazyList.get(_listeners, i)).bindingChanged(getUri(), binding, event, state);
 	}
 	
 	public void doTimeout(long time)

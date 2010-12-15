@@ -29,8 +29,8 @@ import org.cipango.kaleo.presence.policy.XcapPolicyManager;
 import org.cipango.kaleo.presence.watcherinfo.WatcherInfoEventPackage;
 import org.cipango.kaleo.xcap.XcapService;
 import org.cipango.kaleo.xcap.dao.FileXcapDao;
-import org.mortbay.component.LifeCycle;
-import org.mortbay.util.MultiException;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.MultiException;
 import org.slf4j.Logger;
 
 public class KaleoLoader implements ServletContextListener

@@ -23,14 +23,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.cipango.util.PriorityQueue;
-import org.mortbay.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Manage resources, which may be registrations or event resources. 
  */
-public abstract class AbstractResourceManager<T extends Resource> extends AbstractLifeCycle
+public abstract class AbstractResourceManager<T extends AbstractResource> extends AbstractLifeCycle
 {	
 	private Thread _scheduler;
 	private PriorityQueue _queue = new PriorityQueue();

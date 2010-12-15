@@ -17,11 +17,12 @@ package org.cipango.kaleo.event;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
 
+import org.cipango.kaleo.AbstractResource;
 import org.cipango.kaleo.AbstractResourceManager;
 import org.cipango.kaleo.Constants;
 import org.cipango.kaleo.event.Subscription.Reason;
 
-public abstract class AbstractEventPackage<T extends EventResource> extends AbstractResourceManager<T> implements EventPackage<T>
+public abstract class AbstractEventPackage<T extends AbstractResource & EventResource> extends AbstractResourceManager<T> implements EventPackage<T>
 {
 	private int _minExpires = 60;
 	private int _maxExpires = 3600;

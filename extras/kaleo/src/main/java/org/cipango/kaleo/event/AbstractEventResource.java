@@ -20,26 +20,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.cipango.kaleo.AbstractResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
-public abstract class AbstractEventResource implements EventResource
+public abstract class AbstractEventResource extends AbstractResource implements EventResource
 {
 	private static final Logger __log = LoggerFactory.getLogger(AbstractEventResource.class);
-	
-	private String _uri;
-	
+		
 	private Map<String, Subscription> _subscriptions = new HashMap<String, Subscription>();
 	private List<EventResourceListener> _listeners = new ArrayList<EventResourceListener>();
 	
 	public AbstractEventResource(String uri)
 	{
-		_uri = uri;
-	}
-	
-	public String getUri()
-	{
-		return _uri;
+		super(uri);
 	}
 		
 	public void addListener(EventResourceListener listener)

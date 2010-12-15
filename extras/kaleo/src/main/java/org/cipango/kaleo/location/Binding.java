@@ -26,7 +26,7 @@ public class Binding
 	private URI _contact;
 	private long _expirationTime;
 	
-	public static synchronized long newId() 
+	public static synchronized long newId()
 	{
 		return __id++;
 	}

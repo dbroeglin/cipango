@@ -16,7 +16,7 @@ package org.cipango.kaleo.event;
 
 import javax.servlet.sip.SipSession;
 
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

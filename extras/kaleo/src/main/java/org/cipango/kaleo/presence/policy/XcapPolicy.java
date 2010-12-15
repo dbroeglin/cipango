@@ -36,7 +36,7 @@ import org.cipango.kaleo.xcap.XcapListener;
 import org.cipango.kaleo.xcap.XcapResource;
 import org.cipango.kaleo.xcap.XcapService;
 import org.cipango.kaleo.xcap.XcapUri;
-import org.mortbay.util.LazyList;
+import org.eclipse.jetty.util.LazyList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;

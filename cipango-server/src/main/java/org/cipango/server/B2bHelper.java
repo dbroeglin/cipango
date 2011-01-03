@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -419,11 +420,21 @@ public class B2bHelper implements B2buaHelper
 				else if (ordinal == SipHeaders.CONTACT_ORDINAL)
 				{
 					NameAddr contact = (NameAddr) request.getFields().getAddress(SipHeaders.CONTACT_BUFFER);
-					if (contact != null)
+					List<String> contacts = entry.getValue();
+					
+					if (contacts.size() > 0)
 					{
-						List<String> contacts = entry.getValue();
-						if (contacts.size() > 0)
-							mergeContact(contacts.get(0), contact);
+						try 
+						{
+							if (contact != null)
+								mergeContact(contacts.get(0), contact);
+							else if (request.isRegister())
+								request.getFields().setAddress(SipHeaders.CONTACT_BUFFER, new NameAddr(contacts.get(0)));
+						}
+						catch (ServletParseException e)
+						{
+							throw new IllegalArgumentException("Invalid Contact header: " + contacts.get(0));
+						}
 					}
 				}
 				else
@@ -439,47 +450,40 @@ public class B2bHelper implements B2buaHelper
 		}
 	}
 	
-	public static void mergeContact(String src, Address dest)
+	public static void mergeContact(String src, Address dest) throws ServletParseException
 	{
-		try
+		NameAddr source = new NameAddr(src);
+		
+		SipURI srcUri = (SipURI) source.getURI();
+		SipURI destUri = (SipURI) dest.getURI();
+		
+		String user = srcUri.getUser();
+		if (user != null)
+			destUri.setUser(user);
+		
+		Iterator<String> it = srcUri.getHeaderNames();
+		while (it.hasNext())
 		{
-			NameAddr source = new NameAddr(src);
-			
-			SipURI srcUri = (SipURI) source.getURI();
-			SipURI destUri = (SipURI) dest.getURI();
-			
-			String user = srcUri.getUser();
-			if (user != null)
-				destUri.setUser(user);
-			
-			Iterator<String> it = srcUri.getHeaderNames();
-			while (it.hasNext())
-			{
-				String name = it.next();
-				destUri.setHeader(name, srcUri.getHeader(name));
-			}
-			
-			it = srcUri.getParameterNames();
-			while (it.hasNext())
-			{
-				String name = it.next();
-				if (!ContactAddress.isReservedUriParam(name))
-					destUri.setParameter(name, srcUri.getParameter(name));
-			}
-			String displayName = source.getDisplayName();
-			if (displayName != null)
-				dest.setDisplayName(displayName);
-			
-			it = source.getParameterNames();
-			while (it.hasNext())
-			{
-				String name = it.next();
-				dest.setParameter(name, source.getParameter(name));
-			}
+			String name = it.next();
+			destUri.setHeader(name, srcUri.getHeader(name));
 		}
-		catch (Exception e)
+		
+		it = srcUri.getParameterNames();
+		while (it.hasNext())
 		{
-			throw new IllegalArgumentException("Invalid Contact: " + src);
+			String name = it.next();
+			if (!ContactAddress.isReservedUriParam(name))
+				destUri.setParameter(name, srcUri.getParameter(name));
+		}
+		String displayName = source.getDisplayName();
+		if (displayName != null)
+			dest.setDisplayName(displayName);
+		
+		it = source.getParameterNames();
+		while (it.hasNext())
+		{
+			String name = it.next();
+			dest.setParameter(name, source.getParameter(name));
 		}
 	}
 }

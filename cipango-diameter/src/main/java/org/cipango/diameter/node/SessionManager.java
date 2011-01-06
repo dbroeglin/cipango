@@ -36,7 +36,7 @@ public class SessionManager
 	
 	public Session createSession(DiameterRequest request)
 	{
-		Session diameterSession = new Session(request.getApplicationSession(), newSessionId(), request.getContext());
+		Session diameterSession = new Session(request.getApplicationSession(), request.getSessionId(), request.getContext());
 		synchronized (_sessions)
 		{
 			_sessions.put(diameterSession.getId(), diameterSession);

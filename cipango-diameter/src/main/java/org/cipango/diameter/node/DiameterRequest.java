@@ -68,6 +68,8 @@ public class DiameterRequest extends DiameterMessage implements DiameterServletR
 	{
 		if (_appSession instanceof AppSession)
 			return new ScopedAppSession((AppSession) _appSession);
+		if (_session != null)
+			return _session.getApplicationSession();
 		return _appSession;
 	}
 	

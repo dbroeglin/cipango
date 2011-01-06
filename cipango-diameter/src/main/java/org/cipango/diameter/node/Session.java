@@ -100,6 +100,7 @@ public class Session implements DiameterSession
 			request.getAVPs().add(Common.AUTH_SESSION_STATE, AuthSessionState.STATE_MAINTAINED);
 		
 		request.setContext(_context);
+		request.setSession(this);
 		
 		return request;
 	}

@@ -41,7 +41,8 @@ public class PrettyPrinter implements DiameterVisitor
 			if (avp.getValue() instanceof byte[])
 			{
 				byte[] tab = (byte[]) avp.getValue();
-				if (tab[0] == '<' && tab[1] == '?' && tab[2] == 'x' && tab[3] == 'm' && tab[4] == 'l')
+				if (tab != null && tab.length > 5 
+						&& tab[0] == '<' && tab[1] == '?' && tab[2] == 'x' && tab[3] == 'm' && tab[4] == 'l')
 					_buffer.append(new String(tab));
 				else
 					_buffer.append(tab);

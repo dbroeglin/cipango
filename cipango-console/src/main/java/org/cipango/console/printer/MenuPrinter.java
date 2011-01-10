@@ -26,6 +26,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.ObjectNameFactory;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
@@ -97,14 +98,28 @@ public class MenuPrinter implements HtmlPrinter
 		}),
 		CALLS = LOGS.add(new Page("logs-calls", "Calls")),
 
-		APPLICATIONS = PAGES.add(new Page("Applications")),
-		MAPPINGS = APPLICATIONS.add(new Page("applications", "Applications Mapping")),
+		APPLICATIONS = PAGES.add(new Page("Applications")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return !c.isRegistered(ObjectNameFactory.create("org.cipango.console:page-disabled=application"));
+			}
+		}),
+		MAPPINGS = APPLICATIONS.add(new Page("applications", "Applications Mapping")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return getFather().isEnabled(c) && c.isRegistered(ConsoleFilter.DAR);
+			}
+		}),
 		DAR = APPLICATIONS.add(new Page("dar", "Default Application Router", "DAR")
 		{
 			@Override
 			public boolean isEnabled(MBeanServerConnection c) throws IOException
 			{
-				return c.isRegistered(ConsoleFilter.DAR);
+				return getFather().isEnabled(c) && c.isRegistered(ConsoleFilter.DAR);
 			}
 		});
 	
@@ -124,6 +139,7 @@ public class MenuPrinter implements HtmlPrinter
 		while (it.hasNext())
 		{
 			Page subPage = getPage(command, it.next());
+			
 			if (subPage != null)
 			{
 				_currentPage = subPage;
@@ -134,8 +150,6 @@ public class MenuPrinter implements HtmlPrinter
 	
 	private Page getPage(String command, Page page)
 	{
-		if (command != null && command.equals(page.getName()))
-			return page;
 		Iterator<Page> it = page.getPages().iterator();
 		while (it.hasNext())
 		{
@@ -143,6 +157,10 @@ public class MenuPrinter implements HtmlPrinter
 			if (subPage != null)
 				return subPage;
 		}
+
+		if (command != null && command.equals(page.getName()))
+			return page;
+		
 		return null;
 	}
 	
@@ -228,21 +246,9 @@ public class MenuPrinter implements HtmlPrinter
 				Iterator<ObjectName> it = set.iterator();
 				while (it.hasNext())
 				{
-					ObjectName objectName = (ObjectName) it.next();
-					String name = objectName.getKeyProperty("page");
-					MBeanInfo info = _connection.getMBeanInfo(objectName);
-					String title = null;
-					for (int i = 0; i < info.getAttributes().length; i++)
-					{
-						MBeanAttributeInfo attr = info.getAttributes()[i];
-						if ("title".equalsIgnoreCase(attr.getName()) && attr.isReadable())
-						{
-							title = (String) _connection.getAttribute(objectName, attr.getName());
-							break;
-						}
-					}
-					Page page = new Page(name, title);
-					page.setDynamic(true);
+					ObjectName objectName = it.next();
+					Page page = getDynamicPage(objectName);
+					addDynamicSubPages(objectName, page);
 					l.add(page);
 				}
 			}
@@ -255,6 +261,47 @@ public class MenuPrinter implements HtmlPrinter
 		return l;
 	}
 	
+	private Page getDynamicPage(ObjectName objectName) throws Exception
+	{
+		String name = objectName.getKeyProperty("page");
+		MBeanInfo info = _connection.getMBeanInfo(objectName);
+		String title = null;
+		String menuTitle = null;
+		for (int i = 0; i < info.getAttributes().length; i++)
+		{
+			MBeanAttributeInfo attr = info.getAttributes()[i];
+			if ("Title".equals(attr.getName()) && attr.isReadable())
+				title = (String) _connection.getAttribute(objectName, attr.getName());
+			if ("MenuTitle".equals(attr.getName()) && attr.isReadable())
+				menuTitle = (String) _connection.getAttribute(objectName, attr.getName());
+
+		}
+		Page page = new Page(name, title, menuTitle);
+		page.setObjectName(objectName);
+		return page;
+	}
+	
+	private void addDynamicSubPages(ObjectName objectName, Page page) throws Exception
+	{
+		MBeanInfo info = _connection.getMBeanInfo(objectName);
+
+		for (int i = 0; i < info.getAttributes().length; i++)
+		{
+			MBeanAttributeInfo attr = info.getAttributes()[i];
+			if ("SubPages".equals(attr.getName()) && attr.isReadable())
+			{
+				ObjectName[] subPages = (ObjectName[]) _connection.getAttribute(objectName, attr.getName());
+				if (subPages != null)
+				{
+					for (ObjectName name : subPages)
+						page.add(getDynamicPage(name));
+				}
+				
+				break;
+			}
+		}
+	}
+	
 	
 	public static class Page
 	{
@@ -263,7 +310,7 @@ public class MenuPrinter implements HtmlPrinter
 		private String _name;
 		private String _title;
 		private String _menuTitle;
-		private boolean _dynamic = false;
+		private ObjectName _objectName;
 
 		Page(String title)
 		{
@@ -342,12 +389,17 @@ public class MenuPrinter implements HtmlPrinter
 
 		public boolean isDynamic()
 		{
-			return _dynamic;
+			return _objectName != null;
 		}
 
-		public void setDynamic(boolean dynamic)
+		public void setObjectName(ObjectName objectName)
 		{
-			_dynamic = dynamic;
+			_objectName = objectName;
+		}
+		
+		public ObjectName getObjectName()
+		{
+			return _objectName;
 		}
 		
 		public boolean isEnabled(MBeanServerConnection c) throws IOException

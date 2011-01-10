@@ -13,8 +13,10 @@
 // ========================================================================
 package org.cipango.console.printer;
 
+import java.io.IOException;
 import java.io.Writer;
 
+import javax.management.JMException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
 import javax.management.MBeanParameterInfo;
@@ -26,16 +28,31 @@ public class OamPrinter implements HtmlPrinter
 {
 	private static final String[] SIMPLE_SIGNATURE = new String[] { "java.io.Writer" };
 	private static final String[] COMPLEX_SIGNATURE = new String[] { "java.io.Writer", "javax.servlet.http.HttpServletRequest" };
+	private static final String[] HANDLE = new String[] { "javax.servlet.http.HttpServletRequest" };
 	
 	private MBeanServerConnection _connection;
 	private HttpServletRequest _request;
 	private ObjectName _objectName;
 	
-	public OamPrinter(MBeanServerConnection connection, HttpServletRequest request, ObjectName objectName)
+	public OamPrinter(MBeanServerConnection connection, HttpServletRequest request, ObjectName objectName) throws  IOException, JMException
 	{
 		_connection = connection;
 		_request = request;
 		_objectName = objectName;
+
+		MBeanInfo info = _connection.getMBeanInfo(_objectName);
+		for (int i = 0; i < info.getOperations().length; i++)
+		{
+			MBeanOperationInfo operation = info.getOperations()[i];
+			if ("handle".equals(operation.getName()))
+			{
+				MBeanParameterInfo[] signatures =  operation.getSignature();
+				if (signatures.length == 1 && signatures[0].getType().equals(HANDLE[0]))
+				{
+					_connection.invoke(_objectName, "handle", new Object[] { _request }, HANDLE);
+				}
+			}
+		}
 	}
 	
 	public void print(Writer out) throws Exception
@@ -64,6 +81,38 @@ public class OamPrinter implements HtmlPrinter
 		else
 			throw new IllegalArgumentException("The object name " + _objectName + " does not expose " +
 					"the method 'print(java.io.Writer)' or 'print(java.io.Writer, javax.servlet.http.HttpServletRequest)'");
+	}
+	
+	/**
+	 * These are the methods that can be exposed by JMX.
+	 */
+	public interface OamPage
+	{		
+		/**
+		 * Returns the HTML title of the page.
+		 */
+		public String getTitle();
+		
+		/**
+		 * Returns the title menu.
+		 */
+		public String getMenuTitle();
+		
+		/**
+		 * Returns a subPages object names.
+		 */
+		public ObjectName[] getSubPages();
+
+		/**
+		 * Allows some preprocessing by the application before dispatching to JSP.
+		 * @param request
+		 */
+		public void handle(HttpServletRequest request) throws Exception;
+		
+		public void print(Writer writer) throws Exception;
+		
+		public void print(Writer writer, HttpServletRequest request) throws Exception;
+
 	}
 
 }

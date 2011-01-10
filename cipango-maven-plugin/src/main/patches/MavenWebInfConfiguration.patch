@@ -1,6 +1,6 @@
 Index: org/mortbay/jetty/plugin/MavenWebInfConfiguration.java
 ===================================================================
---- org/mortbay/jetty/plugin/MavenWebInfConfiguration.java	(revision 6087)
+--- org/mortbay/jetty/plugin/MavenWebInfConfiguration.java	(revision 6306)
 +++ org/mortbay/jetty/plugin/MavenWebInfConfiguration.java	(working copy)
 @@ -22,6 +22,7 @@
  import java.util.Iterator;
@@ -19,7 +19,7 @@ Index: org/mortbay/jetty/plugin/MavenWebInfConfiguration.java
          if (jwac.getClassPathFiles() != null)
          {
              if (Log.isDebugEnabled()) Log.debug("Setting up classpath ...");
-@@ -67,7 +68,7 @@
+@@ -73,7 +74,7 @@
      public void preConfigure(WebAppContext context) throws Exception
      {
          _originalResourceBase = context.getBaseResource();
@@ -28,7 +28,7 @@ Index: org/mortbay/jetty/plugin/MavenWebInfConfiguration.java
  
          //Add in any overlaid wars as base resources
          if (jwac.getOverlays() != null && !jwac.getOverlays().isEmpty())
-@@ -153,7 +154,7 @@
+@@ -160,7 +161,7 @@
  
      public void deconfigure(WebAppContext context) throws Exception
      {
@@ -37,7 +37,7 @@ Index: org/mortbay/jetty/plugin/MavenWebInfConfiguration.java
          
          //remove the unpacked wars
          if (jwac.getUnpackOverlays() && _unpackedOverlays != null && _unpackedOverlays.length>0)
-@@ -188,7 +189,7 @@
+@@ -195,7 +196,7 @@
      throws Exception
      {
          List<Resource> list = new ArrayList<Resource>();

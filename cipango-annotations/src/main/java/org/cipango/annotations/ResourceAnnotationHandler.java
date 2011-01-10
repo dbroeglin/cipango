@@ -13,107 +13,122 @@
 // ========================================================================
 package org.cipango.annotations;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
+import javax.annotation.Resource;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipSessionsUtil;
 import javax.servlet.sip.TimerService;
 
-import org.cipango.plus.sipapp.Configuration;
+import org.cipango.plus.sipapp.SipResourceDecorator;
 import org.cipango.sipapp.SipAppContext;
-import org.eclipse.jetty.annotations.AnnotationParser;
-import org.eclipse.jetty.annotations.AnnotationParser.Value;
 import org.eclipse.jetty.plus.annotation.Injection;
+import org.eclipse.jetty.plus.annotation.InjectionCollection;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 public class ResourceAnnotationHandler extends org.eclipse.jetty.annotations.ResourceAnnotationHandler
 {
-	protected List<Injection> _sipInjections = new ArrayList<Injection>();
-		
 	public ResourceAnnotationHandler(WebAppContext wac)
 	{
 		super(wac);
 	}
-	
+
 	protected SipAppContext getSipAppCtx()
 	{
-		return (SipAppContext) _wac;
+		return (SipAppContext) _context;
 	}
-	
+
 	@Override
-	public void handleField(String className, String fieldName, int access, String fieldType, String signature, Object value, String annotation,
-            List<Value> values)
+	@SuppressWarnings("rawtypes")
+	public void doHandle(Class clazz)
 	{
-		String jndiName = getSipResourceJndiName(fieldType);
-		if (jndiName != null)
+		if (Util.isServletType(clazz))
 		{
-			// The Sip resources are injected in JNDI latter (in plus config), so could not check for availability.
-			
-			//JavaEE Spec 5.2.3: Field cannot be static
-            if ((access & org.objectweb.asm.Opcodes.ACC_STATIC) > 0)
-            {
-                Log.warn("Skipping Resource annotation on "+className+"."+fieldName+": cannot be static");
-                return;
-            }
+			handleClass(clazz);
 
-            //JavaEE Spec 5.2.3: Field cannot be final
-            if ((access & org.objectweb.asm.Opcodes.ACC_FINAL) > 0)
-            {
-                Log.warn("Skipping Resource annotation on "+className+"."+fieldName+": cannot be final");
-                return;
-            }
-			
-            //   Make the Injection for it if the binding succeeded
-            Injection injection = new Injection();
-            injection.setTarget(className, fieldName, null);
-            injection.setJndiName(jndiName);
-            _injections.add(injection); 
-            _sipInjections.add(injection);
-		}
-		else		
-			super.handleField(className, fieldName, access, fieldType, signature, value, annotation, values);
-	}
-
-	/**
-	 * As application name may not be set when resource is detected, the JNDI could need to be updated.
-	 */
-	public void normalizeSipInjections()
-	{
-		Iterator<Injection> it = _sipInjections.iterator();
-		while (it.hasNext())
-		{
-			Injection injection = (Injection) it.next();
-			String name = injection.getJndiName();
-			name = name.replace("/null/", "/" + getSipAppCtx().getName() + "/");
-			injection.setJndiName(name);
+			Method[] methods = clazz.getDeclaredMethods();
+			for (int i = 0; i < methods.length; i++)
+				handleMethod(clazz, methods[i]);
+			Field[] fields = clazz.getDeclaredFields();
+			// For each field, get all of it's annotations
+			for (int i = 0; i < fields.length; i++)
+				handleField(clazz, fields[i]);
 		}
 	}
-	
-	private String getSipResourceJndiName(String className)
-    {
-		// FIXME: the app name may have not been set yet...
-		className = AnnotationParser.normalize(className);
-		
-    	if (className.equals(SipFactory.class.getName()))
-        {
-        	Log.info("Detect SipFactory Resource from annotation");
-        	return Configuration.JNDI_SIP_PREFIX + getSipAppCtx().getName() + Configuration.JNDI_SIP_FACTORY_POSTFIX;
-        } 
-        else if (className.equals(SipSessionsUtil.class.getName()))
-        {
-        	Log.info("Detect SipSessionsUtil Resource from annotation");
-        	return Configuration.JNDI_SIP_PREFIX + getSipAppCtx().getName() + Configuration.JNDI_SIP_SESSIONS_UTIL_POSTFIX;
-        } 
-        else if (className.equals(TimerService.class.getName()))
-        {
-        	Log.info("Detect TimerService Resource from annotation");
-        	return Configuration.JNDI_SIP_PREFIX + getSipAppCtx().getName() + Configuration.JNDI_TIMER_SERVICE_POSTFIX;
-        } else
-        {
-        	return null;
-        }
-    }
+
+	@Override
+	@SuppressWarnings("rawtypes")
+	public void handleField(Class clazz, Field field)
+	{
+		Resource resource = (Resource) field.getAnnotation(Resource.class);
+		if (resource != null)
+		{
+			String jndiName = getSipResourceJndiName(field);
+			if (jndiName != null)
+			{
+				// The Sip resources are injected in JNDI latter (in plus config), so could not
+				// check for availability.
+
+				// JavaEE Spec 5.2.3: Field cannot be static
+				if (Modifier.isStatic(field.getModifiers()))
+				{
+					Log.warn("Skipping Resource annotation on " + clazz.getName() + "." + field.getName()
+							+ ": cannot be static");
+					return;
+				}
+
+				// JavaEE Spec 5.2.3: Field cannot be final
+				if (Modifier.isFinal(field.getModifiers()))
+				{
+					Log.warn("Skipping Resource annotation on " + clazz.getName() + "." + field.getName()
+							+ ": cannot be final");
+					return;
+				}
+
+				InjectionCollection injections = (InjectionCollection) _context
+						.getAttribute(InjectionCollection.INJECTION_COLLECTION);
+				if (injections == null)
+				{
+					injections = new InjectionCollection();
+					_context.setAttribute(InjectionCollection.INJECTION_COLLECTION, injections);
+				}
+				Injection injection = new Injection();
+				injection.setTarget(clazz, field, field.getType());
+				injection.setJndiName(jndiName);
+				injections.add(injection);
+
+			}
+		}
+		else
+			super.handleField(clazz, field);
+	}
+
+	private String getSipResourceJndiName(Field field)
+	{
+		if (field.getType() == SipFactory.class)
+		{
+			Log.info("Detect SipFactory Resource from annotation");
+			return SipResourceDecorator.JNDI_SIP_PREFIX + getSipAppCtx().getName()
+					+ SipResourceDecorator.JNDI_SIP_FACTORY_POSTFIX;
+		}
+		else if (field.getType() == SipSessionsUtil.class)
+		{
+			Log.info("Detect SipSessionsUtil Resource from annotation");
+			return SipResourceDecorator.JNDI_SIP_PREFIX + getSipAppCtx().getName()
+					+ SipResourceDecorator.JNDI_SIP_SESSIONS_UTIL_POSTFIX;
+		}
+		else if (field.getType() == TimerService.class)
+		{
+			Log.info("Detect TimerService Resource from annotation");
+			return SipResourceDecorator.JNDI_SIP_PREFIX + getSipAppCtx().getName()
+					+ SipResourceDecorator.JNDI_TIMER_SERVICE_POSTFIX;
+		}
+		else
+		{
+			return null;
+		}
+	}
 }

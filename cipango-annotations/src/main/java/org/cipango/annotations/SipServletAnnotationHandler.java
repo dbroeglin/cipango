@@ -13,56 +13,25 @@
 // ========================================================================
 package org.cipango.annotations;
 
-import java.util.Iterator;
 import java.util.List;
 
-import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.sipapp.SipXmlProcessor;
-import org.eclipse.jetty.annotations.AnnotationParser.AnnotationHandler;
+import org.eclipse.jetty.annotations.AbstractDiscoverableAnnotationHandler;
 import org.eclipse.jetty.annotations.AnnotationParser.Value;
 import org.eclipse.jetty.util.log.Log;
 
-public class SipServletAnnotationHandler implements AnnotationHandler
+public class SipServletAnnotationHandler extends AbstractDiscoverableAnnotationHandler
 {
-	private SipAppContext _sac;
-	private SipXmlProcessor _processor;
 	
-	public SipServletAnnotationHandler(SipAppContext context, SipXmlProcessor processor)
+	public SipServletAnnotationHandler(SipAppContext context)
 	{
-		_processor = processor;
-		_sac = context;
+		super(context);
 	}
-	
+		
 	public void handleClass(String className, int version, int access, String signature, String superName,
 			String[] interfaces, String annotation, List<Value> values)
 	{
-		SipServletHolder holder = new SipServletHolder();
-		
-		Iterator<Value> it = values.iterator();
-		while (it.hasNext())
-		{
-			Value value = it.next();
-			if ("applicationName".equals(value.getName()))
-			{
-				if (_sac.getName() != null && !_sac.getName().equals(value.getValue()))
-	    			throw new IllegalStateException("App-name in sip.xml: " + _sac.getName() 
-	    					+ " does not match with SipApplication annotation: " + value.getValue());
-				_sac.setName((String) value.getValue());
-			}
-			if ("name".equals(value.getName()))
-				holder.setName((String) value.getValue());
-			if ("loadOnStartup".equals(value.getName()))
-				holder.setInitOrder((Integer) value.getValue());
-			if ("description".equals(value.getName()))
-				holder.setDisplayName((String) value.getValue());
-		}
-		if (holder.getName() == null)
-			holder.setName(className.substring(className.lastIndexOf('.') + 1));
-		holder.setClassName(className);
-		
-		_sac.addSipServlet(holder);
-		_processor.addSipServlet(holder);
+		addAnnotation(new SipServletAnnotation((SipAppContext) _context, className));
 	}
 
 	public void handleMethod(String className, String methodName, int access, String desc, String signature,

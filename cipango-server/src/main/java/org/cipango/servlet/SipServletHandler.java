@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -41,6 +42,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandler.Context;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler.Decorator;
 
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
@@ -306,6 +308,12 @@ public class SipServletHandler extends ServletHandler implements SipHandler
         }
 	}
 	
+	public void addSipServletMapping(SipServletMapping mapping) 
+	{		
+		setSipServletMappings((SipServletMapping[]) LazyList.addToArray(getSipServletMappings(), mapping,
+				SipServletMapping.class));
+	}
+	
     public SipServletHolder getSipServlet(String name)
     {
         return (SipServletHolder) _sipServletNameMap.get(name);
@@ -360,5 +368,15 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 	public SipServletMapping[] getSipServletMappings()
 	{
 		return _sipServletMappings;
+	}
+	
+
+	/**
+	 * Method detroyServlet is not visible.
+	 */
+	protected void destroySipServlet(Servlet servlet)
+	{
+		for (Decorator decorator : _context.getDecorators())
+			decorator.destroyServletInstance(servlet);
 	}
 }

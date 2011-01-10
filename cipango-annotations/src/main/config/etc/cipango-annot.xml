@@ -15,8 +15,8 @@
   <Item>org.eclipse.jetty.webapp.JettyWebXmlConfiguration</Item>
   <Item>org.eclipse.jetty.webapp.TagLibConfiguration</Item>
   <Item>org.cipango.sipapp.SipXmlConfiguration</Item>
+  <Item>org.cipango.plus.sipapp.PlusConfiguration</Item>
   <Item>org.cipango.annotations.AnnotationConfiguration</Item>
-  <Item>org.cipango.plus.sipapp.Configuration</Item>
 </Array>
  
   <Set name="configurationClasses"><Ref id="annotationConfig"/></Set>

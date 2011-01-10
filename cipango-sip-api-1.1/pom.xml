@@ -35,7 +35,7 @@
 	
 	<repositories>
 		<repository>
-			<id>local</id>
+			<id>fileRepo</id>
 			<url>file:${basedir}/src/repository</url>
 		</repository>
 <!--		<repository>

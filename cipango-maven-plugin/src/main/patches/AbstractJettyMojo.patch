@@ -1,6 +1,6 @@
 Index: org/mortbay/jetty/plugin/AbstractJettyMojo.java
 ===================================================================
---- org/mortbay/jetty/plugin/AbstractJettyMojo.java	(revision 6087)
+--- org/mortbay/jetty/plugin/AbstractJettyMojo.java	(revision 6306)
 +++ org/mortbay/jetty/plugin/AbstractJettyMojo.java	(working copy)
 @@ -29,6 +29,8 @@
  import org.apache.maven.plugin.MojoExecutionException;
@@ -29,7 +29,7 @@ Index: org/mortbay/jetty/plugin/AbstractJettyMojo.java
  
  
  
-@@ -332,12 +334,12 @@
+@@ -337,12 +339,12 @@
      }
  
  
@@ -44,7 +44,7 @@ Index: org/mortbay/jetty/plugin/AbstractJettyMojo.java
      {
          this.server = server;
      }
-@@ -385,7 +387,7 @@
+@@ -395,7 +397,7 @@
              getLog().debug("Starting Jetty Server ...");
  
              printSystemProperties();
@@ -53,7 +53,7 @@ Index: org/mortbay/jetty/plugin/AbstractJettyMojo.java
              setServer(this.server);
  
              //apply any config from a jetty.xml file first which is able to
-@@ -484,7 +486,7 @@
+@@ -494,7 +496,7 @@
      {
          //As of jetty-7, you must use a <webAppConfig> element
          if (webAppConfig == null)

@@ -31,7 +31,7 @@ import org.eclipse.jetty.util.URIUtil;
 
 public class ConvergedSessionManager extends HashSessionManager
 {
-	public class Session extends HashSessionManager.Session implements ConvergedHttpSession
+	public class Session extends HashSessionManager.HashedSession implements ConvergedHttpSession
 	{
 		private AppSessionIf _appSession;
 		private String _serverName;

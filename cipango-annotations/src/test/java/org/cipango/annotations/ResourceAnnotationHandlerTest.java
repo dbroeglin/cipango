@@ -24,13 +24,13 @@ import org.cipango.annotations.resources.AnnotedServlet;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.sipapp.SipXmlProcessor;
 import org.eclipse.jetty.annotations.AnnotationParser;
 import org.eclipse.jetty.annotations.ResourcesAnnotationHandler;
 import org.eclipse.jetty.plus.annotation.Injection;
 import org.eclipse.jetty.plus.annotation.InjectionCollection;
 import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
 import org.eclipse.jetty.plus.annotation.RunAsCollection;
+import org.eclipse.jetty.servlet.ServletContextHandler.Decorator;
 import org.eclipse.jetty.util.LazyList;
 
 public class ResourceAnnotationHandlerTest extends TestCase
@@ -112,37 +112,34 @@ public class ResourceAnnotationHandlerTest extends TestCase
 		
 	}*/
 	
-	private SipAppContext _sac;
-	private AnnotationParser _parser;
+	private SipAppContext _context;
 	private InjectionCollection _injections;
-	private SipXmlProcessor _processor;
+	private Decorator _decorator; 
 
 	@Override
 	protected void setUp() throws Exception
 	{
 		super.setUp();
-		_sac = new SipAppContext();
-		_sac.setServletHandler(new org.cipango.plus.servlet.SipServletHandler());
-		_parser = new AnnotationParser();
+		_context = new SipAppContext();
 		_injections = new InjectionCollection();
-		_sac.setAttribute(InjectionCollection.INJECTION_COLLECTION, _injections);
-		_parser.registerAnnotationHandler("javax.annotation.Resource", new ResourceAnnotationHandler (_sac));
-		_processor = new SipXmlProcessor(_sac);
-		_parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipListener", new SipListenerAnnotationHandler(_sac, _processor));
+		 _context.setAttribute(InjectionCollection.INJECTION_COLLECTION, _injections);
+		_decorator = new AnnotationDecorator(_context);
 	}
 			
 	public void testBadResource() throws Exception
 	{
-		_parser.parse(BadRessource.class.getName(), new SimpleResolver());
+		_decorator.decorateServletInstance(new BadRessource());
+		
 		assertNull(_injections.getInjections(BadRessource.class.getName()));
 		
-		_parser.parse(BadRessource2.class.getName(), new SimpleResolver());
+		_decorator.decorateServletInstance(new BadRessource2());
 		assertNull(_injections.getInjections(BadRessource2.class.getName()));
 	}
 	
 	public void testSipFactory() throws Exception
 	{
-		_parser.parse(ListenerRessource.class.getName(), new SimpleResolver());
+		_context.setName("org.cipango.kaleo");
+		_decorator.decorateListenerInstance(new ListenerRessource());
 	
 		List<Injection> injections = _injections.getInjections(ListenerRessource.class.getName());
 		assertEquals(1, injections.size());

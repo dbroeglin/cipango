@@ -1,6 +1,6 @@
 Index: org/mortbay/jetty/plugin/JettyRunMojo.java
 ===================================================================
---- org/mortbay/jetty/plugin/JettyRunMojo.java	(revision 6087)
+--- org/mortbay/jetty/plugin/JettyRunMojo.java	(revision 6306)
 +++ org/mortbay/jetty/plugin/JettyRunMojo.java	(working copy)
 @@ -59,7 +59,6 @@
   *  </p>

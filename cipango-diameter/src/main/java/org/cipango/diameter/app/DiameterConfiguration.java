@@ -25,15 +25,12 @@ import org.cipango.diameter.node.DiameterFactoryImpl;
 import org.cipango.diameter.node.Node;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.AbstractConfiguration;
 
-public class DiameterConfiguration implements Configuration
+public class DiameterConfiguration extends AbstractConfiguration
 {
-	public void preConfigure(org.eclipse.jetty.webapp.WebAppContext arg0) throws Exception
-	{
-	}
 
-
+	@Override
 	public void configure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
 	{
 		if (context.isStarted())
@@ -41,24 +38,7 @@ public class DiameterConfiguration implements Configuration
            	Log.debug("Cannot configure webapp after it is started");
             return;
         } 
-		EventListener[] listeners = context.getEventListeners();
-		if (listeners == null)
-			return;
-		
-		List<DiameterListener> diameterListeners = new ArrayList<DiameterListener>();
-		List<DiameterErrorListener> errorListeners = new ArrayList<DiameterErrorListener>();
-		
-		for (int i = 0; i < listeners.length; i++)
-		{
-			EventListener listener = listeners[i];
-			if (listener instanceof DiameterListener)
-				diameterListeners.add((DiameterListener) listener);
-			if (listener instanceof DiameterErrorListener)
-				errorListeners.add((DiameterErrorListener) listener);
-		}
-		
-		Log.debug("Using " + diameterListeners + " as diameter listeners");
-		
+				
 		DiameterFactoryImpl factory = new DiameterFactoryImpl();
 		Node node = (Node) context.getServer().getAttribute(Node.class.getName());
 		factory.setNode(node);
@@ -66,21 +46,11 @@ public class DiameterConfiguration implements Configuration
 		
 		context.getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
 		
-		if (!diameterListeners.isEmpty())
-		{
-			DiameterListener[] l = diameterListeners.toArray(new DiameterListener[0]);
-			DiameterErrorListener[] l2 = errorListeners.toArray(new DiameterErrorListener[0]);
-			((DiameterContext) node.getHandler()).addListeners(context, l, l2);
-		}
+		context.addDecorator(new DiameterDecorator((DiameterContext) node.getHandler(), context));
 		
 	}
 	
-
-	public void postConfigure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
-	{
-		
-	}
-
+	@Override
 	public void deconfigure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
 	{
 		Node node = (Node) context.getServer().getAttribute(Node.class.getName());

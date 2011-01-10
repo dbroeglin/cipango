@@ -49,7 +49,6 @@ public class B2bServlet extends SipServlet
 			{
 				newRequest = helper.createRequest(session, request, null);
 			}
-			copyContent(request, newRequest);
 		}
 
 		newRequest.send();
@@ -66,22 +65,11 @@ public class B2bServlet extends SipServlet
 					.getLinkedSipServletRequest(response.getRequest());
 			SipServletResponse newResponse = linkedRequest.createResponse(
 					response.getStatus(), response.getReasonPhrase());
-			copyContent(response, newResponse);
 			newResponse.send();
 		}
 		catch (Throwable e)
 		{
 			log("Failed to handle:\n" + response, e);
-		}
-	}
-	
-	private void copyContent(SipServletMessage msg1, SipServletMessage msg2) {
-		try {
-			if (msg1.getContentLength() != 0) {
-				msg2.setContent(msg1.getRawContent(), msg1.getContentType());
-			}
-		} catch (Exception e) {
-			log("Unable to copy content", e);
 		}
 	}
 

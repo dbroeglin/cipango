@@ -9,7 +9,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jetty.version>7.1.6.v20100715</jetty.version>
+    <jetty.version>7.2.2.v20101205</jetty.version>
     <servlet.version>2.5</servlet.version>
     <sip-api.version>1.1</sip-api.version>
     <junit.version>3.8</junit.version>
@@ -27,7 +27,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.1</version>
         <executions>
           <execution>
             <goals>
@@ -39,13 +38,12 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.1</version>
         <configuration>
           <archive>
             <manifestEntries>
               <mode>development</mode>
-              <url>${pom.url}</url>
-              <implementation-version>${pom.version}</implementation-version>
+              <url>${project.url}</url>
+              <implementation-version>${project.version}</implementation-version>
               <package>org.cipango</package>
             </manifestEntries>
           </archive>
@@ -68,6 +66,40 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.6</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>xmlbeans-maven-plugin</artifactId>
+          <version>2.3.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.7</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.3.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.4.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.1</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.felix</groupId>
           <artifactId>maven-bundle-plugin</artifactId>
           <version>1.4.3</version>
@@ -76,6 +108,11 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>2.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -183,13 +220,8 @@
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -211,6 +243,11 @@
         <groupId>commons-jexl</groupId>
         <artifactId>commons-jexl</artifactId>
         <version>1.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.xmlbeans</groupId>
+        <artifactId>xmlbeans</artifactId>
+        <version>2.4.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

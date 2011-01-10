@@ -21,11 +21,11 @@ import junit.framework.TestCase;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
+import org.cipango.sipapp.SipDescriptor;
+import org.cipango.sipapp.SipMetaData;
 import org.cipango.sipapp.SipServletMapping;
-import org.cipango.sipapp.SipXmlProcessor;
-
+import org.cipango.sipapp.StandardDescriptorProcessor;
 import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.xml.XmlParser;
 import org.xml.sax.SAXParseException;
 
@@ -36,7 +36,7 @@ public class SipXmlTest extends TestCase
 		String value = (validating ? "true" : "false");
 		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", value);
 		
-		return SipXmlProcessor.sipXmlParser(); 
+		return new SipDescriptor(null).newParser(); 
 	}
 	
 	public void testXml() throws Exception
@@ -70,10 +70,10 @@ public class SipXmlTest extends TestCase
 	{
 		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
 		
-		SipXmlProcessor processor = new SipXmlProcessor(new SipAppContext());
-		
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-xsd.xml"));
-		processor.processSipXml();
+		SipDescriptor descriptor = new SipDescriptor(getResource("/org/cipango/xml/sip-xsd.xml"));
+		descriptor.parse();
+		StandardDescriptorProcessor processor = new StandardDescriptorProcessor();
+		processor.process(new SipAppContext(), descriptor);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -82,10 +82,10 @@ public class SipXmlTest extends TestCase
 		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
 		
 		SipAppContext context = new SipAppContext();
-		SipXmlProcessor processor = new SipXmlProcessor(context);
-		
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-sample-1.0.xml"));
-		processor.processSipXml();
+		SipMetaData metaData = context.getSipMetaData();
+		metaData.setSipXml(getResource("/org/cipango/xml/sip-sample-1.0.xml"));
+		metaData.addDescriptorProcessor(new StandardDescriptorProcessor());
+		metaData.resolve(context);
 
 		SipServletHandler servletHandler = (SipServletHandler) context.getServletHandler();
 		
@@ -132,11 +132,11 @@ public class SipXmlTest extends TestCase
 	@SuppressWarnings("unchecked")
 	public void testSipXml11() throws Exception
 	{
-		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
 		SipAppContext context = new SipAppContext();
-		SipXmlProcessor processor = new SipXmlProcessor(context);
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-sample-1.1.xml"));
-		processor.processSipXml();
+		SipMetaData metaData = context.getSipMetaData();
+		metaData.setSipXml(getResource("/org/cipango/xml/sip-sample-1.1.xml"));
+		metaData.addDescriptorProcessor(new StandardDescriptorProcessor());
+		metaData.resolve(context);
 		
 		assertEquals(SipAppContext.VERSION_11, context.getSpecVersion());
 		assertEquals("SIP Servlet based Registrar", context.getDisplayName());
@@ -170,7 +170,7 @@ public class SipXmlTest extends TestCase
 		
 		// servlet-mapping
 		SipServletMapping[] mappings = servletHandler.getSipServletMappings();
-		assertEquals(0, mappings.length);
+		assertNull(mappings);
 		assertEquals(60, context.getSessionTimeout());
 		
 		assertNotNull(servletHandler.getMainServlet());
@@ -180,13 +180,12 @@ public class SipXmlTest extends TestCase
 	
 	public void testMappings11() throws Exception 
 	{
-		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
-
 		SipAppContext context = new SipAppContext();
-		SipXmlProcessor processor = new SipXmlProcessor(context);
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-mappings-1.1.xml"));
-		processor.processSipXml();
-		
+		SipMetaData metaData = context.getSipMetaData();
+		metaData.setSipXml(getResource("/org/cipango/xml/sip-mappings-1.1.xml"));
+		metaData.addDescriptorProcessor(new StandardDescriptorProcessor());
+		metaData.resolve(context);
+				
 		assertEquals(SipAppContext.VERSION_11, context.getSpecVersion());
 		
 		SipServletHandler servletHandler = (SipServletHandler) context.getServletHandler();
@@ -196,13 +195,11 @@ public class SipXmlTest extends TestCase
 	
 	public void testNamespace() throws Exception
 	{
-		System.setProperty("org.mortbay.xml.XmlParser.Validating", "false");
-		
 		SipAppContext context = new SipAppContext();
-		SipXmlProcessor processor = new SipXmlProcessor(context);
-	
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-namespace.xml"));
-		processor.processSipXml();
+		SipMetaData metaData = context.getSipMetaData();
+		metaData.setSipXml(getResource("/org/cipango/xml/sip-namespace.xml"));
+		metaData.addDescriptorProcessor(new StandardDescriptorProcessor());
+		metaData.resolve(context);
 		
 		assertEquals(SipAppContext.VERSION_11, context.getSpecVersion());
 		
@@ -228,7 +225,7 @@ public class SipXmlTest extends TestCase
 		
 		// servlet-mapping
 		SipServletMapping[] mappings = servletHandler.getSipServletMappings();
-		assertEquals(0, mappings.length);
+		assertNull(mappings);
 		
 		assertEquals("main", servletHandler.getMainServlet().getName());
 		
@@ -237,18 +234,18 @@ public class SipXmlTest extends TestCase
 	
 	public void testValidateSip() throws Exception
 	{
-		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "true");
+		StandardDescriptorProcessor processor = new StandardDescriptorProcessor();
 		
-		SipAppContext context = new SipAppContext();
-		SipXmlProcessor processor = new SipXmlProcessor(context);
-		
-		processor.parseSipXml(getResource("/org/cipango/xml/sip-validated-1.1.xml"));
-		processor.processSipXml();
+		SipDescriptor descriptor = new SipDescriptor(getResource("/org/cipango/xml/sip-validated-1.1.xml"));
+		descriptor.setValidating(true);
+		descriptor.parse();
+			
+		processor.process(new SipAppContext(), descriptor);
 	}
 	
 	public void testXmlXsd() throws Exception
 	{
-		System.out.println(WebAppContext.class.getResource("/javax/servlet/resources/javaee_5.xsd"));
+		//System.out.println(WebAppContext.class.getResource("/javax/servlet/resources/javaee_5.xsd"));
 		XmlParser parser = getParser(true);
 		parser.parse(getClass().getResource("/org/cipango/xml/sip-xsd.xml").toString());
 	}

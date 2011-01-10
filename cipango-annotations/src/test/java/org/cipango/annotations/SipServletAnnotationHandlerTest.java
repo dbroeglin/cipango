@@ -19,7 +19,7 @@ import org.cipango.annotations.resources.AnnotedServlet;
 import org.cipango.servlet.SipServletHandler;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
-import org.cipango.sipapp.SipXmlProcessor;
+import org.eclipse.jetty.annotations.AbstractDiscoverableAnnotationHandler;
 import org.eclipse.jetty.annotations.AnnotationParser;
 
 public class SipServletAnnotationHandlerTest extends TestCase
@@ -32,20 +32,22 @@ public class SipServletAnnotationHandlerTest extends TestCase
 	{
 		super.setUp();
 		_sac = new SipAppContext();
-		_sac.setServletHandler(new org.cipango.plus.servlet.SipServletHandler());
 		_parser = new AnnotationParser();
         _parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet",
-        		new SipServletAnnotationHandler(_sac, new SipXmlProcessor(_sac)));
+        		new SipServletAnnotationHandler(_sac));
 	}
 	
 	public void testAnnotedServlet() throws Exception
 	{	
         _parser.parse(AnnotedServlet.class.getName(), new SimpleResolver());
+        AbstractDiscoverableAnnotationHandler annotHandler = (AbstractDiscoverableAnnotationHandler) _parser.getAnnotationHandlers().get(0);
+        _sac.getSipMetaData().addDiscoveredAnnotations(annotHandler.getAnnotationList());    
+        _sac.getSipMetaData().resolve(_sac);
         SipServletHandler handler = (SipServletHandler) _sac.getServletHandler();
         SipServletHolder[] holders = handler.getSipServlets();
         assertEquals(1, holders.length);
         assertEquals("AnnotedServlet", holders[0].getName());
-        assertFalse(holders[0].isInitOnStartup());
+        assertEquals(-1, holders[0].getInitOrder());
 	}
 	
 }

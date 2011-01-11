@@ -551,7 +551,8 @@ public class Session implements SessionIf
 	{
 		try
 		{
-			_appSession.getContext().handle(response);
+			if (isValid())
+				_appSession.getContext().handle(response);
 		}
 		catch (Throwable t)
 		{

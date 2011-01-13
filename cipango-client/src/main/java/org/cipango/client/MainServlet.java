@@ -14,38 +14,58 @@
 package org.cipango.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.eclipse.jetty.util.log.Log;
+
 public class MainServlet extends SipServlet
 {
+	
+	private CipangoClient _cipangoClient;
+	
+	public MainServlet(CipangoClient cipangoClient)
+	{
+		_cipangoClient = cipangoClient;
+	}
 
 	@Override
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException
 	{
+		Session session = (Session) request.getSession().getAttribute(SipSession.class.getName());
+		if (session == null)
+		{
+			session = _cipangoClient.getUasSession();
+			if (session == null)
+			{
+				Log.warn("Received initial request and there is no UAS session to handle it.\n" + request);
+				request.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "No UAS session found");
+				return;
+			}
+			session.setSipSession(request.getSession());
+		}
+		synchronized (session)
+		{
+			session.addSipRequest(new SipRequestImpl(request));
+			session.notify();
+		}
 		
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void doResponse(SipServletResponse response) throws ServletException, IOException
 	{
 		SipServletRequest request = response.getRequest();
-		synchronized (request)
+
+		SipRequestImpl sipRequest = (SipRequestImpl) request.getAttribute(SipMessage.class.getName());
+		synchronized (sipRequest)
 		{
-			List<CommitableMessage<SipServletResponse>> l = (List<CommitableMessage<SipServletResponse>>) request.getAttribute(CommitableMessage.class.getName());
-			if (l == null)
-			{
-				l = new ArrayList<CommitableMessage<SipServletResponse>>();
-				request.setAttribute(CommitableMessage.class.getName(), l);
-			}
-			l.add(new CommitableMessage<SipServletResponse>(response));
-			request.notify();
+			sipRequest.addSipResponse(new SipResponseImpl(response));
+			
+			sipRequest.notify();
 		}
 	}
 	

@@ -13,11 +13,9 @@
 // ========================================================================
 package org.cipango.client;
 
-import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import junit.framework.TestCase;
-import static org.cipango.client.TestUtil.*;
 
 public class SipTestCase extends TestCase
 {
@@ -42,28 +40,28 @@ public class SipTestCase extends TestCase
 	
 	public void testMessage() throws Exception
 	{
-		SipServletRequest request = _client.createRequest("MESSAGE", "sip:alice@cipango.org", "sip:uas@cipango.org");
+		SipRequest request = _client.createRequest("MESSAGE", "sip:alice@cipango.org", "sip:uas@cipango.org");
 		request.send();
 		
-		SipServletResponse response = waitResponse(request);
+		SipResponse response = request.waitResponse();
 		assertEquals(SipServletResponse.SC_OK, response.getStatus());
 	}
 	
 	public void testCall() throws Exception
 	{
-		SipServletRequest request = _client.createRequest("INVITE", "sip:alice@cipango.org", "sip:uas@cipango.org");
+		SipRequest request = _client.createRequest("INVITE", "sip:alice@cipango.org", "sip:uas@cipango.org");
 		request.send();
 		
-		SipServletResponse response = waitResponse(request);
+		SipResponse response = request.waitResponse();
 		assertEquals(SipServletResponse.SC_RINGING, response.getStatus());
-		response = waitResponse(request);
+		response = request.waitResponse();
 		assertEquals(SipServletResponse.SC_OK, response.getStatus());
 		response.createAck().send();
 		Thread.sleep(100);
 		
 		request = request.getSession().createRequest("BYE");
 		request.send();
-		assertEquals(SipServletResponse.SC_OK, waitResponse(request).getStatus());
+		assertEquals(SipServletResponse.SC_OK, request.waitResponse().getStatus());
 	}
 		
 }

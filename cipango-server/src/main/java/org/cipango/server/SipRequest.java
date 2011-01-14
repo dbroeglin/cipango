@@ -239,7 +239,7 @@ public class SipRequest extends SipMessage implements SipServletRequest
 		}
 		else
 		{
-			_fields.addAddress(SipHeaders.ROUTE_BUFFER, (NameAddr) route, true);
+			_fields.addAddress(SipHeaders.ROUTE_BUFFER, route, true);
 		}
 		setNextHopStrinctRouting(strictRouting);
 	}   

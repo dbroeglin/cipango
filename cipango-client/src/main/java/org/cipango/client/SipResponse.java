@@ -531,5 +531,7 @@ public interface SipResponse extends SipMessage
 	 * Sets the status code and reason phrase of this response object.
 	 */
 	void setStatus(int statusCode, java.lang.String reasonPhrase);
+	
+	public boolean is2xx();
 
 }

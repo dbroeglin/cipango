@@ -20,13 +20,13 @@ import javax.servlet.sip.SipServletResponse;
 
 public class SipResponseImpl extends SipMessageImpl implements SipResponse
 {
-
+	
 	public SipResponseImpl(javax.servlet.sip.SipServletResponse response)
 	{
 		super(response);
 	}
 	
-	protected SipServletResponse response()
+	public SipServletResponse response()
 	{
 		return (SipServletResponse) _message;
 	}
@@ -58,7 +58,7 @@ public class SipResponseImpl extends SipMessageImpl implements SipResponse
 
 	public SipRequest getRequest()
 	{
-		return new SipRequestImpl(response().getRequest());
+		return (SipRequest) response().getRequest().getAttribute(SipMessage.class.getName());
 	}
 
 	public int getStatus()
@@ -79,6 +79,16 @@ public class SipResponseImpl extends SipMessageImpl implements SipResponse
 	public void setStatus(int statusCode, String reasonPhrase)
 	{
 		response().setStatus(statusCode, reasonPhrase);
+	}
+	
+	public boolean is2xx()
+	{
+		return (200 <= getStatus() && getStatus() < 300);
+	}
+	
+	public String getRequestLine()
+	{
+		return getStatus() + " " + getReasonPhrase();
 	}
 
 }

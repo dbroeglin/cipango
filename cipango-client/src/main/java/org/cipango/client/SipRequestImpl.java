@@ -16,6 +16,7 @@ package org.cipango.client;
 import static junit.framework.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.sip.Address;
@@ -27,7 +28,7 @@ import javax.servlet.sip.URI;
 public class SipRequestImpl extends SipMessageImpl implements SipRequest
 {
 
-	private List<SipResponseImpl> _responses = new ArrayList<SipResponseImpl>();
+	private List<SipResponse> _responses = new ArrayList<SipResponse>();
 	
 	public SipRequestImpl(SipServletRequest request)
 	{
@@ -61,11 +62,12 @@ public class SipRequestImpl extends SipMessageImpl implements SipRequest
 	
 	private SipResponse getUnreadResponse()
 	{
-		for (SipResponseImpl response: _responses)
+		for (SipResponse response: _responses)
 		{
-			if (!response.hasBeenRead())
+			SipResponseImpl resp = (SipResponseImpl) response;
+			if (!resp.hasBeenRead())
 			{
-				response.setHasBeenRead(true);
+				resp.setHasBeenRead(true);
 				return response;
 			}
 		}
@@ -147,9 +149,21 @@ public class SipRequestImpl extends SipMessageImpl implements SipRequest
 	{
 		request().setRequestURI(uri);
 	}
+	
+	public String getRequestLine()
+    {
+    	return getMethod() + " " + getRequestURI().toString(); 
+    }
 
 	public void addSipResponse(SipResponseImpl response)
 	{
 		_responses.add(response);
 	}
+	
+	public List<SipResponse> getSipResponses()
+	{
+		return Collections.unmodifiableList(_responses);
+	}
+
+
 }

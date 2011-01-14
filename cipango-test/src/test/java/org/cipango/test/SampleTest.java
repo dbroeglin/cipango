@@ -13,8 +13,8 @@
 // ========================================================================
 package org.cipango.test;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,13 +24,12 @@ import javax.servlet.sip.SipServletResponse;
 import junit.framework.TestCase;
 
 import org.cipango.client.CipangoClient;
-import org.cipango.client.Header;
 import org.cipango.client.SipRequest;
 import org.cipango.client.SipResponse;
 import org.cipango.client.SipSession;
-import org.cipango.client.UaRunnable;
-import org.cipango.client.UacScript;
-import org.cipango.client.UasScript;
+import org.cipango.client.script.UaRunnable;
+import org.cipango.client.script.UacScript;
+import org.cipango.client.script.UasScript;
 
 public class SampleTest extends TestCase
 {
@@ -46,7 +45,7 @@ public class SampleTest extends TestCase
 	protected void setUp() throws Exception
 	{
 		_alice = new CipangoClient(5061);
-		_alice.setProxy("sip:192.168.2.10");
+		_alice.setProxy("sip:" + InetAddress.getLocalHost().getHostAddress() + ";lr");
 		_alice.start();
 		super.setUp();
 	}
@@ -63,7 +62,7 @@ public class SampleTest extends TestCase
 		if (_bob == null)
 		{
 			_bob = new CipangoClient(5062);
-			_bob.setProxy("sip:192.168.2.10");
+			_bob.setProxy(_alice.getProxy());
 			_bob.start();
 		}
 		return _bob;
@@ -73,10 +72,8 @@ public class SampleTest extends TestCase
 	{
 		SipRequest request = _alice.createRequest(method, "sip:alice@cipango.org", to);
 		
-		Map<String,List<String>> methodList = createMethodList();
-		
-		request.getSession().setHeaders(methodList);
-		
+		Map<String,List<String>> methodList = createMethodList();		
+		request.getSession().setHeaders(methodList);	
 		request.getSession().addHeaders(request);
 		
 		return request;
@@ -142,7 +139,7 @@ public class SampleTest extends TestCase
 		
 		UaRunnable bob = new UasScript.RingingOkBye(sessionBob);
 		new Thread(bob).start();
-		new UacScript.RingingOkBye(request).doTest();
+		UacScript.ringingOkBye(request);
 		bob.assertDone();
 		/*
 		request.send();

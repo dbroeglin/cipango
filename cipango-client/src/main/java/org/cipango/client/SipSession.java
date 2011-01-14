@@ -22,6 +22,8 @@ import java.util.Map;
 
 import javax.servlet.sip.SipSession.State;
 
+import org.cipango.client.interceptor.MessageInterceptor;
+
 /**
  * Represents point-to-point SIP relationships. It roughly corresponds to a SIP dialog. In particular, for UAs it maintains (or is otherwise associated with) dialog state so as to be able to create subequent requests belonging to that dialog (using createRequest).
  * For UACs, SipSession extend the notion of SIP dialogs to have well-defined state before a dialog has been established and after a final non-2xx terminates an early dialog. This allows UACs to create "subsequent" requests without having an established dialog. The effect is that the subsequent request will have the same Call-ID, From and To headers (with the same From tag and without a To tag), the will exist in the same CSeq space.
@@ -157,5 +159,7 @@ public interface SipSession
      * Add headers set in session with {@link #setHeaders(List)} on the messsage.
      */
     public void addHeaders(SipMessage message);
+    
+    public void addMessageInterceptor(MessageInterceptor interceptor);
 
 }

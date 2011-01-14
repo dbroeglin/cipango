@@ -29,7 +29,6 @@ import org.cipango.server.handler.SipContextHandlerCollection;
 import org.cipango.server.log.FileMessageLog;
 import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
 public class CipangoClient extends AbstractLifeCycle
@@ -85,6 +84,17 @@ public class CipangoClient extends AbstractLifeCycle
 			throw new ServletParseException("Proxy URI: " + uri + " is not a SIP URI");
 		_proxy = (SipURI) proxyUri;
 		_proxy.setLrParam(true);
+	}
+	
+	public void setProxy(SipURI uri) throws ServletParseException
+	{
+		_proxy = uri;
+		_proxy.setLrParam(true);
+	}
+	
+	public SipURI getProxy()
+	{
+		return _proxy;
 	}
 	
 	public SipRequest createRequest(String method, String from, String to) throws ServletParseException

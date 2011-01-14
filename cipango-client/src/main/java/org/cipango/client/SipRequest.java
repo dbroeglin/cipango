@@ -13,7 +13,8 @@
 // ========================================================================
 package org.cipango.client;
 
-import javax.servlet.sip.Address;
+import java.util.List;
+
 import javax.servlet.sip.AuthInfo;
 
 /**
@@ -131,4 +132,5 @@ public interface SipRequest extends SipMessage
      */
     void setRequestURI(javax.servlet.sip.URI uri);
 
+    List<SipResponse> getSipResponses();
 }

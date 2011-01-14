@@ -326,4 +326,8 @@ public abstract class SipMessageImpl implements SipMessage
 		_hasBeenRead = hasBeenRead;
 	}
 	
+	public Session session()
+	{
+		return (Session) getSession();
+	}
 }

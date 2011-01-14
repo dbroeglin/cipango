@@ -20,6 +20,7 @@ import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.cipango.client.interceptor.MessageInterceptor;
 import org.eclipse.jetty.util.log.Log;
 
 public class MainServlet extends SipServlet
@@ -49,7 +50,21 @@ public class MainServlet extends SipServlet
 		}
 		synchronized (session)
 		{
-			session.addSipRequest(new SipRequestImpl(request));
+			SipRequestImpl sipRequest = new SipRequestImpl(request);
+			session.addSipRequest(sipRequest);
+			for (MessageInterceptor interceptor : session.getMessageInterceptors())
+			{
+				try
+				{
+					if (interceptor.intercept(sipRequest))
+					{
+						return;
+					}
+				} 
+				catch (Throwable e) {
+					Log.warn("Failed to intercept message " + request + " with " + interceptor, e);
+				}
+			}
 			session.notify();
 		}
 		
@@ -63,8 +78,21 @@ public class MainServlet extends SipServlet
 		SipRequestImpl sipRequest = (SipRequestImpl) request.getAttribute(SipMessage.class.getName());
 		synchronized (sipRequest)
 		{
-			sipRequest.addSipResponse(new SipResponseImpl(response));
-			
+			SipResponseImpl sipResponse = new SipResponseImpl(response);
+			sipRequest.addSipResponse(sipResponse);
+			for (MessageInterceptor interceptor : sipRequest.session().getMessageInterceptors())
+			{
+				try
+				{
+					if (interceptor.intercept(sipResponse))
+					{
+						return;
+					}
+				} 
+				catch (Throwable e) {
+					Log.warn("Failed to intercept message " + response + " with " + interceptor, e);
+				}
+			}
 			sipRequest.notify();
 		}
 	}

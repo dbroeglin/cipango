@@ -17,6 +17,7 @@ import static junit.framework.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,11 +25,14 @@ import java.util.Map.Entry;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipSession.State;
 
+import org.cipango.client.interceptor.MessageInterceptor;
+
 public class Session implements SipSession
 {
 	private javax.servlet.sip.SipSession _session;
 	private List<SipRequestImpl> _requests = new ArrayList<SipRequestImpl>();
 	private Map<String,List<String>> _headers;
+	private List<MessageInterceptor> _interceptors = new ArrayList<MessageInterceptor>();
 	
 	protected Session(javax.servlet.sip.SipSession session)
 	{
@@ -210,4 +214,14 @@ public class Session implements SipSession
 		}		
     }
 
+	public void addMessageInterceptor(MessageInterceptor interceptor)
+	{
+		_interceptors.add(interceptor);
+	}
+
+	public List<MessageInterceptor> getMessageInterceptors()
+	{
+		return _interceptors;
+	}
+	
 }

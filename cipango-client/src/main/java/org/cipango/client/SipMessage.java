@@ -414,4 +414,5 @@ public interface SipMessage extends java.lang.Cloneable{
      */
     void setParameterableHeader(java.lang.String name, javax.servlet.sip.Parameterable param);
 
+    String getRequestLine();
 }

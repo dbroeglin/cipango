@@ -52,7 +52,7 @@ public class CallsPrinter implements HtmlPrinter
 			{
 				String callId = (String) it.next();
 				out.append("<A href=\"").append(MenuPrinter.CALLS.getName());
-				out.append("?callID=").append(callId).append("\">");
+				out.append("?callID=").append(callId.replace("%", "%25")).append("\">");
 				out.append(callId).append("</A>");
 				if (++i % 5 == 0)
 					out.append("<br/>");
@@ -80,5 +80,5 @@ public class CallsPrinter implements HtmlPrinter
 			
 		}
 	}
-
+	
 }

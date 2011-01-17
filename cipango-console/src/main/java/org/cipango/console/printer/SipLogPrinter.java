@@ -184,13 +184,18 @@ public class SipLogPrinter extends AbstractLogPrinter
 			out.write("<embed src=\"message.svg?" + Parameters.MAX_MESSAGES
 					+ "=" + _maxMessages);
 			if (_msgFilter != null)
-				out.write("&" + Parameters.MESSAGE_FILTER + "=" + _msgFilter);
+				out.write("&" + Parameters.MESSAGE_FILTER + "=" + encode(_msgFilter));
 			int height = 100 + _messagesLogs.length * 25;
 			out.write("\" width=\"790\" height=\""
 							+ height
 							+ "\" type=\"image/svg+xml\" pluginspage=\"http://www.adobe.com/svg/viewer/install/\"/>");
 			out.write("</div>");
 		}
+	}
+	
+	private String encode(String unencoded)
+	{
+		return unencoded.replace("%", "%25");
 	}
 
 	private String sipToHtml(SipServletMessage message)
@@ -237,7 +242,7 @@ public class SipLogPrinter extends AbstractLogPrinter
 		StringBuffer sb = new StringBuffer();
 		sb.append("<A href=\"" + MenuPrinter.SIP_LOGS.getName() + "?").append(Parameters.MESSAGE_FILTER).append(
 				"=");
-		sb.append(name).append(".equals(%27").append(value).append("%27)");
+		sb.append(name).append(".equals(%27").append(encode(value)).append("%27)");
 		sb.append("&").append(Parameters.MAX_MESSAGES).append("=").append(
 				_maxMessages);
 		sb.append("\">").append(value).append("</A>");

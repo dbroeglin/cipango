@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
+
 package org.cipango.client;
 
 import java.io.Serializable;
@@ -27,22 +28,38 @@ import javax.servlet.sip.ar.SipTargetedRequestInfo;
 
 public class ApplicationRouter implements SipApplicationRouter
 {
+	/**
+	 * @see SipApplicationRouter#init
+	 */
+	public void init() { }
 
-	public void applicationDeployed(List<String> arg0)
-	{
-	}
+	/**
+	 * @see SipApplicationRouter#init(Properties)
+	 */
+	public void init(Properties properties) { }
 
-	public void applicationUndeployed(List<String> arg0)
-	{
-	}
+	/**
+	 * @see SipApplicationRouter#destroy()
+	 */
+	public void destroy() { }
+	
+	/**
+	 * @see SipApplicationRouter#applicationDeployed(List)
+	 */
+	public void applicationDeployed(List<String> deployedApplications) { }
 
-	public void destroy()
-	{
-	}
+	/**
+	 * @see SipApplicationRouter#applicationUndeployed(List)
+	 */
+	public void applicationUndeployed(List<String> undeployedApplications) { }
 
+	/**
+	 * @see SipApplicationRouter#getNextApplication(SipServletRequest, SipApplicationRoutingRegion, 
+	 * 			SipApplicationRoutingDirective, SipTargetedRequestInfo, Serializable)
+	 */
 	public SipApplicationRouterInfo getNextApplication(SipServletRequest request,
-			SipApplicationRoutingRegion arg1, SipApplicationRoutingDirective arg2,
-			SipTargetedRequestInfo arg3, Serializable arg4)
+			SipApplicationRoutingRegion region, SipApplicationRoutingDirective directive,
+			SipTargetedRequestInfo requestedInfo, Serializable info)
 	{
 		if (request.getRemoteAddr() == null)
 			return null;
@@ -53,13 +70,4 @@ public class ApplicationRouter implements SipApplicationRouter
 				SipRouteModifier.NO_ROUTE, 
 				1);
 	}
-
-	public void init()
-	{
-	}
-
-	public void init(Properties arg0)
-	{
-	}
-
 }

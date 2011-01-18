@@ -46,7 +46,7 @@ public class ApplicationRouter implements SipApplicationRouter
 	{
 		if (request.getRemoteAddr() == null)
 			return null;
-		return new SipApplicationRouterInfo(CipangoClient.class.getName(),
+		return new SipApplicationRouterInfo(UaManager.class.getName(),
 				SipApplicationRoutingRegion.NEUTRAL_REGION, 
 				request.getFrom().getURI().toString(), 
 				null,

@@ -52,7 +52,7 @@ public class SipRequestImpl extends SipMessageImpl implements SipRequest
 			SipResponse response = getUnreadResponse();
 			if (response != null)
 				return response;
-			try { wait(5000); } catch (InterruptedException e) {}
+			try { wait(UaManager.getResponseTimeout()); } catch (InterruptedException e) {}
 			response = getUnreadResponse();
 			if (response == null)
 				fail("No response received for request: " + this);

@@ -233,9 +233,16 @@ public abstract class SipMessageImpl implements SipMessage
 		_message.removeHeader(name);
 	}
 
-	public void send() throws IOException
+	public void send()
 	{
-		_message.send();
+		try
+		{
+			_message.send();
+		}
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 
 	public void setAcceptLanguage(Locale locale)

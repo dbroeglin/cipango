@@ -508,7 +508,7 @@ public interface SipResponse extends SipMessage
 	 * Causes this response to be sent. This is used by servlets acting as UASs to send provisional
 	 * and final responses, and by proxies when generating provisional responses.
 	 */
-	void send() throws java.io.IOException;
+	void send();
 
 	/**
 	 * Requests that this response be sent reliably using the 100rel extension defined in RFC 3262.

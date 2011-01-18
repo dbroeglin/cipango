@@ -118,7 +118,7 @@ public interface SipRequest extends SipMessage
      * Causes this request to be sent. This method is used by SIP servlets acting as user agent clients (UACs) only. Proxying applications use
      * instead.
      */
-    void send() throws java.io.IOException;
+    void send();
 
     /**
      * Sets the value of the Max-Forwards header. Max-Forwards serves to limit the number of hops a request can make on the way to its destination. It consists of an integer that is decremented by one at each hop.

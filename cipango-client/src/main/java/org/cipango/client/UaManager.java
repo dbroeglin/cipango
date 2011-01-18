@@ -13,13 +13,11 @@
 // ========================================================================
 package org.cipango.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.servlet.sip.Address;
-import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.URI;
 
 import org.cipango.server.Server;
 import org.cipango.server.SipConnectors;
@@ -31,17 +29,17 @@ import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
-public class CipangoClient extends AbstractLifeCycle
+public class UaManager extends AbstractLifeCycle
 {
-
+	private static int __requestTimeout = 5000;
+	private static int __responseTimeout = 5000;
+	
 	private Server _server;
 	private SipAppContext _context;
 	
-	private SipURI _proxy;
-	
-	private Session _uasSession;
-	
-	public CipangoClient(int port) throws Exception
+	private List<UA> _userAgents = new ArrayList<UA>();
+			
+	public UaManager(int port) throws Exception
 	{
 		_server = new Server();
 		UdpConnector udpConnector = new UdpConnector();
@@ -62,7 +60,7 @@ public class CipangoClient extends AbstractLifeCycle
 		_context = new SipAppContext();
 		_context.setConfigurationClasses(new String[0]);
 		_context.setContextPath("/");
-		_context.setName(CipangoClient.class.getName());
+		_context.setName(UaManager.class.getName());
 		SipServletHolder holder = new SipServletHolder();
 		holder.setServlet(new MainServlet(this));
 		holder.setName(MainServlet.class.getName());
@@ -77,54 +75,26 @@ public class CipangoClient extends AbstractLifeCycle
 		return _context.getSipFactory();
 	}
 	
-	public void setProxy(String uri) throws ServletParseException
-	{
-		URI proxyUri = getSipFactory().createURI(uri);
-		if (!proxyUri.isSipURI())
-			throw new ServletParseException("Proxy URI: " + uri + " is not a SIP URI");
-		_proxy = (SipURI) proxyUri;
-		_proxy.setLrParam(true);
-	}
-	
-	public void setProxy(SipURI uri) throws ServletParseException
-	{
-		_proxy = uri;
-		_proxy.setLrParam(true);
-	}
-	
-	public SipURI getProxy()
-	{
-		return _proxy;
-	}
-	
-	public SipRequest createRequest(String method, String from, String to) throws ServletParseException
-	{
-		SipApplicationSession appSession = getSipFactory().createApplicationSession();
-		SipServletRequest request = getSipFactory().createRequest(appSession, method, from, to);
-		if (_proxy != null)
-			request.pushRoute(_proxy);
-		return new SipRequestImpl(request);
-	}
-	
-	public SipSession createUasSession()
-	{
-		if (_uasSession != null)
-			throw new IllegalStateException("A UAS session is already created");
-		
-		_uasSession = new Session(null);
-		return _uasSession;
-	}
-	
 	public Address getContact()
 	{
 		return _server.getConnectorManager().getContact(SipConnectors.TCP_ORDINAL);
 	}
 	
-	protected Session getUasSession()
+	public void addUserAgent(UA ua)
 	{
-		return _uasSession;
+		_userAgents.add(ua);
 	}
 	
+	public Session findUasSession(SipRequest request)
+	{
+		for (UA ua : _userAgents)
+		{
+			if (ua.getAor().getURI().equals(request.getTo().getURI()))
+				return ua.getUasSession();
+		}
+		return null;
+	}
+		
 	@Override
 	protected void doStart() throws Exception
 	{
@@ -135,5 +105,25 @@ public class CipangoClient extends AbstractLifeCycle
 	protected void doStop() throws Exception
 	{
 		_server.stop();
+	}
+
+	public static int getRequestTimeout()
+	{
+		return __requestTimeout;
+	}
+
+	public static void setRequestTimeout(int requestTimeout)
+	{
+		__requestTimeout = requestTimeout;
+	}
+
+	public static int getResponseTimeout()
+	{
+		return __responseTimeout;
+	}
+
+	public static void setResponseTimeout(int responseTimeout)
+	{
+		__responseTimeout = responseTimeout;
 	}	
 }

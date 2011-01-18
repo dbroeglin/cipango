@@ -46,7 +46,7 @@ public class Session implements SipSession
 			SipRequest request = getUnreadRequests();
 			if (request != null)
 				return request;
-			try { wait(5000); } catch (InterruptedException e) {}
+			try { wait(UaManager.getRequestTimeout()); } catch (InterruptedException e) {}
 			request = getUnreadRequests();
 			if (request == null)
 				fail("No requests received on session: " + this);

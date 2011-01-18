@@ -13,32 +13,28 @@
 // ========================================================================
 package org.cipango.client.script;
 
-import java.io.IOException;
-
-import javax.servlet.ServletException;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
 import junit.framework.Assert;
 
-import org.cipango.client.CipangoClient;
 import org.cipango.client.SipRequest;
 import org.cipango.client.SipResponse;
 import org.cipango.client.SipSession;
+import org.cipango.client.UA;
 import org.cipango.client.interceptor.AuthenticationInterceptor;
 import org.cipango.sip.SipHeaders;
 
 public class RegisterSession
 {
 	private SipSession _session;
-	private CipangoClient _client;
-	private String _from;
+	private UA _ua;
 	private AuthenticationInterceptor _authenticationInterceptor;
 	
-	public RegisterSession(CipangoClient client, String from)
+	public RegisterSession(UA ua)
 	{
-		_client = client;
-		_from = from;
+		_ua = ua;
 	}
 		
 	/**
@@ -49,8 +45,9 @@ public class RegisterSession
 	 * |                        200 | 
 	 * |<---------------------------|     
 	 * </pre>
+	 * @throws ServletParseException 
 	 */
-	public void register(int expires) throws ServletException, IOException
+	public void register(int expires) throws ServletParseException
 	{
 		register(expires, null, null);
 	}
@@ -67,69 +64,45 @@ public class RegisterSession
 	 * |                        200 | 
 	 * |<---------------------------|     
 	 * </pre>
+	 * @throws ServletParseException 
 	 */
-	public void register(int expires, String username, String password) throws ServletException, IOException
+	public void register(int expires, String username, String password) throws ServletParseException
 	{
 		SipRequest request = createRegister(expires);
 		if (_authenticationInterceptor != null)
 			request.getSession().addMessageInterceptor(_authenticationInterceptor);
 		else if (username != null)
-			request.getSession().addMessageInterceptor(new AuthenticationInterceptor(username, password));
+		{
+			_authenticationInterceptor = new AuthenticationInterceptor(username, password);
+			request.getSession().addMessageInterceptor(_authenticationInterceptor);
+		}
 		request.send();
 		SipResponse response = request.waitResponse();
 		
 		if (!response.is2xx())
 			Assert.fail("Registration failed\n" + response);	
-		/*
-		while (true)
-		{
-			request.send();
-			SipResponse response = request.waitResponse();
-			
-			if (response.is2xx())
-				return;
-			
-			if (response.getStatus() == SipResponse.SC_UNAUTHORIZED
-					|| response.getStatus() == SipResponse.SC_PROXY_AUTHENTICATION_REQUIRED)
-			{	
-				request = createRegister(expires);
-				if (_authInfo != null)
-					request.addAuthHeader(response, _authInfo);
-				if (request.getHeader(SipHeaders.AUTHORIZATION) == null
-						&& request.getHeader(SipHeaders.PROXY_AUTHORIZATION) == null)
-				{
-					if (username == null)
-						Assert.fail("Got " + response.getRequestLine() +  " and no authentication information provided");
-					else
-						request.addAuthHeader(response, username, password);
-				}
-			}
-			else
-				Assert.fail("Registration failed\n" + response);		
-		}
-		*/
 	}
 	
-	public SipRequest createRegister(int expires) throws ServletException
+	public SipRequest createRegister(int expires) throws ServletParseException
 	{
 		SipRequest request;
 		if (_session == null)
 		{
-			request = _client.createRequest(SipRequest.REGISTER, _from, _from);
+			request = _ua.createRequest(SipRequest.REGISTER, _ua.getAor());
 			_session = request.getSession();
 		}
 		else
 		{
 			request = _session.createRequest(SipRequest.REGISTER);
-			if (_client.getProxy() != null)
-				request.pushRoute(_client.getProxy());
+			if (_ua.getProxy() != null)
+				request.pushRoute(_ua.getProxy());
 		}
 		request.setExpires(expires);
-		request.setAddressHeader(SipHeaders.CONTACT, _client.getContact());
+		request.setAddressHeader(SipHeaders.CONTACT, _ua.getContact());
 		URI requestUri = request.getRequestURI();
 		if (requestUri.isSipURI())
 		{
-			requestUri = _client.getSipFactory().createSipURI(null, ((SipURI) requestUri).getHost());
+			requestUri = _ua.getSipFactory().createSipURI(null, ((SipURI) requestUri).getHost());
 			request.setRequestURI(requestUri);
 		}
 		return request;

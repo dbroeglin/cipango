@@ -23,7 +23,8 @@ import javax.servlet.sip.SipServletResponse;
 
 import junit.framework.TestCase;
 
-import org.cipango.client.CipangoClient;
+import org.cipango.client.UA;
+import org.cipango.client.UaManager;
 import org.cipango.client.SipRequest;
 import org.cipango.client.SipResponse;
 import org.cipango.client.SipSession;
@@ -34,8 +35,9 @@ import org.cipango.client.script.UasScript;
 public class SampleTest extends TestCase
 {
 		
-	private CipangoClient _alice;
-	private CipangoClient _bob;
+	private UaManager _uaManager;
+	private UA _alice;
+	private UA _bob;
 	
 	public static final String SERVLET_HEADER = "P-Servlet";
 	public static final String METHOD_HEADER = "P-method";
@@ -44,33 +46,33 @@ public class SampleTest extends TestCase
 	@Override
 	protected void setUp() throws Exception
 	{
-		_alice = new CipangoClient(5061);
+		_uaManager = new UaManager(5061);
+		_alice = new UA(_uaManager, "sip:alice@cipango.org");
 		_alice.setProxy("sip:" + InetAddress.getLocalHost().getHostAddress() + ";lr");
-		_alice.start();
+		_uaManager.start();
 		super.setUp();
 	}
 
 	@Override
 	protected void tearDown() throws Exception
 	{
-		_alice.stop();
+		_uaManager.stop();
 		super.tearDown();
 	}
 	
-	public CipangoClient getBob() throws Exception
+	public UA getBob() throws Exception
 	{
 		if (_bob == null)
 		{
-			_bob = new CipangoClient(5062);
+			_bob = new UA(_uaManager, "sip:bob@cipango.org");
 			_bob.setProxy(_alice.getProxy());
-			_bob.start();
 		}
 		return _bob;
 	}
 	
 	public SipRequest createRequest(String method, String to) throws Exception
 	{
-		SipRequest request = _alice.createRequest(method, "sip:alice@cipango.org", to);
+		SipRequest request = _alice.createRequest(method, to);
 		
 		Map<String,List<String>> methodList = createMethodList();		
 		request.getSession().setHeaders(methodList);	
@@ -107,7 +109,7 @@ public class SampleTest extends TestCase
 	
 	public void testMessage() throws Exception
 	{
-		SipRequest request = createRequest("MESSAGE", "sip:uas@cipango.org");
+		SipRequest request = createRequest("MESSAGE", "sip:bob@cipango.org");
 		request.send();
 		
 		SipResponse response = request.waitResponse();

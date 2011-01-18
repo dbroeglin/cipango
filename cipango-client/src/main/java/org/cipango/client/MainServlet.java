@@ -26,9 +26,9 @@ import org.eclipse.jetty.util.log.Log;
 public class MainServlet extends SipServlet
 {
 	
-	private CipangoClient _cipangoClient;
+	private UaManager _cipangoClient;
 	
-	public MainServlet(CipangoClient cipangoClient)
+	public MainServlet(UaManager cipangoClient)
 	{
 		_cipangoClient = cipangoClient;
 	}
@@ -37,9 +37,11 @@ public class MainServlet extends SipServlet
 	protected void doRequest(SipServletRequest request) throws ServletException, IOException
 	{
 		Session session = (Session) request.getSession().getAttribute(SipSession.class.getName());
+
+		SipRequestImpl sipRequest = new SipRequestImpl(request);
 		if (session == null)
 		{
-			session = _cipangoClient.getUasSession();
+			session = _cipangoClient.findUasSession(sipRequest);
 			if (session == null)
 			{
 				Log.warn("Received initial request and there is no UAS session to handle it.\n" + request);
@@ -50,7 +52,6 @@ public class MainServlet extends SipServlet
 		}
 		synchronized (session)
 		{
-			SipRequestImpl sipRequest = new SipRequestImpl(request);
 			session.addSipRequest(sipRequest);
 			for (MessageInterceptor interceptor : session.getMessageInterceptors())
 			{

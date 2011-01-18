@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client;
+package org.cipango.client.labs;
 
 import static junit.framework.Assert.fail;
 
@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipSession.State;
 
-import org.cipango.client.interceptor.MessageInterceptor;
+import org.cipango.client.labs.interceptor.MessageInterceptor;
 
 public class Session implements SipSession
 {

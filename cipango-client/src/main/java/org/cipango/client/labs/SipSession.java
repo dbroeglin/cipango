@@ -14,7 +14,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.cipango.client;
+package org.cipango.client.labs;
 
 import java.util.Enumeration;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.Map;
 
 import javax.servlet.sip.SipSession.State;
 
-import org.cipango.client.interceptor.MessageInterceptor;
+import org.cipango.client.labs.interceptor.MessageInterceptor;
 
 /**
  * Represents point-to-point SIP relationships. It roughly corresponds to a SIP dialog. In particular, for UAs it maintains (or is otherwise associated with) dialog state so as to be able to create subequent requests belonging to that dialog (using createRequest).

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client;
+package org.cipango.client.labs;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

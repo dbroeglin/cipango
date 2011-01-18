@@ -11,10 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client.interceptor;
+package org.cipango.client.labs.interceptor;
 
-import org.cipango.client.SipRequest;
-import org.cipango.client.SipResponse;
+import org.cipango.client.labs.SipRequest;
+import org.cipango.client.labs.SipResponse;
 
 public class AutoReplyInterceptor implements MessageInterceptor
 {

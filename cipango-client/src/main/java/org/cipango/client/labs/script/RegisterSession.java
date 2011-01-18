@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client.script;
+package org.cipango.client.labs.script;
 
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipURI;
@@ -19,11 +19,11 @@ import javax.servlet.sip.URI;
 
 import junit.framework.Assert;
 
-import org.cipango.client.SipRequest;
-import org.cipango.client.SipResponse;
-import org.cipango.client.SipSession;
-import org.cipango.client.UA;
-import org.cipango.client.interceptor.AuthenticationInterceptor;
+import org.cipango.client.labs.SipRequest;
+import org.cipango.client.labs.SipResponse;
+import org.cipango.client.labs.SipSession;
+import org.cipango.client.labs.UA;
+import org.cipango.client.labs.interceptor.AuthenticationInterceptor;
 import org.cipango.sip.SipHeaders;
 
 public class RegisterSession

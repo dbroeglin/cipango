@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client.interceptor;
+package org.cipango.client.labs.interceptor;
 
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -20,10 +20,10 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.AuthInfo;
 import javax.servlet.sip.SipSession.State;
 
-import org.cipango.client.SipRequest;
-import org.cipango.client.SipRequestImpl;
-import org.cipango.client.SipResponse;
-import org.cipango.client.SipResponseImpl;
+import org.cipango.client.labs.SipRequest;
+import org.cipango.client.labs.SipRequestImpl;
+import org.cipango.client.labs.SipResponse;
+import org.cipango.client.labs.SipResponseImpl;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipHeaders.HeaderInfo;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;

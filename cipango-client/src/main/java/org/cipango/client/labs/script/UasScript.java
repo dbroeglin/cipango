@@ -11,14 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client.script;
+package org.cipango.client.labs.script;
 
 import static junit.framework.Assert.assertEquals;
 
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.client.SipRequest;
-import org.cipango.client.SipSession;
+import org.cipango.client.labs.SipRequest;
+import org.cipango.client.labs.SipSession;
 
 
 public abstract class UasScript

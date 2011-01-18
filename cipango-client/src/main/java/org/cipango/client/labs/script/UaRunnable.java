@@ -11,9 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client.script;
+package org.cipango.client.labs.script;
 
-import org.cipango.client.SipSession;
+import org.cipango.client.labs.SipSession;
 
 import junit.framework.Assert;
 

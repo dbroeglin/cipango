@@ -12,7 +12,7 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.client;
+package org.cipango.client.labs;
 
 import java.io.Serializable;
 import java.util.List;

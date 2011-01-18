@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client;
+package org.cipango.client.labs;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import org.cipango.client.interceptor.MessageInterceptor;
+import org.cipango.client.labs.interceptor.MessageInterceptor;
 import org.eclipse.jetty.util.log.Log;
 
 public class MainServlet extends SipServlet

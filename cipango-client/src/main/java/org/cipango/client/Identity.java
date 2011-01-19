@@ -14,14 +14,31 @@
 
 package org.cipango.client;
 
-import javax.servlet.sip.SipServletRequest;
+import java.util.List;
+
 import javax.servlet.sip.SipURI;
+
 
 public class Identity 
 {
 	private SipURI _aor;
 	
 	public void register()
+	{
+		
+	}
+	
+	public SipCall newCall(String aor)
+	{
+		return null;
+	}
+	
+	public List<SipCall> getCalls()
+	{
+		return null;
+	}
+	
+	public void setCallListener(CallListener listener)
 	{
 		
 	}

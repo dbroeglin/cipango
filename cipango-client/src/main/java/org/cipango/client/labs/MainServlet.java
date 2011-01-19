@@ -45,7 +45,7 @@ public class MainServlet extends SipServlet
 			if (session == null)
 			{
 				Log.warn("Received initial request and there is no UAS session to handle it.\n" + request);
-				request.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "No UAS session found");
+				request.createResponse(SipServletResponse.SC_NOT_FOUND, "No UAS session found").send();
 				return;
 			}
 			session.setSipSession(request.getSession());

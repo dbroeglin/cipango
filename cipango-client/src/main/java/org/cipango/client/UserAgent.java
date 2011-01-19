@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
+
 package org.cipango.client;
 
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class UserAgent extends AbstractLifeCycle
 		_server.setHandler(handler);
 		
 		_context = new SipAppContext();
-		_context.setConfigurationClasses(null);
+		_context.setConfigurationClasses(new String[0]);
 		_context.setContextPath("/");
 		_context.setName(UserAgent.class.getName());
 		

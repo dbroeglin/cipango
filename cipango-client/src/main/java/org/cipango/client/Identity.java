@@ -14,11 +14,15 @@
 
 package org.cipango.client;
 
-import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipURI;
 
-public class UserAgentServlet extends SipServlet
+public class Identity 
 {
-	private static final long serialVersionUID = 1L;
-
+	private SipURI _aor;
 	
+	public void register()
+	{
+		
+	}
 }

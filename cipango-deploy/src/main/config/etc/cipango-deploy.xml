@@ -41,6 +41,7 @@
               <New class="org.cipango.deploy.providers.SipAppProvider" id="SipAppProvider">
                 <Set name="monitoredDir"><Property name="jetty.home" default="." />/sipapps</Set>
                 <Set name="defaultsDescriptor"><Property name="jetty.home" default="."/>/etc/webdefault.xml</Set>
+                <Set name="defaultsSipDescriptor"><Property name="jetty.home" default="."/>/etc/sipdefault.xml</Set>
                 <Set name="scanInterval">5</Set>
                 <Set name="contextXmlDir"><Property name="jetty.home" default="." />/contexts</Set>
                 <Set name="extractWars">true</Set>

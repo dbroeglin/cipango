@@ -38,6 +38,16 @@ public class Identity
 		return null;
 	}
 	
+	public void addSubscription(Subscription subscription)
+	{
+		
+	}
+	
+	public List<Subscription> getSubscritions()
+	{
+		return null;
+	}
+	
 	public void setCallListener(CallListener listener)
 	{
 		

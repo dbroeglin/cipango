@@ -14,162 +14,112 @@
 
 package org.cipango.client;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
+import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipURI;
 
-import org.cipango.server.Server;
-import org.cipango.server.SipConnectors;
-import org.cipango.server.bio.TcpConnector;
-import org.cipango.server.bio.UdpConnector;
-import org.cipango.server.handler.SipContextHandlerCollection;
-import org.cipango.server.log.FileMessageLog;
-import org.cipango.servlet.SipServletHolder;
-import org.cipango.sipapp.SipAppContext;
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.cipango.sip.NameAddr;
+import org.cipango.sip.SipHeaders;
+import org.cipango.sip.SipMethods;
 
-public class UserAgent extends AbstractLifeCycle
+public class UserAgent
 {
-	private Server _server;
-	private SipAppContext _context;
+	private NameAddr _localAddress;
+	private SipFactory _factory;
 	
-	public UserAgent(int port)
+	private List<SipServletResponse> _responses = new ArrayList<SipServletResponse>();
+	
+	enum RegistrationState { UNREGISTERED, REGISTERING_UNAUTH, REGISTERING_AUTH, REGISTERED };
+	
+	private RegistrationState _registrationState;
+	
+	public UserAgent(SipURI aor)
 	{
-		_server = new Server();
-		
-		UdpConnector connector = new UdpConnector();
-		connector.setPort(port);
-		
-		_server.getConnectorManager().addConnector(connector);
-		_server.setApplicationRouter(new UserAgentApplicationRouter());
-		
-		SipContextHandlerCollection handler = new SipContextHandlerCollection();
-		_server.setHandler(handler);
-		
-		_context = new SipAppContext();
-		_context.setConfigurationClasses(new String[0]);
-		_context.setContextPath("/");
-		_context.setName(UserAgent.class.getName());
-		
-		SipServletHolder holder = new SipServletHolder();
-		holder.setServlet(new UserAgentServlet());
-		holder.setName(UserAgentServlet.class.getName());
-		
-		_context.getSipServletHandler().addSipServlet(holder);
-		_context.getSipServletHandler().setMainServletName(UserAgentServlet.class.getName());
-		
-		handler.addHandler(_context);
+		_localAddress = new NameAddr(aor);
 	}
 	
-	@Override
-	protected void doStart() throws Exception
+	public Address getLocalAddress()
 	{
-		_server.start();
+		return _localAddress;
 	}
 	
-	@Override
-	protected void doStop() throws Exception
+	public void setFactory(SipFactory factory)
 	{
-		_server.stop();
+		_factory = factory;
 	}
 	
-	/*
-	private static int __requestTimeout = 5000;
-	private static int __responseTimeout = 5000;
-	
-	private Server _server;
-	private SipAppContext _context;
-	
-	private List<UA> _userAgents = new ArrayList<UA>();
-			
-	public UaManager(int port) throws Exception
+	public void handleResponse(SipServletResponse response)
 	{
-		_server = new Server();
-		UdpConnector udpConnector = new UdpConnector();
-		udpConnector.setPort(port);
-		TcpConnector tcpConnector = new TcpConnector();
-		tcpConnector.setPort(port);
-		_server.getConnectorManager().addConnector(udpConnector);
-		_server.getConnectorManager().addConnector(tcpConnector);
-		FileMessageLog logger = new FileMessageLog();
-		//logger.setFilename("yyyy_mm_dd.message.log");
-		_server.getConnectorManager().setAccessLog(logger);
-		
-		_server.setApplicationRouter(new ApplicationRouter());
-		
-		SipContextHandlerCollection handlerCollection = new SipContextHandlerCollection();
-		_server.setHandler(handlerCollection);
-		
-		_context = new SipAppContext();
-		_context.setConfigurationClasses(new String[0]);
-		_context.setContextPath("/");
-		_context.setName(UaManager.class.getName());
-		SipServletHolder holder = new SipServletHolder();
-		holder.setServlet(new MainServlet(this));
-		holder.setName(MainServlet.class.getName());
-		_context.getSipServletHandler().addSipServlet(holder);
-		_context.getSipServletHandler().setMainServletName(MainServlet.class.getName());
-		
-		handlerCollection.addHandler(_context);
-	}
-	
-	public SipFactory getSipFactory()
-	{
-		return _context.getSipFactory();
-	}
-	
-	public Address getContact()
-	{
-		return _server.getConnectorManager().getContact(SipConnectors.TCP_ORDINAL);
-	}
-	
-	public void addUserAgent(UA ua)
-	{
-		_userAgents.add(ua);
-	}
-	
-	public Session findUasSession(SipRequest request)
-	{
-		for (UA ua : _userAgents)
+		if (response.getMethod().equalsIgnoreCase(SipMethods.REGISTER))
 		{
-			if (ua.getAor().getURI().equals(request.getTo().getURI()))
-				return ua.getUasSession();
+			
+		}
+		else
+		{
+			synchronized (_responses)
+			{
+				_responses.add(response);
+				_responses.notifyAll();
+			}
+		}
+	}
+	
+	public void handleRequest(SipServletRequest request)
+	{
+		
+	}
+	
+	public SipServletRequest createRequest(String method, Address destination)
+	{
+		SipApplicationSession appSession = _factory.createApplicationSession();
+		SipServletRequest request = _factory.createRequest(appSession, method, _localAddress, destination);
+		request.addHeader(SipHeaders.USER_AGENT, "Cipango-Client");
+		return request;
+	}
+	
+	public SipServletRequest createRequest(String method, String destination) throws ServletParseException
+	{
+		return createRequest(method, _factory.createAddress(destination));
+	}
+	
+	public SipServletResponse getResponse(SipServletRequest request, long timeout) throws InterruptedException
+	{
+		long start = System.currentTimeMillis();
+		
+		synchronized (_responses)
+		{
+			for (long remaining = timeout; remaining > 0; remaining = timeout - (System.currentTimeMillis() - start))
+			{
+				for (SipServletResponse response : _responses)
+				{
+					if (response.getRequest() == request)
+						return response;
+				}
+				_responses.wait(remaining);	
+			}
 		}
 		return null;
 	}
-		
-	@Override
-	protected void doStart() throws Exception
+	
+	public void register() throws IOException
 	{
-		_server.start();
+		if (_registrationState == RegistrationState.UNREGISTERED)
+		{
+			SipURI registrar = _factory.createSipURI(null, ((SipURI) _localAddress.getURI()).getHost());
+			SipServletRequest register = createRequest(SipMethods.REGISTER, new NameAddr(registrar));
+			register.setExpires(3600);
+			register.send();
+		}
 	}
 	
-	@Override
-	protected void doStop() throws Exception
-	{
-		_server.stop();
-	}
-
-	public static int getRequestTimeout()
-	{
-		return __requestTimeout;
-	}
-
-	public static void setRequestTimeout(int requestTimeout)
-	{
-		__requestTimeout = requestTimeout;
-	}
-
-	public static int getResponseTimeout()
-	{
-		return __responseTimeout;
-	}
-
-	public static void setResponseTimeout(int responseTimeout)
-	{
-		__responseTimeout = responseTimeout;
-	}	
-	*/
+	
 }

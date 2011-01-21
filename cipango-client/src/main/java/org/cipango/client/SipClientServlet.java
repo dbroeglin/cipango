@@ -14,11 +14,35 @@
 
 package org.cipango.client;
 
+import javax.servlet.ServletException;
+import javax.servlet.UnavailableException;
 import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
 
-public class UserAgentServlet extends SipServlet
+public class SipClientServlet extends SipServlet
 {
 	private static final long serialVersionUID = 1L;
-
 	
+	private SipClient _client;
+
+	@Override
+	public void init() throws ServletException
+	{
+		_client = (SipClient) getServletContext().getAttribute(SipClient.class.getName());
+		if (_client == null)
+			throw new UnavailableException("no sip client");
+	}
+	
+	@Override
+	protected void doRequest(SipServletRequest request)
+	{
+		_client.handleRequest(request);
+	}
+	
+	@Override
+	protected void doResponse(SipServletResponse response)
+	{
+		_client.handleResponse(response);
+	}
 }

@@ -28,7 +28,7 @@ import javax.servlet.sip.ar.SipTargetedRequestInfo;
 
 import org.cipango.client.labs.UaManager;
 
-public class UserAgentApplicationRouter implements SipApplicationRouter
+public class SipClientApplicationRouter implements SipApplicationRouter
 {
 	/**
 	 * @see SipApplicationRouter#init

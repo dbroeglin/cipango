@@ -14,6 +14,8 @@
 
 package org.cipango.sipapp;
 
+import static java.lang.Math.round;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -81,6 +83,8 @@ import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.log.Log;
+import org.eclipse.jetty.util.statistic.CounterStatistic;
+import org.eclipse.jetty.util.statistic.SampleStatistic;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 public class SipAppContext extends WebAppContext implements SipHandler
@@ -131,8 +135,8 @@ public class SipAppContext extends WebAppContext implements SipHandler
     private int _sessionTimeout = -1;
     private int _proxyTimeout = -1;
     
-    private long _nbSessions = 0;
-    private Object _statsLock = new Object();
+    private final CounterStatistic _sessionsStats = new CounterStatistic();
+    private final SampleStatistic _sessionTimeStats = new SampleStatistic();
        
     private String _defaultsSipDescriptor=SIP_DEFAULTS_XML;
     private final List<String> _overrideSipDescriptors = new ArrayList<String>();
@@ -474,21 +478,72 @@ public class SipAppContext extends WebAppContext implements SipHandler
     	return holders != null && holders.length != 0;
     }
     
-	public void updateNbSessions(boolean increment)
+	public void incrementSessions()
 	{
-		synchronized (_statsLock)
-		{
-			if (increment)
-				_nbSessions++;
-			else
-				_nbSessions--;
-		}
+		_sessionsStats.increment();
 	}
 	
-	public long getNbSessions()
+	public void decrementSessions(long sessionLifetime)
 	{
-		return _nbSessions;
+		_sessionsStats.decrement();
+		_sessionTimeStats.set(round((sessionLifetime)/1000.0));
 	}
+	
+	public long getSessions()
+	{
+		return _sessionsStats.getCurrent();
+	}
+	
+	public long getSessionsTotal()
+	{
+		return _sessionsStats.getTotal();
+	}
+	
+	public long getSessionsMax()
+	{
+		return _sessionsStats.getMax();
+	}
+	
+    /**
+     * @return maximum amount of time session remained valid
+     */
+    public long getSessionTimeMax()
+    {
+        return _sessionTimeStats.getMax();
+    }
+    
+    public void statsReset()
+    {
+    	_sessionsStats.reset();
+    	_sessionTimeStats.reset();
+    }
+
+    /* ------------------------------------------------------------ */
+    /**
+     * @return total amount of time all sessions remained valid
+     */
+    public long getSessionTimeTotal()
+    {
+        return _sessionTimeStats.getTotal();
+    }
+    
+    /* ------------------------------------------------------------ */
+    /**
+     * @return mean amount of time session remained valid
+     */
+    public double getSessionTimeMean()
+    {
+        return _sessionTimeStats.getMean();
+    }
+    
+    /* ------------------------------------------------------------ */
+    /**
+     * @return standard deviation of amount of time session remained valid
+     */
+    public double getSessionTimeStdDev()
+    {
+        return _sessionTimeStats.getStdDev();
+    }
 	
 	public void setDefaultsSipDescriptor(String defaultsDescriptor)
 	{

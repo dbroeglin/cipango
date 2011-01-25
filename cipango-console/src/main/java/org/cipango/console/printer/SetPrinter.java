@@ -30,7 +30,7 @@ import org.eclipse.jetty.util.log.Logger;
 
 public class SetPrinter extends AbstractJmxPrinter implements HtmlPrinter
 {
-	private static Logger __logger = Log.getLogger("console");
+	protected static Logger __logger = Log.getLogger("console");
 	private ObjectName[] _objectNames;
 	
 	public SetPrinter(Set<ObjectName> objectNameSet, String propertyName, MBeanServerConnection connection)
@@ -124,7 +124,7 @@ public class SetPrinter extends AbstractJmxPrinter implements HtmlPrinter
 			{
 				if (attrInfo[k].getName().equals(params[j]))
 				{
-					out.write("<th>" + attrInfo[k].getDescription());
+					out.write("<th>" + getDescription(attrInfo[k]));
 					String description = getParamFullDescription(params[j]);
 					if (description != null && !description.trim().equals(""))
 					{
@@ -149,6 +149,11 @@ public class SetPrinter extends AbstractJmxPrinter implements HtmlPrinter
 		}
 		printHeaderPostfix(out);
 		out.write("</tr>");
+	}
+	
+	protected String getDescription(MBeanAttributeInfo attributeInfo)
+	{
+		return attributeInfo.getDescription();
 	}
 
 	private void printSimpleHeaders(Writer out) throws IOException

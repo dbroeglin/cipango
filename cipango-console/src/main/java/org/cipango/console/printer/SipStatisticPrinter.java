@@ -13,8 +13,12 @@
 // ========================================================================
 package org.cipango.console.printer;
 
+import java.io.IOException;
 import java.io.Writer;
+import java.text.DecimalFormat;
 
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
@@ -22,7 +26,7 @@ import org.cipango.console.ConsoleFilter;
 import org.cipango.console.StatisticGraph;
 
 
-public class SipStatisticPrinter extends ObjectListPrinters implements HtmlPrinter
+public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 {
 	private static final int[] STATS_TIME_VALUE =
 		{ 800, 3600, 14400, 86400, 604800, 1209600};
@@ -33,19 +37,57 @@ public class SipStatisticPrinter extends ObjectListPrinters implements HtmlPrint
 	private StatisticGraph _statisticGraph;
 	private int _time;
 
-	public SipStatisticPrinter(MBeanServerConnection connection, StatisticGraph statisticGraph)
+	public SipStatisticPrinter(MBeanServerConnection connection, StatisticGraph statisticGraph) throws Exception
 	{
-		super(connection, "sip.messages", true);
 		_connection = connection;
 		_statisticGraph = statisticGraph;
+		addLast(new ObjectListPrinters(connection, "sip.messages", true));
+		
+		ObjectName sessionManager = (ObjectName) _connection.getAttribute(ConsoleFilter.SERVER, "sessionManager");
+		addLast(new ObjectPrinter(sessionManager, "sip.callSessions", _connection));
+		ObjectName[] contexts = PrinterUtil.getSipAppContexts(_connection);
+		addLast(new SetPrinter(contexts, "sip.applicationSessions", _connection)
+		{
+			@Override
+			protected String getDescription(MBeanAttributeInfo attributeInfo)
+			{
+				String descr = attributeInfo.getDescription();
+				int index = descr.indexOf("Sip application sessions");
+				if (index == -1)
+					return descr;
+				return descr.substring(0, index);
+			}
+		});
+		addLast(new SetPrinter(contexts, "sip.applicationSessions.time", _connection)
+		{
+			@Override
+			protected String getDescription(MBeanAttributeInfo attributeInfo)
+			{
+				String descr = attributeInfo.getDescription();
+				int index = descr.indexOf("amount of time in seconds a Sip application session remained valid");
+				if (index == -1)
+					return descr;
+				return descr.substring(0, index);
+			}
+			
+			@Override
+			protected void printValue(Object value, String name, int i, Writer out) throws IOException
+			{
+				if (value instanceof Double)
+				{
+					DecimalFormat format = new DecimalFormat();
+					format.setMaximumFractionDigits(2);
+					value = format.format(value);
+				}	
+				super.printValue(value, name, i, out);
+			}
+		});
+
 	}
 
 	public void print(Writer out) throws Exception
 	{
 		super.print(out);
-		ObjectName sessionManager = (ObjectName) _connection.getAttribute(ConsoleFilter.SERVER, "sessionManager");
-		new ObjectPrinter(sessionManager, "sip.callSessions", _connection).print(out);
-		new SetPrinter(PrinterUtil.getContexts(_connection), "sessions", _connection).print(out);
 		printActions(out);
 		printStatisticGraphs(out);
 	}

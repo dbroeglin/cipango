@@ -26,20 +26,21 @@ import javax.servlet.sip.SipURI;
 import javax.servlet.sip.ar.SipApplicationRouter;
 import javax.servlet.sip.ar.SipApplicationRouterInfo;
 
+import org.cipango.log.event.Events;
 import org.cipango.server.ar.ApplicationRouterLoader;
 import org.cipango.server.ar.RouterInfoUtil;
 import org.cipango.server.handler.SipContextHandlerCollection;
 import org.cipango.server.session.SessionManager;
-import org.cipango.log.event.Events;
-import org.cipango.server.transaction.ClientTransaction;
-import org.cipango.server.transaction.ClientTransactionListener;
 import org.cipango.server.transaction.TransactionManager;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sipapp.SipAppContext;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.MultiException;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.thread.*;
-import org.eclipse.jetty.util.MultiException;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.util.thread.ThreadPool;
 
 /**
  * Cipango SIP/HTTP Server.
@@ -343,6 +344,15 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 		getSessionManager().statsReset();
 		getConnectorManager().statsReset();
 		getTransactionManager().statsReset();
+		if (_handler instanceof HandlerCollection)
+		{
+			Handler[] handlers = ((HandlerCollection) _handler).getChildHandlersByClass(SipAppContext.class);
+			if (handlers != null)
+			{
+				for (Handler handler : handlers)
+					((SipAppContext) handler).statsReset();
+			}
+		}
 	}
 	
 	public void setAllStatsOn(boolean on) 

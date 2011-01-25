@@ -73,20 +73,30 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 	@Override
 	protected void doStart() throws Exception
 	{
-		CallSessionHandler callSessionHandler = new CallSessionHandler();
-		SipSessionHandler sipSessionHandler = new SipSessionHandler();
-		
-		TransactionManager transactionManager = ((Server) getServer()).getTransactionManager();
-		callSessionHandler.setHandler(transactionManager);
-		transactionManager.setHandler(sipSessionHandler);
-		
-		_handler = callSessionHandler;
+		if (_handler == null)
+		{
+			CallSessionHandler callSessionHandler = new CallSessionHandler();
+			SipSessionHandler sipSessionHandler = new SipSessionHandler();
+			
+			TransactionManager transactionManager = ((Server) getServer()).getTransactionManager();
+			callSessionHandler.setHandler(transactionManager);
+			
+			transactionManager.setHandler(sipSessionHandler);
+			
+			_handler = callSessionHandler;
+		}
+
 		_handler.setServer(getServer());
 		
 		if (_handler instanceof LifeCycle)
 			((LifeCycle) _handler).start();
 		super.doStart();
 	}
+	
+	 public void setHandler(SipHandler handler)
+	 {
+		 _handler = handler;
+	 }
 	
 	public SipAppContext[] getSipContexts()
 	{

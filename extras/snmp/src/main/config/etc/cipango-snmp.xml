@@ -3,6 +3,10 @@
 
 <Configure class="org.cipango.server.Server" id="Server">
   
+  <Call class="org.cipango.log.event.Events" name="setDispatcher">
+    <Arg><New class="org.cipango.jmx.log.event.JmxEventDispatcher" id="JmxEventDispatcher"/></Arg>
+  </Call>
+  
   <Set name="sessionManager">
     <New class="org.cipango.server.session.SessionManager">
       <Set name="callsThreshold">10</Set>
@@ -37,10 +41,6 @@
         </Set>
       </New>
     </Arg>
-  </Call>
-  
-  <Call class="org.cipango.log.event.Events" name="setDispatcher">
-    <Arg><New class="org.cipango.jmx.log.event.JmxEventDispatcher" id="JmxEventDispatcher"/></Arg>
   </Call>
 
 </Configure>

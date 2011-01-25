@@ -42,7 +42,7 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 
-public class CipangoMib implements MOGroup, NotificationListener
+public class CipangoMib implements Mib, NotificationListener
 {
 
 	public static final OID 
@@ -71,12 +71,11 @@ public class CipangoMib implements MOGroup, NotificationListener
 	};
 
 	private List<MOScalar> _scalars = new ArrayList<MOScalar>();
-	private NotificationOriginator _notificationOriginator;
+	private SnmpAgent _agent;
 
-	public CipangoMib(NotificationOriginator notificationOriginator)
+	public CipangoMib()
 	{
 		super();
-		_notificationOriginator = notificationOriginator;
 		addJvmManagementMibInstrumentaton();
 	}
 
@@ -135,20 +134,25 @@ public class CipangoMib implements MOGroup, NotificationListener
 			switch (event)
 			{
 			case Events.START:
-				 _notificationOriginator.notify(new OctetString(), SnmpConstants.coldStart,
+				 _agent.getNotificationOriginator().notify(new OctetString(), SnmpConstants.coldStart,
 	                     new VariableBinding[0]);
 				break;
 			case Events.DEPLOY_FAIL:
 	
 				break;
 			case Events.CALLS_THRESHOLD_READCHED:
-				_notificationOriginator.notify(new OctetString(), OID_THRESHOLD_SESSIONS,
+				 _agent.getNotificationOriginator().notify(new OctetString(), OID_THRESHOLD_SESSIONS,
 	                      new VariableBinding[0]);
 				break;
 			default:
 				break;
 			}
 		}
+	}
+
+	public void setSnmpAgent(SnmpAgent agent)
+	{
+		_agent = agent;
 	}
 
 }

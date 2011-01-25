@@ -15,6 +15,8 @@ package org.cipango.snmp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.cipango.server.Server;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -23,8 +25,8 @@ import org.snmp4j.TransportMapping;
 import org.snmp4j.agent.BaseAgent;
 import org.snmp4j.agent.CommandProcessor;
 import org.snmp4j.agent.DuplicateRegistrationException;
+import org.snmp4j.agent.MOGroup;
 import org.snmp4j.agent.mo.MOTableRow;
-import org.snmp4j.agent.mo.jmx.mibs.JvmManagementMib;
 import org.snmp4j.agent.mo.jmx.mibs.JvmManagementMibInst;
 import org.snmp4j.agent.mo.snmp.RowStatus;
 import org.snmp4j.agent.mo.snmp.SnmpCommunityMIB;
@@ -64,8 +66,7 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 	private SnmpAddress[] _trapReceivers;
 	private SnmpAddress[] _connectors;
 		
-	private CipangoMib _cipangoMIB;
-	private JvmManagementMib _jvmManagementMIB;
+	private List<MOGroup> _mibs = new ArrayList<MOGroup>();
 	private Server _server;
 
 
@@ -292,30 +293,45 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 	        }
 		}
 	}
+	
+	public void addMib(MOGroup mib)
+	{
+		if (!_mibs.contains(mib))
+			_mibs.add(mib);
+	}
 		
 	@Override
-	protected void registerSnmpMIBs() 
+	protected void registerSnmpMIBs()
 	{
-	    super.registerSnmpMIBs();
-	    try
-	    {
-	      _cipangoMIB = new CipangoMib(notificationOriginator);
-	      _cipangoMIB.registerMOs(server, null);
-	      
-	      _jvmManagementMIB = new JvmManagementMibInst(notificationOriginator);
-	      _jvmManagementMIB.registerMOs(server, null);
-	    }
-	    catch (DuplicateRegistrationException ex) {
-	      Log.warn("Unable to register MIBs", ex);
-	    }
-	  }
+		super.registerSnmpMIBs();
+		try
+		{
+			_mibs.add(new CipangoMib());
+			_mibs.add(new JvmManagementMibInst(notificationOriginator));
+
+			for (MOGroup mib : _mibs)
+			{
+				mib.registerMOs(server, null);
+				if (mib instanceof Mib)
+					((Mib) mib).setSnmpAgent(this);
+			}
+
+		}
+		catch (DuplicateRegistrationException ex)
+		{
+			Log.warn("Unable to register MIBs", ex);
+		}
+	}
+
+	@Override
+	protected void unregisterSnmpMIBs()
+	{
+		super.unregisterSnmpMIBs();
+		for (MOGroup moGroup : _mibs)
+			moGroup.unregisterMOs(server, null);
+	}
 	
-	 protected void unregisterSnmpMIBs() 
-	 {
-		 super.unregisterSnmpMIBs();
-		 _cipangoMIB.unregisterMOs(server, null);
-		 _jvmManagementMIB.unregisterMOs(server, null);
-	 }
+	
 
 	public void addLifeCycleListener(Listener arg0)
 	{

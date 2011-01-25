@@ -7,7 +7,7 @@ module Sipatra
   
   class Base
     include HelperMethods
-    attr_accessor :sip_factory, :context, :session, :msg, :params
+    attr_accessor :sip_factory, :context, :session, :msg, :params, :log
     
     def initialize()
       @params = Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
@@ -15,7 +15,7 @@ module Sipatra
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
-      @context, @sip_factory, @session, @msg = args
+      @context, @sip_factory, @session, @msg, @log = args
       session.extend Sipatra::SessionExtension
       msg.extend Sipatra::MessageExtension
     end

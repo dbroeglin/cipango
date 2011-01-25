@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2003-2010 the original author or authors.
+// Copyright 2003-2011 the original author or authors.
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,16 +46,19 @@ public class JRubyRuntimeFactory implements PoolableObjectFactory
 		container.getProvider().setLoadPaths(loadPaths);
 		container.runScriptlet("ENV['SIPATRA_PATH'] = '" + _appPath.replaceAll("'", "\'") + "'");
 		container.runScriptlet(PathType.CLASSPATH, "sipatra.rb");
-		
-		File file = new File(_scriptPath);
-		if(file.isFile())
-			container.runScriptlet(PathType.ABSOLUTE, file.getAbsolutePath());
-		else if(file.isDirectory())
+
+		if(_scriptPath != null)
 		{
-			for(File f : file.listFiles())
+			File file = new File(_scriptPath);
+			if(file.isFile())
+				container.runScriptlet(PathType.ABSOLUTE, file.getAbsolutePath());
+			else if(file.isDirectory())
 			{
-				if(f.getName().endsWith(".rb"))
-					container.runScriptlet(PathType.ABSOLUTE, f.getAbsolutePath());
+				for(File f : file.listFiles())
+				{
+					if(f.getName().endsWith(".rb"))
+						container.runScriptlet(PathType.ABSOLUTE, f.getAbsolutePath());
+				}
 			}
 		}
 		return container;
@@ -69,7 +72,7 @@ public class JRubyRuntimeFactory implements PoolableObjectFactory
 	}
 
 	public void activateObject(Object obj) {}
-	
+
 	public void passivateObject(Object obj) 
 	{
 		if (obj instanceof ScriptingContainer) 

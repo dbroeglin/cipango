@@ -15,17 +15,12 @@ package org.cipango.sipatra;
 
 import java.io.IOException;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.cipango.sipatra.properties.Properties;
-import org.cipango.sipatra.properties.PropertyUtils;
 import org.jruby.embed.ScriptingContainer;
 import org.slf4j.Logger;
 
@@ -37,22 +32,6 @@ import org.slf4j.Logger;
 public class SipatraServlet extends SipServlet
 {
 	private static final Logger _log = org.slf4j.LoggerFactory.getLogger(SipatraServlet.class);
-	
-	private ServletContext _servletContext;
-
-	/**
-	 * Initialize the Servlet.
-	 * 
-	 * @throws ServletException
-	 *             if this method encountered difficulties
-	 */
-	@Override
-	public void init(ServletConfig config) throws ServletException
-	{
-		super.init(config);
-		_servletContext = config.getServletContext();
-		startPool();
-	}
 
 	@Override
 	public void doRequest(SipServletRequest request) throws IOException
@@ -71,15 +50,15 @@ public class SipatraServlet extends SipServlet
 		ScriptingContainer container = null;
 		try 
 		{
-			GenericObjectPool pool = (GenericObjectPool) _servletContext.getAttribute(Attributes.POOL);
+			GenericObjectPool pool = (GenericObjectPool) message.getSession().getServletContext().getAttribute(Attributes.POOL);
 			container = (ScriptingContainer) pool.borrowObject();
 			try 
 			{
 				Object app = container.runScriptlet("Sipatra::Application::new");
 
 				container.callMethod(app, "set_bindings", new Object[] { 
-						_servletContext,  
-						_servletContext.getAttribute(SipServlet.SIP_FACTORY), 
+						message.getSession().getServletContext(),  
+						message.getSession().getServletContext().getAttribute(SipServlet.SIP_FACTORY), 
 						message.getSession(), 
 						message, _log});
 				container.callMethod(app, methodName);
@@ -102,45 +81,6 @@ public class SipatraServlet extends SipServlet
 			_log.error("ERROR >> Failed to borrow a JRuby Runtime ", e);
 			// TODO: failed to borrow a runtime... What should we do?
 			//throw e?
-		}
-	}
-
-	@Override
-	public void destroy()
-	{
-		super.destroy();
-		stopPool();
-	}
-
-	private void startPool() 
-	{
-		GenericObjectPool pool = (GenericObjectPool) _servletContext.getAttribute(Attributes.POOL);
-		int init_pool_size = PropertyUtils.getIntegerProperty(Properties.SIPATRA_POOL_INIT_POOL_SIZE, 0, _servletContext);
-		for(int i = 0; i< init_pool_size; i++)
-		{
-			try 
-			{
-				pool.addObject();
-			} 
-			catch (Exception e) 
-			{
-				_log.error("<<ERROR>>", e);
-			}
-		}
-		_log.info("Pool started with "+init_pool_size+" JRuby Runtimes!");
-	}
-
-	private void stopPool() 
-	{
-		GenericObjectPool pool = (GenericObjectPool) _servletContext.getAttribute(Attributes.POOL);
-		pool.clear();
-		try 
-		{
-			pool.close();
-		} 
-		catch (Exception e) 
-		{
-			_log.error("ERROR >> Failed to close pool ", e);
 		}
 	}
 }

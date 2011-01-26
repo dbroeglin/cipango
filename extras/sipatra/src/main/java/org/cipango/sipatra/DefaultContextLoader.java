@@ -81,8 +81,43 @@ public class DefaultContextLoader implements ServletContextListener
 		conf.testWhileIdle = PropertyUtils.getBooleanProperty(Properties.SIPATRA_POOL_TEST_IDLE, false, servletContext);
 		conf.timeBetweenEvictionRunsMillis = PropertyUtils.getLongProperty(Properties.SIPATRA_POOL_TIME_EVICTION, -1L, servletContext);
 		
-		servletContext.setAttribute(Attributes.POOL, new GenericObjectPool(new JRubyRuntimeFactory(appPath, scriptPath), conf));
+		GenericObjectPool pool = new GenericObjectPool(new JRubyRuntimeFactory(appPath, scriptPath), conf);
+		startPool(pool, PropertyUtils.getIntegerProperty(Properties.SIPATRA_POOL_INIT_POOL_SIZE, 0, servletContext));
+		servletContext.setAttribute(Attributes.POOL, pool);
 	}
 	
-	public void contextDestroyed(ServletContextEvent arg0) {}
+	public void contextDestroyed(ServletContextEvent sce) 
+	{
+		GenericObjectPool pool = (GenericObjectPool) sce.getServletContext().getAttribute(Attributes.POOL);
+		stopPool(pool);
+	}
+	
+	protected void startPool(GenericObjectPool pool, int init_pool_size) 
+	{
+		for(int i = 0; i< init_pool_size; i++)
+		{
+			try 
+			{
+				pool.addObject();
+			} 
+			catch (Exception e) 
+			{
+				_log.error("<<ERROR>>", e);
+			}
+		}
+		_log.info("Pool started with "+init_pool_size+" JRuby Runtimes!");
+	}
+
+	protected void stopPool(GenericObjectPool pool) 
+	{
+		pool.clear();
+		try 
+		{
+			pool.close();
+		} 
+		catch (Exception e) 
+		{
+			_log.error("ERROR >> Failed to close pool ", e);
+		}
+	}
 }

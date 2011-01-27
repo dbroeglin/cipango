@@ -68,17 +68,17 @@ module Sipatra
       @app = app
       method_definitions = <<-RUBY
         def [](name)
-          @app.msg.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)#{plural ? ".to_a" : ""}
+          @app.message.get#{address ? "Address" : ""}Header#{plural ? "s" : ""}(name.to_s)#{plural ? ".to_a" : ""}
         end
       RUBY
       if plural
         method_definitions += <<-RUBY
           def []=(name, values)
             name = name.to_s
-            @app.msg.removeHeader(name)
+            @app.message.removeHeader(name)
             if !values.nil?
               values.each do |value| 
-                @app.msg.add#{address ? "Address" : ""}Header(name, value#{address ? ", true" : ".to_s"})
+                @app.message.add#{address ? "Address" : ""}Header(name, value#{address ? ", true" : ".to_s"})
               end
             end
           end 
@@ -87,9 +87,9 @@ module Sipatra
         method_definitions += <<-RUBY
           def []=(name, value)
             if !value.nil?
-              @app.msg.set#{address ? "Address" : ""}Header(name.to_s, value)
+              @app.message.set#{address ? "Address" : ""}Header(name.to_s, value)
             else
-              @app.msg.removeHeader(name.to_s)
+              @app.message.removeHeader(name.to_s)
             end
           end 
         RUBY
@@ -104,11 +104,11 @@ module Sipatra
         uri, options = nil, uri if uri.kind_of? Hash
         options ||= args.shift || {}
         if uri.nil?
-          uri = msg.requestURI
+          uri = message.requestURI
         else
           uri = sip_factory.createURI(uri)
         end
-        proxy = msg.getProxy()
+        proxy = message.proxy
         proxy.setRecordRoute(options[:record_route]) if options.has_key? :record_route
         proxy.proxyTo(uri)
       end    
@@ -130,15 +130,15 @@ module Sipatra
       end
       
       def add_header(name, value)
-        msg.addHeader(name.to_s, value)
+        message.addHeader(name.to_s, value)
       end
       
       def add_address_header(name, value, first = true)
-        msg.addAddressHeader(name.to_s, value, first)
+        message.addAddressHeader(name.to_s, value, first)
       end
       
       def header?(name)
-        !msg.getHeader(name.to_s).nil?
+        !message.getHeader(name.to_s).nil?
       end
       
       def modify_header(header_name, pattern = nil, new_value = nil)
@@ -156,13 +156,13 @@ module Sipatra
       end
       
       def remove_header(name)
-        msg.removeHeader(name.to_s)
+        message.removeHeader(name.to_s)
       end
       
       def send_response(status, *args)
         create_args = [convert_status_code(status)]
         create_args << args.shift unless args.empty? || args.first.kind_of?(Hash)
-        response = msg.createResponse(*create_args)
+        response = message.createResponse(*create_args)
         unless args.empty?
           raise ArgumentError, "last argument should be a Hash" unless args.first.kind_of? Hash
           args.first.each_pair do |name, value|
@@ -185,7 +185,7 @@ module Sipatra
       end
       
       def push_route(route)
-        msg.pushRoute(sip_factory.createAddress(route))
+        message.pushRoute(sip_factory.createAddress(route))
       end    
       
       private

@@ -17,7 +17,7 @@ def mock_request(method, uri, headers = {})
     }    
   end
   @mock_request.stub!(:respond_to?).with(:getRequest).and_return(false)
-  @app.msg = @mock_request
+  @app.message = @mock_request
 end
 
 def mock_response(method, status_code, headers = {})
@@ -30,7 +30,7 @@ def mock_response(method, status_code, headers = {})
     }    
   end
   @mock_response.stub! :getRequest # needed to decide if the message is a response or a request
-  @app.msg = @mock_response
+  @app.message = @mock_response
 end
 
 describe Sipatra::Base do
@@ -156,13 +156,13 @@ describe TestApp do
     end
     
     it "should invoke the handler" do
-      subject.msg = mock_request('INVITE', 'sip:test_uri')
+      subject.message = mock_request('INVITE', 'sip:test_uri')
       
       subject.should_receive(:block_called)
     end
     
     it "should not invoke the handler" do
-      subject.msg = mock_request('INVITE', 'sip:wrong_test_uri')
+      subject.message = mock_request('INVITE', 'sip:wrong_test_uri')
       
       subject.should_not_receive(:block_called)
     end
@@ -205,7 +205,7 @@ describe Sipatra::Base do
   describe 'params' do
   
     before do
-      @app.msg = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
+      @app.message = mock_request('INVITE', 'sip:+uri-1-2-3:pass@domain.com;params1=test')
     end
   
     it 'should not have an empty size by default' do
@@ -275,7 +275,7 @@ describe Sipatra::Base do
   describe 'params with conditions' do
   
     before do
-      @app.msg = mock_request('INVITE', 'sip:user@domain.com', 
+      @app.message = mock_request('INVITE', 'sip:user@domain.com', 
         :Header1 => 'sip:user:pass@domain.com',
         :Header2 => 'sip:user:pass@domain.com')
     end
@@ -312,7 +312,7 @@ describe Sipatra::Base do
   describe 'responses with params' do
   
     before do
-      @app.msg = mock_response 'INVITE', 200,
+      @app.message = mock_response 'INVITE', 200,
         :Header1 => 'sip:user:pass@domain.com',
         :Header2 => 'sip:user:pass@domain.com'
     end

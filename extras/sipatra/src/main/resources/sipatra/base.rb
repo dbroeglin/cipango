@@ -7,26 +7,21 @@ module Sipatra
   
   class Base
     include HelperMethods
-    attr_accessor :sip_factory, :context, :session, :msg, :params, :log
-    
+    attr_accessor :sip_factory, :context, :session, :message, :params, :log
+    alias :request  :message 
+    alias :response :message 
+            
     def initialize()
-      @params = Hash.new {|hash,key| hash[key.to_s] if Symbol === key }
+      @params = Hash.new { |hash,key| hash[key.to_s] if Symbol === key }
     end
     
     # called from Java to set SIP servlet bindings
     def set_bindings(*args)
-      @context, @sip_factory, @session, @msg, @log = args
+      @context, @sip_factory, @session, @message, @log = args
       session.extend Sipatra::SessionExtension
-      msg.extend Sipatra::MessageExtension
+      message.extend Sipatra::MessageExtension
     end
-    
-    def session=(session)
-      @session = session
-      class << @session
-         include SessionExtension
-       end
-    end
-    
+
     # called to process a SIP request
     def do_request
       call! self.class.req_handlers
@@ -50,16 +45,23 @@ module Sipatra
     end
     
     def request?
-      !msg.respond_to?(:getRequest)
+      !message.respond_to?(:getRequest)
     end
     
     def response?
-      msg.respond_to?(:getRequest)
+      message.respond_to?(:getRequest)
     end
     
     private
     
-    def msg_type
+    def session=(session)
+      @session = session
+      class << @session
+         include SessionExtension
+       end
+    end
+    
+    def message_type
       response? ? :response : :request
     end
     
@@ -75,7 +77,7 @@ module Sipatra
       #clear (for multi usage)
       @params.clear
       if request?
-        match = arg.match msg.requestURI.to_s
+        match = arg.match message.requestURI.to_s
         if match
           eval_options(opts)
           if keys.any?
@@ -89,7 +91,7 @@ module Sipatra
           return true
         end
       else
-        if ((arg == 0) or (arg == msg.status))
+        if ((arg == 0) or (arg == message.status))
           eval_options(opts)
           return true
         end
@@ -117,7 +119,7 @@ module Sipatra
     def call!(handlers)
       filter! :before
       catch(:halt) do
-        process_handler(handlers, msg.method)
+        process_handler(handlers, message.method)
         process_handler(handlers, "_")
       end
     ensure 
@@ -182,12 +184,12 @@ module Sipatra
         end
       end
       
-      def before(msg_type = nil, &block)
-        add_filter(:before, msg_type, &block)
+      def before(message_type = nil, &block)
+        add_filter(:before, message_type, &block)
       end
       
-      def after(msg_type = nil, &block)
-        add_filter(:after, msg_type, &block)
+      def after(message_type = nil, &block)
+        add_filter(:after, message_type, &block)
       end
             
       def reset!
@@ -212,8 +214,8 @@ module Sipatra
       
       private
       
-      def add_filter(type, message_type = nil, &block)
-        if message_type
+      def add_filter(type, msg_type = nil, &block)
+        if msg_type
           add_filter(type) do
             next unless msg_type == message_type
             instance_eval(&block)
@@ -241,6 +243,7 @@ module Sipatra
       end
       
       def handler(method_name, verb, pattern, keys, options={}, &block)
+        raise ArgumentError, "A block should be given to a handler definition method" if block.nil?
         define_method method_name, &block
         unbound_method = instance_method(method_name)
         block =

@@ -175,8 +175,8 @@ public class SessionManager extends AbstractLifeCycle
 	        	}
 	        	if (callSession.isDone())
 	        	{
-	        		removeSession(callSession);
-	        		if (_statsStartedAt.get() > 0)
+	        		boolean removed = removeSession(callSession);
+	        		if (removed && _statsStartedAt.get() > 0)
 	        			_sessionsStats.decrement();
 	        	}
 	        	else
@@ -191,14 +191,17 @@ public class SessionManager extends AbstractLifeCycle
     	}
     }
     
-    protected void removeSession(CSession callSession)
+    /**
+     * @return <code>true</code> if callSession contains the session.
+     */
+    protected boolean removeSession(CSession callSession)
     {
     	if (Log.isDebugEnabled())
 			Log.debug("CallSession " + callSession.getId() + " is done.");
 		
 		synchronized (_callSessions)
     	{
-    		_callSessions.remove(callSession.getId());
+    		return _callSessions.remove(callSession.getId()) != null;
     	}
     }
     

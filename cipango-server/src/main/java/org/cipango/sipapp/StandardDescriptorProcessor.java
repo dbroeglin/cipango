@@ -53,20 +53,20 @@ public class StandardDescriptorProcessor extends IterativeDescriptorProcessor
  
         try
         {
-        	registerVisitor("app-name", this.getClass().getDeclaredMethod("visitAppName", __signature));
-        	registerVisitor("servlet-selection", this.getClass().getDeclaredMethod("visitServletSelection", __signature));
-        	registerVisitor("proxy-config", this.getClass().getDeclaredMethod("visitProxyConfig", __signature));
+        	registerVisitor("app-name", StandardDescriptorProcessor.class.getDeclaredMethod("visitAppName", __signature));
+        	registerVisitor("servlet-selection", StandardDescriptorProcessor.class.getDeclaredMethod("visitServletSelection", __signature));
+        	registerVisitor("proxy-config", StandardDescriptorProcessor.class.getDeclaredMethod("visitProxyConfig", __signature));
         	
-            registerVisitor("context-param", this.getClass().getDeclaredMethod("visitContextParam", __signature));
-            registerVisitor("display-name", this.getClass().getDeclaredMethod("visitDisplayName", __signature));
-            registerVisitor("servlet", this.getClass().getDeclaredMethod("visitServlet",  __signature));
-            registerVisitor("servlet-mapping", this.getClass().getDeclaredMethod("visitServletMapping",  __signature));
-            registerVisitor("session-config", this.getClass().getDeclaredMethod("visitSessionConfig",  __signature));
+            registerVisitor("context-param", StandardDescriptorProcessor.class.getDeclaredMethod("visitContextParam", __signature));
+            registerVisitor("display-name", StandardDescriptorProcessor.class.getDeclaredMethod("visitDisplayName", __signature));
+            registerVisitor("servlet", StandardDescriptorProcessor.class.getDeclaredMethod("visitServlet",  __signature));
+            registerVisitor("servlet-mapping", StandardDescriptorProcessor.class.getDeclaredMethod("visitServletMapping",  __signature));
+            registerVisitor("session-config", StandardDescriptorProcessor.class.getDeclaredMethod("visitSessionConfig",  __signature));
             // FIXME registerVisitor("security-constraint", this.getClass().getDeclaredMethod("visitSecurityConstraint",  __signature));
             // FIXME registerVisitor("login-config", this.getClass().getDeclaredMethod("visitLoginConfig",  __signature));
             // FIXME registerVisitor("security-role", this.getClass().getDeclaredMethod("visitSecurityRole",  __signature));
-            registerVisitor("listener", this.getClass().getDeclaredMethod("visitListener",  __signature));
-            registerVisitor("distributable", this.getClass().getDeclaredMethod("visitDistributable",  __signature));
+            registerVisitor("listener", StandardDescriptorProcessor.class.getDeclaredMethod("visitListener",  __signature));
+            registerVisitor("distributable", StandardDescriptorProcessor.class.getDeclaredMethod("visitDistributable",  __signature));
         }
         catch (Exception e)
         {

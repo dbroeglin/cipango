@@ -164,6 +164,14 @@ public class SipServletHolder extends ServletHolder
                 _unavailable=System.currentTimeMillis()+5000; // TODO configure
         }
     }
+    
+    @Override
+    public UnavailableException getUnavailableException()
+    {
+    	if (_unavailableEx != null)
+    		return _unavailableEx;
+    	return super.getUnavailableException();
+    }
 }
 
 

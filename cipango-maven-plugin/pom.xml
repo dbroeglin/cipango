@@ -11,24 +11,6 @@
 
   <build>
     <plugins>
-      <!-- plugin>
-        <artifactId>maven-scm-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>checkout-sources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>checkout</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <connectionUrl>scm:svn:http://svn.codehaus.org/jetty/jetty/tags/jetty-${jetty.version}/jetty-maven-plugin/src/main/java</connectionUrl>
-          <checkoutDirectory>${project.build.directory}/jetty-maven-plugin</checkoutDirectory>
-          <skipCheckoutIfExists>true</skipCheckoutIfExists>
-        </configuration>
-      </plugin -->
-      
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
@@ -80,7 +62,7 @@
             <id>generate-sources</id>
             <phase>process-sources</phase>  
             <configuration>
-              <tasks>
+              <target>
                 <echo message="Fixing the patch file for local conventions..." />
                 <fixcrlf srcdir="${basedir}/src/main/patches/" includes="**/*.patch"/>
                 <fixcrlf srcdir="${project.build.directory}/jetty-maven-plugin" includes="**/*.java,**/*.config"/>
@@ -92,7 +74,7 @@
                   <fileset dir="${project.build.directory}/jetty-maven-plugin" includes="org/mortbay/jetty/plugin/Jetty6PluginWebAppContext.java"/>
                 </delete>
                 <echo message="Finished applying patches... " />
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>

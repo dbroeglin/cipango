@@ -244,4 +244,10 @@ public class SipMetaData
 	{
 		_listeners.add(classname);
 	}
+
+	public List<DescriptorProcessor> getDescriptorProcessors()
+	{
+		return _descriptorProcessors;
+	}
+	
 }

@@ -39,8 +39,8 @@ public class SipResourceDecorator implements Decorator
 	public static final String JNDI_TIMER_SERVICE_POSTFIX = "/" + JNDI_TIMER_SERVICE;
 	public static final String JNDI_SIP_SESSIONS_UTIL_POSTFIX = "/" + JNDI_SIP_SESSIONS_UTIL;
 	
-	private String _name;
-	private SipAppContext _context;
+	protected String _name;
+	protected SipAppContext _context;
 	
 	public SipResourceDecorator(SipAppContext context)
 	{
@@ -86,7 +86,7 @@ public class SipResourceDecorator implements Decorator
 		try
 		{
 			String name = _context.getName();
-			if (name == null)
+			if (name == null || "".equals(name.trim()))
 				name = _context.getDefaultName();
 				
 			if (_name == null || !_name.endsWith(name))

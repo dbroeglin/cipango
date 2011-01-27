@@ -103,8 +103,8 @@ describe 'Sipatra::Base subclasses' do
     @app.session[:foo]  = nil
   end
   
-  it "msg.uri should return msg.requestUri" do
-    @app.msg.uri.should == "sip:uri"
+  it "message.uri should return msg.requestUri" do
+    @app.message.uri.should == "sip:uri"
   end
   
   describe "when receiving do_request (with URI sip:uri)" do

@@ -11,29 +11,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client;
+package org.cipango.client.labs;
 
-import java.util.EventListener;
-
-import org.cipango.client.labs.SipRequest;
-import org.cipango.client.labs.SipResponse;
-
-public interface CallListener extends EventListener
+public class Subscription
 {
-	
-	void newIncomingCall(SipCall call, SipRequest request);
 
-	void ringing(SipCall call, SipResponse response);
 	
-	void answered(SipCall call, SipResponse response);
+	public Subscription(String event, String aor, SubscriptionListener listener)
+	{
+		
+	}
 	
-	void rejected(SipCall call, SipResponse response);
+	public String getEvent()
+	{
+		return null;
+	}
 	
-	void redirected(SipCall call, SipResponse response);
+	public int getExpires()
+	{
+		return 0;
+	}
 	
-	void reInvited(SipCall call, SipRequest request);
+	public void start()
+	{
+		
+	}
 	
-	void canceled(SipCall call, SipRequest request);
+	public void stop()
+	{
+		
+	}
 	
-	void terminated(SipCall call, SipRequest request);
 }

@@ -12,37 +12,44 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.client;
+package org.cipango.client.labs;
 
-import javax.servlet.ServletException;
-import javax.servlet.UnavailableException;
-import javax.servlet.sip.SipServlet;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
+import java.util.List;
 
-public class SipClientServlet extends SipServlet
+import javax.servlet.sip.SipURI;
+
+
+public class Identity 
 {
-	private static final long serialVersionUID = 1L;
+	private SipURI _aor;
 	
-	private SipClient _client;
-
-	@Override
-	public void init() throws ServletException
+	public void register()
 	{
-		_client = (SipClient) getServletContext().getAttribute(SipClient.class.getName());
-		if (_client == null)
-			throw new UnavailableException("no sip client");
+		
 	}
 	
-	@Override
-	protected void doRequest(SipServletRequest request)
+	public SipCall newCall(String aor)
 	{
-		_client.handleRequest(request);
+		return null;
 	}
 	
-	@Override
-	protected void doResponse(SipServletResponse response)
+	public List<SipCall> getCalls()
 	{
-		_client.handleResponse(response);
+		return null;
+	}
+	
+	public void addSubscription(Subscription subscription)
+	{
+		
+	}
+	
+	public List<Subscription> getSubscritions()
+	{
+		return null;
+	}
+	
+	public void setCallListener(CallListener listener)
+	{
+		
 	}
 }

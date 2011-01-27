@@ -33,14 +33,14 @@ import org.cipango.sip.SipMethods;
 
 public class UserAgent
 {
-	private NameAddr _localAddress;
+	private Address _contact;
+	private Address _localAddress;
 	private SipFactory _factory;
 	
-	private List<SipServletResponse> _responses = new ArrayList<SipServletResponse>();
+	private SipSession _registerSession;
 	
-	enum RegistrationState { UNREGISTERED, REGISTERING_UNAUTH, REGISTERING_AUTH, REGISTERED };
-	
-	private RegistrationState _registrationState;
+	private String _user = "thomas22";
+	private String _passwd = "thomas22300";
 	
 	public UserAgent(SipURI aor)
 	{
@@ -57,19 +57,16 @@ public class UserAgent
 		_factory = factory;
 	}
 	
+	public void setContact(Address contact)
+	{
+		_contact = contact;
+	}
+	
 	public void handleResponse(SipServletResponse response)
 	{
 		if (response.getMethod().equalsIgnoreCase(SipMethods.REGISTER))
 		{
-			
-		}
-		else
-		{
-			synchronized (_responses)
-			{
-				_responses.add(response);
-				_responses.notifyAll();
-			}
+			handleRegisterResponse(response);
 		}
 	}
 	
@@ -85,41 +82,109 @@ public class UserAgent
 		request.addHeader(SipHeaders.USER_AGENT, "Cipango-Client");
 		return request;
 	}
-	
+
 	public SipServletRequest createRequest(String method, String destination) throws ServletParseException
 	{
 		return createRequest(method, _factory.createAddress(destination));
 	}
-	
-	public SipServletResponse getResponse(SipServletRequest request, long timeout) throws InterruptedException
+
+	public SipServletRequest createRequest(SipSession session, String method)
 	{
-		long start = System.currentTimeMillis();
-		
-		synchronized (_responses)
-		{
-			for (long remaining = timeout; remaining > 0; remaining = timeout - (System.currentTimeMillis() - start))
-			{
-				for (SipServletResponse response : _responses)
-				{
-					if (response.getRequest() == request)
-						return response;
-				}
-				_responses.wait(remaining);	
-			}
-		}
-		return null;
+		SipServletRequest request = session.createRequest(method);
+		request.addHeader(SipHeaders.USER_AGENT, "Cipango-Client");
+		return request;
 	}
 	
-	public void register() throws IOException
+	public boolean isRegistered()
 	{
-		if (_registrationState == RegistrationState.UNREGISTERED)
+		if (_registerSession != null)
 		{
-			SipURI registrar = _factory.createSipURI(null, ((SipURI) _localAddress.getURI()).getHost());
-			SipServletRequest register = createRequest(SipMethods.REGISTER, new NameAddr(registrar));
-			register.setExpires(3600);
+			Long expiryTime = (Long) _registerSession.getAttribute("expiryTime");
+			if (expiryTime != null)
+				return expiryTime.longValue() > System.currentTimeMillis();
+		}
+		return false;
+	}
+	
+	public synchronized void register() throws IOException
+	{
+		if (_registerSession == null)
+		{
+			SipServletRequest register = createRegister(null);
+			_registerSession = register.getSession();
 			register.send();
 		}
 	}
 	
+	protected SipServletRequest createRegister(SipSession session) 
+	{
+		SipServletRequest register;
+		if (session == null)
+			register = createRequest(SipMethods.REGISTER, _localAddress);
+		else
+			register = createRequest(session, SipMethods.REGISTER);
+			
+		SipURI registrar = _factory.createSipURI(null, ((SipURI) _localAddress.getURI()).getHost());
+		register.setRequestURI(registrar);
+		register.setAddressHeader(SipHeaders.CONTACT, _contact);
+		register.setExpires(3600);
+		
+		return register;
+	}
 	
+	public synchronized void handleRegisterResponse(SipServletResponse response)
+	{
+		if (_registerSession != null)
+		{
+			int status = response.getStatus();
+			if (status == SipServletResponse.SC_OK)
+			{
+				try
+				{
+					int expires = response.getExpires();
+				
+					if (expires == -1)
+					{
+						Address contact = response.getAddressHeader(SipHeaders.CONTACT);
+						expires = contact.getExpires();
+					}
+					long expiryTime = System.currentTimeMillis() + expires * 1000l;
+					_registerSession.setAttribute("expiryTime", expiryTime);
+					
+					System.out.println("expires " + expires);
+				}
+				catch (Exception e)
+				{
+					// registration failure
+				}
+			}
+			else if (status == SipServletResponse.SC_UNAUTHORIZED)
+			{
+				if (response.getRequest().getHeader(SipHeaders.AUTHORIZATION) == null)
+				{
+					SipServletRequest register = createRegister(_registerSession);
+					register.addAuthHeader(response, _user, _passwd);
+					try
+					{
+						register.send();
+					}
+					catch (Exception e)
+					{
+						// registration failed
+					}
+				}
+				else 
+				{
+					System.out.println(status);
+					// stale ?
+					System.out.println("registration failed");
+				}
+			}
+		}
+	}
+	
+	public String toString()
+	{
+		return _localAddress + "[" + _contact + "]";
+	}
 }

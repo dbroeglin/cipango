@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.sip.Address;
-import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
@@ -29,6 +29,7 @@ import org.cipango.server.Server;
 import org.cipango.server.bio.UdpConnector;
 import org.cipango.server.handler.SipContextHandlerCollection;
 import org.cipango.servlet.SipServletHolder;
+import org.cipango.sip.NameAddr;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 
@@ -57,14 +58,12 @@ public class SipClient extends AbstractLifeCycle
 		_context.setContextPath("/");
 		_context.setName(SipClient.class.getName());
 		
-		_context.getServletContext().setAttribute(SipClient.class.getName(), this);
-		
 		SipServletHolder holder = new SipServletHolder();
-		holder.setServlet(new SipClientServlet());
-		holder.setName(SipClientServlet.class.getName());
+		holder.setServlet(new ClientServlet());
+		holder.setName(ClientServlet.class.getName());
 		
 		_context.getSipServletHandler().addSipServlet(holder);
-		_context.getSipServletHandler().setMainServletName(SipClientServlet.class.getName());
+		_context.getSipServletHandler().setMainServletName(ClientServlet.class.getName());
 		
 		handler.addHandler(_context);
 	}
@@ -86,13 +85,6 @@ public class SipClient extends AbstractLifeCycle
 		return _server.getConnectorManager().getDefaultConnector().getSipUri();
 	}
 	
-	public void sendOptions(String destination) throws Exception
-	{
-		SipApplicationSession appSession = _context.getSipFactory().createApplicationSession();
-		SipServletRequest options = _context.getSipFactory().createRequest(appSession, "OPTIONS", "sip:192.168.2.127", destination);
-		options.send();
-	}
-	
 	public UserAgent getUserAgent(URI uri)
 	{
 		synchronized (_userAgents)
@@ -106,136 +98,69 @@ public class SipClient extends AbstractLifeCycle
 		return null;
 	}
 	
-	public UserAgent newUserAgent(SipURI uri)
+	protected void addAgent(UserAgent agent)
 	{
-		UserAgent agent = new UserAgent(uri);
+		SipURI contact = (SipURI) getContact().clone();
+		
 		agent.setFactory(_context.getSipFactory());
+		agent.setContact(new NameAddr(contact));
 		
 		synchronized(_userAgents)
 		{
 			_userAgents.add(agent);
 		}
+	}
+	
+	public UserAgent createUserAgent(SipURI uri)
+	{
+		UserAgent agent = new UserAgent(uri);
+		addAgent(agent);
 		return agent;
 	}
 	
-	public UserAgent newUserAgent(String user, String host)
+	public TestUserAgent createTestUserAgent(SipURI uri)
 	{
-		return newUserAgent(_context.getSipFactory().createSipURI(user, host));
+		TestUserAgent agent = new TestUserAgent(uri);
+		addAgent(agent);
+		return agent;
 	}
 	
-	public void handleRequest(SipServletRequest request)
+	public UserAgent createUserAgent(String user, String host)
 	{
-		Address local = request.getTo();
-		UserAgent agent = getUserAgent(local.getURI());
-		
-		if (agent != null)
-			agent.handleRequest(request);
+		return createUserAgent(createSipURI(user, host));
 	}
 	
-	public void handleResponse(SipServletResponse response)
+	public TestUserAgent createTestUserAgent(String user, String host)
 	{
-		Address local = response.getFrom();
-		UserAgent agent = getUserAgent(local.getURI());
-		
-		if (agent != null)
-			agent.handleResponse(response);
+		return createTestUserAgent(createSipURI(user, host));
 	}
 	
-	/*
-	private static int __requestTimeout = 5000;
-	private static int __responseTimeout = 5000;
-	
-	private Server _server;
-	private SipAppContext _context;
-	
-	private List<UA> _userAgents = new ArrayList<UA>();
-			
-	public UaManager(int port) throws Exception
+	protected SipURI createSipURI(String user, String host)
 	{
-		_server = new Server();
-		UdpConnector udpConnector = new UdpConnector();
-		udpConnector.setPort(port);
-		TcpConnector tcpConnector = new TcpConnector();
-		tcpConnector.setPort(port);
-		_server.getConnectorManager().addConnector(udpConnector);
-		_server.getConnectorManager().addConnector(tcpConnector);
-		FileMessageLog logger = new FileMessageLog();
-		//logger.setFilename("yyyy_mm_dd.message.log");
-		_server.getConnectorManager().setAccessLog(logger);
-		
-		_server.setApplicationRouter(new ApplicationRouter());
-		
-		SipContextHandlerCollection handlerCollection = new SipContextHandlerCollection();
-		_server.setHandler(handlerCollection);
-		
-		_context = new SipAppContext();
-		_context.setConfigurationClasses(new String[0]);
-		_context.setContextPath("/");
-		_context.setName(UaManager.class.getName());
-		SipServletHolder holder = new SipServletHolder();
-		holder.setServlet(new MainServlet(this));
-		holder.setName(MainServlet.class.getName());
-		_context.getSipServletHandler().addSipServlet(holder);
-		_context.getSipServletHandler().setMainServletName(MainServlet.class.getName());
-		
-		handlerCollection.addHandler(_context);
+		return _context.getSipFactory().createSipURI(user, host);
 	}
 	
-	public SipFactory getSipFactory()
+	@SuppressWarnings("serial")
+	class ClientServlet extends SipServlet
 	{
-		return _context.getSipFactory();
-	}
-	
-	public Address getContact()
-	{
-		return _server.getConnectorManager().getContact(SipConnectors.TCP_ORDINAL);
-	}
-	
-	public void addUserAgent(UA ua)
-	{
-		_userAgents.add(ua);
-	}
-	
-	public Session findUasSession(SipRequest request)
-	{
-		for (UA ua : _userAgents)
+		@Override
+		protected void doRequest(SipServletRequest request)
 		{
-			if (ua.getAor().getURI().equals(request.getTo().getURI()))
-				return ua.getUasSession();
+			Address local = request.getTo();
+			UserAgent agent = getUserAgent(local.getURI());
+			
+			if (agent != null)
+				agent.handleRequest(request);
 		}
-		return null;
-	}
 		
-	@Override
-	protected void doStart() throws Exception
-	{
-		_server.start();
+		@Override
+		protected void doResponse(SipServletResponse response)
+		{
+			Address local = response.getFrom();
+			UserAgent agent = getUserAgent(local.getURI());
+			
+			if (agent != null)
+				agent.handleResponse(response);
+		}
 	}
-	
-	@Override
-	protected void doStop() throws Exception
-	{
-		_server.stop();
-	}
-
-	public static int getRequestTimeout()
-	{
-		return __requestTimeout;
-	}
-
-	public static void setRequestTimeout(int requestTimeout)
-	{
-		__requestTimeout = requestTimeout;
-	}
-
-	public static int getResponseTimeout()
-	{
-		return __responseTimeout;
-	}
-
-	public static void setResponseTimeout(int responseTimeout)
-	{
-		__responseTimeout = responseTimeout;
-	}	
-	*/
 }

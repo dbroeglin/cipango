@@ -11,53 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.client;
+package org.cipango.client.labs;
 
-import javax.servlet.sip.SipSession.State;
+import java.util.EventListener;
 
-import org.cipango.client.labs.SipSession;
-import org.cipango.client.labs.UA;
 
-public class SipCall
+public interface SubscriptionListener extends EventListener
 {
-	private Identity _identity;
-	private SipSession _session;
+
+	void registrationAccepted(SipResponse response);
 	
-	public SipCall(Identity identity)
-	{
-		_identity = identity;
-	}
+	void registrationRefused(SipResponse response);
 	
-	public void makeCall(String to)
-	{
-		//SipRequest request = _client.createRequest(SipRequest.INVITE, _uri, to);
-		//_session = request.getSession();
-		//request.send();
-	}
+	void notified(SipRequest request);
 	
-	public void makeCall(UA to)
-	{
-		
-	}
-	
-	
-	public void reInvite()
-	{
-	
-	}
-	
-	public void cancel()
-	{
-	
-	}
-	
-	public void end()
-	{
-		
-	}
-	
-	public State getState()
-	{
-		return null;
-	}
 }

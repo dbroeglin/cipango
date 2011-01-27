@@ -26,8 +26,6 @@ import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 import javax.servlet.sip.ar.SipRouteModifier;
 import javax.servlet.sip.ar.SipTargetedRequestInfo;
 
-import org.cipango.client.labs.UaManager;
-
 public class SipClientApplicationRouter implements SipApplicationRouter
 {
 	/**
@@ -65,7 +63,7 @@ public class SipClientApplicationRouter implements SipApplicationRouter
 	{
 		if (request.getRemoteAddr() == null)
 			return null;
-		return new SipApplicationRouterInfo(UaManager.class.getName(),
+		return new SipApplicationRouterInfo(SipClient.class.getName(),
 				SipApplicationRoutingRegion.NEUTRAL_REGION, 
 				request.getFrom().getURI().toString(), 
 				null,

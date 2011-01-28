@@ -1,3 +1,11 @@
+cipango (2.0.0) stable; urgency=low
+ *  CIPANGO-123 Subsequent diameter request does not belongs to the original session
+ *  CIPANGO-124 special character on console web filter
+ *  CIPANGO-121 Serlvet invoked when already invalidated
+ *  CIPANGO-122 Unable to log some diameter messages
+
+ -- Nexcom Systems <nicolas@cipango.org>  Fry, 28 Janury 2011 11:30:00 +0200
+
 cipango (2.0.0pre3) unstable; urgency=low
  *  CIPANGO-111 B2BUaHelper - createRequest - "From" not changed
  *  CIPANGO-112 When a 200/INVITE from a reInvite is received, the ACK of initial INVITE is sent

@@ -60,6 +60,11 @@ module Sipatra
          include SessionExtension
        end
     end
+
+    # Retrieve the OUTBOUND_INTERFACES value from cipango.
+    def get_addresses
+      context.getAttribute('javax.servlet.sip.outboundInterfaces')
+    end
     
     def message_type
       response? ? :response : :request

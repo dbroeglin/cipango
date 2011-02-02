@@ -31,7 +31,17 @@ module Sipatra
     def do_response
       call! self.class.resp_handlers
     end
-    
+
+    # Access settings defined with Base.set.
+    def self.settings
+      self
+    end
+
+    # Access settings defined with Base.set.
+    def settings
+      self.class.settings
+    end
+
     # Exit the current block, halts any further processing
     # of the message.
     # TODO: handle a response (as param)
@@ -138,7 +148,36 @@ module Sipatra
       def configure(*envs, &block)
         yield self if envs.empty? || envs.include?(environment.to_sym)
       end
-      
+
+      # Sets an option to the given value.  If the value is a proc,
+      # the proc will be called every time the option is accessed.
+      def set(option, value=self, &block)
+        raise ArgumentError if block && value != self
+        value = block if block
+        if value.kind_of?(Proc)
+          metadef(option, &value)
+          metadef("#{option}?") { !!__send__(option) }
+          metadef("#{option}=") { |val| metadef(option, &Proc.new{val}) }
+        elsif value == self && option.respond_to?(:each)
+          option.each { |k,v| set(k, v) }
+        elsif respond_to?("#{option}=")
+          __send__ "#{option}=", value
+        else
+          set option, Proc.new{value}
+        end
+        self
+      end
+
+      # Same as calling `set :option, true` for each of the given options.
+      def enable(*opts)
+        opts.each { |key| set(key, true) }
+      end
+
+      # Same as calling `set :option, false` for each of the given options.
+      def disable(*opts)
+        opts.each { |key| set(key, false) }
+      end
+
       # Methods defined in the block and/or in the module
       # arguments available to handlers.
       def helpers(*modules, &block)
@@ -217,6 +256,10 @@ module Sipatra
         filters[:after]
       end
       
+      def invoke_hook(name, *args)
+        extensions.each { |e| e.send(name, *args) if e.respond_to?(name) }
+      end
+
       private
       
       def add_filter(type, msg_type = nil, &block)
@@ -229,7 +272,15 @@ module Sipatra
           filters[type] << block
         end
       end
-            
+
+      def metadef(message, &block)
+        (class << self; self; end).
+          send :define_method, message, &block
+        if !['?', '='].include?(message.to_s[-1, 1])
+          invoke_hook(:option_set, self, message)
+        end
+      end
+
       # compiles a URI pattern
       def compile_uri_pattern(uri)
         keys = []
@@ -295,7 +346,7 @@ module Sipatra
     delegate :ack, :bye, :cancel, :info, :invite, :message,
       :notify, :options, :prack, :publish, :refer, 
       :register, :subscribe, :update, 
-      :helpers, :configure,
+      :helpers, :configure, :settings, :set, :enable, :disable,
       :before, :after, :request, :response
   end
   

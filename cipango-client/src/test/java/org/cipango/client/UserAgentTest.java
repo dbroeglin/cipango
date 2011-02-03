@@ -39,7 +39,6 @@ public class UserAgentTest extends TestCase
 	public void testUA() throws Exception
 	{
 		UserAgent thomas = _client.createUserAgent("thomas22", "opensips.org");
-		thomas.setCredentials("thomas22", "thomas22300");
 		
 		thomas.startRegistration();
 		

@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/helper'
 
 class FakeApp 
   include Sipatra::HelperMethods
+  include Sipatra::ProxyHelper
   
   public :message # or we would NOT have access to the WRONG private method of Object
 end

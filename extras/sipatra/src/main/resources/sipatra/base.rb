@@ -1,4 +1,5 @@
 require 'sipatra/helpers'
+require 'sipatra/proxy_helper'
 require 'sipatra/extension_modules'
 require 'benchmark'
 
@@ -7,6 +8,8 @@ module Sipatra
   
   class Base
     include HelperMethods
+    include ProxyHelper
+
     attr_accessor :sip_factory, :context, :session, :message, :params, :log
     alias :request  :message 
     alias :response :message 

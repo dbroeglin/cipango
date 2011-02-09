@@ -25,6 +25,7 @@ import javax.servlet.sip.URI;
 
 import javax.servlet.sip.SipServletRequest;
 
+import org.cipango.client.test.SipTester;
 import org.cipango.server.Server;
 import org.cipango.server.bio.UdpConnector;
 import org.cipango.server.handler.SipContextHandlerCollection;
@@ -118,22 +119,14 @@ public class SipClient extends AbstractLifeCycle
 		return agent;
 	}
 	
-	public TestUserAgent createTestUserAgent(SipURI uri)
-	{
-		TestUserAgent agent = new TestUserAgent(uri);
-		addAgent(agent);
-		return agent;
-	}
+	
 	
 	public UserAgent createUserAgent(String user, String host)
 	{
 		return createUserAgent(createSipURI(user, host));
 	}
 	
-	public TestUserAgent createTestUserAgent(String user, String host)
-	{
-		return createTestUserAgent(createSipURI(user, host));
-	}
+	
 	
 	protected SipURI createSipURI(String user, String host)
 	{
@@ -159,6 +152,7 @@ public class SipClient extends AbstractLifeCycle
 			Address local = response.getFrom();
 			UserAgent agent = getUserAgent(local.getURI());
 			
+			System.out.println("response " + response);
 			if (agent != null)
 				agent.handleResponse(response);
 		}

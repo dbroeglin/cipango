@@ -14,16 +14,10 @@
 
 package org.cipango.client;
 
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-
-import junit.framework.TestCase;
-
-public class UserAgentTest extends TestCase
+public class UserAgentTest 
 {
 	private SipClient _client;
 	
-	@Override
 	protected void setUp() throws Exception
 	{
 		_client = new SipClient(5060);
@@ -45,14 +39,5 @@ public class UserAgentTest extends TestCase
 		Thread.sleep(5000);
 	}
 	
-	public void testTestUA() throws Exception
-	{
-		TestUserAgent test = _client.createTestUserAgent("test", "localhost");
-		SipServletRequest request = test.createRequest("OPTIONS", "sip:opensips.org");
-		request.send();
-		
-		SipServletResponse response = test.getResponse(request);
-		assertNotNull(response);
-		assertEquals(200, response.getStatus());
-	}
+	
 }

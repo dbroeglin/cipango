@@ -12,44 +12,13 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.client.labs;
+package org.cipango.client;
 
-import java.util.List;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
 
-import javax.servlet.sip.SipURI;
-
-
-public class Identity 
+public interface MessageHandler 
 {
-	private SipURI _aor;
-	
-	public void register()
-	{
-		
-	}
-	
-	public SipCall newCall(String aor)
-	{
-		return null;
-	}
-	
-	public List<SipCall> getCalls()
-	{
-		return null;
-	}
-	
-	public void addSubscription(Subscription subscription)
-	{
-		
-	}
-	
-	public List<Subscription> getSubscritions()
-	{
-		return null;
-	}
-	
-	public void setCallListener(CallListener listener)
-	{
-		
-	}
+	void handleRequest(SipServletRequest request);
+	void handleResponse(SipServletResponse response);
 }

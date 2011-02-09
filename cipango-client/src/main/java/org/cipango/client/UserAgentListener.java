@@ -12,10 +12,9 @@
 // limitations under the License.
 // ========================================================================
 
-package org.cipango.client.labs;
+package org.cipango.client;
 
 public interface UserAgentListener 
 {
-	
 	
 }

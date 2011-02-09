@@ -15,8 +15,6 @@
 package org.cipango.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
@@ -27,9 +25,11 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 
+import org.cipango.client.labs.UserAgentListener;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipMethods;
+import org.eclipse.jetty.util.log.Log;
 
 public class UserAgent
 {
@@ -37,14 +37,28 @@ public class UserAgent
 	private Address _localAddress;
 	private SipFactory _factory;
 	
+	private MessageHandler _defaultHandler = new InitialRequestHandler();
+	private UserAgentListener _eventListener;
+	
 	private SipSession _registerSession;
 	
-	private String _user = "thomas22";
-	private String _passwd = "thomas22300";
+	private String _user;
+	private String _passwd;
 	
 	public UserAgent(SipURI aor)
 	{
 		_localAddress = new NameAddr(aor);
+	}
+	
+	public void setDefaultHandler(MessageHandler handler)
+	{
+		_defaultHandler = handler;
+	}
+	
+	public void setCredentials(String user, String passwd)
+	{
+		_user = user;
+		_passwd = passwd;
 	}
 	
 	public Address getLocalAddress()
@@ -62,12 +76,21 @@ public class UserAgent
 		_contact = contact;
 	}
 	
+	public void setEventListener(UserAgentListener listener)
+	{
+		_eventListener = listener;
+	}
+	
 	public void handleResponse(SipServletResponse response)
 	{
-		if (response.getMethod().equalsIgnoreCase(SipMethods.REGISTER))
-		{
-			handleRegisterResponse(response);
-		}
+		SipSession session = response.getSession();
+		
+		MessageHandler handler = (MessageHandler) session.getAttribute(MessageHandler.class.getName());
+		
+		if (handler == null)
+			handler = _defaultHandler;
+		
+		handler.handleResponse(response);
 	}
 	
 	public void handleRequest(SipServletRequest request)
@@ -95,27 +118,6 @@ public class UserAgent
 		return request;
 	}
 	
-	public boolean isRegistered()
-	{
-		if (_registerSession != null)
-		{
-			Long expiryTime = (Long) _registerSession.getAttribute("expiryTime");
-			if (expiryTime != null)
-				return expiryTime.longValue() > System.currentTimeMillis();
-		}
-		return false;
-	}
-	
-	public synchronized void register() throws IOException
-	{
-		if (_registerSession == null)
-		{
-			SipServletRequest register = createRegister(null);
-			_registerSession = register.getSession();
-			register.send();
-		}
-	}
-	
 	protected SipServletRequest createRegister(SipSession session) 
 	{
 		SipServletRequest register;
@@ -132,52 +134,80 @@ public class UserAgent
 		return register;
 	}
 	
-	public synchronized void handleRegisterResponse(SipServletResponse response)
+	public boolean isRegistered()
 	{
 		if (_registerSession != null)
+		{ 
+			Long expiryTime = (Long) _registerSession.getAttribute("expiryTime");
+			if (expiryTime != null)
+				return expiryTime.longValue() > System.currentTimeMillis();
+		}
+		return false;
+	}
+	
+	public synchronized void startRegistration() throws IOException
+	{
+		if (_registerSession == null)
 		{
-			int status = response.getStatus();
-			if (status == SipServletResponse.SC_OK)
+			SipServletRequest register = createRegister(null);
+			_registerSession = register.getSession();
+			_registerSession.setAttribute(MessageHandler.class.getName(), new RegistrationHandler());
+			register.send();
+		}
+	}
+	
+	class RegistrationHandler implements MessageHandler
+	{
+		public void handleRequest(SipServletRequest request) { }
+		
+		public void handleResponse(SipServletResponse response)
+		{
+			System.out.println("handling response " + response);
+			if (_registerSession != null)
 			{
-				try
+				int status = response.getStatus();
+				if (status == SipServletResponse.SC_OK)
 				{
-					int expires = response.getExpires();
-				
-					if (expires == -1)
-					{
-						Address contact = response.getAddressHeader(SipHeaders.CONTACT);
-						expires = contact.getExpires();
-					}
-					long expiryTime = System.currentTimeMillis() + expires * 1000l;
-					_registerSession.setAttribute("expiryTime", expiryTime);
-					
-					System.out.println("expires " + expires);
-				}
-				catch (Exception e)
-				{
-					// registration failure
-				}
-			}
-			else if (status == SipServletResponse.SC_UNAUTHORIZED)
-			{
-				if (response.getRequest().getHeader(SipHeaders.AUTHORIZATION) == null)
-				{
-					SipServletRequest register = createRegister(_registerSession);
-					register.addAuthHeader(response, _user, _passwd);
 					try
 					{
-						register.send();
+						int expires = response.getExpires();
+					
+						if (expires == -1)
+						{
+							Address contact = response.getAddressHeader(SipHeaders.CONTACT);
+							expires = contact.getExpires();
+						}
+						long expiryTime = System.currentTimeMillis() + expires * 1000l;
+						_registerSession.setAttribute("expiryTime", expiryTime);
+						
+						System.out.println("expires " + expires);
 					}
 					catch (Exception e)
 					{
-						// registration failed
+						// registration failure
 					}
 				}
-				else 
+				else if (status == SipServletResponse.SC_UNAUTHORIZED)
 				{
-					System.out.println(status);
-					// stale ?
-					System.out.println("registration failed");
+					if (response.getRequest().getHeader(SipHeaders.AUTHORIZATION) == null)
+					{
+						SipServletRequest register = createRegister(_registerSession);
+						register.addAuthHeader(response, _user, _passwd);
+						try
+						{
+							register.send();
+						}
+						catch (Exception e)
+						{
+							// registration failed
+						}
+					}
+					else 
+					{
+						System.out.println(status);
+						// stale ?
+						System.out.println("registration failed");
+					}
 				}
 			}
 		}
@@ -186,5 +216,36 @@ public class UserAgent
 	public String toString()
 	{
 		return _localAddress + "[" + _contact + "]";
+	}
+	
+	class InitialRequestHandler implements MessageHandler
+	{
+		public void handleRequest(SipServletRequest request) 
+		{
+			if (request.isInitial())
+			{
+				
+			}
+			else
+			{
+				Log.warn("unexpected request " + request);
+			}
+		}
+
+		public void handleResponse(SipServletResponse response) 
+		{
+			Log.warn("unexpected response " + response);
+		}
+	}
+	
+	class Call implements MessageHandler
+	{
+		public void handleRequest(SipServletRequest request) 
+		{
+		}
+
+		public void handleResponse(SipServletResponse response) 
+		{
+		}		
 	}
 }

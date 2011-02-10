@@ -28,7 +28,7 @@
             <configuration>
               <target>
                 <copy todir="${assembly-directory}">
-                  <fileset dir="target/jetty/jetty-distribution-${jetty.version}" />
+                  <fileset dir="target/jetty/jetty-distribution-${jetty-version}" />
                 </copy>
                 <copy file="../VERSION.txt" tofile="${assembly-directory}/VERSION-CIPANGO.txt" />
                 <copy file="../README.txt" tofile="${assembly-directory}/README-CIPANGO.txt" />

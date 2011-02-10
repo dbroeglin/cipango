@@ -99,7 +99,7 @@ public class SipClient extends AbstractLifeCycle
 		return null;
 	}
 	
-	protected void addAgent(UserAgent agent)
+	public void addAgent(UserAgent agent)
 	{
 		SipURI contact = (SipURI) getContact().clone();
 		
@@ -128,7 +128,7 @@ public class SipClient extends AbstractLifeCycle
 	
 	
 	
-	protected SipURI createSipURI(String user, String host)
+	public SipURI createSipURI(String user, String host)
 	{
 		return _context.getSipFactory().createSipURI(user, host);
 	}
@@ -139,6 +139,7 @@ public class SipClient extends AbstractLifeCycle
 		@Override
 		protected void doRequest(SipServletRequest request)
 		{
+			System.out.println("request " + request);
 			Address local = request.getTo();
 			UserAgent agent = getUserAgent(local.getURI());
 			

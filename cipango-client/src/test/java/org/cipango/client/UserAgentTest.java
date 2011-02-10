@@ -14,30 +14,30 @@
 
 package org.cipango.client;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 public class UserAgentTest 
 {
 	private SipClient _client;
 	
-	protected void setUp() throws Exception
+	@Before
+	public void start() throws Exception
 	{
 		_client = new SipClient(5060);
 		_client.start();
 	}
 	
-	@Override
-	protected void tearDown() throws Exception
+	@After
+	public void close() throws Exception
 	{
 		_client.stop();
 	}
 	
+	@Test
 	public void testUA() throws Exception
 	{
-		UserAgent thomas = _client.createUserAgent("thomas22", "opensips.org");
 		
-		thomas.startRegistration();
-		
-		Thread.sleep(5000);
 	}
-	
-	
 }

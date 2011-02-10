@@ -25,7 +25,6 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 
-import org.cipango.client.labs.UserAgentListener;
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.SipHeaders;
 import org.cipango.sip.SipMethods;
@@ -90,12 +89,19 @@ public class UserAgent
 		if (handler == null)
 			handler = _defaultHandler;
 		
-		handler.handleResponse(response);
+		try
+		{
+			handler.handleResponse(response);
+		}
+		catch (Exception e)
+		{
+			Log.debug(e);
+		}
 	}
 	
 	public void handleRequest(SipServletRequest request)
 	{
-		
+		System.out.println("got request " + request.getMethod());
 	}
 	
 	public SipServletRequest createRequest(String method, Address destination)

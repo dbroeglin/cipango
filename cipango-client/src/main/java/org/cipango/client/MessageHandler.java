@@ -14,11 +14,14 @@
 
 package org.cipango.client;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 public interface MessageHandler 
 {
-	void handleRequest(SipServletRequest request);
-	void handleResponse(SipServletResponse response);
+	void handleRequest(SipServletRequest request) throws IOException, ServletException;
+	void handleResponse(SipServletResponse response) throws IOException, ServletException;
 }

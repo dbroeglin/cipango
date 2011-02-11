@@ -20,6 +20,7 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
@@ -82,16 +83,9 @@ public class UserAgent
 	
 	public void handleResponse(SipServletResponse response)
 	{
-		SipSession session = response.getSession();
-		
-		MessageHandler handler = (MessageHandler) session.getAttribute(MessageHandler.class.getName());
-		
-		if (handler == null)
-			handler = _defaultHandler;
-		
 		try
 		{
-			handler.handleResponse(response);
+			getHandler(response).handleResponse(response);
 		}
 		catch (Exception e)
 		{
@@ -101,7 +95,25 @@ public class UserAgent
 	
 	public void handleRequest(SipServletRequest request)
 	{
-		System.out.println("got request " + request.getMethod());
+		try
+		{
+			getHandler(request).handleRequest(request);
+		}
+		catch (Exception e)
+		{
+			Log.debug(e);
+		}
+	}
+	
+	protected MessageHandler getHandler(SipServletMessage message)
+	{
+		SipSession session = message.getSession();
+		MessageHandler handler = (MessageHandler) session.getAttribute(MessageHandler.class.getName());
+		
+		if (handler == null)
+			handler = _defaultHandler;
+		
+		return handler;
 	}
 	
 	public SipServletRequest createRequest(String method, Address destination)

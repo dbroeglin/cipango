@@ -139,7 +139,6 @@ public class SipClient extends AbstractLifeCycle
 		@Override
 		protected void doRequest(SipServletRequest request)
 		{
-			System.out.println("request " + request);
 			Address local = request.getTo();
 			UserAgent agent = getUserAgent(local.getURI());
 			
@@ -153,7 +152,6 @@ public class SipClient extends AbstractLifeCycle
 			Address local = response.getFrom();
 			UserAgent agent = getUserAgent(local.getURI());
 			
-			System.out.println("response " + response);
 			if (agent != null)
 				agent.handleResponse(response);
 		}

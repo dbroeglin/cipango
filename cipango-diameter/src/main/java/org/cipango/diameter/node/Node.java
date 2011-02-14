@@ -243,7 +243,7 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 	{	
 		MultiException mex = new MultiException();
 
-		for (int i = 0; i < _connectors.length; i++)
+		for (int i = 0; _connectors != null && i < _connectors.length; i++)
 		{
 			if (_connectors[i] instanceof LifeCycle) 	
 			{

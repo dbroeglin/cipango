@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
+import org.cipango.diameter.api.DiameterFactory;
 import org.cipango.diameter.api.DiameterServletAnswer;
 import org.cipango.diameter.api.DiameterServletRequest;
 import org.cipango.diameter.api.DiameterSession;
@@ -111,6 +112,73 @@ public class NodeTest extends TestCase
 		DiameterRequest udr = new DiameterRequest(_client, Sh.UDR, Sh.SH_APPLICATION_ID.getId(), _client.getSessionManager().newSessionId());
 		udr.getAVPs().add(Common.DESTINATION_REALM, "server");
 		udr.getAVPs().add(Common.DESTINATION_HOST, "server");
+		udr.getAVPs().add(Sh.DATA_REFERENCE, DataReference.SCSCFName);
+		AVP<AVPList> userIdentity = new AVP<AVPList>(Sh.USER_IDENTITY, new AVPList());
+        userIdentity.getValue().add(Cx.PUBLIC_IDENTITY, "sip:alice@cipango.org");
+		udr.getAVPs().add(userIdentity);
+		udr.getAVPs().add(Common.AUTH_SESSION_STATE, AuthSessionState.NO_STATE_MAINTAINED);
+		udr.getSession();
+		udr.send();
+		serverHandler.assertDone();
+		clientHandler.assertDone();
+	}
+	
+	protected DiameterFactory createFactory(Node node)
+	{
+		DiameterFactoryImpl factory = new DiameterFactoryImpl();
+		factory.setNode(node);
+		return factory;
+	}
+	
+	public void testDiameterFactory() throws Throwable
+	{
+		//Log.getLog().setDebugEnabled(true);
+		
+		TestDiameterHandler serverHandler = new TestDiameterHandler()
+		{
+
+			@Override
+			public void doHandle(DiameterMessage message) throws Throwable
+			{
+				DiameterServletAnswer uda;
+				DiameterServletRequest request = (DiameterServletRequest) message;
+
+				assertEquals(true, message.isRequest());
+				assertEquals(Sh.UDR, request.getCommand());
+				assertEquals(request.getApplicationId(), Sh.SH_APPLICATION_ID.getId());
+				assertEquals(request.getDestinationHost(), "server");
+				uda = request.createAnswer(Common.DIAMETER_SUCCESS);
+				uda.send();
+			}
+			
+		};
+		_server.setHandler(serverHandler);
+		_server.start();
+		
+		TestDiameterHandler clientHandler = new TestDiameterHandler()
+		{
+			
+			@Override
+			public void doHandle(DiameterMessage message) throws Throwable
+			{
+				DiameterServletAnswer uda = (DiameterServletAnswer) message;
+	
+				assertFalse(message.isRequest());
+				assertEquals(Sh.UDA, uda.getCommand());
+				assertEquals(uda.getApplicationId(), Sh.SH_APPLICATION_ID.getId());
+
+			}
+		};
+		_client.setHandler(clientHandler);
+		_client.start();
+		
+		waitPeerOpened();
+		
+
+		DiameterFactory clientFactory = createFactory(_client);
+		DiameterServletRequest udr = clientFactory.createRequest(null, Sh.SH_APPLICATION_ID, Sh.UDR, "server");
+		
+		udr.add(Common.DESTINATION_HOST, "server");
 		udr.getAVPs().add(Sh.DATA_REFERENCE, DataReference.SCSCFName);
 		AVP<AVPList> userIdentity = new AVP<AVPList>(Sh.USER_IDENTITY, new AVPList());
         userIdentity.getValue().add(Cx.PUBLIC_IDENTITY, "sip:alice@cipango.org");
@@ -230,7 +298,7 @@ public class NodeTest extends TestCase
 		clientHandler.assertDone(2);
 	}
 		
-	public abstract class TestDiameterHandler implements DiameterHandler
+	public static abstract class TestDiameterHandler implements DiameterHandler
 	{
 		private Throwable _e;
 		private AtomicInteger _msgReceived = new AtomicInteger(0);

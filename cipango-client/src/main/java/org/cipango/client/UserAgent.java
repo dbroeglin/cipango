@@ -15,6 +15,10 @@
 package org.cipango.client;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
@@ -41,6 +45,7 @@ public class UserAgent
 	private UserAgentListener _eventListener;
 	
 	private SipSession _registerSession;
+	private List<Call> _calls = new ArrayList<Call>();
 	
 	private String _user;
 	private String _passwd;
@@ -116,6 +121,11 @@ public class UserAgent
 		return handler;
 	}
 	
+	protected void setHandler(SipServletMessage message, MessageHandler handler)
+	{
+		message.getSession().setAttribute(MessageHandler.class.getName(), handler);
+	}
+	
 	public SipServletRequest createRequest(String method, Address destination)
 	{
 		SipApplicationSession appSession = _factory.createApplicationSession();
@@ -150,6 +160,26 @@ public class UserAgent
 		register.setExpires(3600);
 		
 		return register;
+	}
+	
+	public Call createCall(String destination) throws ServletParseException
+	{
+		return createCall(_factory.createAddress(destination));
+	}
+	
+	public Call createCall(Address destination)
+	{
+		synchronized (_calls)
+		{
+			Call call = newCall(destination);
+			_calls.add(call);
+			return call;
+		}
+	}
+	
+	protected Call newCall(Address destination)
+	{
+		return new Call(destination);
 	}
 	
 	public boolean isRegistered()
@@ -242,7 +272,11 @@ public class UserAgent
 		{
 			if (request.isInitial())
 			{
-				
+				if (request.getMethod().equalsIgnoreCase(SipMethods.INVITE))
+				{
+					Call call = new Call(request.getFrom());
+					call.handleRequest(request);
+				}
 			}
 			else
 			{
@@ -256,10 +290,34 @@ public class UserAgent
 		}
 	}
 	
-	class Call implements MessageHandler
+	public class Call implements MessageHandler
 	{
+		private SipSession _session;
+		private Address _remoteAddress;
+		
+		public Call(Address destination)
+		{
+			_remoteAddress = destination;
+		}
+		
+		public SipServletRequest createInvite()
+		{
+			if (_session != null)
+				throw new IllegalStateException();
+			
+			SipApplicationSession appSession = _factory.createApplicationSession();
+			SipServletRequest invite = _factory.createRequest(
+					appSession,
+					SipMethods.INVITE,
+					_localAddress, 
+					_remoteAddress);
+			setHandler(invite, Call.this);
+			return invite;
+		}
+		
 		public void handleRequest(SipServletRequest request) 
 		{
+			System.out.println("got incoming call");
 		}
 
 		public void handleResponse(SipServletResponse response) 

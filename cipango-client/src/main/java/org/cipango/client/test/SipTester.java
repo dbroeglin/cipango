@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.sip.Address;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
@@ -29,6 +30,27 @@ public class SipTester extends UserAgent
 		return createRequest(method, destination.getLocalAddress());
 	}
 	
+	public Call createCall(UserAgent destination)
+	{
+		return (Call) createCall(destination.getLocalAddress());
+	}
+	
+	@Override
+	protected Call newCall(Address address)
+	{
+		return new Call(address);
+	}
+	
+	public class Call extends UserAgent.Call
+	{
+
+		public Call(Address destination) {
+			
+			super(destination);
+		}
+		
+	}
+	
 	public SipServletResponse getResponse(SipServletRequest request) throws InterruptedException
 	{
 		long start = System.currentTimeMillis();
@@ -47,11 +69,12 @@ public class SipTester extends UserAgent
 		}
 		return null;
 	}
-	
+		
 	class TestHandler implements MessageHandler
 	{	
 		public void handleRequest(SipServletRequest request) throws IOException
 		{ 
+			System.out.println("got request from " + request.getFrom() + " to " + request.getTo());
 			request.createResponse(SipServletResponse.SC_OK).send();
 		}
 

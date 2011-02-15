@@ -5,6 +5,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.cipango.client.test.SipTest;
 import org.cipango.client.test.SipTester;
+import org.cipango.client.test.SipTester.Call;
 import org.junit.After;
 import org.junit.Test;
 
@@ -39,23 +40,11 @@ public class SipTesterTest
 		SipTester alice = SipTest.create("alice");
 		SipTester bob = SipTest.create("bob");
 		
-		SipServletRequest invite = alice.createRequest("INVITE", bob);
+		Call call = alice.createCall(bob);
+		SipServletRequest invite = call.createInvite();
 		invite.send();
 		
-		SipServletResponse response = alice.getResponse(invite);
 		
-		assertNotNull(response);
-		assertEquals(200, response.getStatus());
-		
-		response.createAck().send();
-		
-		SipServletRequest bye = alice.createRequest(invite.getSession(), "BYE");
-		bye.send();
-		
-		response = alice.getResponse(bye);
-		
-		assertNotNull(response);
-		assertEquals(200, response.getStatus());
 	}
 	
 }

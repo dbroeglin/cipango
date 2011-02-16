@@ -132,6 +132,8 @@ public class ConsoleFilter implements Filter
 			}
 			_deployer = new Deployer(_mbsc);
 			
+			if (_servletContext.getAttribute(MenuFactory.class.getName()) == null)
+				_servletContext.setAttribute(MenuFactory.class.getName(), new MenuFactoryImpl(_mbsc));
 		}
 	}
 	
@@ -140,6 +142,11 @@ public class ConsoleFilter implements Filter
 	{	
 		if (_statisticGraph != null)
 			_statisticGraph.stop();
+	}
+	
+	public MenuFactory getMenuFactory()
+	{
+		return (MenuFactory) _servletContext.getAttribute(MenuFactory.class.getName());
 	}
 	
 	private void initConnection() throws ServletException
@@ -202,7 +209,7 @@ public class ConsoleFilter implements Filter
 			request.getSession().setAttribute(Principal.class.getName(), principal);
 		}
 		
-		MenuPrinter menuPrinter = new MenuPrinter(_mbsc, command, request.getContextPath());
+		Menu menuPrinter = getMenuFactory().getMenu(command, request.getContextPath());
 		try
 		{
 
@@ -280,7 +287,7 @@ public class ConsoleFilter implements Filter
 				request.setAttribute(Attributes.CONTENT, new SipLogPrinter(_mbsc, request, Output.HTML));
 			else if (command.equals(MenuPrinter.DIAMETER_LOGS.getName()))
 				request.setAttribute(Attributes.CONTENT, new DiameterLogPrinter(_mbsc, request, Output.HTML));
-			else if (command.equals(MenuPrinter.CONFIG_SNMP.getName()) && _mbsc.isRegistered(SNMP_AGENT))
+			else if (command.equals(MenuPrinter.CONFIG_SNMP.getName()))
 			{
 				MultiplePrinter printer = new MultiplePrinter();
 				ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "connectors");

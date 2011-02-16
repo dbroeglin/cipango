@@ -26,11 +26,12 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Menu;
 import org.cipango.console.ObjectNameFactory;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
-public class MenuPrinter implements HtmlPrinter
+public class MenuPrinter implements HtmlPrinter, Menu
 {
 
 	private static final Page PAGES = new Page("");

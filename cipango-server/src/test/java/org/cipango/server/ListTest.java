@@ -1,15 +1,17 @@
 package org.cipango.server;
 
+import static junit.framework.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.eclipse.jetty.util.LazyList;
+import org.junit.Test;
 
-public class ListTest extends TestCase
+public class ListTest
 {
+	@Test
 	public void testRemove()
 	{
 		List<Integer> l = new ArrayList<Integer>();
@@ -27,7 +29,8 @@ public class ListTest extends TestCase
 		System.out.println(l.size());
 		
 	}
-	
+
+	@Test
 	public void testLazy()
 	{
 		long start = System.currentTimeMillis();
@@ -45,9 +48,10 @@ public class ListTest extends TestCase
 			assertEquals("hello world", s);
 		}
 		
-		System.out.println("lazy " + (System.currentTimeMillis() - start));
+		// System.out.println("lazy " + (System.currentTimeMillis() - start));
 	}
-	
+
+	@Test
 	public void testList()
 	{
 		long start = System.currentTimeMillis();
@@ -65,6 +69,6 @@ public class ListTest extends TestCase
 			assertEquals("hello world", s);
 		}
 		
-		System.out.println(System.currentTimeMillis() - start);
+		// System.out.println(System.currentTimeMillis() - start);
 	}
 }

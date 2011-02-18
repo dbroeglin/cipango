@@ -13,11 +13,13 @@
 // ========================================================================
 package org.cipango.sip.security;
 
-import org.cipango.sip.security.Authenticate;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class AuthenticateTest extends TestCase
+public class AuthenticateTest
 {
 	public static final String RFC2617 = "Digest "
                  + "realm=\"testrealm@host.com\", "
@@ -40,7 +42,8 @@ public class AuthenticateTest extends TestCase
         + "stale=true";
 
 
-	
+
+	@Test
 	public void testParameters()
 	{
 		Authenticate authenticate = new Authenticate(RFC2617);
@@ -51,7 +54,8 @@ public class AuthenticateTest extends TestCase
 		assertFalse(authenticate.isStale());
 		assertEquals("Digest", authenticate.getScheme());
 	}
-	
+
+	@Test
 	public void testToString()
 	{
 		Authenticate authenticate = new Authenticate(RFC2617);
@@ -63,7 +67,8 @@ public class AuthenticateTest extends TestCase
 		assertFalse(authenticate.isStale());
 		assertEquals("Digest", authenticate.getScheme());
 	}
-	
+
+	@Test
 	public void testNoQuore()
 	{
 		Authenticate authenticate = new Authenticate(RFC2617_NOQUOTE);
@@ -74,7 +79,8 @@ public class AuthenticateTest extends TestCase
 		assertTrue(authenticate.isStale());
 		assertEquals("Digest", authenticate.getScheme());	
 	}
-	
+
+	@Test
 	public void testUnknowmParam()
 	{
 		Authenticate authenticate = new Authenticate(UNKNOW_PARAM);

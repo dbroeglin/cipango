@@ -1,19 +1,20 @@
 package org.cipango.util;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 import java.util.Random;
 
-import org.cipango.util.TimerQueue;
 import org.cipango.util.TimerQueue.Node;
+import org.junit.Before;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class TimerQueueTest extends TestCase
+public class TimerQueueTest
 {
 	private Random _random = new Random();
 	private TimerQueue<Node> _queue;
 	
-	@Override
-	protected void setUp()
+	@Before
+	public void setUp()
 	{
 		_queue = new TimerQueue<Node>();
 	}
@@ -28,6 +29,7 @@ public class TimerQueueTest extends TestCase
 		assertEquals(nb, _queue.getSize());
 	}
 	
+	@Test
 	public void testPriority()
 	{
 		fillQueue(10000);
@@ -45,7 +47,8 @@ public class TimerQueueTest extends TestCase
 			value = node.getValue();
 		}
 	}
-	
+
+	@Test
 	public void testFailed()
 	{
 		Node node = new Node(1);
@@ -54,6 +57,7 @@ public class TimerQueueTest extends TestCase
 		
 	}
 
+	@Test
 	public void testRemove()
 	{
 		for (int n = 0; n < 1000; n++)
@@ -78,7 +82,8 @@ public class TimerQueueTest extends TestCase
 				_queue.poll();
 		}
 	}
-	
+
+	@Test
 	public void testReschedule()
 	{
 		for (int n = 0; n < 1000; n++)
@@ -101,6 +106,7 @@ public class TimerQueueTest extends TestCase
 	}
 	
 	/*
+	@Test
 	public void testPerfRemove()
 	{
 		int nb = 100000;

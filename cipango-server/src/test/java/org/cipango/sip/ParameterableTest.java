@@ -13,12 +13,13 @@
 // ========================================================================
 package org.cipango.sip;
 
-import org.cipango.sip.ParameterableImpl;
+import static junit.framework.Assert.assertEquals;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class ParameterableTest extends TestCase
+public class ParameterableTest
 {
+	@Test
 	public void testParse() throws Exception
 	{
 		String s = "<http://wwww.example.com/alice/photo.jpg> ;purpose=icon";
@@ -40,7 +41,8 @@ public class ParameterableTest extends TestCase
 		assertEquals("URL", p.getParameter("access-type"));
 		assertEquals("http://app.example.net/calingcard.xml", p.getParameter("URL"));
 	}
-	
+
+	@Test
 	public void testString() throws Exception
 	{
 		String s = "message/external-body; access-type=\"URL\";expiration=\"Tue, 24 July 2003 09:00:00 GMT\";URL=\"http://app.example.net/calingcard.xml\"";

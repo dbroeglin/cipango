@@ -13,14 +13,15 @@
 // ========================================================================
 
 package org.cipango.sip;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNull;
 
 import javax.servlet.sip.URI;
 
-import org.cipango.sip.URIFactory;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class UriTest extends TestCase
+public class UriTest
 {
 	public static final String[][] EQUALS = 
 	{
@@ -37,6 +38,7 @@ public class UriTest extends TestCase
 		{"http://www.nexcom.fr;param1=a", "http://www.nexcom.fr;param1=OtherValue"}
 	};
 	
+	@Test
 	public void testEqual() throws Exception 
 	{
 		for (int i = 0; i < EQUALS.length; i++) 
@@ -47,7 +49,8 @@ public class UriTest extends TestCase
 			assertEquals(uri2, uri1);
 		}
 	}
-	
+
+	@Test
 	public void testDifferent() throws Exception 
 	{
 		for (int i = 0; i < DIFFERENT.length; i++) 
@@ -58,7 +61,8 @@ public class UriTest extends TestCase
 			assertFalse(uri2.equals(uri1));
 		}
 	}
-	
+
+	@Test
 	public void testSetParameter() throws Exception 
 	{
 		URI uri = URIFactory.parseURI("http://www.nexcom.fr;param1=a");

@@ -13,18 +13,16 @@
 // ========================================================================
 
 package org.cipango.sip;
-
 import java.util.Comparator;
 import java.util.TreeMap;
 
-import org.cipango.sip.SipHeaders;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.BufferCache.CachedBuffer;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class TestSipFields extends TestCase
+public class TestSipFields
 {
+	@Test
 	public void testOrder() 
 	{
 		Comparator<Buffer> comparator = new Comparator<Buffer>()

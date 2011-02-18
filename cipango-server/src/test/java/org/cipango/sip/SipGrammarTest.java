@@ -14,24 +14,27 @@
 
 package org.cipango.sip;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.URI;
 
-import org.cipango.sip.SipGrammar;
-import org.cipango.sip.URIFactory;
+import org.junit.Test;
 
-
-import junit.framework.TestCase;
-
-public class SipGrammarTest extends TestCase
+public class SipGrammarTest
 {
+	@Test
 	public void testToken()
 	{
 		assertTrue(SipGrammar.isToken("INVITE"));
 		assertTrue(SipGrammar.isToken("+hello+-%world%!"));
 		assertFalse(SipGrammar.isToken("(hello"));
 	}
-	
+
+	@Test
 	public void testLWS()
 	{
 		assertTrue(SipGrammar.isLWS(' '));
@@ -41,19 +44,22 @@ public class SipGrammarTest extends TestCase
 	}
 	
 
+	@Test
 	public void testEscape()
 	{
 		assertTrue(SipGrammar.__header.contains('%'));
 		assertEquals("%253B%40", SipGrammar.escape("%3B@", SipGrammar.__header));
 	}
-	
+
+	@Test
 	public void testURIScheme()
 	{
 		assertTrue(SipGrammar.isURIScheme("http"));
 		assertTrue(SipGrammar.isURIScheme("hello+world"));
 		assertFalse(SipGrammar.isURIScheme(".foo"));
 	}
-	
+
+	@Test
 	public void testGenericUri() throws Exception
 	{
 		URI uri = URIFactory.parseURI("foo://bar");

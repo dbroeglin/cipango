@@ -12,16 +12,17 @@
 // limitations under the License.
 // ========================================================================
 package org.cipango.server;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import junit.framework.TestCase;
-
 import org.cipango.sip.SipURIImpl;
+import org.junit.Test;
 
-public class ConnectionManagerTest extends TestCase
+public class ConnectionManagerTest
 {
 
 	private static final String[] MATCHING_LOCAL_URI = 
@@ -49,7 +50,8 @@ public class ConnectionManagerTest extends TestCase
 			"sip:noPort@192.168.2.2;lr",
 			"sip:noPort@[1fff:0:a88:85a3::172.31.128.1];lr"
 	};
-	
+
+	@Test
 	public void testIsLocalUri() throws Exception
 	{
 		ConnectorManager connectorManager = new ConnectorManager();

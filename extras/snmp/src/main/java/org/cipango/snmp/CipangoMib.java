@@ -55,8 +55,8 @@ public class CipangoMib implements Mib, NotificationListener
 
 	
 	public static final ObjectName 
-		CONNECTOR_MANAGER = ObjectNameFactory.create("org.cipango.sip:type=connectormanager,id=0"),
-		SERVER = ObjectNameFactory.create("org.cipango:type=server,id=0"),
+		CONNECTOR_MANAGER = ObjectNameFactory.create("org.cipango.server:type=connectormanager,id=0"),
+		SERVER = ObjectNameFactory.create("org.cipango.server:type=server,id=0"),
 		JMX_EVENT_LOGGER = ObjectNameFactory.create("org.cipango.log:type=jmxeventlogger,id=0");
 	
 	private static final Object[][] CONNECTOR_MANAGER_ATTR =

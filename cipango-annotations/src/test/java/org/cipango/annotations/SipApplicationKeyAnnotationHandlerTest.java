@@ -13,6 +13,7 @@
 // ========================================================================
 package org.cipango.annotations;
 
+import static junit.framework.Assert.*;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.annotation.SipApplicationKey;
@@ -23,24 +24,26 @@ import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.annotations.AnnotationParser;
 import org.eclipse.jetty.annotations.ClassNameResolver;
 import org.eclipse.jetty.webapp.DiscoveredAnnotation;
+import org.junit.Before;
+import org.junit.Test;
 
-public class SipApplicationKeyAnnotationHandlerTest extends TestCase
+public class SipApplicationKeyAnnotationHandlerTest
 {
 	private SipAppContext _context;
 	private AnnotationParser _parser;
 	private SipApplicationKeyAnnotationHandler _handler;
 
-	@Override
-	protected void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
-		super.setUp();
 		_context = new SipAppContext();
 		_parser = new AnnotationParser();
 		_handler = new SipApplicationKeyAnnotationHandler(_context);
         _parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipApplicationKey",
         		_handler);
 	}
-	
+
+	@Test
 	public void testApplicationKey() throws Exception
 	{	
        parse(GoodApplicationKey.class);
@@ -55,16 +58,19 @@ public class SipApplicationKeyAnnotationHandlerTest extends TestCase
 			 annotation.apply();
 	}
 
+	@Test
 	public void testNotPublic() throws Exception
 	{	
         try { parse(BadApplicationKey.class); fail();} catch (IllegalStateException e) {}
 	}
-	
+
+	@Test
 	public void testBadReturnType() throws Exception
 	{	
 		 try { parse(BadApplicationKey2.class); fail();} catch (IllegalStateException e) {}
 	}
-	
+
+	@Test
 	public void testBadArgument() throws Exception
 	{	
 		 try { parse(BadApplicationKey3.class); fail();} catch (IllegalStateException e) {}

@@ -1,131 +1,39 @@
 package org.cipango.annotations;
 
-import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.Iterator;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.servlet.sip.SipErrorListener;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServletContextEvent;
 import javax.servlet.sip.SipServletListener;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.TimerListener;
-import javax.servlet.sip.annotation.SipApplication;
-import javax.servlet.sip.annotation.SipApplicationKey;
 import javax.servlet.sip.annotation.SipListener;
-import javax.servlet.sip.annotation.SipServlet;
 
-import junit.framework.TestCase;
-
-import org.cipango.annotations.resources.AnnotedServlet;
-import org.cipango.servlet.SipServletHandler;
-import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
-import org.eclipse.jetty.annotations.AnnotationParser;
-import org.eclipse.jetty.annotations.ResourcesAnnotationHandler;
 import org.eclipse.jetty.plus.annotation.Injection;
 import org.eclipse.jetty.plus.annotation.InjectionCollection;
-import org.eclipse.jetty.plus.annotation.LifeCycleCallbackCollection;
-import org.eclipse.jetty.plus.annotation.RunAsCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler.Decorator;
-import org.eclipse.jetty.util.LazyList;
+import org.junit.Before;
+import org.junit.Test;
 
-public class ResourceAnnotationHandlerTest extends TestCase
+public class ResourceAnnotationHandlerTest
 {
-	/*	
-	public void testAnnotations() throws Exception
-	{
-		SipAppContext sac = new SipAppContext();
-		
-		ArrayList<String> classNames = new ArrayList<String>();
-		classNames.add(AnnotedServlet.class.getName());
-		AnnotationParser parser = new AnnotationParser();
-        ResourcesAnnotationHandler handler = new ResourcesAnnotationHandler(wac);
-        parser.registerAnnotationHandler("javax.annotation.Resources", handler);
-        parser.parse(classNames, new ClassNameResolver()
-        {
-            public boolean isExcluded(String name)
-            {
-                return false;
-            }
-
-            public boolean shouldOverride(String name)
-            {
-                return false;
-            }
-        });
-		
-		AnnotationProcessor processor = getProcessor(AnnotedServlet.class, "org.cipango.kaleo", false);
-		List<SipServletHolder> servlets = processor.getServlets();
-		assertEquals(1, servlets.size());
-		// If the name is not provided, the servlet name used will be the short 
-		// name of the class annotated
-		assertEquals("AnnotedServlet", servlets.get(0).getName());
-		assertEquals(-1, servlets.get(0).getInitOrder());
-		
-		Object listeners = processor.getListenerClasses();
-		assertEquals(1, LazyList.size(listeners));
-		assertEquals(AnnotedServlet.class.getName(), LazyList.get(listeners, 0));
-		//assertFalse(SipErrorListener.class.isAssignableFrom(listeners.get(0)));
-		
-		assertEquals("org.cipango.kaleo", processor.getAppName());
-		
-		SipApplication sipApp = processor.getSipApplication();
-		assertNull(sipApp);
-		
-		assertNotNull(processor.getSipApplicationKeyMethod());
-		
-		List<Injection> injections = processor.getInjections().getFieldInjections(AnnotedServlet.class);
-		assertEquals(3, injections.size());
-		Iterator<Injection> it  = injections.iterator();
-		while (it.hasNext())
-		{
-			Injection injection = it.next();
-			String name = injection.getTarget().getName();
-			if (name.equals("sipFactory"))
-				assertEquals("sip/org.cipango.kaleo/SipFactory", injection.getJndiName());
-			else if (name.equals("timerService"))
-				assertEquals("sip/org.cipango.kaleo/TimerService", injection.getJndiName());
-			else if (name.equals("sessionsUtil"))
-				assertEquals("sip/org.cipango.kaleo/SipSessionsUtil", injection.getJndiName());
-			else
-				fail();
-		}
-	}
-
-	
-	public void testSipApplication() throws Exception
-	{
-		AnnotationProcessor processor = getProcessor(AnnotedServlet.class, null, true);
-		SipApplication app = processor.getSipApplication();
-		assertEquals("org.cipango.kaleo", app.name());
-		assertEquals("Kaleo", app.displayName());
-		assertEquals("main", app.mainServlet());
-		
-		// Default values
-		assertEquals(180, app.proxyTimeout());
-		assertEquals(3, app.sessionTimeout());
-		assertFalse(app.distributable());
-		
-	}*/
-	
 	private SipAppContext _context;
 	private InjectionCollection _injections;
 	private Decorator _decorator; 
 
-	@Override
-	protected void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
-		super.setUp();
 		_context = new SipAppContext();
 		_injections = new InjectionCollection();
 		 _context.setAttribute(InjectionCollection.INJECTION_COLLECTION, _injections);
 		_decorator = new AnnotationDecorator(_context);
 	}
-			
+
+	@Test		
 	public void testBadResource() throws Exception
 	{
 		_decorator.decorateServletInstance(new BadRessource());
@@ -135,7 +43,8 @@ public class ResourceAnnotationHandlerTest extends TestCase
 		_decorator.decorateServletInstance(new BadRessource2());
 		assertNull(_injections.getInjections(BadRessource2.class.getName()));
 	}
-	
+
+	@Test
 	public void testSipFactory() throws Exception
 	{
 		_context.setName("org.cipango.kaleo");

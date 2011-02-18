@@ -1,10 +1,14 @@
 package org.cipango.diameter.node;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+
 import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
@@ -17,17 +21,19 @@ import org.cipango.diameter.base.Common.AuthSessionState;
 import org.cipango.diameter.ims.Cx;
 import org.cipango.diameter.ims.Sh;
 import org.cipango.diameter.ims.Sh.DataReference;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-public class NodeTest extends TestCase
+public class NodeTest
 {
 	private Node _client;
 	private Node _server;
 	private Peer _peer;
 
-	@Override
-	protected void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
-		super.setUp();
 		_client = new Node(38681);
 		_client.getConnectors()[0].setHost("127.0.0.1");
 		_client.setIdentity("client");
@@ -42,14 +48,14 @@ public class NodeTest extends TestCase
 		_server.setIdentity("server");
 	}
 
-	@Override
-	protected void tearDown() throws Exception
+	@After
+	public void tearDown() throws Exception
 	{
-		super.tearDown();
 		_server.stop();
 		_client.stop();
 	}
 	
+	@Test
 	public void testConnect() throws Exception
 	{
 		//org.eclipse.jetty.util.log.Log.getLog().setDebugEnabled(true);
@@ -65,6 +71,7 @@ public class NodeTest extends TestCase
 		assertTrue(_peer.isClosed());
 	}
 	
+	@Test
 	public void testUdr() throws Throwable
 	{
 		//Log.getLog().setDebugEnabled(true);
@@ -130,6 +137,7 @@ public class NodeTest extends TestCase
 		return factory;
 	}
 	
+	@Test
 	public void testDiameterFactory() throws Throwable
 	{
 		//Log.getLog().setDebugEnabled(true);
@@ -203,6 +211,7 @@ public class NodeTest extends TestCase
 		assertTrue(_peer.isOpen());
 	}
 	
+	@Test
 	public void testSession() throws Throwable
 	{
 		//Log.getLog().setDebugEnabled(true);

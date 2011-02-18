@@ -158,8 +158,23 @@ module Sipatra
       def remove_header(name)
         message.removeHeader(name.to_s)
       end
-      
-      def send_response(status, *args)
+     
+      class ResponseEnvironment
+        instance_methods.each do |m|
+          undef_method m unless m.to_s =~ /^__|respond_to?|instance_eval/ 
+        end
+
+        attr_reader :response, :app
+        alias :message :response
+
+        def initialize(app, response)
+          @app, @response = app, response
+        end
+
+        # TODO: complete with some direct access to app ?
+      end
+
+      def send_response(status, *args, &block)
         create_args = [convert_status_code(status)]
         create_args << args.shift unless args.empty? || args.first.kind_of?(Hash)
         response = message.createResponse(*create_args)
@@ -169,8 +184,8 @@ module Sipatra
             response.addHeader(name.to_s, value.to_s)
           end
         end
-        if block_given?
-          yield response
+        unless block.nil? 
+          ResponseEnvironment::new(self, response).instance_eval(&block)
         end
         response.send
       end

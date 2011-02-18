@@ -1,0 +1,48 @@
+{
+  "name": "sipp",
+  "description": "Installs SIPp",
+  "long_description": "Installs SIPp a free Open Source test tool / traffic generator for the SIP protocol",
+  "maintainer": "Dominique Broeglin",
+  "maintainer_email": "dominique.broeglin@gmail.com",
+  "license": "Apache 2.0",
+  "platforms": {
+    "ubuntu": [
+
+    ],
+    "debian": [
+
+    ],
+    "centos": [
+
+    ],
+    "rhel": [
+
+    ],
+    "arch": [
+
+    ]
+  },
+  "dependencies": {
+    "build-essential": [
+
+    ]
+  },
+  "recommendations": {
+  },
+  "suggestions": {
+  },
+  "conflicting": {
+  },
+  "providing": {
+  },
+  "replacing": {
+  },
+  "attributes": {
+  },
+  "groupings": {
+  },
+  "recipes": {
+    "sipp": "Installs sipp"
+  },
+  "version": "1.0.0"
+}

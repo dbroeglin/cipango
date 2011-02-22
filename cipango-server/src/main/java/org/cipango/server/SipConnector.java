@@ -31,6 +31,8 @@ public interface SipConnector extends LifeCycle
     String getHost();
 	InetAddress getAddr();
 	int getPort();
+	
+	String getExternalHost();
 
 	Object getConnection();
 	int getLocalPort();

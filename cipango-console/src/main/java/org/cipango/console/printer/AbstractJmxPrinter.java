@@ -19,7 +19,8 @@ import java.util.List;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
-import org.cipango.console.printer.MenuPrinter.Page;
+import org.cipango.console.Page;
+import org.cipango.console.PageImpl;
 
 
 public abstract class AbstractJmxPrinter implements HtmlPrinter
@@ -82,7 +83,7 @@ public abstract class AbstractJmxPrinter implements HtmlPrinter
 
 	protected Page getPage()
 	{
-		return new Page(_page, "");
+		return new PageImpl(_page, "");
 	}
 	
 	public String getParamFullDescription(String param)

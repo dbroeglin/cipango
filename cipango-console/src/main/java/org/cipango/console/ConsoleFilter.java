@@ -68,7 +68,6 @@ import org.cipango.console.printer.FileLogPrinter;
 import org.cipango.console.printer.HtmlPrinter;
 import org.cipango.console.printer.HttpStatisticsPrinter;
 import org.cipango.console.printer.MenuPrinter;
-import org.cipango.console.printer.MenuPrinter.Page;
 import org.cipango.console.printer.MultiplePrinter;
 import org.cipango.console.printer.OamPrinter;
 import org.cipango.console.printer.ObjectPrinter;

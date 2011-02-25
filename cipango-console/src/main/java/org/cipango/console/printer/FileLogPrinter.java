@@ -18,7 +18,7 @@ import java.io.Writer;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
-import org.cipango.console.printer.MenuPrinter.Page;
+import org.cipango.console.Page;
 
 public class FileLogPrinter implements HtmlPrinter
 {

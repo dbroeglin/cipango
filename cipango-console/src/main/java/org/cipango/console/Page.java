@@ -13,17 +13,22 @@
 // ========================================================================
 package org.cipango.console;
 
-import org.cipango.console.printer.HtmlPrinter;
+import java.io.IOException;
 
-public interface Menu extends HtmlPrinter
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
+
+
+
+public interface Page
 {
-
-	public Page getCurrentPage();
-
+	public String getName();
+	
 	public String getTitle();
+		
+	public boolean isDynamic();
 
-	public String getHtmlTitle();
-
-	public HtmlPrinter getSubMenu();
-
+	public boolean isEnabled(MBeanServerConnection c) throws IOException;
+	
+	public ObjectName getObjectName();
 }

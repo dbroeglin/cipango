@@ -715,4 +715,10 @@ public class ConsoleFilter implements Filter
 		return false;
 	}
 
+
+	public MBeanServerConnection getMbsc()
+	{
+		return _mbsc;
+	}
+
 }

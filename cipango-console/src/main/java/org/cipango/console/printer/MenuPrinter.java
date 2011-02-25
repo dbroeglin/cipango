@@ -127,11 +127,11 @@ public class MenuPrinter implements HtmlPrinter, Menu
 		});
 	
 	
-	private MBeanServerConnection _connection;
-	private PageImpl _currentPage;
-	private List<PageImpl> _pages;
+	protected MBeanServerConnection _connection;
+	protected PageImpl _currentPage;
+	protected List<PageImpl> _pages;
 	private static Logger _logger = Log.getLogger("console");
-	private String _contextPath;
+	protected String _contextPath;
 
 	public MenuPrinter(MBeanServerConnection c, String command, String contextPath)
 	{
@@ -230,7 +230,7 @@ public class MenuPrinter implements HtmlPrinter, Menu
 		};
 	}
 
-	private List<PageImpl> getPages()
+	protected List<PageImpl> getPages()
 	{
 		List<PageImpl> l = new ArrayList<PageImpl>(PAGES.getPages());
 				

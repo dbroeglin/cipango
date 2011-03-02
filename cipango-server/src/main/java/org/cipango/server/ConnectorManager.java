@@ -291,10 +291,13 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
         for (int i = 0; i < _connectors.length; i++)
         {
             SipConnector connector = _connectors[i];
+            
+            String connectorHost = connector.getSipUri().getHost();
+            
             boolean samePort = connector.getPort() == sipUri.getPort() || sipUri.getPort() == -1;
             if (samePort)
             {
-	            if ((connector.getHost().equals(host) || connector.getAddr().getHostAddress().equals(host))) 
+	            if ((connectorHost.equals(host) || connector.getAddr().getHostAddress().equals(host))) 
 	            {
 	            	if (sipUri.getPort() != -1)
 	            		return true;
@@ -336,12 +339,13 @@ public class ConnectorManager extends AbstractLifeCycle implements Buffers, SipH
     	SipConnector connector = findConnector(transport, address);
     	
         Via via = request.getTopVia();
-        via.setTransport(SipConnectors.getName(connector.getTransportOrdinal()));
-        String host = connector.getAddr().getHostAddress();
-        if (host.contains(":") && !host.contains("["))
-    		host = "[" + host + "]";
+        
+        Via connectorVia = connector.getVia();
+        via.setTransport(connectorVia.getTransport());
+        
+        String host = connectorVia.getHost();
         via.setHost(host);
-        via.setPort(connector.getPort());
+        via.setPort(connectorVia.getPort());
                 
         // TODO > 1300
 

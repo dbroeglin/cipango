@@ -56,6 +56,9 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     private String _host;
     private String _name;
     
+    private String _externalHost;
+    private int _externalPort = -1;
+    
     private SipURI _sipUri;
     private Via _via;
     
@@ -121,6 +124,21 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
         return _host;
     }
     
+    public void setExternalHost(String externalHost)
+    {
+    	if (isRunning())
+    		throw new IllegalStateException();
+    	
+    	_externalHost = externalHost;
+    	
+    	updateURI();
+    }
+    
+    public String getExternalHost()
+    {
+    	return _externalHost;
+    }
+    
     public void setName(String name) 
     {
     	if (isRunning())
@@ -154,7 +172,10 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
     
     protected void updateURI()
     {
-        _sipUri = new SipURIImpl(_name, _host, _port);
+    	String host = (_externalHost != null) ? _externalHost : _host;
+    	int port = (_externalPort != -1) ? _externalPort : _port;
+    	
+        _sipUri = new SipURIImpl(_name, host, port);
     }
     
     protected void doStart() throws Exception 
@@ -165,8 +186,8 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
         _via = new Via(
                 SipVersions.SIP_2_0,
                 getTransport().toUpperCase(),
-                _host,
-                _port);
+                _sipUri.getHost(),
+                _sipUri.getPort());
         
         if (_threadPool == null && getServer() != null)
         	_threadPool = getServer().getSipThreadPool();

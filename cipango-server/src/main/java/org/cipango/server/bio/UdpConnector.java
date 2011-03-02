@@ -69,7 +69,6 @@ public class UdpConnector extends AbstractSipConnector
 		_datagramSocket = newDatagramSocket();
 		_localAddr = _datagramSocket.getLocalAddress();
 	}
-	
 
 	public boolean isOpen()
 	{
@@ -90,7 +89,7 @@ public class UdpConnector extends AbstractSipConnector
 	
 	protected DatagramSocket newDatagramSocket() throws IOException 
 	{
-		if (getHost() == null) 
+		if (getHost() == null)
 			_datagramSocket = new DatagramSocket(getPort());
 		else 
 			_datagramSocket = new DatagramSocket(getPort(), InetAddress.getByName(getHost()));
@@ -98,7 +97,7 @@ public class UdpConnector extends AbstractSipConnector
 		return _datagramSocket;
 	}
 	
-	public void close() 
+	public void close()
 	{
 		_datagramSocket.close();
 	}

@@ -69,6 +69,18 @@ public class ConnectionManagerTest
 					connectorManager.isLocalUri(new SipURIImpl(NO_MATCHING_LOCAL_URI[i])));
 	}
 	
+	@Test
+	public void testIsLocalUriWithExternalHost() throws Exception
+	{
+		ConnectorManager connectorManager = new ConnectorManager();
+		TestConnector connector = new TestConnector("intern.cipango.org", "192.168.1.1", 5060);
+		connector.setExternalHost("cipango.org");
+		connectorManager.addConnector(connector);
+		
+		assertTrue(connectorManager.isLocalUri(new SipURIImpl("sip:cipango.org;lr")));
+		assertFalse(connectorManager.isLocalUri(new SipURIImpl("sip:intern.cipango.org;lr")));
+	}
+	
 	class TestConnector extends AbstractSipConnector
 	{
 		private InetAddress _addr;
@@ -79,7 +91,7 @@ public class ConnectionManagerTest
 			setPort(port);
 			setHost(host);
 		}
-
+		
 		public void close() throws IOException
 		{
 		}

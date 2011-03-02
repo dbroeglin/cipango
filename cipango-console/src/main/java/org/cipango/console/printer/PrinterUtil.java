@@ -24,8 +24,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Page;
 import org.cipango.console.Parameters;
-import org.cipango.console.printer.MenuPrinter.Page;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 

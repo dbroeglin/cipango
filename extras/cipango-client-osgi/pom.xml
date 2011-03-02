@@ -1,0 +1,74 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.cipango</groupId>
+    <artifactId>cipango-project</artifactId>
+    <version>2.1-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <artifactId>cipango-client-osgi</artifactId>
+  <packaging>bundle</packaging> 
+  <name>Cipango :: Client OSGi</name>
+
+  <properties>
+    <osgi-version>3.5.0.v20090520</osgi-version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+            <execution>
+                <id>bundle-manifest</id>
+                <phase>process-classes</phase>
+                <goals>
+                    <goal>manifest</goal> 
+                </goals>
+            </execution>
+        </executions>
+        <configuration>
+            <instructions>
+                <Bundle-SymbolicName>org.cipango.client.osgi</Bundle-SymbolicName>
+                <Export-Package>org.cipango.client.osgi</Export-Package> 
+                <Bundle-Activator>org.cipango.client.osgi.Activator</Bundle-Activator>
+                <Import-Package>javax.servlet;version="2.5.0",
+ javax.servlet.http;version="2.5.0",
+ javax.servlet.sip;version="1.1",
+ javax.servlet.sip.annotation;version="1.1",
+ javax.servlet.sip.ar;version="1.1",
+ javax.servlet.sip.ar.spi;version="1.1",
+ org.osgi.framework,
+ org.osgi.util.tracker;version="1.3.0",
+ org.slf4j;resolution:=optional,
+ org.slf4j.spi;resolution:=optional, 
+ org.slf4j.helpers;resolution:=optional,
+ org.xml.sax,
+ org.xml.sax.helpers,
+ *
+                  </Import-Package>
+                  <DynamicImport-Package>org.eclipse.jetty.*;version="[7.2,8)",
+ org.cipango.*;version="[2.0,3)"</DynamicImport-Package>
+                  <!-- Require-Bundle/ -->
+                  <Bundle-RequiredExecutionEnvironment>J2SE-1.5</Bundle-RequiredExecutionEnvironment> 
+              </instructions>
+          </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.cipango</groupId>
+      <artifactId>cipango-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse</groupId>
+      <artifactId>osgi</artifactId>
+      <version>${osgi-version}</version>
+    </dependency>
+  </dependencies>
+</project>

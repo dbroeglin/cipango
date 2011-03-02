@@ -11,19 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console;
+package org.cipango.client.osgi;
 
-import org.cipango.console.printer.HtmlPrinter;
+import java.io.IOException;
 
-public interface Menu extends HtmlPrinter
+public interface SipService
 {
-
-	public Page getCurrentPage();
-
-	public String getTitle();
-
-	public String getHtmlTitle();
-
-	public HtmlPrinter getSubMenu();
-
+	public void register(int expires) throws IOException;
 }

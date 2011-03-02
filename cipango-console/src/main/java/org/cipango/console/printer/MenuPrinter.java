@@ -114,7 +114,7 @@ public class MenuPrinter implements HtmlPrinter, Menu
 			@Override
 			public boolean isEnabled(MBeanServerConnection c) throws IOException
 			{
-				return getFather().isEnabled(c) && c.isRegistered(ConsoleFilter.DAR);
+				return getFather().isEnabled(c);
 			}
 		}),
 		DAR = APPLICATIONS.add(new PageImpl("dar", "Default Application Router", "DAR")

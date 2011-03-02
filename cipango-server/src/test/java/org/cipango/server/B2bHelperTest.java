@@ -12,6 +12,9 @@
 // limitations under the License.
 // ========================================================================
 package org.cipango.server;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,20 +24,20 @@ import java.util.Map;
 
 import javax.servlet.sip.Address;
 
-import org.cipango.server.B2bHelper;
 import org.cipango.sip.NameAddr;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class B2bHelperTest extends TestCase
+public class B2bHelperTest
 {
+	@Test
 	public void testMergeContact() throws Exception
 	{ 
 		Address destination = new NameAddr("<sip:127.0.0.1:5060>");
 		B2bHelper.mergeContact("Bob <sip:bob@127.0.0.22:5070;transport=UDP;ttl=1>;p=2", destination);
 		assertEquals("Bob <sip:bob@127.0.0.1:5060;transport=UDP>;p=2", destination.toString());
 	}
-	
+
+	@Test
 	public void testAddMapHeaders() throws Exception
 	{ 
 		SipRequest request = (SipRequest) SipRequestTest.getMessage(SipRequestTest.INVITE);

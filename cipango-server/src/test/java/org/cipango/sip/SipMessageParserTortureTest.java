@@ -14,6 +14,13 @@
 
 package org.cipango.sip;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,21 +34,19 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
 
-import junit.framework.TestCase;
-
+import org.cipango.server.AbstractSipConnector.EventHandler;
 import org.cipango.server.ConnectorManager;
 import org.cipango.server.SipMessage;
 import org.cipango.server.SipRequest;
-import org.cipango.server.AbstractSipConnector.EventHandler;
-
 import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.junit.Test;
 
 /**
  * Test based on <a href="http://tools.ietf.org/html/rfc4475"> Session
  * Initiation Protocol (SIP) Torture Test Messages</a>.
  * 
  */
-public class SipMessageParserTortureTest extends TestCase
+public class SipMessageParserTortureTest
 {
 
 	private static final File TORTURE_DIR = 
@@ -49,6 +54,7 @@ public class SipMessageParserTortureTest extends TestCase
 	private static final File TORTURE_VALID_DIR = new File(TORTURE_DIR, "valid");
 	private static final File TORTURE_INVALID_DIR = new File(TORTURE_DIR, "invalid");
 
+	@Test
 	public void testSipTortureValid() throws Exception
 	{
 		File[] testFiles = TORTURE_VALID_DIR.listFiles(new FilenameFilter()
@@ -85,6 +91,7 @@ public class SipMessageParserTortureTest extends TestCase
 		}
 	}
 
+	@Test
 	public void testSipTortureInvalid() throws Exception
 	{
 		File[] testFiles = TORTURE_INVALID_DIR.listFiles(new FilenameFilter()
@@ -120,6 +127,7 @@ public class SipMessageParserTortureTest extends TestCase
 	 /*
       * wsinv2.dat test is same as wsinv.dat except LWS are removed on via headers. 
       */
+	@Test
 	public void testTortuousInvite() throws Exception
 	{
 		
@@ -145,6 +153,7 @@ public class SipMessageParserTortureTest extends TestCase
 	/**
 	 * 3.1.1.4. Escaped Nulls in URIs
 	 */
+	@Test
 	public void testEscapeNull() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "escnull.dat");
@@ -156,6 +165,7 @@ public class SipMessageParserTortureTest extends TestCase
 	/**
 	 * 3.1.1.5. Use of % when it is not an escape
 	 */
+	@Test
 	public void testEscape() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "esc02.dat");
@@ -175,6 +185,7 @@ public class SipMessageParserTortureTest extends TestCase
 	/**
 	 * 3.1.1.8. Extra trailing octets in a UDP datagram
 	 */
+	@Test
 	public void testBody() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "dblreq.dat");
@@ -184,6 +195,7 @@ public class SipMessageParserTortureTest extends TestCase
 		assertNull(message.getContent());
 	}
 
+	@Test
 	public void testNoReason() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "noreason.dat");
@@ -195,6 +207,7 @@ public class SipMessageParserTortureTest extends TestCase
 	/**
 	 * 3.1.1.9. Semicolon separated parameters in URI user part
 	 */
+	@Test
 	public void testReqUri() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "semiuri.dat");
@@ -206,6 +219,7 @@ public class SipMessageParserTortureTest extends TestCase
 	 * 3.1.2.8. Malformed SIP Request-URI (embedded LWS) As message is well
 	 * parsed and embedded LWS is ignored, this request can be treated as valid
 	 */
+	@Test
 	public void testReqUriLws() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "lwsruri.dat");
@@ -216,6 +230,7 @@ public class SipMessageParserTortureTest extends TestCase
 	/**
 	 * 3.1.2.13. Failure to Enclose name-addr URI in <>
 	 */
+	@Test
 	public void testRegbadct() throws Exception
 	{
 		File msgFile = new File(TORTURE_VALID_DIR, "regbadct.dat");

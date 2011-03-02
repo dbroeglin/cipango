@@ -14,13 +14,7 @@
 
 package org.cipango.diameter.app;
 
-import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.List;
-
-import org.cipango.diameter.api.DiameterErrorListener;
 import org.cipango.diameter.api.DiameterFactory;
-import org.cipango.diameter.api.DiameterListener;
 import org.cipango.diameter.node.DiameterFactoryImpl;
 import org.cipango.diameter.node.Node;
 import org.cipango.sipapp.SipAppContext;
@@ -31,7 +25,7 @@ public class DiameterConfiguration extends AbstractConfiguration
 {
 
 	@Override
-	public void configure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
+	public void preConfigure(org.eclipse.jetty.webapp.WebAppContext context) throws Exception
 	{
 		if (context.isStarted())
         {
@@ -44,7 +38,7 @@ public class DiameterConfiguration extends AbstractConfiguration
 		factory.setNode(node);
 		factory.setAppContext((SipAppContext) context);
 		
-		context.getServletContext().setAttribute(DiameterFactory.class.getName(), factory);
+		context.setAttribute(DiameterFactory.class.getName(), factory);
 		
 		context.addDecorator(new DiameterDecorator((DiameterContext) node.getHandler(), context));
 		

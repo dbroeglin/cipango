@@ -1,14 +1,12 @@
 package org.cipango.diameter.io;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import junit.framework.TestCase;
 
 import org.cipango.diameter.AVP;
 import org.cipango.diameter.AVPList;
@@ -21,10 +19,13 @@ import org.cipango.diameter.node.DiameterAnswer;
 import org.cipango.diameter.node.DiameterMessage;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
+import org.junit.Before;
+import org.junit.Test;
 
-public class TestMessageCodec extends TestCase
+public class TestMessageCodec
 {
-	protected void setUp()
+	@Before
+	public void setUp()
 	{
 		Dictionary.getInstance().load(Common.class);
 		Dictionary.getInstance().load(IMS.class);
@@ -44,6 +45,7 @@ public class TestMessageCodec extends TestCase
 		return new ByteArrayBuffer(b);
 	}
 	
+	@Test
 	public void testDecodeSAR() throws Exception
 	{
 		DiameterMessage message = Codecs.__message.decode(load("sar.dat"));
@@ -58,12 +60,14 @@ public class TestMessageCodec extends TestCase
 		assertEquals(Cx.CX_APPLICATION_ID.getId(), (int) vsai.getValue(Common.AUTH_APPLICATION_ID));	
 	}
 	
+	@Test
 	public void testDecodeLIA() throws Exception
 	{
 		DiameterMessage message = Codecs.__message.decode(load("lia.dat"));
 		assertFalse(message.isRequest());
 	}
 	
+	@Test
 	public void testEncodeCEA() throws Exception
 	{
 		DiameterAnswer answer = new DiameterAnswer();
@@ -79,6 +83,7 @@ public class TestMessageCodec extends TestCase
 		assertEquals(Common.CEA, message.getCommand());
 	}
 	
+	@Test
 	public void testEncodeSmallBuffer() throws Exception
 	{
 		DiameterAnswer answer = new DiameterAnswer();

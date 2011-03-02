@@ -13,7 +13,7 @@
 // ========================================================================
 package org.cipango.annotations;
 
-import junit.framework.TestCase;
+import static junit.framework.Assert.assertEquals;
 
 import org.cipango.annotations.resources.AnnotedServlet;
 import org.cipango.servlet.SipServletHandler;
@@ -21,22 +21,24 @@ import org.cipango.servlet.SipServletHolder;
 import org.cipango.sipapp.SipAppContext;
 import org.eclipse.jetty.annotations.AbstractDiscoverableAnnotationHandler;
 import org.eclipse.jetty.annotations.AnnotationParser;
+import org.junit.Before;
+import org.junit.Test;
 
-public class SipServletAnnotationHandlerTest extends TestCase
+public class SipServletAnnotationHandlerTest
 {
 	private SipAppContext _sac;
 	private AnnotationParser _parser;
 
-	@Override
-	protected void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
-		super.setUp();
 		_sac = new SipAppContext();
 		_parser = new AnnotationParser();
         _parser.registerAnnotationHandler("javax.servlet.sip.annotation.SipServlet",
         		new SipServletAnnotationHandler(_sac));
 	}
 	
+	@Test
 	public void testAnnotedServlet() throws Exception
 	{	
         _parser.parse(AnnotedServlet.class.getName(), new SimpleResolver());

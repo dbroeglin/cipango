@@ -20,8 +20,8 @@ import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Page;
 import org.cipango.console.Parameters;
-import org.cipango.console.printer.MenuPrinter.Page;
 
 public abstract class AbstractLogPrinter implements HtmlPrinter
 {

@@ -25,8 +25,8 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Page;
 import org.cipango.console.Parameters;
-import org.cipango.console.printer.MenuPrinter.Page;
 
 public class SipLogPrinter extends AbstractLogPrinter
 {

@@ -29,7 +29,7 @@ public class ObjectNameFactory
 		}
 		catch (MalformedObjectNameException e)
 		{
-			throw new Error("Invalid ObjectName: " + name + "; " + e);
+			throw new Error("Invalid ObjectName: " + name, e);
 		}
 	}
 

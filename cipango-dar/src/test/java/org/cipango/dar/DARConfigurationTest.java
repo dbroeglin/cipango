@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2007-2008 NEXCOM Systems
+// Copyright 2007-2011 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
 // ========================================================================
 
 package org.cipango.dar;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class DARConfigurationTest extends TestCase
+public class DARConfigurationTest
 {
+	@Test
 	public void testConfig() throws Exception
 	{
 		DARConfiguration config = new DARConfiguration(getClass().getResource("/org/cipango/dar/dar.properties"));

@@ -13,11 +13,12 @@
 // ========================================================================
 package org.cipango.annotations;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
+
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
-
-import junit.framework.TestCase;
 
 import org.cipango.annotations.resources.AnnotedServlet;
 import org.cipango.servlet.SipServletHandler;
@@ -30,19 +31,21 @@ import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.util.resource.FileResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.junit.Before;
+import org.junit.Test;
 
-public class AnnotedServletTest extends TestCase
+public class AnnotedServletTest
 {
 	private SipAppContext _context;
 	
-	@Override
-	protected void setUp() throws Exception
+	@Before
+	public void setUp() throws Exception
 	{
-		super.setUp();
 		_context = new SipAppContext();
 		_context.setSecurityHandler(new ConstraintSecurityHandler());
 	}
 	
+	@Test
 	public void testAnnotedServlet() throws Exception
 	{		
         AnnotationConfiguration annotConfiguration = new AnnotationConfiguration()

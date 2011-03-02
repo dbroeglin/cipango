@@ -1,9 +1,12 @@
 package org.cipango.util;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class LazyMapTest extends TestCase
+public class LazyMapTest
 {
+	@Test
 	public void testMap() throws Exception
 	{
 		Object map = null;

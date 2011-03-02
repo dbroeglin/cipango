@@ -68,7 +68,6 @@ import org.cipango.console.printer.FileLogPrinter;
 import org.cipango.console.printer.HtmlPrinter;
 import org.cipango.console.printer.HttpStatisticsPrinter;
 import org.cipango.console.printer.MenuPrinter;
-import org.cipango.console.printer.MenuPrinter.Page;
 import org.cipango.console.printer.MultiplePrinter;
 import org.cipango.console.printer.OamPrinter;
 import org.cipango.console.printer.ObjectPrinter;
@@ -132,6 +131,8 @@ public class ConsoleFilter implements Filter
 			}
 			_deployer = new Deployer(_mbsc);
 			
+			if (_servletContext.getAttribute(MenuFactory.class.getName()) == null)
+				_servletContext.setAttribute(MenuFactory.class.getName(), new MenuFactoryImpl(_mbsc));
 		}
 	}
 	
@@ -140,6 +141,11 @@ public class ConsoleFilter implements Filter
 	{	
 		if (_statisticGraph != null)
 			_statisticGraph.stop();
+	}
+	
+	public MenuFactory getMenuFactory()
+	{
+		return (MenuFactory) _servletContext.getAttribute(MenuFactory.class.getName());
 	}
 	
 	private void initConnection() throws ServletException
@@ -202,7 +208,7 @@ public class ConsoleFilter implements Filter
 			request.getSession().setAttribute(Principal.class.getName(), principal);
 		}
 		
-		MenuPrinter menuPrinter = new MenuPrinter(_mbsc, command, request.getContextPath());
+		Menu menuPrinter = getMenuFactory().getMenu(command, request.getContextPath());
 		try
 		{
 
@@ -280,7 +286,7 @@ public class ConsoleFilter implements Filter
 				request.setAttribute(Attributes.CONTENT, new SipLogPrinter(_mbsc, request, Output.HTML));
 			else if (command.equals(MenuPrinter.DIAMETER_LOGS.getName()))
 				request.setAttribute(Attributes.CONTENT, new DiameterLogPrinter(_mbsc, request, Output.HTML));
-			else if (command.equals(MenuPrinter.CONFIG_SNMP.getName()) && _mbsc.isRegistered(SNMP_AGENT))
+			else if (command.equals(MenuPrinter.CONFIG_SNMP.getName()))
 			{
 				MultiplePrinter printer = new MultiplePrinter();
 				ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "connectors");
@@ -707,6 +713,12 @@ public class ConsoleFilter implements Filter
 			}
 		}
 		return false;
+	}
+
+
+	public MBeanServerConnection getMbsc()
+	{
+		return _mbsc;
 	}
 
 }

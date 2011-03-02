@@ -204,6 +204,16 @@ public class UserAgent
 		}
 	}
 	
+	public synchronized void stopRegistration() throws IOException
+	{
+		if (_registerSession != null)
+		{
+			SipServletRequest register = createRegister(_registerSession);
+			register.setExpires(0);
+			register.send();
+		}
+	}
+	
 	class RegistrationHandler implements MessageHandler
 	{
 		public void handleRequest(SipServletRequest request) { }

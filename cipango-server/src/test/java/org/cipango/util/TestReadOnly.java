@@ -13,6 +13,8 @@
 // ========================================================================
 
 package org.cipango.util;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,17 +27,16 @@ import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TelURL;
 import javax.servlet.sip.URI;
 
-import junit.framework.TestCase;
-
-
 import org.cipango.sip.NameAddr;
 import org.cipango.sip.ParameterableImpl;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sip.TelURLImpl;
 import org.cipango.sip.URIImpl;
+import org.junit.Test;
 
-public class TestReadOnly extends TestCase
+public class TestReadOnly
 {
+	@Test
 	public void testAddress() throws Exception 
 	{
 		Address orig = new NameAddr("\"Hello World\" <sip:foo@bar.com;transport=tcp>;tag=12345");
@@ -60,7 +61,8 @@ public class TestReadOnly extends TestCase
 		clone.setParameter("a", "b");
 		testSerializable(readOnly);
 	}
-	
+
+	@Test
 	public void testParameterable() throws Exception 
 	{
 		Parameterable orig = new ParameterableImpl("\"Hello World\" <sip:foo@bar.com;transport=tcp>;tag=12345");
@@ -78,7 +80,8 @@ public class TestReadOnly extends TestCase
 		clone.setParameter("a", "b");
 		testSerializable(readOnly);
 	}
-	
+
+	@Test
 	public void testSipUri() throws Exception 
 	{
 		SipURI orig = new SipURIImpl("sip:foo@bar.com;transport=tcp?to=sip:bob%40biloxi.com");
@@ -96,7 +99,8 @@ public class TestReadOnly extends TestCase
 		clone.setParameter("a", "b");
 		testSerializable(readOnly);
 	}
-	
+
+	@Test
 	public void testTelUrl() throws Exception 
 	{
 		TelURL orig = new TelURLImpl("tel:+3398648;user=phone");
@@ -112,7 +116,8 @@ public class TestReadOnly extends TestCase
 		clone.setParameter("a", "b");
 		testSerializable(readOnly);
 	}
-	
+
+	@Test
 	public void testURI() throws Exception 
 	{
 		URI orig = new URIImpl("http://www.nexcom.fr;user=me");
@@ -128,7 +133,7 @@ public class TestReadOnly extends TestCase
 		clone.setParameter("a", "b");
 		testSerializable(readOnly);
 	}
-	
+
 	public void testSerializable(Object o) throws Exception 
 	{
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -12,13 +12,13 @@
 // limitations under the License.
 // ========================================================================
 package org.cipango.util;
+import static junit.framework.Assert.assertEquals;
 
-import org.cipango.util.HexString;
+import org.junit.Test;
 
-import junit.framework.TestCase;
-
-public class HexStringTest extends TestCase 
+public class HexStringTest
 {
+	@Test
 	public void testHex()
 	{
 		String s = new String(HexString.fromHexString(HexString.toHexString("hello world")));

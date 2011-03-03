@@ -758,6 +758,14 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	{
 		return _sipMetaData;
 	}
+		
+	@Override
+	public String toString()
+	{
+		if (_name != null)
+			return super.toString() + ", " + _name;
+		return super.toString();
+	}
 
 	    	
     public class Timer implements TimerService

@@ -34,9 +34,11 @@ import org.cipango.server.session.SessionManager;
 import org.cipango.server.transaction.TransactionManager;
 import org.cipango.sip.SipURIImpl;
 import org.cipango.sipapp.SipAppContext;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.util.MultiException;
+import org.eclipse.jetty.util.TypeUtil;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -80,13 +82,6 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 		
 		if (_sipThreadPool == null) 
 			setSipThreadPool(new QueuedThreadPool());
-
-		try
-		{
-			if (_sipThreadPool instanceof LifeCycle)
-				((LifeCycle) _sipThreadPool).start();
-		}
-		catch (Throwable t) { mex.add(t); }
 		
 		if (_sessionManager == null)
 			setSessionManager(new SessionManager());
@@ -151,14 +146,7 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 			super.doStop();
 		} 
         catch (Throwable e) { mex.add(e); }
-        
-        try
-        {
-        	if (_sipThreadPool instanceof LifeCycle)
-        		((LifeCycle) _sipThreadPool).stop();
-        }
-        catch (Throwable e) { mex.add(e); }
-       
+               
         mex.ifExceptionThrow();
     }
     
@@ -283,8 +271,12 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 	
 	public void setSipThreadPool(ThreadPool sipThreadPool) 
 	{
-		getContainer().update(this, _sipThreadPool, sipThreadPool, "sipThreadPool", true);
-		_sipThreadPool = sipThreadPool;
+		if (_sipThreadPool!=null)
+            removeBean(_sipThreadPool);
+        getContainer().update(this, _sipThreadPool, sipThreadPool, "sipThreadPool",false);
+        _sipThreadPool = sipThreadPool;
+        if (_sipThreadPool !=null)
+            addBean(_sipThreadPool);
 	}
 	
 	public void setSessionManager(SessionManager sessionManager) 
@@ -381,6 +373,13 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 	{
 		return __sipVersion;
 	}
+	
+    @Override
+    public void dump(Appendable out,String indent) throws IOException
+    {
+        super.dump(out, indent);
+        dump(out,indent,TypeUtil.asList(_connectorManager.getConnectors()));    
+    }
 	
 	@Override
 	public String toString()

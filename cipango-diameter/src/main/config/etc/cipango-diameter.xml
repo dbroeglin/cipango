@@ -29,18 +29,18 @@
     </Call>
   </Ref>
   
-  <Call name="addLifeCycle">
+  <Call name="addBean">
     <Arg>
       <New id="node" class="org.cipango.diameter.node.Node">
         <Set name="server"><Ref id="Server"/></Set>
         <Call name="addConnector">
           <Arg>
             <New class="org.cipango.diameter.bio.DiameterSocketConnector" id="DiameterSocketConnector">
-              <Set name="host"><SystemProperty  name="diameter.host"/></Set>
-              <Set name="port"><SystemProperty default="3868" name="diameter.port"/></Set>
+              <Set name="host"><Property  name="diameter.host"/></Set>
+              <Set name="port"><Property default="3868" name="diameter.port"/></Set>
               <Set name="messageListener">
                 <New class="org.cipango.diameter.log.FileMessageLogger" id="FileMessageLogger">
-                  <Set name="filename"><SystemProperty default="." name="jetty.home"/>/logs/yyyy_mm_dd.diameter.log</Set>
+                  <Set name="filename"><Property default="." name="jetty.home"/>/logs/yyyy_mm_dd.diameter.log</Set>
                   <Set name="append">true</Set>
                   <Set name="retainDays">31</Set>
                 </New>

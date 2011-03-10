@@ -16,7 +16,10 @@ package org.cipango.diameter.node;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -38,6 +41,8 @@ import org.eclipse.jetty.util.LazyList;
 import org.eclipse.jetty.util.Loader;
 import org.eclipse.jetty.util.MultiException;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
 
@@ -47,7 +52,7 @@ import org.eclipse.jetty.util.log.Log;
  * and acts either as a Client, Agent or Server.
  * Can be used standalone or linked to a {@link Server}.
  */
-public class Node extends AbstractLifeCycle implements DiameterHandler
+public class Node extends AbstractLifeCycle implements DiameterHandler, Dumpable
 {
 	public static String[] __dictionaryClasses = 
 	{
@@ -600,6 +605,23 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 		_requestTimeout = requestTimeout;
 	}
 	
+	public String dump()
+	{
+		return AggregateLifeCycle.dump(this);
+	}
+
+	public void dump(Appendable out, String indent) throws IOException
+	{
+		out.append("Node ").append(_identity).append(' ').append(getState()).append('\n');
+		List<Object> l = new ArrayList<Object>();
+		l.add("Realm=" + _realm);
+		l.add("ProductName=" + _productName);
+		l.add(_router);
+		l.add(_sessionManager);
+		
+		AggregateLifeCycle.dump(out,indent,l, Arrays.asList(_peers), Arrays.asList(_connectors), _supportedApplications);
+	}
+	
 	class ConnectPeerTimeout implements Runnable
 	{
 		private Peer _peer;
@@ -640,5 +662,4 @@ public class Node extends AbstractLifeCycle implements DiameterHandler
 			}
 		}
 	}
-
 }

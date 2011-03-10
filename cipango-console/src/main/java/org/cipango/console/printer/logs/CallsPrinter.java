@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.logs;
 
 import java.io.Writer;
 import java.util.Iterator;
@@ -21,6 +21,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.printer.MenuPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
 
 
 public class CallsPrinter implements HtmlPrinter

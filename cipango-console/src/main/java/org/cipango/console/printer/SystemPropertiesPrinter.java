@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeSet;
 
+import org.cipango.console.printer.generic.HtmlPrinter;
+
 
 public class SystemPropertiesPrinter implements HtmlPrinter
 {

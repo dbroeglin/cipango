@@ -11,43 +11,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.logs;
 
 import java.io.Writer;
-import java.lang.reflect.Method;
 import java.util.Enumeration;
 import java.util.ResourceBundle;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.sip.SipServletMessage;
-import javax.servlet.sip.SipServletRequest;
 
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Page;
 import org.cipango.console.Parameters;
+import org.cipango.console.printer.MenuPrinter;
 
-public class SipLogPrinter extends AbstractLogPrinter
+public class DiameterLogPrinter extends AbstractLogPrinter
 {
 	private static final String[] GET_MSG_SIGNATURE =
 	{ Integer.class.getName(), String.class.getName() };
 
 	private static final ResourceBundle FILTERS = ResourceBundle
-			.getBundle("org.cipango.console.sip-filters");
+			.getBundle("org.cipango.console.diameter-filters");
 
-	private static final String 
-		CALL_ID_FILTER = "message.callId",
-		BRANCH_FILTER = "message.topVia.branch",
-		TO_FILTER = "message.to.uRI.toString()",
-		FROM_FILTER = "message.from.uRI.toString()",
-		REMOTE_FILTER = "remote",
-		REQUEST_URI_FILTER = "message.requestURI != null and message.requestURI.toString()";
-	
 	private Object[][] _messagesLogs;
 	private Output _output;
 
-	public SipLogPrinter(MBeanServerConnection connection,
+	public DiameterLogPrinter(MBeanServerConnection connection,
 			HttpServletRequest request, Output output) throws Exception
 	{
 		super(connection, request);
@@ -58,7 +48,7 @@ public class SipLogPrinter extends AbstractLogPrinter
 			Object[] params =
 			{ new Integer(_maxMessages), _msgFilter };
 			_messagesLogs = (Object[][]) connection.invoke(
-					ConsoleFilter.SIP_CONSOLE_MSG_LOG, "getMessages", params,
+					ConsoleFilter.DIAMETER_CONSOLE_LOG, "getMessages", params,
 					GET_MSG_SIGNATURE);
 		}
 	}
@@ -81,27 +71,18 @@ public class SipLogPrinter extends AbstractLogPrinter
 			return;
 		}
 
-		if (_connection.isRegistered(ConsoleFilter.SIP_MESSAGE_LOG))
+		if (_connection.isRegistered(ConsoleFilter.DIAMETER_FILE_LOG))
 		{
 			out.write("<h2>File Log</h2>");
-			new FileLogPrinter(_connection, getPage(), ConsoleFilter.SIP_MESSAGE_LOG, true).print(out);
+			new FileLogPrinter(_connection, getPage(), ConsoleFilter.DIAMETER_FILE_LOG, true).print(out);
 		}
 		if (_connection.isRegistered(getObjectName()))
 		{
 			out.write("<h2>Console Log</h2>");
 			printHeaders(out);
-			if (isLoggerRunning())
-			{
-				printCallflow(out);
+			if (isLoggerRunning())			
 				printConsoleLog(out);
-			}
 		}
-	}
-	
-	@Override
-	public ObjectName getObjectName()
-	{
-		return ConsoleFilter.SIP_CONSOLE_MSG_LOG;
 	}
 
 	protected void printCommonFilters(Writer out) throws Exception
@@ -130,136 +111,71 @@ public class SipLogPrinter extends AbstractLogPrinter
 			}
 		}
 		if (!selected)
-		{
-			out.write("<OPTION value=\"" + _msgFilter + "\" selected>");
-			
-			String filterValue = _msgFilter.substring(_msgFilter.lastIndexOf('(') + 1);
-			filterValue = filterValue.substring(0, filterValue.length() - 1);
-			if (_msgFilter.startsWith(CALL_ID_FILTER))
-				out.write("Call-ID is " + filterValue);
-			else if (_msgFilter.startsWith(BRANCH_FILTER))
-				out.write("Branch is " + filterValue);
-			else if (_msgFilter.startsWith(TO_FILTER))
-				out.write("To URI is " + filterValue);
-			else if (_msgFilter.startsWith(FROM_FILTER))
-				out.write("From URI is " + filterValue);
-			else if (_msgFilter.startsWith(REQUEST_URI_FILTER))
-				out.write("Request-URI is " + filterValue);
-			else if (_msgFilter.startsWith(REMOTE_FILTER))
-				out.write("Remote host is " + filterValue);
-			else
-				out.write(_msgFilter);
-			out.write("</OPTION>");
-		}
-			
+			out.write("<OPTION selected>" + _msgFilter + "</OPTION>");
 
 		out.write("</SELECT>");
 	}
-	
-
 
 	private void printConsoleLog(Writer out) throws Exception
 	{
 		out.write("<div id=\"messageLog\">");
 		for (int i = 0; i < _messagesLogs.length; i++)
 		{
-			out.write("<a name=\"msg-" + (i + 1) + "\"/><div id=\"log_" + i + "\">");
+			out.write("<div id=\"log_" + i + "\">");
 			MessageLog log = new MessageLog(_messagesLogs[i]);
 			String info = log.getInfoLine().replaceFirst(log.getRemote(),
-					getFilterLink(REMOTE_FILTER, log.getRemote()));
+					getFilterLink("remote", log.getRemote()));
 			out.write("<div class=\"info\">" + info + "</div>");
 			out.write("<pre class=\"message\">");
-			out.write(sipToHtml(log.getMessage()));
+			out.write(diameterToHtml(log));
 			out.write("</pre>");
 			out.write("</div>");
 		}
 		out.write("</div>");
 	}
 
-	private void printCallflow(Writer out) throws Exception
-	{
-		if (_messagesLogs != null && _messagesLogs.length > 0)
-		{
-			out.write("<div id=\"callflow\">");
-			out.write("<embed src=\"message.svg?" + Parameters.MAX_MESSAGES
-					+ "=" + _maxMessages);
-			if (_msgFilter != null)
-				out.write("&" + Parameters.MESSAGE_FILTER + "=" + encode(_msgFilter));
-			int height = 100 + _messagesLogs.length * 25;
-			out.write("\" width=\"790\" height=\""
-							+ height
-							+ "\" type=\"image/svg+xml\" pluginspage=\"http://www.adobe.com/svg/viewer/install/\"/>");
-			out.write("</div>");
-		}
-	}
-	
-	private String encode(String unencoded)
-	{
-		return unencoded.replace("%", "%25");
-	}
 
-	private String sipToHtml(SipServletMessage message)
+	private String diameterToHtml(MessageLog log)
 	{
-		StringBuilder sb = new StringBuilder(message.toString());
+		StringBuilder sb = new StringBuilder(log.getMessage());
 
 		replaceAll(sb, "<", "&lt;");
 		replaceAll(sb, ">", "&gt;");
 		replaceAll(sb, "\"", "&quot;");
 
-		replace(sb, sb.indexOf("Call-ID"), message.getCallId(), CALL_ID_FILTER);
-		
-		try 
-		{
-			// return message.getTopVia().getBranch();
-			Method m = message.getClass().getMethod("getTopVia", new Class[0]);
-			Object o = m.invoke(message, (Object[]) null);
-			m = o.getClass().getMethod("getBranch", new Class[0]);
-			String branch = (String) m.invoke(o, (Object[]) null);
-			
-			replace(sb, sb.indexOf("Via"), branch, BRANCH_FILTER);
-		}
-		catch (Throwable e)
-		{
-			e.printStackTrace();
-		}
-		
-		
-		replace(sb, sb.indexOf("From"), message.getFrom().getURI().toString(), FROM_FILTER);
-		replace(sb, sb.indexOf("To"), message.getTo().getURI().toString(), TO_FILTER);
-		if (message instanceof SipServletRequest)
-			replace(sb, 0,((SipServletRequest) message).getRequestURI().toString(), REQUEST_URI_FILTER);
-
 		return sb.toString();
 	}
-	
-	private void replace(StringBuilder sb, int index, String toChange, String filterId)
-	{
-		replaceOnce(sb, index, toChange, getFilterLink(filterId, toChange));
-	}
-	
+
 	private String getFilterLink(String name, String value)
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("<A href=\"" + MenuPrinter.SIP_LOGS.getName() + "?").append(Parameters.MESSAGE_FILTER).append(
+		sb.append("<A href=\"" + MenuPrinter.DIAMETER_LOGS.getName() + "?").append(Parameters.MESSAGE_FILTER).append(
 				"=");
-		sb.append(name).append(".equals(%27").append(encode(value)).append("%27)");
+		sb.append(name).append(".equals(%27").append(value).append("%27)");
 		sb.append("&").append(Parameters.MAX_MESSAGES).append("=").append(
 				_maxMessages);
 		sb.append("\">").append(value).append("</A>");
 		return sb.toString();
 	}
 	
-
 	@Override
 	public Page getPage()
 	{
-		return MenuPrinter.SIP_LOGS;
+		return MenuPrinter.DIAMETER_LOGS;
+	}
+	
+
+	@Override
+	public ObjectName getObjectName()
+	{
+		return ConsoleFilter.DIAMETER_CONSOLE_LOG;
 	}
 	@Override
 	public String getLogFile()
 	{
-		return "message.log";
+		return "diameter.log";
 	}
+
 
 	class MessageLog
 	{
@@ -275,14 +191,14 @@ public class SipLogPrinter extends AbstractLogPrinter
 			return _array[0].toString();
 		}
 
-		public SipServletMessage getMessage()
+		public String getMessage()
 		{
-			return (SipServletMessage) _array[1];
+			return _array[1].toString();
 		}
-		
+
 		public String getRemote()
 		{
-			return (String) _array[2];
+			return _array[2].toString();
 		}
 	}
 }

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.logs;
 
 import java.io.Writer;
 
@@ -22,6 +22,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Page;
 import org.cipango.console.Parameters;
+import org.cipango.console.printer.MenuPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
+import org.cipango.console.printer.generic.PrinterUtil;
 
 public abstract class AbstractLogPrinter implements HtmlPrinter
 {

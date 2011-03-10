@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.generic;
 
 import java.io.IOException;
 import java.io.Writer;

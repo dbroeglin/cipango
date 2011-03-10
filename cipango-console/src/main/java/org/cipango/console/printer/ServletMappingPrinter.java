@@ -19,6 +19,8 @@ import javax.management.AttributeNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
+import org.cipango.console.printer.generic.HtmlPrinter;
+
 public class ServletMappingPrinter implements HtmlPrinter
 {
 

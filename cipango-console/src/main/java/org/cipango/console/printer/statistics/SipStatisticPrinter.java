@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.statistics;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -24,6 +24,13 @@ import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.StatisticGraph;
+import org.cipango.console.printer.MenuPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
+import org.cipango.console.printer.generic.MultiplePrinter;
+import org.cipango.console.printer.generic.ObjectListPrinters;
+import org.cipango.console.printer.generic.ObjectPrinter;
+import org.cipango.console.printer.generic.PrinterUtil;
+import org.cipango.console.printer.generic.SetPrinter;
 
 
 public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter

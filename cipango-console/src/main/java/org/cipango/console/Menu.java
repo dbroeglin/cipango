@@ -13,7 +13,7 @@
 // ========================================================================
 package org.cipango.console;
 
-import org.cipango.console.printer.HtmlPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
 
 public interface Menu extends HtmlPrinter
 {

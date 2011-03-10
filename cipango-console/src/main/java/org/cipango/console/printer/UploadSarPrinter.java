@@ -16,6 +16,7 @@ package org.cipango.console.printer;
 import java.io.Writer;
 
 import org.cipango.console.Parameters;
+import org.cipango.console.printer.generic.HtmlPrinter;
 
 public class UploadSarPrinter implements HtmlPrinter
 {

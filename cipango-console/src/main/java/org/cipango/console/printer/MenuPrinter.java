@@ -30,6 +30,7 @@ import org.cipango.console.Menu;
 import org.cipango.console.ObjectNameFactory;
 import org.cipango.console.Page;
 import org.cipango.console.PageImpl;
+import org.cipango.console.printer.generic.HtmlPrinter;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 

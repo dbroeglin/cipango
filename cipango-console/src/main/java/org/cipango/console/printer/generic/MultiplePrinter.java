@@ -11,37 +11,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.generic;
 
-import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-public class ErrorPrinter implements HtmlPrinter
+public class MultiplePrinter implements HtmlPrinter
 {
 
-	private String _message;
-	private Throwable _t;
+	private List<HtmlPrinter> _list;
 
-	public ErrorPrinter(String message)
+	public MultiplePrinter()
 	{
-		_message = message;
+		_list = new ArrayList<HtmlPrinter>();
 	}
 
-	public ErrorPrinter(String message, Throwable t)
+	public void addLast(HtmlPrinter printer)
 	{
-		_message = message;
-		_t = t;
+		_list.add(printer);
 	}
 
 	public void print(Writer out) throws Exception
 	{
-		out.write("<div id=\"warn\">");
-		out.write(_message);
-		if (_t != null)
+		Iterator<HtmlPrinter> it = _list.iterator();
+		while (it.hasNext())
 		{
-			_t.printStackTrace(new PrintWriter(out));
+			it.next().print(out);
+			out.write('\n');
 		}
-		out.write("</div>");
 	}
-
 }

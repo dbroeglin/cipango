@@ -24,6 +24,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 
+import org.cipango.console.printer.generic.HtmlPrinter;
+
 public class OamPrinter implements HtmlPrinter
 {
 	private static final String[] SIMPLE_SIGNATURE = new String[] { "java.io.Writer" };

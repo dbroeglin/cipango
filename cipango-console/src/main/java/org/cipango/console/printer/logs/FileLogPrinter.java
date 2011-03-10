@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.logs;
 
 import java.io.Writer;
 
@@ -19,6 +19,8 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.Page;
+import org.cipango.console.printer.generic.HtmlPrinter;
+import org.cipango.console.printer.generic.PrinterUtil;
 
 public class FileLogPrinter implements HtmlPrinter
 {

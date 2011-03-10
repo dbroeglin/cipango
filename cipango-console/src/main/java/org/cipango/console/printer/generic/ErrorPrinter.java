@@ -11,13 +11,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // ========================================================================
-package org.cipango.console.printer;
+package org.cipango.console.printer.generic;
 
+import java.io.PrintWriter;
 import java.io.Writer;
 
-public interface HtmlPrinter
+
+public class ErrorPrinter implements HtmlPrinter
 {
 
-	public void print(Writer out) throws Exception;
+	private String _message;
+	private Throwable _t;
+
+	public ErrorPrinter(String message)
+	{
+		_message = message;
+	}
+
+	public ErrorPrinter(String message, Throwable t)
+	{
+		_message = message;
+		_t = t;
+	}
+
+	public void print(Writer out) throws Exception
+	{
+		out.write("<div id=\"warn\">");
+		out.write(_message);
+		if (_t != null)
+		{
+			_t.printStackTrace(new PrintWriter(out));
+		}
+		out.write("</div>");
+	}
 
 }

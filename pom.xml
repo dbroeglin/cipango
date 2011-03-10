@@ -154,7 +154,6 @@
   </build>
 
   <modules>
-    <module>cipango-sip-api-1.1</module>
     <module>cipango-server</module>
     <module>cipango-jmx</module>
     <module>cipango-dar</module>
@@ -167,18 +166,6 @@
     <module>cipango-distribution</module>
     <module>cipango-maven-plugin</module>
   </modules>
-<!--  <modules>
-    <module>modules/repository</module>
-    <module>modules/cipango</module>
-    <module>modules/management</module>
-    <module>modules/plus</module>
-    <module>modules/annotations</module>
-    <module>modules/diameter</module>
-    <module>modules/dar</module>
-    <module>modules/maven-plugin</module>
-    <module>modules/examples</module>
-  </modules>
--->
 
   <dependencyManagement>
     <dependencies>
@@ -295,5 +282,13 @@
       <url>scpexe://repository.cipango.org/var/www/repository</url>
     </repository>
   </distributionManagement>
+  
+  <repositories>
+    <repository>
+      <id>repository.cipango.org</id>
+      <url>http://repository.cipango.org/</url>
+    </repository>
+  </repositories>
+</project>
 
 </project>

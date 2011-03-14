@@ -266,7 +266,7 @@
 														<exclude>**.java</exclude>
 												</excludes>
 												<includes>
-														<include>**/sipunit/**.java</include>
+														<include>org/cipango/kaleo/sipunit/**.java</include>
 												</includes>
 										</configuration>
 								</execution>

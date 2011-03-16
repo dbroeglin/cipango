@@ -13,190 +13,83 @@
 // ========================================================================
 package org.cipango.console.printer.generic;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.Set;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
+import org.cipango.console.Row;
+import org.cipango.console.Row.Header;
+import org.cipango.console.Row.Value;
+import org.cipango.console.Table;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 
 
-public class SetPrinter extends AbstractJmxPrinter implements HtmlPrinter
+public class SetPrinter implements HtmlPrinter
 {
 	protected static Logger __logger = Log.getLogger("console");
-	private ObjectName[] _objectNames;
+	private Table _table;
 	
-	public SetPrinter(Set<ObjectName> objectNameSet, String propertyName, MBeanServerConnection connection)
+	public SetPrinter(Table table)
 	{
-		super(propertyName, connection);
-
-		_objectNames = new ObjectName[objectNameSet.size()];
-		Iterator<ObjectName> it = objectNameSet.iterator();
-		for (int i = 0; i < _objectNames.length; i++)
-			_objectNames[i] = it.next();
+		_table = table;
+	}
+	
+	public SetPrinter(Set<ObjectName> objectNameSet, String propertyName, MBeanServerConnection connection) throws Exception
+	{
+		_table = new Table(connection, objectNameSet, propertyName);
 	}
 
-	public SetPrinter(ObjectName[] objectNames, String propertyName, MBeanServerConnection connection)
+	public SetPrinter(ObjectName[] objectNames, String propertyName, MBeanServerConnection connection) throws Exception
 	{
-		super(propertyName, connection);
-		if (objectNames == null)
-			_objectNames = new ObjectName[0];
-		else
-			_objectNames = objectNames;
+		_table = new Table(connection, objectNames, propertyName);
 	}
 
 	public void print(Writer out) throws Exception
 	{
-
-		boolean first = true;
-
-		// Case no MBean registered
-		if (_objectNames == null || _objectNames.length == 0)
-			printSimpleHeaders(out);
-
-		for (int i = 0; i < _objectNames.length; i++)
-		{
-			if (first)
-			{
-				MBeanInfo info = getMbsc().getMBeanInfo(_objectNames[i]);
-				printHeaders(info, out);
-				first = false;
-			}
-			out.write("<tr class=\"" + (i % 2 == 0 ? "even" : "odd") + "\">");
-			for (int j = 0; j < getParams().length; j++)
-			{
-				if (getParams()[j] != null && !"".equals(getParams()[j].trim()))
-				{
-					try
-					{
-						Object value = getMbsc().getAttribute(_objectNames[i], getParams()[j]);
-						printValue(value, getParams()[j], i, out);
-					}
-					catch (AttributeNotFoundException e)
-					{
-						__logger.warn("Could not found attribute {} on object name {}", getParams()[j], _objectNames[i]);
-					}
-				}
-			}
-			if (getOperations() != null)
-			{
-				out.write("<td>");
-				for (int j = 0; j < getOperations().length; j++)
-				{
-					out.write(getActionLinkWithConfirm(getOperations()[j], _objectNames[i], null));
-					if (j < getOperations().length)
-					{
-						out.write("&nbsp;&nbsp;&nbsp;");
-					}
-				}
-				out.write("</td>");
-			}
-			printRowPostfix(out, i);
-			out.write("</tr>");
-		}
-		printLastRow(out);
-		out.write("</table></div>");
-	}
-
-	protected void printValue(Object value, String name, int i, Writer out) throws IOException
-	{
-		out.write("<td>" + (value == null ? "" : value) + "</td>");
-	}
-
-	private void printHeaders(MBeanInfo info, Writer out) throws IOException
-	{
-		out.write("<h2>" + (getTitle() != null ? getTitle() : info.getDescription()) + "</h2>");
+		out.write("<h2>" + _table.getTitle() + "</h2>\n");
 		out.write("<div class=\"data\"><table class=\"table_hover\">");
 		out.write("<tr>");
-		MBeanAttributeInfo[] attrInfo = info.getAttributes();
-		String[] params = getParams();
-		for (int j = 0; j < params.length; j++)
+		for (Header header : _table.getHeaders())
 		{
-			boolean found = false;
-			for (int k = 0; k < attrInfo.length; k++)
+			out.write("<th>" + header.getName());
+			if (header.getNote() != null)
 			{
-				if (attrInfo[k].getName().equals(params[j]))
-				{
-					out.write("<th>" + getDescription(attrInfo[k]));
-					String description = getParamFullDescription(params[j]);
-					if (description != null && !description.trim().equals(""))
-					{
-						out.write("&nbsp;<img src=\"images/question.gif\" title=\"" + description
-								+ "\"/>");
-					}
-					out.write("</th>");
-					found = true;
-					break;
-				}
-			}
-			if (!found)
-			{
-				__logger.info("Could not display param {} as it is not exposed by JMX", params[j], null);
-				removeParam(params[j]);
-			}
-				
-		}
-		if (getOperations() != null)
-		{
-			out.write("<th>Operations</th>");
-		}
-		printHeaderPostfix(out);
-		out.write("</tr>");
-	}
-	
-	protected String getDescription(MBeanAttributeInfo attributeInfo)
-	{
-		return attributeInfo.getDescription();
-	}
-
-	private void printSimpleHeaders(Writer out) throws IOException
-	{
-		out.write("<h2>" + getTitle() + "</h2>");
-		out.write("<div class=\"data\"><table class=\"main\">");
-		out.write("<tr>");
-		for (int j = 0; j < getParams().length; j++)
-		{
-			out.write("<th>" + getParams()[j]);
-			String description = getParamFullDescription(getParams()[j]);
-			if (description != null && !description.trim().equals(""))
-			{
-				out.write("&nbsp;<img src=\"images/question.gif\" title=\"" + description + "\"/>");
+				out.write("&nbsp;<img src=\"images/question.gif\" title=\"" + header.getNote()
+						+ "\"/>");
 			}
 			out.write("</th>");
 		}
-		if (getOperations() != null)
-		{
+		if (_table.hasOperations())
 			out.write("<th>Operations</th>");
-		}
-		printHeaderPostfix(out);
 		out.write("</tr>");
+
+		boolean odd = true;
+		for (Row row : _table)
+		{
+			out.write("<tr class=\"" + (odd ? "odd" : "even") + "\">");
+			odd = !odd;
+			for (Value value : row.getValues())
+			{
+				out.write("<td>" + (value.getValue() == null ? "" : value.getValue()) + "</td>");
+			}
+			if (row.getOperations() != null)
+			{
+				out.write("<td>");
+				Iterator<String> it = row.getOperations().iterator();
+				while (it.hasNext())
+				{
+					out.write(it.next());
+					if (it.hasNext())
+						out.write("&nbsp;&nbsp;&nbsp;");
+				}
+				out.write("</td>");
+			}
+			out.write("</tr>");
+		}
+		out.write("</table></div>");
 	}
-
-	protected void printLastRow(Writer out) throws IOException
-	{
-
-	}
-
-	protected void printRowPostfix(Writer out, int i) throws IOException
-	{
-
-	}
-
-	protected void printHeaderPostfix(Writer out) throws IOException
-	{
-
-	}
-
-	protected ObjectName[] getObjectNames()
-	{
-		return _objectNames;
-	}
-
 }

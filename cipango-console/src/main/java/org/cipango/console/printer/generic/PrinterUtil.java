@@ -75,18 +75,6 @@ public class PrinterUtil
 		return getValueSplit(name + ".operations");
 	}
 
-	public static String getPage(String name)
-	{
-		try
-		{
-			return PARAMETERS.getString(name + ".page").trim();
-		}
-		catch (MissingResourceException e)
-		{
-			return null;
-		}
-	}
-
 	public static String getTitle(String name)
 	{
 		try

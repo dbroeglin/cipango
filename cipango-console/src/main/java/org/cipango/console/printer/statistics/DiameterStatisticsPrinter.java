@@ -13,23 +13,18 @@
 // ========================================================================
 package org.cipango.console.printer.statistics;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
 import java.util.Set;
 
-import javax.management.AttributeNotFoundException;
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
 
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
-import org.cipango.console.printer.generic.ObjectPrinter;
 import org.cipango.console.printer.generic.PrinterUtil;
+import org.cipango.console.printer.generic.PropertiesPrinter;
 import org.cipango.console.printer.generic.SetPrinter;
 
 public class DiameterStatisticsPrinter extends MultiplePrinter
@@ -37,17 +32,17 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 
 	private MBeanServerConnection _connection;
 	
-	public DiameterStatisticsPrinter(MBeanServerConnection connection) throws IOException, AttributeNotFoundException, InstanceNotFoundException, MBeanException, ReflectionException
+	public DiameterStatisticsPrinter(MBeanServerConnection connection) throws Exception
 	{
 		_connection = connection;
 		ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
 		
-		addLast(new ObjectPrinter(objectName, "diameter.stats.sessions",  _connection));
+		addLast(new PropertiesPrinter(objectName, "diameter.stats.sessions",  _connection));
 		
 		ObjectName[] transports = (ObjectName[]) _connection.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
 		for (int i = 0; i < transports.length; i++)
-			addLast(new ObjectPrinter(transports[i], "diameter.stats.msg",  _connection));
+			addLast(new PropertiesPrinter(transports[i], "diameter.stats.msg",  _connection));
 		
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _connection.queryNames(ConsoleFilter.DIAMETER_PEERS, null);

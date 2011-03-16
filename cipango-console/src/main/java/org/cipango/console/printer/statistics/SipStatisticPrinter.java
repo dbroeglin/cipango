@@ -13,23 +13,24 @@
 // ========================================================================
 package org.cipango.console.printer.statistics;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
 
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.PropertyList;
+import org.cipango.console.Row;
+import org.cipango.console.Row.Header;
+import org.cipango.console.Row.Value;
 import org.cipango.console.StatisticGraph;
+import org.cipango.console.Table;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.generic.HtmlPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
-import org.cipango.console.printer.generic.ObjectListPrinters;
-import org.cipango.console.printer.generic.ObjectPrinter;
 import org.cipango.console.printer.generic.PrinterUtil;
+import org.cipango.console.printer.generic.PropertiesPrinter;
 import org.cipango.console.printer.generic.SetPrinter;
 
 
@@ -48,48 +49,41 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 	{
 		_connection = connection;
 		_statisticGraph = statisticGraph;
-		addLast(new ObjectListPrinters(connection, "sip.messages", true));
+		addLast(new PropertiesPrinter(new PropertyList(connection, "sip.messages")));
 		
 		ObjectName sessionManager = (ObjectName) _connection.getAttribute(ConsoleFilter.SERVER, "sessionManager");
-		addLast(new ObjectPrinter(sessionManager, "sip.callSessions", _connection));
+		addLast(new PropertiesPrinter(sessionManager, "sip.callSessions", _connection));
 		ObjectName[] contexts = PrinterUtil.getSipAppContexts(_connection);
-		addLast(new SetPrinter(contexts, "sip.applicationSessions", _connection)
+		
+		Table table = new Table(_connection, contexts, "sip.applicationSessions");
+		for (Header header : table.getHeaders())
 		{
-			@Override
-			protected String getDescription(MBeanAttributeInfo attributeInfo)
-			{
-				String descr = attributeInfo.getDescription();
-				int index = descr.indexOf("Sip application sessions");
-				if (index == -1)
-					return descr;
-				return descr.substring(0, index);
-			}
-		});
-		addLast(new SetPrinter(contexts, "sip.applicationSessions.time", _connection)
+			int index = header.getName().indexOf("Sip application sessions");
+			if (index != -1)
+				header.setName(header.getName().substring(0, index));
+		}
+		addLast(new SetPrinter(table));
+		
+		table = new Table(_connection, contexts, "sip.applicationSessions.time");
+		for (Header header : table.getHeaders())
 		{
-			@Override
-			protected String getDescription(MBeanAttributeInfo attributeInfo)
+			int index = header.getName().indexOf("amount of time in seconds a Sip application session remained valid");
+			if (index != -1)
+				header.setName(header.getName().substring(0, index));
+		}
+		for (Row row : table)
+		{
+			for (Value value : row.getValues())
 			{
-				String descr = attributeInfo.getDescription();
-				int index = descr.indexOf("amount of time in seconds a Sip application session remained valid");
-				if (index == -1)
-					return descr;
-				return descr.substring(0, index);
-			}
-			
-			@Override
-			protected void printValue(Object value, String name, int i, Writer out) throws IOException
-			{
-				if (value instanceof Double)
+				if (value.getValue() instanceof Double)
 				{
 					DecimalFormat format = new DecimalFormat();
 					format.setMaximumFractionDigits(2);
-					value = format.format(value);
+					value.setValue(format.format(value.getValue()));
 				}	
-				super.printValue(value, name, i, out);
 			}
-		});
-
+		}
+		addLast(new SetPrinter(table));
 	}
 
 	public void print(Writer out) throws Exception

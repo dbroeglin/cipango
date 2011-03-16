@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.management.Attribute;
-import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
@@ -58,27 +57,26 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.cipango.console.printer.generic.ErrorPrinter;
-import org.cipango.console.printer.generic.HtmlPrinter;
-import org.cipango.console.printer.generic.MultiplePrinter;
-import org.cipango.console.printer.generic.ObjectPrinter;
-import org.cipango.console.printer.generic.PrinterUtil;
-import org.cipango.console.printer.generic.Property;
-import org.cipango.console.printer.generic.SetPrinter;
-import org.cipango.console.printer.logs.CallsPrinter;
-import org.cipango.console.printer.logs.DiameterLogPrinter;
-import org.cipango.console.printer.logs.FileLogPrinter;
-import org.cipango.console.printer.logs.SipLogPrinter;
-import org.cipango.console.printer.logs.AbstractLogPrinter.Output;
-import org.cipango.console.printer.statistics.DiameterStatisticsPrinter;
-import org.cipango.console.printer.statistics.HttpStatisticsPrinter;
-import org.cipango.console.printer.statistics.SipStatisticPrinter;
 import org.cipango.console.printer.DarPrinter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.OamPrinter;
 import org.cipango.console.printer.ServletMappingPrinter;
 import org.cipango.console.printer.SystemPropertiesPrinter;
 import org.cipango.console.printer.UploadSarPrinter;
+import org.cipango.console.printer.generic.ErrorPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
+import org.cipango.console.printer.generic.MultiplePrinter;
+import org.cipango.console.printer.generic.PrinterUtil;
+import org.cipango.console.printer.generic.PropertiesPrinter;
+import org.cipango.console.printer.generic.SetPrinter;
+import org.cipango.console.printer.logs.AbstractLogPrinter.Output;
+import org.cipango.console.printer.logs.CallsPrinter;
+import org.cipango.console.printer.logs.DiameterLogPrinter;
+import org.cipango.console.printer.logs.FileLogPrinter;
+import org.cipango.console.printer.logs.SipLogPrinter;
+import org.cipango.console.printer.statistics.DiameterStatisticsPrinter;
+import org.cipango.console.printer.statistics.HttpStatisticsPrinter;
+import org.cipango.console.printer.statistics.SipStatisticPrinter;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.w3c.dom.Node;
@@ -375,33 +373,30 @@ public class ConsoleFilter implements Filter
 		}
 	}
 	
-	private void doAbout(HttpServletRequest request) throws JMException, IOException
+	private void doAbout(HttpServletRequest request) throws Exception
 	{
 		MultiplePrinter printer = new MultiplePrinter();
-		ObjectPrinter server = new ObjectPrinter(ConsoleFilter.SERVER, "version", _mbsc, false);
+		PropertyList server = new PropertyList(_mbsc, ConsoleFilter.SERVER, "version");
 		Long startupTime = (Long) _mbsc.getAttribute(ConsoleFilter.SERVER, "startupTime");
-		List<Property> properties = new ArrayList<Property>();
-		properties.add(new Property("Startup Time", new Date(startupTime)));
-		properties.add(new Property("Server Uptime", PrinterUtil.getDuration(System.currentTimeMillis() - startupTime)));
-		server.setProperties(properties);
-		printer.addLast(server);
+		server.add(new Property("Startup Time", new Date(startupTime)));
+		server.add(new Property("Server Uptime", PrinterUtil.getDuration(System.currentTimeMillis() - startupTime)));
+		printer.addLast(new PropertiesPrinter(server));
 		
-		ObjectPrinter env = new ObjectPrinter(ConsoleFilter.SERVER, "environment", _mbsc, false);
-		properties = new ArrayList<Property>();
-		properties.add(new Property("OS / Hardware", System.getProperty("os.name") + " " + System.getProperty("os.version")
+		PropertyList env = new PropertyList();
+		env.setTitle("Environment");
+		env.add(new Property("OS / Hardware", System.getProperty("os.name") + " " + System.getProperty("os.version")
 				+ " - " + System.getProperty("os.arch")));
-		properties.add(new Property("Jetty Home", System.getProperty("jetty.home")));
-		properties.add(new Property("Java Runtime", System.getProperty("java.runtime.name") + " " + System.getProperty("java.runtime.version")));
+		env.add(new Property("Jetty Home", System.getProperty("jetty.home")));
+		env.add(new Property("Java Runtime", System.getProperty("java.runtime.name") + " " + System.getProperty("java.runtime.version")));
 		
 		Runtime r = Runtime.getRuntime();
 		long usedMemory = r.totalMemory() - r.freeMemory();
 		NumberFormat f = DecimalFormat.getPercentInstance();
 		f.setMinimumFractionDigits(1);
 		String percentage = f.format(((float) usedMemory) / r.maxMemory());
-		properties.add(new Property("Memory", (usedMemory >> 20) + " Mb of " + (r.maxMemory() >> 20) + " Mb (" +
+		env.add(new Property("Memory", (usedMemory >> 20) + " Mb of " + (r.maxMemory() >> 20) + " Mb (" +
 				percentage + ")"));
-		env.setProperties(properties);
-		printer.addLast(env);
+		printer.addLast(new PropertiesPrinter(env));
 		request.setAttribute(Attributes.CONTENT, printer);
 		
 	}
@@ -527,7 +522,18 @@ public class ConsoleFilter implements Filter
 
 		ObjectName[] contexts = PrinterUtil.getContexts(_mbsc);
 
-		printer.addLast(new SetPrinter(contexts, "appContexts", _mbsc));
+		Table contextsTable = new Table(_mbsc, contexts, "appContexts");
+		for (Row row : contextsTable)
+		{
+			List<String> operationLinks = new ArrayList<String>();
+			for (String operation : row.getOperations())
+			{
+				operationLinks.add(PrinterUtil.getActionLinkWithConfirm(operation, row.getObjectName(), _mbsc, MenuPrinter.APPLICATIONS, null));
+			}
+			row.setOperations(operationLinks);
+		}
+		
+		printer.addLast(new SetPrinter(contextsTable));
 		printer.addLast(new ServletMappingPrinter(contexts, _mbsc));
 		printer.addLast(new UploadSarPrinter());
 		request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
@@ -545,8 +551,8 @@ public class ConsoleFilter implements Filter
 		printer.addLast(new SetPrinter(connectors, "sip.connectors", _mbsc));
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "sipThreadPool");
-		printer.addLast(new ObjectPrinter(threadPool, "sip.threadPool", _mbsc));
-		printer.addLast(new ObjectPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
+		printer.addLast(new PropertiesPrinter(threadPool, "sip.threadPool", _mbsc));
+		printer.addLast(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	
@@ -570,13 +576,13 @@ public class ConsoleFilter implements Filter
 	throws Exception
 	{		
 		MultiplePrinter printer = new MultiplePrinter();
-		printer.addLast(new ObjectPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
+		printer.addLast(new PropertiesPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
 		
 		ObjectName[] transports = (ObjectName[]) _mbsc.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
 		printer.addLast(new SetPrinter(transports, "diameter.transport", _mbsc));
 		
-		printer.addLast(new ObjectPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
+		printer.addLast(new PropertiesPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
 
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _mbsc.queryNames(ConsoleFilter.DIAMETER_PEERS, null);
@@ -597,7 +603,7 @@ public class ConsoleFilter implements Filter
 		
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "threadPool");
-		printer.addLast(new ObjectPrinter(threadPool, "http.threadPool", _mbsc, true));
+		printer.addLast(new PropertiesPrinter(threadPool, "http.threadPool", _mbsc));
 							
 		request.setAttribute(Attributes.CONTENT, printer);
 	}

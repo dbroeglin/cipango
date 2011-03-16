@@ -13,26 +13,26 @@
 // ========================================================================
 package org.cipango.console.printer.statistics;
 
-import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 
-import javax.management.JMException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Property;
+import org.cipango.console.PropertyList;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.generic.HtmlPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
-import org.cipango.console.printer.generic.ObjectPrinter;
 import org.cipango.console.printer.generic.PrinterUtil;
-import org.cipango.console.printer.generic.Property;
+import org.cipango.console.printer.generic.PropertiesPrinter;
 
 public class HttpStatisticsPrinter extends MultiplePrinter
 {
 	private MBeanServerConnection _mbsc;
 	
-	public HttpStatisticsPrinter(MBeanServerConnection mbsc) throws JMException, IOException
+	public HttpStatisticsPrinter(MBeanServerConnection mbsc) throws Exception
 	{
 		_mbsc = mbsc;
 		ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(ConsoleFilter.SERVER, "connectors");
@@ -40,30 +40,19 @@ public class HttpStatisticsPrinter extends MultiplePrinter
 		for (int i = 0; i < connectors.length; i++)
 		{
 			final ObjectName objectName = connectors[i];
-			addLast(new ObjectPrinter(objectName, "http.statistics", _mbsc)
+			
+			PropertyList propertyList = new PropertyList(_mbsc, objectName, "http.statistics");
+			propertyList.setTitle("Connector: " + (String) _mbsc.getAttribute(objectName, "name"));
+			Iterator<Property> it = propertyList.iterator();
+			while (it.hasNext())
 			{
-				@Override
-				public String getTitle()
-				{
-					try
-					{
-						return "Connector: " + (String) _mbsc.getAttribute(getObjectName(), "name");
-					}
-					catch (Exception e)
-					{
-						return super.getTitle();
-					}
-				}
-				
-				@Override
-				protected void customizeProperty(Property property)
-				{
-					String name = property.getName();
-					int index = name.indexOf("since statsReset()");
-					if (index != -1)
-						property.setName(name.substring(0, index));
-				}
-			});
+				Property property = (Property) it.next();
+				String name = property.getName();
+				int index = name.indexOf("since statsReset()");
+				if (index != -1)
+					property.setName(name.substring(0, index));
+			}
+			addLast(new PropertiesPrinter(propertyList));
 			
 			addLast(new HtmlPrinter()
 			{

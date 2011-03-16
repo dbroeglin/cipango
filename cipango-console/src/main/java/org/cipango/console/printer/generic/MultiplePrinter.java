@@ -14,11 +14,12 @@
 package org.cipango.console.printer.generic;
 
 import java.io.Writer;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class MultiplePrinter implements HtmlPrinter
+public class MultiplePrinter extends AbstractList<HtmlPrinter> implements HtmlPrinter
 {
 
 	private List<HtmlPrinter> _list;
@@ -28,6 +29,7 @@ public class MultiplePrinter implements HtmlPrinter
 		_list = new ArrayList<HtmlPrinter>();
 	}
 
+	@Deprecated 
 	public void addLast(HtmlPrinter printer)
 	{
 		_list.add(printer);
@@ -41,5 +43,23 @@ public class MultiplePrinter implements HtmlPrinter
 			it.next().print(out);
 			out.write('\n');
 		}
+	}
+
+	@Override
+	public HtmlPrinter get(int index)
+	{
+		return _list.get(index);
+	}
+
+	@Override
+	public int size()
+	{
+		return _list.size();
+	}
+	
+	@Override
+	public void add(int index, HtmlPrinter printer)
+	{
+		_list.add(index, printer);
 	}
 }

@@ -58,6 +58,7 @@ import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.cipango.console.printer.DarPrinter;
+import org.cipango.console.printer.DumpPrinter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.OamPrinter;
 import org.cipango.console.printer.ServletMappingPrinter;
@@ -128,7 +129,6 @@ public class ConsoleFilter implements Filter
 				_logger.warn("Failed to start statistic graph", e);
 			}
 			_deployer = new Deployer(_mbsc);
-			
 			if (_servletContext.getAttribute(MenuFactory.class.getName()) == null)
 				_servletContext.setAttribute(MenuFactory.class.getName(), new MenuFactoryImpl(_mbsc));
 		}
@@ -315,6 +315,13 @@ public class ConsoleFilter implements Filter
 				forward = false;
 				doMessageSvg(request, response);
 			}
+			else if (command.equals("dump.txt"))
+			{
+				forward = false;
+				response.setContentType("text/plain");
+				response.setBufferSize(65536);
+				new DumpPrinter(getMbsc(), this).print(response.getWriter());
+			}
 			else if (command.equals("signout"))
 			{
 				forward = false;
@@ -376,12 +383,22 @@ public class ConsoleFilter implements Filter
 	private void doAbout(HttpServletRequest request) throws Exception
 	{
 		MultiplePrinter printer = new MultiplePrinter();
-		PropertyList server = new PropertyList(_mbsc, ConsoleFilter.SERVER, "version");
+		printer.addLast(new PropertiesPrinter(getVersion()));
+		printer.addLast(new PropertiesPrinter(getEnvironment()));
+		request.setAttribute(Attributes.CONTENT, printer);
+	}
+	
+	public PropertyList getVersion() throws Exception
+	{
+		PropertyList properties = new PropertyList(_mbsc, ConsoleFilter.SERVER, "version");
 		Long startupTime = (Long) _mbsc.getAttribute(ConsoleFilter.SERVER, "startupTime");
-		server.add(new Property("Startup Time", new Date(startupTime)));
-		server.add(new Property("Server Uptime", PrinterUtil.getDuration(System.currentTimeMillis() - startupTime)));
-		printer.addLast(new PropertiesPrinter(server));
-		
+		properties.add(new Property("Startup Time", new Date(startupTime)));
+		properties.add(new Property("Server Uptime", PrinterUtil.getDuration(System.currentTimeMillis() - startupTime)));
+		return properties;
+	}
+	
+	public PropertyList getEnvironment() throws Exception
+	{
 		PropertyList env = new PropertyList();
 		env.setTitle("Environment");
 		env.add(new Property("OS / Hardware", System.getProperty("os.name") + " " + System.getProperty("os.version")
@@ -396,9 +413,7 @@ public class ConsoleFilter implements Filter
 		String percentage = f.format(((float) usedMemory) / r.maxMemory());
 		env.add(new Property("Memory", (usedMemory >> 20) + " Mb of " + (r.maxMemory() >> 20) + " Mb (" +
 				percentage + ")"));
-		printer.addLast(new PropertiesPrinter(env));
-		request.setAttribute(Attributes.CONTENT, printer);
-		
+		return env;
 	}
 
 	private boolean processGenericAction(HttpServletRequest request)
@@ -521,7 +536,7 @@ public class ConsoleFilter implements Filter
 		MultiplePrinter printer = new MultiplePrinter();
 
 		ObjectName[] contexts = PrinterUtil.getContexts(_mbsc);
-
+	
 		Table contextsTable = new Table(_mbsc, contexts, "appContexts");
 		for (Row row : contextsTable)
 		{
@@ -532,7 +547,6 @@ public class ConsoleFilter implements Filter
 			}
 			row.setOperations(operationLinks);
 		}
-		
 		printer.addLast(new SetPrinter(contextsTable));
 		printer.addLast(new ServletMappingPrinter(contexts, _mbsc));
 		printer.addLast(new UploadSarPrinter());
@@ -540,7 +554,7 @@ public class ConsoleFilter implements Filter
 
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-	
+		
 //  ---------------------------  SIP -------------------------------------
 
 	private void doSipConfig(HttpServletRequest request) throws Exception

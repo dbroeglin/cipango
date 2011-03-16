@@ -52,9 +52,9 @@ public class HttpStatisticsPrinter extends MultiplePrinter
 				if (index != -1)
 					property.setName(name.substring(0, index));
 			}
-			addLast(new PropertiesPrinter(propertyList));
+			add(new PropertiesPrinter(propertyList));
 			
-			addLast(new HtmlPrinter()
+			add(new HtmlPrinter()
 			{
 				
 				public void print(Writer out) throws Exception

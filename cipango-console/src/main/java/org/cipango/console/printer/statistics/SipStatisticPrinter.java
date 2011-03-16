@@ -49,10 +49,10 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 	{
 		_connection = connection;
 		_statisticGraph = statisticGraph;
-		addLast(new PropertiesPrinter(new PropertyList(connection, "sip.messages")));
+		add(new PropertiesPrinter(new PropertyList(connection, "sip.messages")));
 		
 		ObjectName sessionManager = (ObjectName) _connection.getAttribute(ConsoleFilter.SERVER, "sessionManager");
-		addLast(new PropertiesPrinter(sessionManager, "sip.callSessions", _connection));
+		add(new PropertiesPrinter(sessionManager, "sip.callSessions", _connection));
 		ObjectName[] contexts = PrinterUtil.getSipAppContexts(_connection);
 		
 		Table table = new Table(_connection, contexts, "sip.applicationSessions");
@@ -62,7 +62,7 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 			if (index != -1)
 				header.setName(header.getName().substring(0, index));
 		}
-		addLast(new SetPrinter(table));
+		add(new SetPrinter(table));
 		
 		table = new Table(_connection, contexts, "sip.applicationSessions.time");
 		for (Header header : table.getHeaders())
@@ -83,7 +83,7 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 				}	
 			}
 		}
-		addLast(new SetPrinter(table));
+		add(new SetPrinter(table));
 	}
 
 	public void print(Writer out) throws Exception

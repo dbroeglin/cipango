@@ -14,12 +14,10 @@
 package org.cipango.console;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;

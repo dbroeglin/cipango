@@ -37,16 +37,16 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 		_connection = connection;
 		ObjectName objectName = (ObjectName) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "sessionManager");
 		
-		addLast(new PropertiesPrinter(objectName, "diameter.stats.sessions",  _connection));
+		add(new PropertiesPrinter(objectName, "diameter.stats.sessions",  _connection));
 		
 		ObjectName[] transports = (ObjectName[]) _connection.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
 		for (int i = 0; i < transports.length; i++)
-			addLast(new PropertiesPrinter(transports[i], "diameter.stats.msg",  _connection));
+			add(new PropertiesPrinter(transports[i], "diameter.stats.msg",  _connection));
 		
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _connection.queryNames(ConsoleFilter.DIAMETER_PEERS, null);
-		addLast(new SetPrinter(peers, "diameter.stats.pending", _connection));
+		add(new SetPrinter(peers, "diameter.stats.pending", _connection));
 	}
 	
 	public void print(Writer out) throws Exception

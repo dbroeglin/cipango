@@ -92,4 +92,9 @@ public class SetPrinter implements HtmlPrinter
 		}
 		out.write("</table></div>");
 	}
+
+	public Table getTable()
+	{
+		return _table;
+	}
 }

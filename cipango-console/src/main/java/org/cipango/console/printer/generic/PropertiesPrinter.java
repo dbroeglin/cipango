@@ -58,6 +58,11 @@ public class PropertiesPrinter implements HtmlPrinter
 		}
 		out.write("</table></div>\n");
 	}
+
+	public PropertyList getProperties()
+	{
+		return _properties;
+	}
 	
 	
 }

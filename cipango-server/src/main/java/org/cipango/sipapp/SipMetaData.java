@@ -44,6 +44,7 @@ public class SipMetaData
     protected final List<DescriptorProcessor> _descriptorProcessors = new ArrayList<DescriptorProcessor>();
  
     private String _mainServletName;
+    private String _appName;
     
     private final List<String> _listeners = new ArrayList<String>();
    
@@ -106,9 +107,10 @@ public class SipMetaData
      * Resolve all servlet/filter/listener metadata from all sources: descriptors and annotations.
      * 
      */
-    public void resolve (WebAppContext context)
+    public void resolve (WebAppContext appContext)
     throws Exception
     {
+    	SipAppContext context = (SipAppContext) appContext;
         //Ensure origins is fresh
         
         for (DescriptorProcessor p:_descriptorProcessors)
@@ -125,7 +127,20 @@ public class SipMetaData
         if (_mainServletName != null)
         	((SipAppContext) context).getSipServletHandler().setMainServletName(_mainServletName);
         
-        initListeners((SipAppContext) context);
+        int version = SipAppContext.VERSION_11;
+        if (_appName != null || getSipXml() == null)
+        	version = SipAppContext.VERSION_11;
+        else
+        	version = getSipXml().getVersion();
+        
+        context.setSpecVersion(version);
+        
+        if (_appName == null)
+        	context.setName(context.getDefaultName());
+        else
+        	context.setName(_appName);
+        
+        initListeners(context);
     }
     
     protected SipServletHolder getServlet(SipAppContext context, String className)
@@ -248,6 +263,16 @@ public class SipMetaData
 	public List<DescriptorProcessor> getDescriptorProcessors()
 	{
 		return _descriptorProcessors;
+	}
+
+	public String getAppName()
+	{
+		return _appName;
+	}
+
+	public void setAppName(String appName)
+	{
+		_appName = appName;
 	}
 	
 }

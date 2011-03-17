@@ -14,20 +14,14 @@
 package org.cipango.sipapp;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.Servlet;
 import javax.servlet.sip.SipServlet;
 
 import org.eclipse.jetty.util.Loader;
-import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.Descriptor;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebDescriptor;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.eclipse.jetty.xml.XmlParser;
 
 
@@ -61,7 +55,7 @@ public class SipDescriptor extends Descriptor
     throws ClassNotFoundException
     {
         XmlParser xmlParser = new WebDescriptor(null).newParser();
-
+        
         URL jsp21xsd = Loader.getResource(Servlet.class, "javax/servlet/resources/jsp_2_1.xsd", true);
         redirect(xmlParser,"jsp_2_1.xsd",jsp21xsd);
         
@@ -69,7 +63,7 @@ public class SipDescriptor extends Descriptor
         URL dtd10 = Loader.getResource(SipServlet.class,"javax/servlet/sip/resources/sip-app_1_0.dtd", true);
 		URL sipapp11xsd = Loader.getResource(SipServlet.class,"javax/servlet/sip/resources/sip-app_1_1.xsd", true);
         URL javaee5xsd = Loader.getResource(Servlet.class, "javax/servlet/resources/javaee_5.xsd", true);
-		
+        
 		redirect(xmlParser, "-//Java Community Process//DTD SIP Application 1.0//EN", dtd10);
 		redirect(xmlParser, "javaee_5.xsd", javaee5xsd);
 		redirect(xmlParser, "sip-app_1_1.xsd", sipapp11xsd);
@@ -83,8 +77,8 @@ public class SipDescriptor extends Descriptor
         super(xml);
     }
     
-    public void parse ()
-    throws Exception
+    @Override
+	public void parse () throws Exception
     {
         super.parse();
         processVersion();
@@ -100,10 +94,17 @@ public class SipDescriptor extends Descriptor
 			_version = SipAppContext.VERSION_11;
 		else if ("DTD".equals(version))
 		{
-			_version = SipAppContext.VERSION_11;
-            String dtd=_parser.getDTD();
-            if (dtd!=null && dtd.indexOf("sip-app_1_0")>=0)
-                _version=SipAppContext.VERSION_10;
+			String schemaLocation = _root.getAttribute("schemaLocation");
+			if (schemaLocation != null && schemaLocation.indexOf("sip-app_1_1.xsd") > 0)
+				_version = SipAppContext.VERSION_11;
+			else
+			{
+				_version = SipAppContext.VERSION_10;
+	            /*String dtd=_parser.getDTD();
+	            if (dtd!=null && dtd.indexOf("sip-app_1_0")>=0)
+	                _version=SipAppContext.VERSION_10;
+	            System.out.println("DTD: " + dtd );*/
+			}
 		}
 	}
           
@@ -121,9 +122,4 @@ public class SipDescriptor extends Descriptor
     {
     	return _version;
     }
-    
-    public void setValidating (boolean validating)
-    {
-       _validating = validating;
-    }  
 }

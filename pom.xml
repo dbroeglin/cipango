@@ -11,7 +11,7 @@
   </scm>
 
   <properties>
-    <jetty-version>7.3.0.v20110203</jetty-version>
+    <jetty-version>7.3.1.v20110307</jetty-version>
     <servlet-version>2.5</servlet-version>
     <sip-api-version>1.1</sip-api-version>
     <junit4-version>4.8.1</junit4-version>

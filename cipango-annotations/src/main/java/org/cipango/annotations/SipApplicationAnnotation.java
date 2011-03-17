@@ -55,7 +55,7 @@ public class SipApplicationAnnotation extends DiscoveredAnnotation
 		if (context.getName() != null && !context.getName().equals(annotation.name()))
 			throw new IllegalStateException("App-name in sip.xml: " + context.getName() 
 					+ " does not match with SipApplication annotation: " + annotation.name());
-		context.setName(annotation.name());
+		context.getSipMetaData().setAppName(annotation.name());
 		
 		context.setDistributable(annotation.distributable());
 		context.setDisplayName(annotation.displayName());

@@ -403,10 +403,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		
 		
 		super.startContext();
-		      
-		if (_name == null)
-			_name = getDefaultName();		
-		
+		      		
 		if (_servletHandler != null && _servletHandler.isStarted())
     	{
     	    for (Decorator decorator : getDecorators())

@@ -288,10 +288,10 @@ public class ConsoleFilter implements Filter
 			{
 				MultiplePrinter printer = new MultiplePrinter();
 				ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "connectors");
-				printer.addLast(new SetPrinter(connectors, "snmp.connectors", _mbsc));
+				printer.add(new SetPrinter(connectors, "snmp.connectors", _mbsc));
 				
 				ObjectName[] traps = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "trapReceivers");
-				printer.addLast(new SetPrinter(traps, "snmp.trap", _mbsc));
+				printer.add(new SetPrinter(traps, "snmp.trap", _mbsc));
 				request.setAttribute(Attributes.CONTENT, printer);
 			}
 			else if (command.equals(MenuPrinter.CALLS.getName()))
@@ -383,8 +383,8 @@ public class ConsoleFilter implements Filter
 	private void doAbout(HttpServletRequest request) throws Exception
 	{
 		MultiplePrinter printer = new MultiplePrinter();
-		printer.addLast(new PropertiesPrinter(getVersion()));
-		printer.addLast(new PropertiesPrinter(getEnvironment()));
+		printer.add(new PropertiesPrinter(getVersion()));
+		printer.add(new PropertiesPrinter(getEnvironment()));
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	
@@ -543,13 +543,13 @@ public class ConsoleFilter implements Filter
 			List<String> operationLinks = new ArrayList<String>();
 			for (String operation : row.getOperations())
 			{
-				operationLinks.add(PrinterUtil.getActionLinkWithConfirm(operation, row.getObjectName(), _mbsc, MenuPrinter.APPLICATIONS, null));
+				operationLinks.add(PrinterUtil.getActionLinkWithConfirm(operation, row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
 			}
 			row.setOperations(operationLinks);
 		}
-		printer.addLast(new SetPrinter(contextsTable));
-		printer.addLast(new ServletMappingPrinter(contexts, _mbsc));
-		printer.addLast(new UploadSarPrinter());
+		printer.add(new SetPrinter(contextsTable));
+		printer.add(new ServletMappingPrinter(contexts, _mbsc));
+		printer.add(new UploadSarPrinter());
 		request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
 
 		request.setAttribute(Attributes.CONTENT, printer);
@@ -562,11 +562,11 @@ public class ConsoleFilter implements Filter
 		MultiplePrinter printer = new MultiplePrinter();
 		ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(ConsoleFilter.CONNECTOR_MANAGER, "connectors");
 
-		printer.addLast(new SetPrinter(connectors, "sip.connectors", _mbsc));
+		printer.add(new SetPrinter(connectors, "sip.connectors", _mbsc));
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "sipThreadPool");
-		printer.addLast(new PropertiesPrinter(threadPool, "sip.threadPool", _mbsc));
-		printer.addLast(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
+		printer.add(new PropertiesPrinter(threadPool, "sip.threadPool", _mbsc));
+		printer.add(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	
@@ -590,17 +590,17 @@ public class ConsoleFilter implements Filter
 	throws Exception
 	{		
 		MultiplePrinter printer = new MultiplePrinter();
-		printer.addLast(new PropertiesPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
+		printer.add(new PropertiesPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
 		
 		ObjectName[] transports = (ObjectName[]) _mbsc.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
-		printer.addLast(new SetPrinter(transports, "diameter.transport", _mbsc));
+		printer.add(new SetPrinter(transports, "diameter.transport", _mbsc));
 		
-		printer.addLast(new PropertiesPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
+		printer.add(new PropertiesPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
 
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _mbsc.queryNames(ConsoleFilter.DIAMETER_PEERS, null);
-		printer.addLast(new SetPrinter(peers, "diameter.peers", _mbsc));	
+		printer.add(new SetPrinter(peers, "diameter.peers", _mbsc));	
 					
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
@@ -613,11 +613,11 @@ public class ConsoleFilter implements Filter
 		MultiplePrinter printer = new MultiplePrinter();
 		ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SERVER, "connectors");
 	
-		printer.addLast(new SetPrinter(connectors, "http.connectors", _mbsc));
+		printer.add(new SetPrinter(connectors, "http.connectors", _mbsc));
 		
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "threadPool");
-		printer.addLast(new PropertiesPrinter(threadPool, "http.threadPool", _mbsc));
+		printer.add(new PropertiesPrinter(threadPool, "http.threadPool", _mbsc));
 							
 		request.setAttribute(Attributes.CONTENT, printer);
 	}

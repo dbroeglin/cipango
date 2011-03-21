@@ -105,7 +105,9 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		"3262", // Reliability of Provisional Responses
 		"3265", // (SIP)-Specific Event Notification. 
 		"3311", // (SIP) UPDATE Method
-		"3428"  // SIP Extension for Instant Messaging  
+		"3428", // SIP Extension for Instant Messaging  
+		"6026"	// Correct Transaction Handling for 2xx Responses to Session Initiation Protocol (SIP) INVITE Requests
+
 	};
     
     /*

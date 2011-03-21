@@ -1,5 +1,5 @@
 // ========================================================================
-// Copyright 2010 NEXCOM Systems
+// Copyright 2010-2011 NEXCOM Systems
 // ------------------------------------------------------------------------
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 package org.cipango.plus.sipapp;
 
 import org.cipango.sipapp.SipAppContext;
+import org.eclipse.jetty.plus.webapp.PlusDescriptorProcessor;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
@@ -29,5 +30,12 @@ public class PlusConfiguration extends org.eclipse.jetty.plus.webapp.PlusConfigu
 	{
 		context.addDecorator(new SipResourceDecorator((SipAppContext) context));
 		super.preConfigure(context);
+	}
+
+	@Override
+	public void configure(WebAppContext context) throws Exception
+	{
+		super.configure(context);
+		((SipAppContext) context).getSipMetaData().addDescriptorProcessor(new PlusDescriptorProcessor());
 	}
 }

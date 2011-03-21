@@ -145,6 +145,8 @@ public class SipMetaData
     
     protected SipServletHolder getServlet(SipAppContext context, String className)
 	{
+    	if (context.getSipServletHandler().getSipServlets() == null)
+    		return null;
 		for (SipServletHolder holder : context.getSipServletHandler().getSipServlets())
 		{
 			if (className.equals(holder.getClassName()))

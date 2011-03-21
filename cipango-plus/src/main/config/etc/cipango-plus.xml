@@ -17,7 +17,7 @@
 <!-- For more information about Jetty Plus, see the Jetty wiki at    -->
 <!-- http://docs.codehaus.org/display/JETTY/Jetty+Wiki               -->
 <!-- =============================================================== -->
-<Configure id="Server" class="org.cipango.Server">
+<Configure id="Server" class="org.cipango.server.Server">
 
   <!-- =========================================================== -->
   <!-- Example JAAS realm setup.                                   -->
@@ -46,11 +46,10 @@
     <Item>org.eclipse.jetty.webapp.MetaInfConfiguration</Item>
     <Item>org.eclipse.jetty.webapp.FragmentConfiguration</Item>
     <Item>org.eclipse.jetty.plus.webapp.EnvConfiguration</Item>
-    <Item>org.cipango.plus.webapp.PlusConfiguration</Item>
     <Item>org.eclipse.jetty.annotations.AnnotationConfiguration</Item>
     <Item>org.eclipse.jetty.webapp.JettyWebXmlConfiguration</Item>
     <Item>org.eclipse.jetty.webapp.TagLibConfiguration</Item>
-    <Item>org.cipango.plus.sipapp.Configuration</Item>
+    <Item>org.cipango.plus.sipapp.PlusConfiguration</Item>
   </Array>
 
   <!-- =========================================================== -->
@@ -63,7 +62,7 @@
   <Ref id="DeploymentManager">
       <Call name="addAppProvider">
         <Arg>
-          <New class="org.cipangp.deploy.providers.SipAppProvider">
+          <New class="org.cipango.deploy.providers.SipAppProvider">
             <Set name="monitoredDir"><Property name="jetty.home" default="." />/sipapps-plus</Set>
             <Set name="defaultsDescriptor"><Property name="jetty.home" default="."/>/etc/webdefault.xml</Set>
             <Set name="defaultsSipDescriptor"><SystemProperty default="." name="jetty.home"/>/etc/sipdefault.xml</Set>

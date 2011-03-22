@@ -80,5 +80,17 @@
       <Arg><Ref id="node"/></Arg>
     </Call>
   </Get>
+  
+  <!-- =========================================================== -->
+  <!-- Apply plusConfig to all webapps for this Server             -->
+  <!-- =========================================================== -->
+  <!--
+  <Call name="setAttribute">
+    <Arg>org.eclipse.jetty.webapp.configuration</Arg>
+    <Arg>
+        <Ref id="diameterConfig"/>
+    </Arg>
+  </Call>
+  -->
 
 </Configure>

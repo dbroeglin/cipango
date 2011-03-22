@@ -14,8 +14,8 @@
 <!-- same set of classes listed below in the "plusConfig" as the     -->
 <!-- sipapp's configurationClasses.                                  -->
 <!--                                                                 -->
-<!-- For more information about Jetty Plus, see the Jetty wiki at    -->
-<!-- http://docs.codehaus.org/display/JETTY/Jetty+Wiki               -->
+<!-- For more information about Cipango Plus, see                    -->
+<!--    http://confluence.cipango.org/display/DOC/JNDI               -->
 <!-- =============================================================== -->
 <Configure id="Server" class="org.cipango.server.Server">
 
@@ -56,7 +56,7 @@
   <!-- Deploy all webapps in sipapps-plus                          -->
   <!-- =========================================================== -->
   <!-- Uncomment the following to set up a deployer that will      -->
-  <!-- deploy webapps from a directory called webapps-plus. Note   -->
+  <!-- deploy webapps from a directory called sipapps-plus. Note   -->
   <!-- that you will need to create this directory first!          -->
   <!--
   <Ref id="DeploymentManager">
@@ -76,5 +76,16 @@
       </Call>
   </Ref>
   -->
+  
+  <!-- =========================================================== -->
+  <!-- Apply plusConfig to all webapps for this Server             -->
+  <!-- =========================================================== -->
+  <Call name="setAttribute">
+    <Arg>org.eclipse.jetty.webapp.configuration</Arg>
+    <Arg>
+        <Ref id="plusConfig"/>
+    </Arg>
+  </Call>
+  
 </Configure>
 

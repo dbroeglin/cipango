@@ -182,10 +182,10 @@ public class MenuPrinter implements HtmlPrinter, Menu
 	public String getHtmlTitle()
 	{
 		if (_currentPage.getFather() == null)
-			return "<h1>" + _currentPage.getTitle() + "</h1>";
+			return "<h1>" + _currentPage.getTitle() + "</h1>\n";
 		else
 			return "<h1>" + _currentPage.getFather().getTitle() + 
-					"<span> > " + _currentPage.getMenuTitle() + "</span></h1>";
+					"<span> > " + _currentPage.getMenuTitle() + "</span></h1>\n";
 	}
 
 	public void print(Writer out) throws Exception

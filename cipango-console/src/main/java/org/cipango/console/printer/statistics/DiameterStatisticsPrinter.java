@@ -57,7 +57,7 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 	
 	private void printActions(Writer out) throws Exception
 	{
-		out.write("<br/>");
+		out.write("<br/>\n");
 		Boolean on = (Boolean) _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "statsOn");
 		if (on.booleanValue())
 		{

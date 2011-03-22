@@ -20,6 +20,7 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Parameters;
 import org.cipango.console.PropertyList;
 import org.cipango.console.Row;
 import org.cipango.console.Row.Header;
@@ -40,6 +41,9 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 		{ 800, 3600, 14400, 86400, 604800, 1209600};
 	private static final String[] STATS_TIME_TITLE = 
 		{"last 15 minutes", "last hour", "last 4 hours", "last 24 hours", "last 7 days", "last 2 weeks"};
+	
+	public static final String START_GRAPH = "startStatisticsGraph";
+	public static final String STOP_GRAPH = "stopStatisticsGraph";
 	
 	private MBeanServerConnection _connection;
 	private StatisticGraph _statisticGraph;
@@ -119,12 +123,11 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 		{
 
 			out.write("<h2>Statistic Graph</h2>\n");
-			/*Boolean started = (Boolean) _connection.getAttribute(
-					ConsoleFilter.STATISTIC_GRAPH, "running");
-			if (started.booleanValue())
-			{*/
+
+			if (_statisticGraph.isStarted())
+			{
 							
-				out.write("<form method=\"get\" action=\"" + MenuPrinter.STATISTICS_SIP.getName() + "\">"
+				out.write("<form method=\"get\" action=\"" + MenuPrinter.STATISTICS_SIP.getName() + "\">\n"
 						+ "Statistic graph should show to the " 
 						+ "<SELECT name=\"time\">");
 				for (int i = 0; i < STATS_TIME_VALUE.length; i++)
@@ -132,28 +135,27 @@ public class SipStatisticPrinter extends MultiplePrinter implements HtmlPrinter
 					out.write("<OPTION VALUE=\"" + STATS_TIME_VALUE[i] + "\"");
 					if (_time == STATS_TIME_VALUE[i])
 						out.write(" selected");
-					out.write(">" + STATS_TIME_TITLE[i] + "</OPTION>");
+					out.write(">" + STATS_TIME_TITLE[i] + "</OPTION>\n");
 				}
  
 				out.write("</SELECT>"
-						+ "<input type=\"submit\" name=\"submit\" value=\"change\"/></form>");
+						+ "<input type=\"submit\" name=\"submit\" value=\"change\"/></form>\n");
 
 				printGraph(out, "Calls", "calls");
 				printGraph(out, "JVM Memory", "memory");
 				printGraph(out, "SIP messages", "messages");
-				out.write("<br/>");
-			/*	out.write(PrinterUtil.getActionLink("stop", ConsoleFilter.STATISTIC_GRAPH,
-						_connection, "statistics", null)
-						+ " statistic graph.");
+				out.write("<br/>\n");
+				
+				out.write("<a href=\"" + MenuPrinter.STATISTICS_SIP.getName());
+				out.write("?" + Parameters.ACTION + "=" + STOP_GRAPH + "\">");
+				out.write("Stop statistics graph</a>");			
 			}
 			else
 			{
-				out.write("Statistic graph are disabled.");
-				out.write("<br/>");
-				out.write(PrinterUtil.getActionLink("start", ConsoleFilter.STATISTIC_GRAPH,
-						_connection, "statistics", null)
-						+ " statistics graphics.");
-			}*/
+				out.write("<a href=\"" + MenuPrinter.STATISTICS_SIP.getName());
+				out.write("?" + Parameters.ACTION + "=" + START_GRAPH + "\">");
+				out.write("Start statistics graph</a>");
+			}
 		}
 	}
 

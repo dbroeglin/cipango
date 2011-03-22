@@ -23,7 +23,7 @@
 				<% 
 				if (request.getUserPrincipal() != null) {
 				%>
-				<span>Logged in as <a href=""><%= request.getUserPrincipal().getName() %></a> | <a href="signout" title="Sign out">Sign out</a>&nbsp;&nbsp;</span>
+				<span>Logged in as <a href=""><%= request.getUserPrincipal().getName() %></a> | <a href="login.jsp?signout=true" title="Sign out">Sign out</a>&nbsp;&nbsp;</span>
 				<% } %>
 			</div>
 		</div>

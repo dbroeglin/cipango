@@ -36,7 +36,7 @@ public class ServletMappingPrinter implements HtmlPrinter
 
 	public void print(Writer out) throws Exception
 	{
-		out.write("<h2>Servlets</h2>");
+		out.write("<h2>Servlets</h2>\n");
 		for (int i = 0; i < _appContexts.length; i++)
 		{
 			
@@ -51,7 +51,7 @@ public class ServletMappingPrinter implements HtmlPrinter
 			catch (AttributeNotFoundException e) {
 				contextPath = (String) _connection.getAttribute(_appContexts[i], "contextPath");
 				out.write("<h3>" + contextPath + "</h3>\n");
-				out.write("No SIP servlets for this application");
+				out.write("No SIP servlets for this application\n");
 			}
 		}
 	}
@@ -65,8 +65,8 @@ public class ServletMappingPrinter implements HtmlPrinter
 
 		if (sipServletMappings != null && sipServletMappings.length != 0)
 		{
-			out.write("<div class=\"data\"><table class=\"table_hover\">");
-			out.write("<tr><th>SIP Servlet name</th><th>Mapping</th></tr>");
+			out.write("<div class=\"data\">\n<table class=\"table_hover\">\n");
+			out.write("\t<tr><th>SIP Servlet name</th><th>Mapping</th></tr>\n");
 			for (int i = 0; i < sipServletMappings.length; i++)
 			{
 				String matchingRuleExpression = (String) _connection
@@ -74,13 +74,13 @@ public class ServletMappingPrinter implements HtmlPrinter
 								"matchingRuleExpression");
 				String servletName = (String) _connection
 						.getAttribute(sipServletMappings[i], "servletName");
-				out.write("<tr class=\"" + (i % 2 == 0 ? "even" : "odd")
+				out.write("\t<tr class=\"" + (i % 2 == 0 ? "even" : "odd")
 						+ "\">");
 				out.write("<td>" + servletName + "</td><td>"
 						+ matchingRuleExpression + "</td>");
-				out.write("</tr>");
+				out.write("</tr>\n");
 			}
-			out.write("</table></div>");
+			out.write("</table>\n</div>\n");
 		}
 		else
 		{

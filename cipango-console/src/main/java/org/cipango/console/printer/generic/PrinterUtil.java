@@ -14,7 +14,6 @@
 package org.cipango.console.printer.generic;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -70,11 +69,6 @@ public class PrinterUtil
 		}
 	}
 
-	public static String[] getOperations(String name)
-	{
-		return getValueSplit(name + ".operations");
-	}
-
 	public static String getTitle(String name)
 	{
 		try
@@ -98,26 +92,7 @@ public class PrinterUtil
 			return null;
 		}
 	}
-	
-	public static boolean hasNotes(String propertyName)
-	{
-		try
-		{
-			String prefix = propertyName + ".params.";
-			Enumeration<String> e = DESCRIPTION.getKeys();
-			while (e.hasMoreElements())
-			{
-				if (e.nextElement().startsWith(prefix))
-					return true;
-				
-			}
-		}
-		catch (MissingResourceException e)
-		{
-		}
-		return false;
-	}
-	
+		
 	public static String getActionLink(String action, ObjectName objectName, Page page, String displayText)
 	{
 		StringBuffer sb = new StringBuffer(128);
@@ -228,10 +203,4 @@ public class PrinterUtil
 			sb.append('s');
 		return sb.toString();
 	}
-
-
-	public static final String TABLE_HEADER = "<div class=\"data\">\n<table class=\"table_hover\">\n"
-			+ "<tr><th>Name</th><th>Value</th><th>Note</th></tr>\n";
-	public static final String TABLE_HEADER_NO_NOTES = "<div class=\"data\">\n<table class=\"table_hover\">\n"
-		+ "<tr><th>Name</th><th>Value</th></th>\n";
 }

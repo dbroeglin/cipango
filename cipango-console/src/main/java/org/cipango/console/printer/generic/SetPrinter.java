@@ -51,8 +51,8 @@ public class SetPrinter implements HtmlPrinter
 	public void print(Writer out) throws Exception
 	{
 		out.write("<h2>" + _table.getTitle() + "</h2>\n");
-		out.write("<div class=\"data\"><table class=\"table_hover\">");
-		out.write("<tr>");
+		out.write("<div class=\"data\">\n<table class=\"table_hover\">\n");
+		out.write("\t<tr>");
 		for (Header header : _table.getHeaders())
 		{
 			out.write("<th>" + header.getName());
@@ -65,12 +65,12 @@ public class SetPrinter implements HtmlPrinter
 		}
 		if (_table.hasOperations())
 			out.write("<th>Operations</th>");
-		out.write("</tr>");
+		out.write("\t</tr>\n");
 
 		boolean odd = true;
 		for (Row row : _table)
 		{
-			out.write("<tr class=\"" + (odd ? "odd" : "even") + "\">");
+			out.write("\t<tr class=\"" + (odd ? "odd" : "even") + "\">");
 			odd = !odd;
 			for (Value value : row.getValues())
 			{
@@ -88,9 +88,9 @@ public class SetPrinter implements HtmlPrinter
 				}
 				out.write("</td>");
 			}
-			out.write("</tr>");
+			out.write("\t</tr>\n");
 		}
-		out.write("</table></div>");
+		out.write("</table>\n</div>\n");
 	}
 
 	public Table getTable()

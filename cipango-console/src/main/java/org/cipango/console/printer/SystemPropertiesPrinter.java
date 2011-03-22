@@ -30,14 +30,14 @@ public class SystemPropertiesPrinter implements HtmlPrinter
 		Properties properties = System.getProperties();
 		
 		Iterator<Object> it = new TreeSet<Object>(properties.keySet()).iterator();
-		out.append("<pre><table>\n");
+		out.append("<pre>\n<table>\n");
 		while (it.hasNext())
 		{
 			Object key = it.next();
-			out.append("<tr><td><b>").append(key.toString()).append("</b></td>");
+			out.append("\t<tr><td><b>").append(key.toString()).append("</b></td>");
 			out.append("<td>").append(String.valueOf(properties.get(key))).append("</td></tr>\n");
 		}
-		out.append("</table></pre>\n");
+		out.append("</table>\n</pre>\n");
 	}
 
 }

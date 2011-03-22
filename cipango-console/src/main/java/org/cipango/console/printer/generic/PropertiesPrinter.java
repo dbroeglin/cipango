@@ -24,6 +24,12 @@ import org.cipango.console.PropertyList;
 
 public class PropertiesPrinter implements HtmlPrinter
 {
+
+	public static final String TABLE_HEADER = "<div class=\"data\">\n<table class=\"table_hover\">\n"
+			+ "<tr><th>Name</th><th>Value</th><th>Note</th></tr>\n";
+	public static final String TABLE_HEADER_NO_NOTES = "<div class=\"data\">\n<table class=\"table_hover\">\n"
+		+ "<tr><th>Name</th><th>Value</th></th>\n";
+	
 	private PropertyList _properties;
 	
 	public PropertiesPrinter(PropertyList properties)
@@ -42,21 +48,22 @@ public class PropertiesPrinter implements HtmlPrinter
 		out.write("<h2>" + _properties.getTitle() + "</h2>\n");
 
 		boolean hasNotes = _properties.hasNotes();
-		out.write(hasNotes ? PrinterUtil.TABLE_HEADER : PrinterUtil.TABLE_HEADER_NO_NOTES);
+		out.write(hasNotes ? TABLE_HEADER : TABLE_HEADER_NO_NOTES);
 		Iterator<Property> it = _properties.iterator();
 		boolean odd = true;
 		while (it.hasNext())
 		{
 			Property property = (Property) it.next();
 
-			out.write("<tr class=\"" + (odd ? "odd" : "even") + "\">");
+			out.write("\t<tr class=\"" + (odd ? "odd" : "even") + "\">");
 			out.write("<td>" + property.getName() + "</td><td>");
 			out.write((property.getValue() == null ? "" : property.getValue()) + "</td>");
 			if (hasNotes)
-				out.write("<td>" + (property.getNote() == null ? "&nbsp;" : property.getNote()) + "</td></tr>\n");
+				out.write("<td>" + (property.getNote() == null ? "&nbsp;" : property.getNote()) + "</td>");
+			out.write("</tr>\n");
 			odd = !odd;
 		}
-		out.write("</table></div>\n");
+		out.write("</table>\n</div>\n");
 	}
 
 	public PropertyList getProperties()

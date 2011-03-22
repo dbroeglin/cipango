@@ -23,17 +23,17 @@ public class UploadSarPrinter implements HtmlPrinter
 
 	public void print(Writer out) throws Exception
 	{
-		out.write("<h2>Upload a SAR file to install</h2>");
+		out.write("<h2>Upload a SAR file to install</h2>\n");
 		// Set connection in URI, to be able to get connection normally
 		// else, multipart impact request.getParameter("connection"); to return
 		// null
 		out.write("<form action=\"applications\" method=\"post\" enctype=\"multipart/form-data\" "
-						+ " name=\"upload\" onsubmit=\"return check();\">");
+						+ " name=\"upload\" onsubmit=\"return check();\">\n");
 		out.write("Select SAR file to upload:&nbsp;");
 		out.write("<input name=\"installSar\" size=\"40\" type=\"file\">");
 		out.write("<br/><input type=\"submit\" name=\"" + Parameters.ACTION
 				+ "\" value=\"" + Parameters.ACTION_INSTALL + "\"/>");
-		out.write("</form>");
+		out.write("</form>\n");
 	}
 
 }

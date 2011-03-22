@@ -322,13 +322,6 @@ public class ConsoleFilter implements Filter
 				response.setBufferSize(65536);
 				new DumpPrinter(getMbsc(), this).print(response.getWriter());
 			}
-			else if (command.equals("signout"))
-			{
-				forward = false;
-				request.getSession(false).invalidate();
-				request.setAttribute(Attributes.INFO, "sucessfull signout");
-				request.getRequestDispatcher("/login.jsp").forward(request, response);
-			}
 			else if (command.equals("auth-fail"))
 			{
 				forward = false;
@@ -421,7 +414,7 @@ public class ConsoleFilter implements Filter
 	{
 		String action = request.getParameter(Parameters.ACTION);
 		String actions = request.getParameter(Parameters.ACTIONS);
-		boolean hasAction = action != null || actions != null;
+		boolean hasAction = false;
 		
 		String sObjectName = request.getParameter(Parameters.OBJECT_NAME);
 		
@@ -441,9 +434,9 @@ public class ConsoleFilter implements Filter
 				_mbsc.invoke(objectName, action, null, null);
 				request.getSession().setAttribute(Attributes.INFO, "Action " + action + " successfull");
 			}
+			hasAction = true;
 		}
-
-
+				
 		if (actions == null)
 			return hasAction;
 		
@@ -495,7 +488,7 @@ public class ConsoleFilter implements Filter
 				}
 			}
 		}			
-		return hasAction;
+		return hasAction || actions != null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -541,10 +534,12 @@ public class ConsoleFilter implements Filter
 		for (Row row : contextsTable)
 		{
 			List<String> operationLinks = new ArrayList<String>();
-			for (String operation : row.getOperations())
-			{
-				operationLinks.add(PrinterUtil.getActionLinkWithConfirm(operation, row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
-			}
+			boolean running = (Boolean) _mbsc.getAttribute(row.getObjectName(), "running");
+			if (running)
+				operationLinks.add(PrinterUtil.getActionLinkWithConfirm("stop", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
+			else
+				operationLinks.add(PrinterUtil.getActionLinkWithConfirm("start", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
+			operationLinks.add(PrinterUtil.getActionLinkWithConfirm("undeploy", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
 			row.setOperations(operationLinks);
 		}
 		printer.add(new SetPrinter(contextsTable));
@@ -573,6 +568,12 @@ public class ConsoleFilter implements Filter
 	private void doSipStatistics(HttpServletRequest request)
 			throws Exception
 	{
+		String action = request.getParameter(Parameters.ACTION);
+		if (action != null && SipStatisticPrinter.START_GRAPH.equals(action))
+			_statisticGraph.start();
+		else if (action != null && SipStatisticPrinter.STOP_GRAPH.equals(action))
+			_statisticGraph.stop();
+		
 		SipStatisticPrinter printer = new SipStatisticPrinter(_mbsc, _statisticGraph);
 		String time = request.getParameter(Parameters.TIME);
 		if (time == null)

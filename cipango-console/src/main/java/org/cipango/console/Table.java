@@ -45,7 +45,6 @@ public class Table extends AbstractList<Row>
 	
 	public Table(MBeanServerConnection connection, Set<ObjectName> objectNameSet, String propertyName) throws Exception
 	{
-		String[] operations = PrinterUtil.getOperations(propertyName);
 		List<Header> headers = getHeaders(connection, objectNameSet, propertyName);
 		setTitle(PrinterUtil.getTitle(propertyName));
 		setHeaders(headers);
@@ -58,11 +57,7 @@ public class Table extends AbstractList<Row>
 				List<Value> values = row.getValues();
 				for (Header header : headers)
 					values.add(new Value(connection.getAttribute(objectName, header.getSimpleName()), header));
-				if (operations != null)
-				{
-					row.setOperations(Arrays.asList(operations));
-					row.setObjectName(objectName);
-				}
+				row.setObjectName(objectName);
 				add(row);
 			}
 		}

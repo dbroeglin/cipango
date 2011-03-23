@@ -135,10 +135,13 @@ public class SipMetaData
         
         context.setSpecVersion(version);
         
-        if (_appName == null)
-        	context.setName(context.getDefaultName());
-        else
-        	context.setName(_appName);
+        if (context.getName() == null)
+        {
+	        if (_appName == null)
+	        	context.setName(context.getDefaultName());
+	        else
+	        	context.setName(_appName);
+        }
         
         initListeners(context);
     }

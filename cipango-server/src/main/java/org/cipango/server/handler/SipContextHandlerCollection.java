@@ -248,10 +248,13 @@ public class SipContextHandlerCollection extends ContextHandlerCollection implem
 					
 					if (Log.isDebugEnabled())
 						Log.debug("application router returned application {} for initial request {}", applicationName, request.getMethod());
+					if (appContext == null && applicationName != null)
+						Log.debug("No application with name {} returned by application router could be found", applicationName, null);
 				}
 				
 				if (appContext == null)
 				{
+					
 					if (!request.isAck())
 					{
 						SipResponse response = new SipResponse(request, SipServletResponse.SC_NOT_FOUND, null);

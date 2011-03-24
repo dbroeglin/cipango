@@ -28,5 +28,4 @@ public class Parameters
 	public static final String MAX_MESSAGES = "maxMessages";
 	public static final String MESSAGE_FILTER = "messageFilter";
 	
-	public static final String SIGNOUT = "signout";
 }

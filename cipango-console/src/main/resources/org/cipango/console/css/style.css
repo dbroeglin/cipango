@@ -40,9 +40,9 @@ h1, h2, h3, h4, h5,h6 {font-family: "Trebuchet MS", Arial, Helvetica, sans-serif
 #menu a.selected:hover{background-color:#FFF; text-decoration:underline; color:#56a2df}
 
 /* --- SUB-MENU ----------------------------------------------------- */
-#submenu               {display:block; position: absolute; width:200px; background-color:#EEE; padding:20px 0px 40px 0px; margin-left:10px; left:0px; height:100%}
+#submenu               {display:block; position: absolute; width:200px; background-color:#EEE; padding:20px 0px 40px 0px; left:0px; height:100%}
 #submenu li            {display:block; float:left;}
-#submenu li a          {display:block; float:left; width:185px; color:#666; padding:8px 4px 8px 15px; font-size:14px; font-weight:bold;}
+#submenu li a          {display:block; float:left; width:185px; color:#666; padding:8px 0 8px 15px; font-size:14px; font-weight:bold;}
 #submenu li a:hover    {color:#333 }
 #submenu li a.selected {background-color:#AAA;color:#FFF }
 #submenu span.section  {display:block; float:left; padding:6px; color:#333}
@@ -85,3 +85,7 @@ tr.odd   {background-color:#F4F4F4}
 #footer         {display:block; float:right; padding: 2px 14px 0px 0px; clear:both;font-size:11px; color:#767676; padding-bottom:20px;} 
 #footer a       {color:#767676; text-decoration:underline; padding:1px 3px 1px 3px;}
 #footer a:hover {background-color:#999; color:#FFF; text-decoration:none}
+
+/* --- FEEDBACK ------------------------------------------------------- */
+.info        { color:#339933; text-align: center; font-weight: bold;}
+.warn        { color:#FF0000; text-align: center; font-weight: bold;}

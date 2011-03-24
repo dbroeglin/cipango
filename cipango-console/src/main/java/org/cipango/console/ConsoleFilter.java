@@ -221,7 +221,7 @@ public class ConsoleFilter implements Filter
 			if (currentPage != null && !currentPage.isEnabled(_mbsc))
 			{
 				forward = false;
-				request.getSession().setAttribute(Attributes.PROBLEM, "The page " + command + " is not available");
+				request.getSession().setAttribute(Attributes.WARN, "The page " + command + " is not available");
 				response.sendRedirect(MenuPrinter.ABOUT.getName());
 				return;
 			}
@@ -241,13 +241,13 @@ public class ConsoleFilter implements Filter
 				catch (ReflectionException e)
 				{
 					Throwable cause = e.getCause();
-					request.getSession().setAttribute(Attributes.PROBLEM, "Unable to process action: "
+					request.getSession().setAttribute(Attributes.WARN, "Unable to process action: "
 							+ cause);
 				}
 				catch (Throwable e)
 				{
 					_logger.warn(e.getMessage(), e);
-					request.getSession().setAttribute(Attributes.PROBLEM, "Unable to process action: " + e
+					request.getSession().setAttribute(Attributes.WARN, "Unable to process action: " + e
 							+ ":" + e.getMessage());
 				}
 				
@@ -321,12 +321,6 @@ public class ConsoleFilter implements Filter
 				response.setContentType("text/plain");
 				response.setBufferSize(65536);
 				new DumpPrinter(getMbsc(), this).print(response.getWriter());
-			}
-			else if (command.equals("auth-fail"))
-			{
-				forward = false;
-				request.setAttribute(Attributes.PROBLEM, "Invalid login or password");
-				request.getRequestDispatcher("/login.jsp").forward(request, response);
 			}
 			else if (doResource(command, response))
 			{
@@ -521,7 +515,7 @@ public class ConsoleFilter implements Filter
 			catch (Throwable e)
 			{
 				_logger.warn("Unable to deploy " + item.getName(), e);
-				request.getSession().setAttribute(Attributes.PROBLEM, "Unable to deploy "
+				request.getSession().setAttribute(Attributes.WARN, "Unable to deploy "
 						+ item.getName() + ": " + e.getMessage());
 			}
 		}

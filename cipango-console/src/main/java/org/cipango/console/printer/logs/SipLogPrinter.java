@@ -164,11 +164,11 @@ public class SipLogPrinter extends AbstractLogPrinter
 		out.write("<div id=\"messageLog\">");
 		for (int i = 0; i < _messagesLogs.length; i++)
 		{
-			out.write("<a name=\"msg-" + (i + 1) + "\"/><div id=\"log_" + i + "\">");
+			out.write("<a name=\"msg-" + (i + 1) + "\"></a><div id=\"log_" + i + "\">");
 			MessageLog log = new MessageLog(_messagesLogs[i]);
 			String info = log.getInfoLine().replaceFirst(log.getRemote(),
 					getFilterLink(REMOTE_FILTER, log.getRemote()));
-			out.write("<div class=\"info\">" + info + "</div>");
+			out.write("<div class=\"msg-info\">" + info + "</div>");
 			out.write("<pre class=\"message\">");
 			out.write(sipToHtml(log.getMessage()));
 			out.write("</pre>");

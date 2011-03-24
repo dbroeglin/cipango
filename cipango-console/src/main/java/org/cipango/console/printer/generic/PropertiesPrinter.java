@@ -13,6 +13,7 @@
 // ========================================================================
 package org.cipango.console.printer.generic;
 
+import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 
@@ -48,7 +49,7 @@ public class PropertiesPrinter implements HtmlPrinter
 		out.write("<h2>" + _properties.getTitle() + "</h2>\n");
 
 		boolean hasNotes = _properties.hasNotes();
-		out.write(hasNotes ? TABLE_HEADER : TABLE_HEADER_NO_NOTES);
+		printHeaders(out, hasNotes);
 		Iterator<Property> it = _properties.iterator();
 		boolean odd = true;
 		while (it.hasNext())
@@ -64,6 +65,11 @@ public class PropertiesPrinter implements HtmlPrinter
 			odd = !odd;
 		}
 		out.write("</table>\n</div>\n");
+	}
+	
+	protected void printHeaders(Writer out, boolean hasNotes) throws Exception
+	{
+		out.write(hasNotes ? TABLE_HEADER : TABLE_HEADER_NO_NOTES);
 	}
 
 	public PropertyList getProperties()

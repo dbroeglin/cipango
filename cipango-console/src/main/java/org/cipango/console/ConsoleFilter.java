@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.security.Principal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -555,7 +556,15 @@ public class ConsoleFilter implements Filter
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "sipThreadPool");
 		printer.add(new PropertiesPrinter(threadPool, "sip.threadPool", _mbsc));
-		printer.add(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
+		printer.add(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc)
+		{
+			@Override
+			protected void printHeaders(Writer out, boolean hasNotes) throws Exception
+			{
+				out.write("<div class=\"data\">\n<table class=\"table_hover\">\n"
+				+ "<tr><th>Name</th><th>Value</th><th>Default Value</th></tr>\n");
+			}
+		});
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
 	

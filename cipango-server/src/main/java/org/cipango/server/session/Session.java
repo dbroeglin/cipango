@@ -885,8 +885,8 @@ public class Session implements SessionIf
 		{
 			SipFields fields = request.getFields();
 			
-			fields.setAddress(SipHeaders.FROM_BUFFER, _localParty);
-			fields.setAddress(SipHeaders.TO_BUFFER, _remoteParty);
+			fields.setAddress(SipHeaders.FROM_BUFFER, (Address) _localParty.clone());
+			fields.setAddress(SipHeaders.TO_BUFFER, (Address) _remoteParty.clone());
 			
 			if (_remoteTarget != null)
 				request.setRequestURI((URI) _remoteTarget.clone());

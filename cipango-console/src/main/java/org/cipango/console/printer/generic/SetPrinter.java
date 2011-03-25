@@ -51,7 +51,10 @@ public class SetPrinter implements HtmlPrinter
 	public void print(Writer out) throws Exception
 	{
 		out.write("<h2>" + _table.getTitle() + "</h2>\n");
-		out.write("<div class=\"data\">\n<table class=\"table_hover\">\n");
+		out.write("<div class=\"data\">\n<table");
+		if (_table.hasOperations())
+			out.write(" class=\"table_hover\"");
+		out.write(">\n");
 		out.write("\t<tr>");
 		for (Header header : _table.getHeaders())
 		{

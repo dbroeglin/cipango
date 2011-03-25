@@ -18,18 +18,15 @@ import java.io.Writer;
 import org.cipango.console.Parameters;
 import org.cipango.console.printer.generic.HtmlPrinter;
 
-public class UploadSarPrinter implements HtmlPrinter
+public class UploadWarPrinter implements HtmlPrinter
 {
 
 	public void print(Writer out) throws Exception
 	{
-		out.write("<h2>Upload a SAR file to install</h2>\n");
-		// Set connection in URI, to be able to get connection normally
-		// else, multipart impact request.getParameter("connection"); to return
-		// null
+		out.write("<h2>Upload a WAR file to install</h2>\n");
 		out.write("<form action=\"applications\" method=\"post\" enctype=\"multipart/form-data\" "
 						+ " name=\"upload\" onsubmit=\"return check();\">\n");
-		out.write("Select SAR file to upload:&nbsp;");
+		out.write("Select WAR file to upload:&nbsp;");
 		out.write("<input name=\"installSar\" size=\"40\" type=\"file\">");
 		out.write("<br/><input type=\"submit\" name=\"" + Parameters.ACTION
 				+ "\" value=\"" + Parameters.ACTION_INSTALL + "\"/>");

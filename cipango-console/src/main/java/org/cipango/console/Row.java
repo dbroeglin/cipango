@@ -50,6 +50,16 @@ public class Row
 		_objectName = objectName;
 	}
 	
+	public Value get(Header header)
+	{
+		for (Value value: _values)
+		{
+			if (value.getHeader().equals(header))
+				return value;
+		}
+		return null;
+	}
+	
 	public static class Value
 	{
 		private Object _value;
@@ -117,6 +127,16 @@ public class Row
 		{
 			return _simpleName;
 		}	
+		
+		@Override
+		public boolean equals(Object o)
+		{
+			if (o == this)
+				return true;
+			if (!(o instanceof Header))
+				return false;
+			return ((Header) o).getSimpleName().equals(_simpleName);
+		}
 	}
 }
 

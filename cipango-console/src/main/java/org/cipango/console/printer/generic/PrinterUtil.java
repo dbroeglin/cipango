@@ -170,6 +170,22 @@ public class PrinterUtil
 		return l.toArray(new ObjectName[0]);
 	}
 	
+	public static ObjectName[] getNonSipAppContexts(MBeanServerConnection connection) throws Exception
+	{
+		ObjectName[] objectNames = getContexts(connection);
+		if (objectNames == null)
+			return null;
+		List<ObjectName> l = new ArrayList<ObjectName>();
+		for (ObjectName objectName : objectNames)
+		{
+			MBeanInfo mBeanInfo = connection.getMBeanInfo(objectName);
+			if ("org.eclipse.jetty.webapp.WebAppContext".equals(mBeanInfo.getClassName())
+					|| "org.eclipse.jetty.server.handler.ContextHandler".equals(mBeanInfo.getClassName()))
+				l.add(objectName);	
+		}
+		return l.toArray(new ObjectName[0]);
+	}
+	
 	public static String getDuration(long millis)
 	{
 		long seconds = millis/1000;

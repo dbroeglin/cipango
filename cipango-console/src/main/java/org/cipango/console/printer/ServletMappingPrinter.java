@@ -65,7 +65,7 @@ public class ServletMappingPrinter implements HtmlPrinter
 
 		if (sipServletMappings != null && sipServletMappings.length != 0)
 		{
-			out.write("<div class=\"data\">\n<table class=\"table_hover\">\n");
+			out.write("<div class=\"data\">\n<table>\n");
 			out.write("\t<tr><th>SIP Servlet name</th><th>Mapping</th></tr>\n");
 			for (int i = 0; i < sipServletMappings.length; i++)
 			{
@@ -89,19 +89,19 @@ public class ServletMappingPrinter implements HtmlPrinter
 			{
 				ObjectName[] sipServlets = 
 					(ObjectName[]) _connection.getAttribute(servletHandler, "sipServlets");
-				out.write("<div class=\"data\"><table class=\"table_hover\">\n");
-				out.write("<tr><th>SIP Servlet name</th><th>Main servlet</th></tr>");
+				out.write("<div class=\"data\"><table>\n");
+				out.write("\t<tr><th>SIP Servlet name</th><th>Main servlet</th></tr>\n");
 				for (int i = 0; i < sipServlets.length; i++)
 				{
 					String servletName = (String) _connection
 							.getAttribute(sipServlets[i], "name");
-					out.write("<tr class=\"" + (i % 2 == 0 ? "even" : "odd")
+					out.write("\t<tr class=\"" + (i % 2 == 0 ? "even" : "odd")
 							+ "\">");
 					out.write("<td>" + servletName + "</td><td>"
 							+ sipServlets[i].equals(mainServlet) + "</td>");
-					out.write("</tr>");
+					out.write("</tr>\n");
 				}
-				out.write("</table></div>");
+				out.write("</table>\n</div>\n");
 			}
 			else
 				out.write("No SIP servlets for this application");

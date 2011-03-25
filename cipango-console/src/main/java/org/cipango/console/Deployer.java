@@ -150,10 +150,12 @@ public class Deployer
 	 */
 	public void deploy(String name, byte[] sarContent) throws Exception
 	{
+		int index = Math.max(name.lastIndexOf("/"), name.lastIndexOf("\\"));
+		if (index != -1)
+			name = name.substring(index + 1);
+		
 		if (!name.endsWith(".war") && !name.endsWith(".sar") && !name.endsWith(".jar"))
-		{
 			throw new IllegalArgumentException("Bad extension in name: " + name  + ". Allowed is '.war' and '.sar'");
-		}
 
 		assertValidArchive(sarContent);
 

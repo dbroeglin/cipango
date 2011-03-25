@@ -70,6 +70,31 @@ public class MenuPrinter implements HtmlPrinter, Menu
 				return c.isRegistered(ConsoleFilter.SNMP_AGENT);
 			}
 		}),
+
+		APPLICATIONS = PAGES.add(new PageImpl("Applications")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return !c.isRegistered(ObjectNameFactory.create("org.cipango.console:page-disabled=application"));
+			}
+		}),
+		MAPPINGS = APPLICATIONS.add(new PageImpl("applications", "Applications Mapping")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return getFather().isEnabled(c);
+			}
+		}),
+		DAR = APPLICATIONS.add(new PageImpl("dar", "Default Application Router", "DAR")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return getFather().isEnabled(c) && c.isRegistered(ConsoleFilter.DAR);
+			}
+		}),
 		
 		STATISTICS = PAGES.add(new PageImpl("Statistics")),
 		STATISTICS_SIP = STATISTICS.add(new PageImpl("statistics-sip", "SIP Statistics", "SIP")),
@@ -100,32 +125,7 @@ public class MenuPrinter implements HtmlPrinter, Menu
 				return c.isRegistered(ConsoleFilter.DIAMETER_NODE);
 			}
 		}),
-		CALLS = LOGS.add(new PageImpl("logs-calls", "Calls")),
-
-		APPLICATIONS = PAGES.add(new PageImpl("Applications")
-		{
-			@Override
-			public boolean isEnabled(MBeanServerConnection c) throws IOException
-			{
-				return !c.isRegistered(ObjectNameFactory.create("org.cipango.console:page-disabled=application"));
-			}
-		}),
-		MAPPINGS = APPLICATIONS.add(new PageImpl("applications", "Applications Mapping")
-		{
-			@Override
-			public boolean isEnabled(MBeanServerConnection c) throws IOException
-			{
-				return getFather().isEnabled(c);
-			}
-		}),
-		DAR = APPLICATIONS.add(new PageImpl("dar", "Default Application Router", "DAR")
-		{
-			@Override
-			public boolean isEnabled(MBeanServerConnection c) throws IOException
-			{
-				return getFather().isEnabled(c) && c.isRegistered(ConsoleFilter.DAR);
-			}
-		});
+		CALLS = LOGS.add(new PageImpl("logs-calls", "Calls"));
 	
 	
 	protected MBeanServerConnection _connection;

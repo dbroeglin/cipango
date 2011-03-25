@@ -13,7 +13,6 @@
 // ========================================================================
 package org.cipango.console.printer.generic;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 
@@ -26,9 +25,9 @@ import org.cipango.console.PropertyList;
 public class PropertiesPrinter implements HtmlPrinter
 {
 
-	public static final String TABLE_HEADER = "<div class=\"data\">\n<table class=\"table_hover\">\n"
+	public static final String TABLE_HEADER = "<div class=\"data\">\n<table>\n"
 			+ "<tr><th>Name</th><th>Value</th><th>Note</th></tr>\n";
-	public static final String TABLE_HEADER_NO_NOTES = "<div class=\"data\">\n<table class=\"table_hover\">\n"
+	public static final String TABLE_HEADER_NO_NOTES = "<div class=\"data\">\n<table>\n"
 		+ "<tr><th>Name</th><th>Value</th></th>\n";
 	
 	private PropertyList _properties;

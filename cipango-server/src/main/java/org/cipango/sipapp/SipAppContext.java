@@ -742,6 +742,19 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	{
 		return _specVersion;
 	}
+    
+    public String getSpecVersionAsString()
+	{
+		switch (_specVersion)
+		{
+		case VERSION_10:
+			return "1.0";
+		case VERSION_11:
+			return "1.1";
+		default:
+			return String.valueOf(_specVersion);
+		}
+	}
 
 	public void setSpecVersion(int specVersion)
 	{

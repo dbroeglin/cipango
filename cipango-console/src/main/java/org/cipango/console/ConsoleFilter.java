@@ -58,13 +58,15 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.cipango.console.Row.Header;
+import org.cipango.console.Row.Value;
 import org.cipango.console.printer.DarPrinter;
 import org.cipango.console.printer.DumpPrinter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.OamPrinter;
 import org.cipango.console.printer.ServletMappingPrinter;
 import org.cipango.console.printer.SystemPropertiesPrinter;
-import org.cipango.console.printer.UploadSarPrinter;
+import org.cipango.console.printer.UploadWarPrinter;
 import org.cipango.console.printer.generic.ErrorPrinter;
 import org.cipango.console.printer.generic.HtmlPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
@@ -523,9 +525,30 @@ public class ConsoleFilter implements Filter
 
 		MultiplePrinter printer = new MultiplePrinter();
 
-		ObjectName[] contexts = PrinterUtil.getContexts(_mbsc);
+		ObjectName[] sipContexts = PrinterUtil.getSipAppContexts(_mbsc);
 	
-		Table contextsTable = new Table(_mbsc, contexts, "appContexts");
+		Table contextsTable = new Table(_mbsc, sipContexts, "appContexts");
+
+		printer.add(new SetPrinter(contextsTable));
+		
+		ObjectName[] otherContexts = PrinterUtil.getNonSipAppContexts(getMbsc());
+		if (otherContexts != null && otherContexts.length > 0)
+		{
+			Table otherContextsTable = new Table(_mbsc, otherContexts, "otherContexts");
+			for (Row row : otherContextsTable)
+			{
+				int index = 0;
+				for (Header header : contextsTable.getHeaders())
+				{
+					Value value = row.get(header);
+					if (value == null)
+						row.getValues().add(index, new Value("N/A", header));
+					index++;
+				}
+				contextsTable.add(row);
+			}
+		}
+		
 		for (Row row : contextsTable)
 		{
 			List<String> operationLinks = new ArrayList<String>();
@@ -537,9 +560,9 @@ public class ConsoleFilter implements Filter
 			operationLinks.add(PrinterUtil.getActionLinkWithConfirm("undeploy", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
 			row.setOperations(operationLinks);
 		}
-		printer.add(new SetPrinter(contextsTable));
-		printer.add(new ServletMappingPrinter(contexts, _mbsc));
-		printer.add(new UploadSarPrinter());
+				
+		printer.add(new ServletMappingPrinter(sipContexts, _mbsc));
+		printer.add(new UploadWarPrinter());
 		request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
 
 		request.setAttribute(Attributes.CONTENT, printer);
@@ -555,13 +578,23 @@ public class ConsoleFilter implements Filter
 		printer.add(new SetPrinter(connectors, "sip.connectors", _mbsc));
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "sipThreadPool");
-		printer.add(new PropertiesPrinter(threadPool, "sip.threadPool", _mbsc));
+		
+		PropertyList properties = new PropertyList(_mbsc, threadPool, "sip.threadPool");
+		for (Property property : properties)
+		{
+			String name = property.getName();
+			int index = Math.max(name.indexOf("in pool"), name.indexOf("in the pool"));
+			if (index != -1)
+				property.setName(name.substring(0, index));
+		}
+		printer.add(new PropertiesPrinter(properties));
+		
 		printer.add(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc)
 		{
 			@Override
 			protected void printHeaders(Writer out, boolean hasNotes) throws Exception
 			{
-				out.write("<div class=\"data\">\n<table class=\"table_hover\">\n"
+				out.write("<div class=\"data\">\n<table>\n"
 				+ "<tr><th>Name</th><th>Value</th><th>Default Value</th></tr>\n");
 			}
 		});
@@ -621,7 +654,15 @@ public class ConsoleFilter implements Filter
 		
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "threadPool");
-		printer.add(new PropertiesPrinter(threadPool, "http.threadPool", _mbsc));
+		PropertyList properties = new PropertyList(_mbsc, threadPool, "http.threadPool");
+		for (Property property : properties)
+		{
+			String name = property.getName();
+			int index = Math.max(name.indexOf("in pool"), name.indexOf("in the pool"));
+			if (index != -1)
+				property.setName(name.substring(0, index));
+		}
+		printer.add(new PropertiesPrinter(properties));
 							
 		request.setAttribute(Attributes.CONTENT, printer);
 	}

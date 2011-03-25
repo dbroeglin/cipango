@@ -30,12 +30,17 @@ import java.util.List;
 import java.util.Set;
 
 import javax.management.Attribute;
+import javax.management.BadAttributeValueExpException;
+import javax.management.BadBinaryOpValueExpException;
+import javax.management.BadStringOperationException;
+import javax.management.InvalidApplicationException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+import javax.management.QueryExp;
 import javax.management.ReflectionException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -89,8 +94,19 @@ import org.w3c.dom.Node;
 public class ConsoleFilter implements Filter
 {
 	
+	public static final QueryExp APPLICATION_PAGES_QUERY = new QueryExp()
+	{			
+		public void setMBeanServer(MBeanServer s)
+		{
+		}
+		
+		public boolean apply(ObjectName name)
+		{
+			return name.getDomain().equals("org.cipango.console") && name.getKeyProperty("page") != null;
+		}
+	};
+	
 	public static final ObjectName 
-		APPLICATION_PAGES = ObjectNameFactory.create("org.cipango.console:page=*"),
 		CONNECTOR_MANAGER = ObjectNameFactory.create("org.cipango.server:type=connectormanager,id=0"),
 		CONTEXT_DEPLOYER = ObjectNameFactory.create("org.cipango.deployer:type=contextdeployer,id=0"),
 		DAR = ObjectNameFactory.create("org.cipango.dar:type=defaultapplicationrouter,id=0"),
@@ -785,5 +801,4 @@ public class ConsoleFilter implements Filter
 	{
 		return _mbsc;
 	}
-
 }

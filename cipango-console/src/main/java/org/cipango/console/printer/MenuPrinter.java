@@ -24,6 +24,8 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.management.Query;
+import javax.management.QueryExp;
 
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Menu;
@@ -236,9 +238,9 @@ public class MenuPrinter implements HtmlPrinter, Menu
 		List<PageImpl> l = new ArrayList<PageImpl>(PAGES.getPages());
 				
 		try
-		{
+		{			
 			@SuppressWarnings("unchecked")
-			Set<ObjectName> set = _connection.queryNames(ConsoleFilter.APPLICATION_PAGES, null);
+			Set<ObjectName> set = _connection.queryNames(null, ConsoleFilter.APPLICATION_PAGES_QUERY);
 			if (set != null && !set.isEmpty())
 			{
 				Iterator<ObjectName> it = set.iterator();

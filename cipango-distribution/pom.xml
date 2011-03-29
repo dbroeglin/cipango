@@ -88,11 +88,6 @@
                 </artifactItem>
                 <artifactItem>
                   <groupId>org.cipango</groupId>
-                  <artifactId>cipango-annotations</artifactId>
-                  <classifier>config</classifier>
-                </artifactItem>
-                <artifactItem>
-                  <groupId>org.cipango</groupId>
                   <artifactId>cipango-callflow</artifactId>
                   <classifier>config</classifier>
                 </artifactItem>

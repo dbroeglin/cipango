@@ -24,10 +24,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 
+import org.cipango.console.Action;
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Page;
 import org.cipango.console.Parameters;
 import org.cipango.console.printer.MenuPrinter;
+import org.cipango.console.printer.logs.FileLogPrinter.DeleteLogsFilesAction;
+import org.cipango.console.printer.logs.FileLogPrinter.StartFileLoggerAction;
+import org.cipango.console.printer.logs.FileLogPrinter.StopFileLoggerAction;
 
 public class SipLogPrinter extends AbstractLogPrinter
 {
@@ -45,6 +49,34 @@ public class SipLogPrinter extends AbstractLogPrinter
 		REMOTE_FILTER = "remote",
 		REQUEST_URI_FILTER = "message.requestURI != null and message.requestURI.toString()";
 	
+	static
+	{
+		Action.add(new StopFileLoggerAction(MenuPrinter.SIP_LOGS, ConsoleFilter.SIP_MESSAGE_LOG));
+		Action.add(new StartFileLoggerAction(MenuPrinter.SIP_LOGS,
+			ConsoleFilter.SIP_MESSAGE_LOG));
+		Action.add(new DeleteLogsFilesAction(MenuPrinter.SIP_LOGS)
+		{
+			@Override
+			public void doProcess(HttpServletRequest request) throws Exception
+			{
+				getConnection().invoke(ConsoleFilter.SIP_MESSAGE_LOG, "deleteLogFiles", null, null);
+			}	
+		});
+		Action.add(new StopConsoleLoggerAction(
+			MenuPrinter.SIP_LOGS, ConsoleFilter.SIP_CONSOLE_MSG_LOG));
+		Action.add(new StartConsoleLoggerAction(
+			MenuPrinter.SIP_LOGS, ConsoleFilter.SIP_CONSOLE_MSG_LOG));
+		Action.add(new ClearConsoleLoggerAction(MenuPrinter.SIP_LOGS)
+		{
+			@Override
+			public void doProcess(HttpServletRequest request) throws Exception
+			{
+				getConnection().invoke(ConsoleFilter.SIP_CONSOLE_MSG_LOG, "clear", null, null);
+			}	
+		});
+		Action.add(new MessageInMemoryAction(MenuPrinter.SIP_LOGS, ConsoleFilter.SIP_CONSOLE_MSG_LOG));
+	}
+	
 	private Object[][] _messagesLogs;
 	private Output _output;
 
@@ -52,6 +84,12 @@ public class SipLogPrinter extends AbstractLogPrinter
 			HttpServletRequest request, Output output) throws Exception
 	{
 		super(connection, request);
+		_msgFilter = request.getParameter(Parameters.SIP_MESSAGE_FILTER);
+		if (_msgFilter == null)
+			_msgFilter = (String) request.getSession().getAttribute(Parameters.SIP_MESSAGE_FILTER);
+		else
+			request.getSession().setAttribute(Parameters.SIP_MESSAGE_FILTER, _msgFilter);
+		
 		_output = output;
 
 		if (isLoggerRunning())
@@ -108,7 +146,7 @@ public class SipLogPrinter extends AbstractLogPrinter
 	protected void printCommonFilters(Writer out) throws Exception
 	{
 		out.write("Filter:&nbsp;" + "<SELECT name=\""
-				+ Parameters.MESSAGE_FILTER + "\">");
+				+ Parameters.SIP_MESSAGE_FILTER + "\">");
 		Enumeration<String> keys = FILTERS.getKeys();
 		boolean selected = false;
 		while (keys.hasMoreElements())
@@ -185,7 +223,7 @@ public class SipLogPrinter extends AbstractLogPrinter
 			out.write("<embed src=\"message.svg?" + Parameters.MAX_MESSAGES
 					+ "=" + _maxMessages);
 			if (_msgFilter != null)
-				out.write("&" + Parameters.MESSAGE_FILTER + "=" + encode(_msgFilter));
+				out.write("&" + Parameters.SIP_MESSAGE_FILTER + "=" + encode(_msgFilter));
 			int height = 100 + _messagesLogs.length * 25;
 			out.write("\" width=\"790\" height=\""
 							+ height
@@ -241,11 +279,9 @@ public class SipLogPrinter extends AbstractLogPrinter
 	private String getFilterLink(String name, String value)
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("<A href=\"" + MenuPrinter.SIP_LOGS.getName() + "?").append(Parameters.MESSAGE_FILTER).append(
+		sb.append("<A href=\"" + MenuPrinter.SIP_LOGS.getName() + "?").append(Parameters.SIP_MESSAGE_FILTER).append(
 				"=");
 		sb.append(name).append(".equals(%27").append(encode(value)).append("%27)");
-		sb.append("&").append(Parameters.MAX_MESSAGES).append("=").append(
-				_maxMessages);
 		sb.append("\">").append(value).append("</A>");
 		return sb.toString();
 	}

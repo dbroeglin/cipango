@@ -17,15 +17,13 @@ public class Parameters
 {
 
 	public static final String ACTION = "action";
-	public static final String ACTIONS = "actions";
 
-	public static final String ACTION_INSTALL = "install";
 	public static final String OBJECT_NAME = "objectName";
-	public static final String DOT_OBJECT_NAME = ".objectName";
-	public static final String DOT_VALUE = ".value";
 	public static final String TIME = "time";
 	
 	public static final String MAX_MESSAGES = "maxMessages";
-	public static final String MESSAGE_FILTER = "messageFilter";
+	public static final String MAX_SAVED_MESSAGES = "maxSavedMessages";
+	public static final String SIP_MESSAGE_FILTER = "sipMessageFilter";
+	public static final String DIAMETER_MESSAGE_FILTER = "diameterMessageFilter";
 	
 }

@@ -24,8 +24,6 @@ import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
-import javax.management.Query;
-import javax.management.QueryExp;
 
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Menu;
@@ -118,7 +116,14 @@ public class MenuPrinter implements HtmlPrinter, Menu
 							|| c.isRegistered(ConsoleFilter.SIP_MESSAGE_LOG);
 			}
 		}),
-		HTTP_LOGS = LOGS.add(new PageImpl("logs-http", "HTTP Logs", "HTTP")),
+		HTTP_LOGS = LOGS.add(new PageImpl("logs-http", "HTTP Logs", "HTTP")
+		{
+			@Override
+			public boolean isEnabled(MBeanServerConnection c) throws IOException
+			{
+				return c.isRegistered(ConsoleFilter.HTTP_LOG);
+			}
+		}),
 		DIAMETER_LOGS = LOGS.add(new PageImpl("logs-diameter", "Diameter Logs", "Diameter")
 		{
 			@Override

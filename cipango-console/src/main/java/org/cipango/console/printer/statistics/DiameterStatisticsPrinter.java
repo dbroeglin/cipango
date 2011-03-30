@@ -17,9 +17,12 @@ import java.io.Writer;
 import java.util.Date;
 import java.util.Set;
 
+import javax.management.Attribute;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.servlet.http.HttpServletRequest;
 
+import org.cipango.console.Action;
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
@@ -29,7 +32,33 @@ import org.cipango.console.printer.generic.SetPrinter;
 
 public class DiameterStatisticsPrinter extends MultiplePrinter
 {
-
+	public static final Action ENABLE_STATS = Action.add(new Action(MenuPrinter.STATISTICS_DIAMETER, "enable-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			getConnection().setAttribute(ConsoleFilter.DIAMETER_NODE, new Attribute("statsOn", Boolean.TRUE));
+		}	
+	});
+	
+	public static final Action DISABLE_STATS = Action.add(new Action(MenuPrinter.STATISTICS_DIAMETER, "disable-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			getConnection().setAttribute(ConsoleFilter.DIAMETER_NODE, new Attribute("statsOn", Boolean.FALSE));
+		}	
+	});
+	
+	public static final Action RESET_STATS = Action.add(new Action(MenuPrinter.STATISTICS_DIAMETER, "reset-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			getConnection().invoke(ConsoleFilter.DIAMETER_NODE, "statsReset", null, null);
+		}	
+	});
+	
 	private MBeanServerConnection _connection;
 	
 	public DiameterStatisticsPrinter(MBeanServerConnection connection) throws Exception
@@ -62,17 +91,15 @@ public class DiameterStatisticsPrinter extends MultiplePrinter
 		if (on.booleanValue())
 		{
 			out.write("Statistics are started since ");
-			out.write(new Date((Long)  _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "statsStartedAt")).toString() + ".<br/>");
-			out.write(PrinterUtil.getSetterLink("statsOn", "false", ConsoleFilter.DIAMETER_NODE,
-					MenuPrinter.STATISTICS_DIAMETER, "Disable statistics"));
+			Long start = (Long)  _connection.getAttribute(ConsoleFilter.DIAMETER_NODE, "statsStartedAt");
+			out.write(PrinterUtil.getDuration(System.currentTimeMillis() - start) + ".<br/>");
+			DISABLE_STATS.print(out);
 			out.write("&nbsp;&nbsp;&nbsp;");
-			out.write(PrinterUtil.getActionLink("statsReset", ConsoleFilter.DIAMETER_NODE,
-					MenuPrinter.STATISTICS_DIAMETER, "Reset statistics"));
+			RESET_STATS.print(out);
 		}
 		else
 		{
-			out.write(PrinterUtil.getSetterLink("statsOn", "true", ConsoleFilter.DIAMETER_NODE,
-					MenuPrinter.STATISTICS_DIAMETER, "Enable statistics"));
+			ENABLE_STATS.print(out);
 		}
 
 	}

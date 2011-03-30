@@ -23,15 +23,10 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
 import org.cipango.console.ConsoleFilter;
-import org.cipango.console.Page;
-import org.cipango.console.Parameters;
-import org.eclipse.jetty.util.log.Log;
-import org.eclipse.jetty.util.log.Logger;
 
 
 public class PrinterUtil
 {
-	private static Logger __logger = Log.getLogger("console");
 	public static final String PARAMS_POSTFIX = ".params";
 	public static final ResourceBundle PARAMETERS = ResourceBundle
 			.getBundle("org.cipango.console.methods");
@@ -57,7 +52,7 @@ public class PrinterUtil
 		return getValueSplit(name + PARAMS_POSTFIX);
 	}
 
-	public static String[] getValueSplit(String name)
+	private static String[] getValueSplit(String name)
 	{
 		try
 		{
@@ -93,64 +88,11 @@ public class PrinterUtil
 		}
 	}
 		
-	public static String getActionLink(String action, ObjectName objectName, Page page, String displayText)
-	{
-		StringBuffer sb = new StringBuffer(128);
-		sb.append("<a href=\"").append(page.getName());
-		sb.append("?" + Parameters.ACTION + "=").append(action);
-		sb.append("&" + Parameters.OBJECT_NAME + "=").append(objectName);
-
-		sb.append("\">");
-		sb.append(displayText == null ? action : displayText);
-		sb.append("</a>");
-		return sb.toString();
-	}
-	
-
-	public static String getActionLinkWithConfirm(String action, ObjectName objectName,
-			MBeanServerConnection connection, Page page, String displayText)
-	{
-		String appName = null;
-		try
-		{
-			appName = (String) connection.getAttribute(objectName, "contextPath");
-		}
-		catch (Exception e)
-		{
-			__logger.warn("Unable to get application name", e);
-		}
-		if (displayText == null)
-			displayText = action;
-		StringBuffer sb = new StringBuffer(128);
-		sb.append("<INPUT TYPE=\"button\" value=\"").append(action).append("\" ");
-		sb.append("onClick=\"confirmAction('").append(appName).append("','").append(page.getName());
-		sb.append("?" + Parameters.ACTION + "=").append(action);
-		sb.append("&" + Parameters.OBJECT_NAME + "=").append(objectName);
-		sb.append("','").append(displayText);
-		sb.append("')\">");
-		return sb.toString();	
-	}
-
-	public static String getSetterLink(String name, Object value, ObjectName objectName,
-			Page page, String displayText)
-	{
-		StringBuffer sb = new StringBuffer(128);
-		sb.append("<a href=\"").append(page.getName());
-		sb.append("?").append(name).append(Parameters.DOT_VALUE).append("=").append(value);
-		sb.append("&").append(name).append(Parameters.DOT_OBJECT_NAME + "=").append(objectName);
-		sb.append("&").append(Parameters.ACTIONS).append("=set");
-		sb.append("\">");
-		sb.append(displayText == null ? name : displayText);
-		sb.append("</a>");
-		return sb.toString();
-	}
-
 	public static ObjectName[] getContexts(MBeanServerConnection connection) throws Exception
 	{
-		return (ObjectName[]) connection.getAttribute(ConsoleFilter.SERVER,
-				"contexts");
+		return (ObjectName[]) connection.getAttribute(ConsoleFilter.SERVER, "contexts");
 	}
-	
+		
 	/**
 	 * Returns an array with all contexts that extends SipAppContext.
 	 */

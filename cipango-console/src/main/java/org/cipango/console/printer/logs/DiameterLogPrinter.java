@@ -21,10 +21,14 @@ import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 
+import org.cipango.console.Action;
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Page;
 import org.cipango.console.Parameters;
 import org.cipango.console.printer.MenuPrinter;
+import org.cipango.console.printer.logs.FileLogPrinter.DeleteLogsFilesAction;
+import org.cipango.console.printer.logs.FileLogPrinter.StartFileLoggerAction;
+import org.cipango.console.printer.logs.FileLogPrinter.StopFileLoggerAction;
 
 public class DiameterLogPrinter extends AbstractLogPrinter
 {
@@ -36,11 +40,46 @@ public class DiameterLogPrinter extends AbstractLogPrinter
 
 	private Object[][] _messagesLogs;
 	private Output _output;
+	
+	static
+	{
+		Action.add(new StopFileLoggerAction(
+			MenuPrinter.DIAMETER_LOGS, ConsoleFilter.DIAMETER_FILE_LOG));
+		Action.add(new StartFileLoggerAction(
+			MenuPrinter.DIAMETER_LOGS, ConsoleFilter.DIAMETER_FILE_LOG));
+		Action.add(new DeleteLogsFilesAction(MenuPrinter.DIAMETER_LOGS)
+		{
+			@Override
+			public void doProcess(HttpServletRequest request) throws Exception
+			{
+				getConnection().invoke(ConsoleFilter.DIAMETER_FILE_LOG, "deleteLogFiles", null, null);
+			}	
+		});
+		Action.add(new StopConsoleLoggerAction(
+				MenuPrinter.DIAMETER_LOGS, ConsoleFilter.DIAMETER_CONSOLE_LOG));
+		Action.add(new StartConsoleLoggerAction(
+			MenuPrinter.DIAMETER_LOGS, ConsoleFilter.DIAMETER_CONSOLE_LOG));
+		Action.add(new ClearConsoleLoggerAction(MenuPrinter.DIAMETER_LOGS)
+		{
+			@Override
+			public void doProcess(HttpServletRequest request) throws Exception
+			{
+				getConnection().invoke(ConsoleFilter.DIAMETER_CONSOLE_LOG, "clear", null, null);
+			}	
+		});
+		Action.add(new MessageInMemoryAction(MenuPrinter.DIAMETER_LOGS, ConsoleFilter.DIAMETER_CONSOLE_LOG));
+	}
 
 	public DiameterLogPrinter(MBeanServerConnection connection,
 			HttpServletRequest request, Output output) throws Exception
 	{
 		super(connection, request);
+		_msgFilter = request.getParameter(Parameters.DIAMETER_MESSAGE_FILTER);
+		if (_msgFilter == null)
+			_msgFilter = (String) request.getSession().getAttribute(Parameters.DIAMETER_MESSAGE_FILTER);
+		else
+			request.getSession().setAttribute(Parameters.DIAMETER_MESSAGE_FILTER, _msgFilter);
+		
 		_output = output;
 
 		if (isLoggerRunning())
@@ -88,7 +127,7 @@ public class DiameterLogPrinter extends AbstractLogPrinter
 	protected void printCommonFilters(Writer out) throws Exception
 	{
 		out.write("Filter:&nbsp;" + "<SELECT name=\""
-				+ Parameters.MESSAGE_FILTER + "\">");
+				+ Parameters.DIAMETER_MESSAGE_FILTER + "\">");
 		Enumeration<String> keys = FILTERS.getKeys();
 		boolean selected = false;
 		while (keys.hasMoreElements())
@@ -149,7 +188,7 @@ public class DiameterLogPrinter extends AbstractLogPrinter
 	private String getFilterLink(String name, String value)
 	{
 		StringBuffer sb = new StringBuffer();
-		sb.append("<A href=\"" + MenuPrinter.DIAMETER_LOGS.getName() + "?").append(Parameters.MESSAGE_FILTER).append(
+		sb.append("<A href=\"" + MenuPrinter.DIAMETER_LOGS.getName() + "?").append(Parameters.DIAMETER_MESSAGE_FILTER).append(
 				"=");
 		sb.append(name).append(".equals(%27").append(value).append("%27)");
 		sb.append("&").append(Parameters.MAX_MESSAGES).append("=").append(

@@ -18,11 +18,13 @@ import java.util.List;
 
 import javax.management.ObjectName;
 
+import org.cipango.console.printer.generic.HtmlPrinter;
+
 public class Row
 {
 
 	private List<Value> _values = new ArrayList<Value>();
-	private List<String> _operations;
+	private List<Object> _operations;
 	private ObjectName _objectName;
 	
 	public List<Value> getValues()
@@ -30,14 +32,23 @@ public class Row
 		return _values;
 	}
 
-	public List<String> getOperations()
+	public List<?> getOperations()
 	{
 		return _operations;
 	}
 
-	public void setOperations(List<String> operations)
+	public void addOperation(String operation)
 	{
-		_operations = operations;
+		if (_operations == null)
+			_operations = new ArrayList<Object>();
+		_operations.add(operation);
+	}
+	
+	public void addOperation(HtmlPrinter operation)
+	{
+		if (_operations == null)
+			_operations = new ArrayList<Object>();
+		_operations.add(operation);
 	}
 
 	public ObjectName getObjectName()

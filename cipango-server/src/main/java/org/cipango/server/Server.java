@@ -331,6 +331,11 @@ public class Server extends org.eclipse.jetty.server.Server implements SipHandle
 		return _statsStartedAt != -1;
 	}
 	
+	public long getStatsStartedAt()
+	{
+		return _statsStartedAt;
+	}
+	
 	public void allStatsReset()
 	{
 		statsReset();

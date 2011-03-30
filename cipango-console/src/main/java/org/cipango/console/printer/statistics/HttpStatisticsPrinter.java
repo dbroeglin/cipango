@@ -16,9 +16,12 @@ package org.cipango.console.printer.statistics;
 import java.io.Writer;
 import java.util.Iterator;
 
+import javax.management.Attribute;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.servlet.http.HttpServletRequest;
 
+import org.cipango.console.Action;
 import org.cipango.console.ConsoleFilter;
 import org.cipango.console.Property;
 import org.cipango.console.PropertyList;
@@ -30,6 +33,39 @@ import org.cipango.console.printer.generic.PropertiesPrinter;
 
 public class HttpStatisticsPrinter extends MultiplePrinter
 {
+	public static final Action ENABLE_STATS = Action.add(new Action(MenuPrinter.STATISTICS_HTTP, "enable-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			ObjectName[] connectors = (ObjectName[]) getConnection().getAttribute(ConsoleFilter.SERVER, "connectors");
+			for (ObjectName objectName : connectors)
+				getConnection().setAttribute(objectName, new Attribute("statsOn", Boolean.TRUE));
+		}	
+	});
+	
+	public static final Action DISABLE_STATS = Action.add(new Action(MenuPrinter.STATISTICS_HTTP, "disable-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			ObjectName[] connectors = (ObjectName[]) getConnection().getAttribute(ConsoleFilter.SERVER, "connectors");
+			for (ObjectName objectName : connectors)
+				getConnection().setAttribute(objectName, new Attribute("statsOn", Boolean.FALSE));
+		}	
+	});
+	
+	public static final Action RESET_STATS = Action.add(new Action(MenuPrinter.STATISTICS_HTTP, "reset-statistics")
+	{
+		@Override
+		public void doProcess(HttpServletRequest request) throws Exception
+		{
+			ObjectName[] connectors = (ObjectName[]) getConnection().getAttribute(ConsoleFilter.SERVER, "connectors");
+			for (ObjectName objectName : connectors)
+				getConnection().invoke(objectName, "statsReset", null, null);
+		}	
+	});
+	
 	private MBeanServerConnection _mbsc;
 	
 	public HttpStatisticsPrinter(MBeanServerConnection mbsc) throws Exception
@@ -65,16 +101,13 @@ public class HttpStatisticsPrinter extends MultiplePrinter
 						Long duration = (Long) _mbsc.getAttribute(objectName, "statsOnMs");
 						out.write("Statisitics are enabled since " + PrinterUtil.getDuration(duration)
 								+ ".<br/>");
-						out.write(PrinterUtil.getSetterLink("statsOn", "false", objectName,
-								MenuPrinter.STATISTICS_HTTP, "Disable statistics"));
+						DISABLE_STATS.print(out);
 						out.write("&nbsp;&nbsp;&nbsp;");
-						out.write(PrinterUtil.getActionLink("statsReset", objectName,
-								MenuPrinter.STATISTICS_HTTP, "Reset statistics"));
+						RESET_STATS.print(out);
 					}
 					else
 					{
-						out.write(PrinterUtil.getSetterLink("statsOn", "true", objectName,
-								MenuPrinter.STATISTICS_HTTP, "Enable statistics"));
+						ENABLE_STATS.print(out);
 					}
 				}
 			});

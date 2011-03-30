@@ -13,16 +13,19 @@
 // ========================================================================
 package org.cipango.console.printer.logs;
 
+import java.io.IOException;
 import java.io.Writer;
 
+import javax.management.Attribute;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 import javax.servlet.http.HttpServletRequest;
 
-import org.cipango.console.ConsoleFilter;
+import org.cipango.console.Action;
+import org.cipango.console.Action.StartAction;
+import org.cipango.console.Action.StopAction;
 import org.cipango.console.Page;
 import org.cipango.console.Parameters;
-import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.generic.HtmlPrinter;
 import org.cipango.console.printer.generic.PrinterUtil;
 
@@ -52,7 +55,6 @@ public abstract class AbstractLogPrinter implements HtmlPrinter
 			request.getSession().setAttribute(Parameters.MAX_MESSAGES, maxMsg);
 		
 		_maxMessages = PrinterUtil.getInt(maxMsg, DEFAULT_MAX_MESSAGES);
-		_msgFilter = request.getParameter(Parameters.MESSAGE_FILTER);
 	}
 	
 	public void printHeaders(Writer out) throws Exception
@@ -87,30 +89,17 @@ public abstract class AbstractLogPrinter implements HtmlPrinter
 
 			out.write("&nbsp;&nbsp;<input type=\"submit\" name=\"submit\" value=\"Apply\"/></FORM>");
 
-			out.write(PrinterUtil.getActionLink("clear",
-					ConsoleFilter.SIP_CONSOLE_MSG_LOG, MenuPrinter.SIP_LOGS, "Clear logs"));
+			new ClearConsoleLoggerAction(getPage()).print(out);
 			out.write("&nbsp;|&nbsp;");
-			out.write(PrinterUtil.getActionLink("stop",
-					getObjectName(), getPage(), "Deactivate console message log"));
-			out.write("&nbsp;|&nbsp;<A href=\"" + getLogFile() + "?"
-					+ Parameters.MAX_MESSAGES + "=" + _maxMessages);
-			if (_msgFilter != null && !_msgFilter.trim().equals(""))
-				out.write("&" + Parameters.MESSAGE_FILTER + "=" + _msgFilter);
-
-			out.write("\">Display as log file</A>\n");
+			new StopConsoleLoggerAction(getPage(), getObjectName()).print(out);
 			
-			out.write("<form method=\"get\" action=\"" + getPage().getName() + "\">" + "Server keeps in memory the "
-					+ "<input type=\"text\" name=\"maxMessages" + Parameters.DOT_VALUE 
-					+ "\" value=\"" + maxSavedMsg + "\" size=\"1\" maxlength=\"5\"/>");
-			out.write("<input type=\"hidden\" name=\"maxMessages" + Parameters.DOT_OBJECT_NAME 
-					+ "\" value=\"" + getObjectName() + "\"/>");
-			out.write(" last messages. <input type=\"submit\" name=\"" + Parameters.ACTIONS + "\" value=\"Apply\"/></FORM>");
-			out.write("</div>\n");
+			out.write("&nbsp;|&nbsp;<A href=\"" + getLogFile() + "\">Display as log file</A>\n");
+			
+			new MessageInMemoryAction(getPage(), getObjectName()).print(out, maxSavedMsg);
 		}
 		else
 		{
-			out.write(PrinterUtil.getActionLink("start",
-					getObjectName(), getPage(), "Activate console message log"));
+			new StartConsoleLoggerAction(getPage(), getObjectName()).print(out);
 		}
 	}
 	
@@ -155,4 +144,64 @@ public abstract class AbstractLogPrinter implements HtmlPrinter
 			sb.replace(index, index + toFind.length(), toSet.toString());
 	}
 
+	public static class StartConsoleLoggerAction extends StartAction
+	{
+		public StartConsoleLoggerAction(Page page, ObjectName objectName)
+		{
+			super(page, "activate-console-message-log", objectName);
+		}
+	}
+	
+	public static class StopConsoleLoggerAction extends StopAction
+	{
+		public StopConsoleLoggerAction(Page page, ObjectName objectName)
+		{
+			super(page, "deactivate-console-message-log", objectName);
+		}
+	}
+	
+	public static class ClearConsoleLoggerAction extends Action
+	{
+		public ClearConsoleLoggerAction(Page page)
+		{
+			super(page, "clear-logs");
+		}
+
+		@Override
+		protected void doProcess(HttpServletRequest request) throws Exception
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	public static class MessageInMemoryAction extends Action
+	{
+		private ObjectName _objectName;
+		
+		public MessageInMemoryAction(Page page, ObjectName objectName)
+		{
+			super(page, "msg-in-memory");
+			_objectName = objectName;
+		}
+
+		@Override
+		protected void doProcess(HttpServletRequest request) throws Exception
+		{
+			String maxMsg = request.getParameter(Parameters.MAX_SAVED_MESSAGES);
+			if (maxMsg != null)
+			{
+				getConnection().setAttribute(_objectName, new Attribute("maxMessages", Integer.parseInt(maxMsg)));
+			}
+		}
+		
+		public void print(Writer out, int maxSavedMsg) throws IOException
+		{
+			out.write("<form method=\"get\" action=\"" + getPage().getName() + "\">" + "Server keeps in memory the "
+					+ "<input type=\"text\" name=\"" + Parameters.MAX_SAVED_MESSAGES 
+					+ "\" value=\"" + maxSavedMsg + "\" size=\"1\" maxlength=\"5\"/>");
+			out.write("<input type=\"hidden\" name=\"" + Parameters.ACTION+ "\" value=\"" + getParameter() + "\"/>");
+			out.write(" last messages. <input type=\"submit\" value=\"Apply\"/></FORM>");
+			out.write("</div>\n");
+		}
+	}
 }

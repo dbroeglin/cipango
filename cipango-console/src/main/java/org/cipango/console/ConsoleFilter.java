@@ -24,24 +24,17 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import javax.management.Attribute;
-import javax.management.BadAttributeValueExpException;
-import javax.management.BadBinaryOpValueExpException;
-import javax.management.BadStringOperationException;
-import javax.management.InvalidApplicationException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.management.QueryExp;
-import javax.management.ReflectionException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -59,19 +52,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.cipango.console.Row.Header;
-import org.cipango.console.Row.Value;
+import org.cipango.console.printer.ApplicationPrinter;
 import org.cipango.console.printer.DarPrinter;
 import org.cipango.console.printer.DumpPrinter;
 import org.cipango.console.printer.MenuPrinter;
 import org.cipango.console.printer.OamPrinter;
-import org.cipango.console.printer.ServletMappingPrinter;
 import org.cipango.console.printer.SystemPropertiesPrinter;
-import org.cipango.console.printer.UploadWarPrinter;
 import org.cipango.console.printer.generic.ErrorPrinter;
 import org.cipango.console.printer.generic.HtmlPrinter;
 import org.cipango.console.printer.generic.MultiplePrinter;
@@ -131,6 +117,7 @@ public class ConsoleFilter implements Filter
 	private StatisticGraph _statisticGraph;
 	private Deployer _deployer;
 	private ServletContext _servletContext;
+	private Map<String, List<Action>> _actions = new HashMap<String, List<Action>>();
 	
 	public void init(FilterConfig config) throws ServletException
 	{
@@ -150,6 +137,9 @@ public class ConsoleFilter implements Filter
 			_deployer = new Deployer(_mbsc);
 			if (_servletContext.getAttribute(MenuFactory.class.getName()) == null)
 				_servletContext.setAttribute(MenuFactory.class.getName(), new MenuFactoryImpl(_mbsc));
+			
+			Action.load(ApplicationPrinter.class);
+			registerActions();
 		}
 	}
 	
@@ -158,6 +148,45 @@ public class ConsoleFilter implements Filter
 	{	
 		if (_statisticGraph != null)
 			_statisticGraph.stop();
+	}
+	
+	protected void registerActions()
+	{
+		synchronized (Action.ACTIONS)
+		{
+			for (Action action : Action.ACTIONS)
+				registerAction(action);
+			Action.ACTIONS.clear();
+		}
+	}
+	
+	public void registerAction(Action action)
+	{
+		action.setConsoleFilter(this);
+		List<Action> list = _actions.get(action.getPage().getName());
+		if (list == null)
+		{
+			list = new ArrayList<Action>();
+			_actions.put(action.getPage().getName(), list);
+		}
+		list.add(action);
+	}
+	
+	protected Action getAction(Page page, HttpServletRequest request)
+	{
+		String param = request.getParameter(Parameters.ACTION);
+		if (param == null || page == null)
+			return null;
+		
+		List<Action> list = _actions.get(page.getName());
+		if (list != null)
+		{
+			for (Action action : list)
+				if (action.getParameter().equalsIgnoreCase(param))
+					return action;
+		}
+		return null;
+
 	}
 	
 	public MenuFactory getMenuFactory()
@@ -245,39 +274,28 @@ public class ConsoleFilter implements Filter
 				return;
 			}
 				
-			if (currentPage != null && !currentPage.isDynamic()) // Apply generic action only on page managed by the console
+			if (currentPage != null)
 			{
-				try
+				registerActions();
+				Action action = getAction(currentPage, request);
+				if (action != null)
 				{
-					boolean hasActions = processGenericAction(request);
-					if(hasActions)
-					{
-						forward = false;
-						response.sendRedirect(command);
-						return;
-					}
-				}
-				catch (ReflectionException e)
-				{
-					Throwable cause = e.getCause();
-					request.getSession().setAttribute(Attributes.WARN, "Unable to process action: "
-							+ cause);
-				}
-				catch (Throwable e)
-				{
-					_logger.warn(e.getMessage(), e);
-					request.getSession().setAttribute(Attributes.WARN, "Unable to process action: " + e
-							+ ":" + e.getMessage());
-				}
-				
+					action.process(request);
+					forward = false;
+					response.sendRedirect(command);
+				} 
 			}
 
 			if (command.equals(MenuPrinter.CONFIG_SIP.getName()))
 				doSipConfig(request);
 			else if (command.equals(MenuPrinter.MAPPINGS.getName()))
-				doApplications(request);
+			{
+				request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
+				request.setAttribute(Attributes.CONTENT, new ApplicationPrinter(_mbsc));
+			}
 			else if (command.equals(MenuPrinter.STATISTICS_SIP.getName()))
-				doSipStatistics(request);
+				request.setAttribute(Attributes.CONTENT, new SipStatisticPrinter(_mbsc, _statisticGraph, 
+						(Integer) request.getSession().getAttribute(Parameters.TIME)));
 			else if (command.equals(MenuPrinter.ABOUT.getName()))
 				doAbout(request);
 			else if (command.equals(MenuPrinter.SYSTEM_PROPERTIES.getName()))
@@ -291,7 +309,7 @@ public class ConsoleFilter implements Filter
 			else if (command.equals(MenuPrinter.STATISTICS_HTTP.getName()))
 				request.setAttribute(Attributes.CONTENT, new HttpStatisticsPrinter(_mbsc));
 			else if (command.equals(MenuPrinter.HTTP_LOGS.getName()))
-				doHttpLog(request);
+				request.setAttribute(Attributes.CONTENT, new FileLogPrinter(_mbsc, MenuPrinter.HTTP_LOGS, HTTP_LOG, false));
 			else if (command.equals(MenuPrinter.DAR.getName()))
 				request.setAttribute(Attributes.CONTENT, new DarPrinter(_mbsc));
 			else if (command.equals("statisticGraph.png"))
@@ -421,168 +439,6 @@ public class ConsoleFilter implements Filter
 				percentage + ")"));
 		return env;
 	}
-
-	private boolean processGenericAction(HttpServletRequest request)
-			throws Exception
-	{
-		String action = request.getParameter(Parameters.ACTION);
-		String actions = request.getParameter(Parameters.ACTIONS);
-		boolean hasAction = false;
-		
-		String sObjectName = request.getParameter(Parameters.OBJECT_NAME);
-		
-		if (action != null && sObjectName != null)
-		{
-			ObjectName objectName = ObjectNameFactory.create(sObjectName);
-			if (action.equals("undeploy"))
-			{
-				_deployer.undeploy(objectName);	
-				String name = objectName.getKeyProperty("name");
-				request.getSession().setAttribute(Attributes.INFO, "Successfull request to undeploy application " + name);
-				Log.info("User " + request.getUserPrincipal() 
-						+ " requested to undeploy application " + name);
-			}
-			else
-			{
-				_mbsc.invoke(objectName, action, null, null);
-				request.getSession().setAttribute(Attributes.INFO, "Action " + action + " successfull");
-			}
-			hasAction = true;
-		}
-				
-		if (actions == null)
-			return hasAction;
-		
-		@SuppressWarnings("rawtypes")
-		Enumeration enumeration = request.getParameterNames();
-		while (enumeration.hasMoreElements())
-		{
-			String element = (String) enumeration.nextElement();
-			if (element.endsWith(Parameters.DOT_VALUE))
-			{
-				String name = element.substring(0, element.lastIndexOf('.'));
-				sObjectName = request.getParameter(name + Parameters.DOT_OBJECT_NAME);
-				ObjectName objectName = ObjectNameFactory.create(sObjectName);
-				MBeanInfo mBeanInfo = _mbsc.getMBeanInfo(objectName);
-				MBeanAttributeInfo attributesInfos[] = mBeanInfo.getAttributes();
-
-				for (int i = 0; i < attributesInfos.length; i++)
-				{
-					if (name.equals(attributesInfos[i].getName()))
-					{
-						if (attributesInfos[i].isWritable())
-						{
-							String sValue = request.getParameter(name + Parameters.DOT_VALUE);
-							Object value;
-							String type = attributesInfos[i].getType();
-							if (type.equals(String.class.getName()))
-							{
-								value = sValue;
-							}
-							else if (type.equals(Integer.class.getName()) || type.equals("int"))
-							{
-								value = new Integer(sValue);
-							}
-							else if (type.equals(Boolean.class.getName())
-									|| type.equals("boolean"))
-							{
-								value = new Boolean(sValue);
-							}
-							else
-							{
-								_logger.warn("Unable to set {} = {}: Unknown type:" + type, name, sValue);
-								break;
-							}
-							Attribute attribute = new Attribute(name, value);
-							_mbsc.setAttribute(objectName, attribute);
-						}
-						break;
-					}
-				}
-			}
-		}			
-		return hasAction || actions != null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void doApplications(HttpServletRequest request)
-			throws Exception
-	{
-		if (ServletFileUpload.isMultipartContent(request))
-		{
-			FileItem item = null;
-			try
-			{
-				FileItemFactory factory = new DiskFileItemFactory();
-				ServletFileUpload upload = new ServletFileUpload(factory);
-				List<FileItem>  items = upload.parseRequest(request);
-	
-				Iterator<FileItem> it = items.iterator();
-				while (it.hasNext())
-				{
-					item = it.next();
-					if (!item.isFormField())
-					{
-						_deployer.deploy(item.getName(), item.get());
-						request.getSession().setAttribute(Attributes.INFO,
-								"Successful request to deploy " + item.getName());
-						Log.info("User " + request.getUserPrincipal() 
-								+ " requested to deploy application: " + item.getName());
-					}
-				}
-			}
-			catch (Throwable e)
-			{
-				_logger.warn("Unable to deploy " + item.getName(), e);
-				request.getSession().setAttribute(Attributes.WARN, "Unable to deploy "
-						+ item.getName() + ": " + e.getMessage());
-			}
-		}
-
-		MultiplePrinter printer = new MultiplePrinter();
-
-		ObjectName[] sipContexts = PrinterUtil.getSipAppContexts(_mbsc);
-	
-		Table contextsTable = new Table(_mbsc, sipContexts, "appContexts");
-
-		printer.add(new SetPrinter(contextsTable));
-		
-		ObjectName[] otherContexts = PrinterUtil.getNonSipAppContexts(getMbsc());
-		if (otherContexts != null && otherContexts.length > 0)
-		{
-			Table otherContextsTable = new Table(_mbsc, otherContexts, "otherContexts");
-			for (Row row : otherContextsTable)
-			{
-				int index = 0;
-				for (Header header : contextsTable.getHeaders())
-				{
-					Value value = row.get(header);
-					if (value == null)
-						row.getValues().add(index, new Value("N/A", header));
-					index++;
-				}
-				contextsTable.add(row);
-			}
-		}
-		
-		for (Row row : contextsTable)
-		{
-			List<String> operationLinks = new ArrayList<String>();
-			boolean running = (Boolean) _mbsc.getAttribute(row.getObjectName(), "running");
-			if (running)
-				operationLinks.add(PrinterUtil.getActionLinkWithConfirm("stop", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
-			else
-				operationLinks.add(PrinterUtil.getActionLinkWithConfirm("start", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
-			operationLinks.add(PrinterUtil.getActionLinkWithConfirm("undeploy", row.getObjectName(), _mbsc, MenuPrinter.MAPPINGS, null));
-			row.setOperations(operationLinks);
-		}
-				
-		printer.add(new ServletMappingPrinter(sipContexts, _mbsc));
-		printer.add(new UploadWarPrinter());
-		request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
-
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
 		
 //  ---------------------------  SIP -------------------------------------
 
@@ -616,27 +472,7 @@ public class ConsoleFilter implements Filter
 		});
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-	
-	private void doSipStatistics(HttpServletRequest request)
-			throws Exception
-	{
-		String action = request.getParameter(Parameters.ACTION);
-		if (action != null && SipStatisticPrinter.START_GRAPH.equals(action))
-			_statisticGraph.start();
-		else if (action != null && SipStatisticPrinter.STOP_GRAPH.equals(action))
-			_statisticGraph.stop();
 		
-		SipStatisticPrinter printer = new SipStatisticPrinter(_mbsc, _statisticGraph);
-		String time = request.getParameter(Parameters.TIME);
-		if (time == null)
-			time = (String) request.getSession().getAttribute(Parameters.TIME);
-		else
-			request.getSession().setAttribute(Parameters.TIME, time);
-		printer.setTime(time);
-
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
-	
 //  ---------------------------  Diameter -------------------------------------
 	
 	private void doDiameterConfig(HttpServletRequest request)
@@ -682,15 +518,7 @@ public class ConsoleFilter implements Filter
 							
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-	
-	private void doHttpLog(HttpServletRequest request)
-	throws Exception
-	{		
-		HtmlPrinter printer = new FileLogPrinter(_mbsc, MenuPrinter.HTTP_LOGS, HTTP_LOG, false);
-							
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
-	
+		
 	private void doGraph(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
 		try
@@ -727,7 +555,7 @@ public class ConsoleFilter implements Filter
 		response.setContentType("image/svg+xml");
 		int maxMessages = 
 			PrinterUtil.getInt(request.getParameter(Parameters.MAX_MESSAGES), SipLogPrinter.DEFAULT_MAX_MESSAGES);
-		String msgFilter = request.getParameter(Parameters.MESSAGE_FILTER);
+		String msgFilter = request.getParameter(Parameters.SIP_MESSAGE_FILTER);
 		if (_mbsc.isRegistered(SIP_CONSOLE_MSG_LOG))
 		{
 			String userAgent = request.getHeader("User-Agent");
@@ -800,5 +628,15 @@ public class ConsoleFilter implements Filter
 	public MBeanServerConnection getMbsc()
 	{
 		return _mbsc;
+	}
+	
+	public StatisticGraph getStatisticGraph()
+	{
+		return _statisticGraph;
+	}
+	
+	public Deployer getDeployer()
+	{
+		return _deployer;
 	}
 }

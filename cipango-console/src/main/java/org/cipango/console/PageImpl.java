@@ -30,7 +30,7 @@ public class PageImpl implements Page
 	private String _title;
 	private String _menuTitle;
 	private ObjectName _objectName;
-
+	
 	public PageImpl(String title)
 	{
 		_title = title;

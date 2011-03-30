@@ -51,7 +51,7 @@ public class DumpPrinter extends MultiplePrinter
 			add(new PropertiesTextPrinter(consoleFilter.getVersion()));
 			add(new PropertiesTextPrinter(consoleFilter.getEnvironment()));
 			// Stats
-			addPrinter(new SipStatisticPrinter(connection, null), "SIP statistics");
+			addPrinter(new SipStatisticPrinter(connection, null, null), "SIP statistics");
 			
 			if (MenuPrinter.STATISTICS_DIAMETER.isEnabled(connection))
 				addPrinter(new DiameterStatisticsPrinter(connection), "Diameter statistics");

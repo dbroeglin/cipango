@@ -17,10 +17,13 @@ import java.io.Writer;
 
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.servlet.http.HttpServletRequest;
 
+import org.cipango.console.Action;
+import org.cipango.console.Action.StartAction;
+import org.cipango.console.Action.StopAction;
 import org.cipango.console.Page;
 import org.cipango.console.printer.generic.HtmlPrinter;
-import org.cipango.console.printer.generic.PrinterUtil;
 
 public class FileLogPrinter implements HtmlPrinter
 {
@@ -29,7 +32,7 @@ public class FileLogPrinter implements HtmlPrinter
 	private Page _page;
 	private boolean _deleteSupported;
 	private ObjectName _objectName;
-
+		
 	public FileLogPrinter(MBeanServerConnection connection, Page page, ObjectName objectName, boolean deleteSupported) throws Exception
 	{
 		_connection = connection;
@@ -54,8 +57,7 @@ public class FileLogPrinter implements HtmlPrinter
 		else
 			out.write("can be logged ");
 
-		String filename = (String) _connection.getAttribute(_objectName,
-				"filename");
+		String filename = (String) _connection.getAttribute(_objectName, "filename");
 		if (filename == null)
 			out.write("on the console");
 		else
@@ -67,25 +69,48 @@ public class FileLogPrinter implements HtmlPrinter
 		out.write(" days.<br/>");
 
 		if (on)
-		{
-			out.write(PrinterUtil.getActionLink("stop",
-					_objectName, getPage(), "Deactivate file message log"));
-		}
+			new StopFileLoggerAction(getPage(), null).print(out);
 		else
-		{
-			out.write(PrinterUtil.getActionLink("start",
-					_objectName, getPage(), "Activate file message log"));
-		}
+			new StartFileLoggerAction(getPage(), null).print(out);
 		if (_deleteSupported)
 		{
 			out.write("&nbsp;&nbsp;&nbsp;");
-			out.write(PrinterUtil.getActionLink("deleteLogFiles", _objectName,
-					getPage(), "Delete log files"));
+			new DeleteLogsFilesAction(getPage()).print(out);
 		}
 	}
 	
 	public Page getPage()
 	{
 		return _page;
+	}
+	
+	public static class StartFileLoggerAction extends StartAction
+	{
+		public StartFileLoggerAction(Page page, ObjectName objectName)
+		{
+			super(page, "activate-file-message-log", objectName);
+		}
+	}
+	
+	public static class StopFileLoggerAction extends StopAction
+	{
+		public StopFileLoggerAction(Page page, ObjectName objectName)
+		{
+			super(page, "deactivate-file-message-log", objectName);
+		}
+	}
+	
+	public static class DeleteLogsFilesAction extends Action
+	{
+		public DeleteLogsFilesAction(Page page)
+		{
+			super(page, "delete-logs-files");
+		}
+
+		@Override
+		protected void doProcess(HttpServletRequest request) throws Exception
+		{
+			throw new UnsupportedOperationException();
+		}
 	}
 }

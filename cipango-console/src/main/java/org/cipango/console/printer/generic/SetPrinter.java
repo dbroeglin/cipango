@@ -82,10 +82,14 @@ public class SetPrinter implements HtmlPrinter
 			if (row.getOperations() != null)
 			{
 				out.write("<td>");
-				Iterator<String> it = row.getOperations().iterator();
+				Iterator<?> it = row.getOperations().iterator();
 				while (it.hasNext())
 				{
-					out.write(it.next());
+					Object o = it.next();
+					if (o instanceof HtmlPrinter)
+						((HtmlPrinter) o).print(out);
+					else
+						out.write(String.valueOf(o));
 					if (it.hasNext())
 						out.write("&nbsp;&nbsp;&nbsp;");
 				}

@@ -16,6 +16,8 @@ package org.cipango.callflow;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,11 +37,13 @@ import org.eclipse.jetty.util.log.Log;
 
 public class JmxMessageLog extends AbstractMessageLog
 {
-	private static final int DEFAULT_MAX_MESSAGES = 50;
+	private static final int DEFAULT_MAX_MESSAGES = 100;
 	
 	private MessageInfo[] _messages;
 	private int _maxMessages = DEFAULT_MAX_MESSAGES;
 	private int _cursor;
+	
+	private Map<String, String> _alias = new HashMap<String, String>();
 	
 	public int getMaxMessages()
 	{
@@ -190,7 +194,7 @@ public class JmxMessageLog extends AbstractMessageLog
 		return generateGraph(getMessageList(maxMessages, msgFilter), xslUri, includeMsg);
 	}
 	
-	private byte[] generateGraph(List<MessageInfo> messages, String xslUri, boolean includeMsg) throws IOException
+	protected byte[] generateGraph(List<MessageInfo> messages, String xslUri, boolean includeMsg) throws IOException
 	{
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		OutputStreamWriter out = new OutputStreamWriter(os);
@@ -211,7 +215,8 @@ public class JmxMessageLog extends AbstractMessageLog
 				if (indexLocal == -1)
 				{
 					out.write("\t\t<host>");
-					out.write("Cipango");
+					String alias = _alias.get(info.getLocalKey());
+					out.write(alias == null ? "Cipango" : alias);
 					out.write("</host>\n");
 					indexLocal = index++;
 				}
@@ -221,7 +226,8 @@ public class JmxMessageLog extends AbstractMessageLog
 			if (!hostsMap.containsKey(info.getRemoteKey()))
 			{
 				out.write("\t\t<host>");
-				out.write(info.getRemote());
+				String alias = _alias.get(info.getRemoteKey());
+				out.write(alias == null ? info.getRemote() : alias);
 				out.write("</host>\n");
 				hostsMap.put(info.getRemoteKey(), index++);
 			}
@@ -276,13 +282,19 @@ public class JmxMessageLog extends AbstractMessageLog
 		return os.toByteArray();
 	}
 	
-	private void replaceAll(StringBuilder sb, String toFind, Object toSet)
+	protected void replaceAll(StringBuilder sb, String toFind, Object toSet)
 	{
 		int index = 0;
 		while ((index = sb.indexOf(toFind)) != -1)
 			sb.replace(index, index + toFind.length(), toSet.toString());
 	}
-		
+	
+	public void addAlias(String host, int port, String name) throws UnknownHostException
+	{
+		InetAddress addr = InetAddress.getByName(host);
+		_alias.put(addr.getHostAddress() + ":" + port, name);
+	}
+			
 	private class LogIterator implements ListIterator<MessageInfo>
 	{
 		private int _itCursor;

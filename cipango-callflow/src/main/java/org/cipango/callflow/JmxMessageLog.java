@@ -52,6 +52,8 @@ public class JmxMessageLog extends AbstractMessageLog
 
 	public void setMaxMessages(int maxMessages)
 	{
+		if (maxMessages <= 0)
+			throw new IllegalArgumentException("Max message must be greater than 0");
 		synchronized (this)
 		{
 			if (isRunning() && maxMessages != _maxMessages)

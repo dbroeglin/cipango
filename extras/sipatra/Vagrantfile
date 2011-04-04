@@ -2,7 +2,7 @@ Vagrant::Config.run do |config|
   config.vm.box = "squeeze64"
   
   config.vm.customize do |vm| 
-    vm.memory_size = 256
+    vm.memory_size = 512
   end
 
   # config.vm.boot_mode = :gui

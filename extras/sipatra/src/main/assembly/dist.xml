@@ -6,12 +6,11 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <dependencySets>
     <dependencySet>
-      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
       <includes>
         <include>*:*</include>
       </includes>
       <excludes>
-        <exclude>org.jruby:*</exclude>
         <exclude>javax.servlet:*</exclude>
       </excludes>
     </dependencySet>

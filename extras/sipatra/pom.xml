@@ -10,12 +10,12 @@
     <artifactId>sipatra</artifactId>
     <name>Ruby DSL for SIP Servlets</name>
     <packaging>jar</packaging>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
     <dependencies>
         <dependency>
             <groupId>org.jruby</groupId>
             <artifactId>jruby-complete</artifactId>
-            <version>1.5.5</version>
+            <version>1.6.0</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -51,8 +51,9 @@
                 <version>2.2</version>
                 <configuration>
                     <descriptors>
-                        <descriptor>src/main/assembly/dir.xml</descriptor>
+                        <descriptor>src/main/assembly/dist.xml</descriptor>
                     </descriptors>
+                    <finalName>gem</finalName>
                 </configuration>
                 <executions>
                     <execution>

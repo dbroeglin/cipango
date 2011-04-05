@@ -184,6 +184,12 @@ module Sipatra
         address      
       end
       
+      def create_uri(value, options = {})
+        uri = sip_factory.createURI(value)
+        uri.setLrParam((options.has_key? :lr) ? options[:lr] : true)
+        uri
+      end
+
       def push_route(route)
         message.pushRoute(sip_factory.createAddress(route))
       end    

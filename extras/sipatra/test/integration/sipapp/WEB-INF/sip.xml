@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip-app  xmlns="http://www.jcp.org/xml/ns/sipservlet"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://www.jcp.org/xml/ns/sipservlet http://www.jcp.org/xml/ns/sipservlet/sip-app_1_1.xsd"
+          version="1.1">
+  <listener>
+    <listener-class>org.cipango.sipatra.DefaultContextLoader</listener-class>
+  </listener>
+  <servlet>
+    <servlet-name>sipatra</servlet-name>
+    <servlet-class>org.cipango.sipatra.SipatraServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+</sip-app>

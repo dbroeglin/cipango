@@ -1,9 +1,8 @@
 Vagrant::Config.run do |config|
   config.vm.box = "squeeze64"
-  config.vm.box_url = "http://files.vagrantup.com/lucid32.box"
   
   config.vm.customize do |vm| 
-    vm.memory_size = 256
+    vm.memory_size = 512
   end
 
   # config.vm.boot_mode = :gui
@@ -18,6 +17,7 @@ Vagrant::Config.run do |config|
     chef.cookbooks_path = "cookbooks"
     chef.add_recipe "java"
     chef.add_recipe "sipp"
+    chef.add_recipe "asterisk"
     chef.json.merge!( 
       :java => {
         :install_flavor => "sun"

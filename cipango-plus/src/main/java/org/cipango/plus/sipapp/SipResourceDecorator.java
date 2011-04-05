@@ -73,10 +73,20 @@ public class SipResourceDecorator implements Decorator
 			sipCtx = (Context) compCtx.createSubcontext("sip");
 		}
 
-		sipCtx.createSubcontext(_name);
-		compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_SIP_FACTORY_POSTFIX, _context.getSipFactory());
-		compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_TIMER_SERVICE_POSTFIX, _context.getTimerService());
-		compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_SIP_SESSIONS_UTIL_POSTFIX, _context.getSipSessionsUtil());
+		if (!"/".equals(_name) && !"".equals(_name))
+		{
+			sipCtx.createSubcontext(_name);
+			compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_SIP_FACTORY_POSTFIX, _context.getSipFactory());
+			compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_TIMER_SERVICE_POSTFIX, _context.getTimerService());
+			compCtx.bind(JNDI_SIP_PREFIX + _name + JNDI_SIP_SESSIONS_UTIL_POSTFIX, _context.getSipSessionsUtil());
+		}
+		else
+		{
+			compCtx.bind(JNDI_SIP_PREFIX + JNDI_SIP_FACTORY_POSTFIX.substring(1), _context.getSipFactory());
+			compCtx.bind(JNDI_SIP_PREFIX + JNDI_TIMER_SERVICE_POSTFIX.substring(1), _context.getTimerService());
+			compCtx.bind(JNDI_SIP_PREFIX + JNDI_SIP_SESSIONS_UTIL_POSTFIX.substring(1), _context.getSipSessionsUtil());
+
+		}
 		Log.debug("Bind SIP Resources on app " + _name);
 		Thread.currentThread().setContextClassLoader(oldLoader);
 	}

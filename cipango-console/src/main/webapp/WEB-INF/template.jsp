@@ -1,4 +1,4 @@
-<%@ page import="java.util.*,org.cipango.console.*,org.cipango.console.printer.*, java.io.PrintWriter"%>
+<%@ page import="java.util.*,org.cipango.console.*,org.cipango.console.printer.*,org.cipango.console.printer.generic.*, java.io.PrintWriter"%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 
 <html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="en-EN">
@@ -23,7 +23,7 @@
 				<% 
 				if (request.getUserPrincipal() != null) {
 				%>
-				<span>Logged in as <a href=""><%= request.getUserPrincipal().getName() %></a> | <a href="signout" title="Sign out">Sign out</a>&nbsp;&nbsp;</span>
+				<span>Logged in as <a href=""><%= request.getUserPrincipal().getName() %></a> | <a href="login.jsp?logout=true" title="Log Out">Log Out</a>&nbsp;&nbsp;</span>
 				<% } %>
 			</div>
 		</div>
@@ -39,14 +39,14 @@
 					<%
 					String info = (String) session.getAttribute(Attributes.INFO);
 					if (info != null) {
-						%><div id="info"><%= info %></div><%
+						%><div class="info"><%= info %></div><%
 						session.removeAttribute(Attributes.INFO);
 					}
 					
-					String problem = (String) session.getAttribute(Attributes.PROBLEM);
-					if (problem != null) {
-						%><div id="warn"><%= problem %></div><%
-						session.removeAttribute(Attributes.PROBLEM);
+					String warn = (String) session.getAttribute(Attributes.WARN);
+					if (warn != null) {
+						%><div class="warn"><%= warn %></div><%
+						session.removeAttribute(Attributes.WARN);
 					}
 					out.write(menuPrinter.getHtmlTitle());
 					HtmlPrinter printer = (HtmlPrinter) request.getAttribute(Attributes.CONTENT);

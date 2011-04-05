@@ -88,7 +88,7 @@ public class SipXmlTest
 	@Test
 	public void testSipXml10() throws Exception
 	{
-		System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
+		//System.setProperty("org.eclipse.jetty.xml.XmlParser.Validating", "false");
 		
 		SipAppContext context = new SipAppContext();
 		SipMetaData metaData = context.getSipMetaData();
@@ -204,6 +204,7 @@ public class SipXmlTest
 		assertEquals(2, mappings.length);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testNamespace() throws Exception
 	{

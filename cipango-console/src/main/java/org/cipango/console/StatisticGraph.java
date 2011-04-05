@@ -56,6 +56,8 @@ public class StatisticGraph
 
 	private Logger _logger = Log.getLogger("console");
 	
+	private boolean _started = false;
+	
 	public StatisticGraph(MBeanServerConnection connection) throws AttributeNotFoundException, InstanceNotFoundException, MBeanException, ReflectionException, IOException
 	{
 		_connection = connection;
@@ -183,6 +185,8 @@ public class StatisticGraph
 
 	public void start() throws Exception
 	{
+		if (_started)
+			return;
 		try
 		{
 			if (_dataFileName == null)
@@ -228,15 +232,22 @@ public class StatisticGraph
 			RrdDb rrdDb = _rrdPool.requestRrdDb(_rrdPath);
 			setRefreshPeriod(rrdDb.getRrdDef().getStep());
 			_rrdPool.release(rrdDb);
+			_started = true;
 		}
 		catch (Exception e)
 		{
 			_logger.warn("Unable to create RRD", e);
 		}
 	}
+	
+	public boolean isStarted()
+	{
+		return _started;
+	}
 
 	public void stop()
 	{
+		_started = false;
 		if (_task != null)
 			_task.cancel();
 	}

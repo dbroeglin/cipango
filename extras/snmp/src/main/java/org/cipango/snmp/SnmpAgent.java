@@ -16,9 +16,12 @@ package org.cipango.snmp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.cipango.server.Server;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.log.Log;
 import org.snmp4j.TransportMapping;
@@ -53,7 +56,7 @@ import org.snmp4j.smi.Variable;
 import org.snmp4j.transport.DefaultTcpTransportMapping;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
-public class SnmpAgent extends BaseAgent implements LifeCycle
+public class SnmpAgent extends BaseAgent implements LifeCycle, Dumpable
 {
 
 	public static final OID NEXCOM_ENTREPRISE_OID = new OID("1.3.6.1.4.26588");
@@ -420,5 +423,16 @@ public class SnmpAgent extends BaseAgent implements LifeCycle
 	public void setServer(Server server)
 	{
 		_server = server;
+	}
+
+	public String dump()
+	{
+		return AggregateLifeCycle.dump(this);
+	}
+
+	public void dump(Appendable out, String indent) throws IOException
+	{
+		out.append(String.valueOf(this)).append("\n");
+		AggregateLifeCycle.dump(out,indent,Arrays.asList(_connectors), Arrays.asList(_trapReceivers));
 	}
 }

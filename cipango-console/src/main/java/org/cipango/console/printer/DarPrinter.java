@@ -24,6 +24,7 @@ import java.util.Properties;
 import javax.management.MBeanServerConnection;
 
 import org.cipango.console.ConsoleFilter;
+import org.cipango.console.printer.generic.HtmlPrinter;
 
 public class DarPrinter implements HtmlPrinter
 {

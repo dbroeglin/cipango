@@ -16,6 +16,7 @@ package org.cipango.server;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
 
 import javax.servlet.sip.SipURI;
 
@@ -28,6 +29,8 @@ import org.cipango.sip.Via;
 import org.cipango.sip.SipParser.EventHandler;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.io.Buffer;
 import org.eclipse.jetty.io.ByteArrayBuffer;
@@ -35,7 +38,7 @@ import org.eclipse.jetty.io.BufferCache.CachedBuffer;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.thread.ThreadPool;
 
-public abstract class AbstractSipConnector extends AbstractLifeCycle implements SipConnector 
+public abstract class AbstractSipConnector extends AbstractLifeCycle implements SipConnector, Dumpable
 {
     public static String __localhost;
     
@@ -307,6 +310,7 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
         return _sipUri;
     }
     
+    @Override
     public String toString() 
     {
     	/*
@@ -353,6 +357,20 @@ public abstract class AbstractSipConnector extends AbstractLifeCycle implements 
 	{
 		return _connectionsOpenMax;
 	}
+	
+    public String dump()
+    {
+        return AggregateLifeCycle.dump(this);
+    }
+
+    public void dump(Appendable out, String indent) throws IOException
+    {
+        out.append(String.valueOf(this)).append("\n");
+        if (_externalHost != null)
+        	AggregateLifeCycle.dump(out,indent,Arrays.asList(new Object[]{"ExternalHost: " + _externalHost,
+        			"ExternalPort: " + _externalPort}));
+    }
+    
 	
     class Acceptor implements Runnable 
     {

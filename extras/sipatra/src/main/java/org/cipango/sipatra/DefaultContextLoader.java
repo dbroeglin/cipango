@@ -82,7 +82,7 @@ public class DefaultContextLoader implements ServletContextListener
 		conf.timeBetweenEvictionRunsMillis = PropertyUtils.getLongProperty(Properties.SIPATRA_POOL_TIME_EVICTION, -1L, servletContext);
 		
 		GenericObjectPool pool = new GenericObjectPool(new JRubyRuntimeFactory(appPath, scriptPath), conf);
-		startPool(pool, PropertyUtils.getIntegerProperty(Properties.SIPATRA_POOL_INIT_POOL_SIZE, 0, servletContext));
+		startPool(pool, PropertyUtils.getIntegerProperty(Properties.SIPATRA_POOL_INIT_POOL_SIZE, 1, servletContext));
 		servletContext.setAttribute(Attributes.POOL, pool);
 	}
 	

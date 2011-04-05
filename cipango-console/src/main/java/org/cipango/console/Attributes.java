@@ -18,7 +18,7 @@ public class Attributes
 
 	public static final String CONTENT = "content";
 	public static final String MENU = "menu";
-	public static final String PROBLEM = "problem";
+	public static final String WARN = "warn";
 	public static final String INFO = "info";
 
 	public static final String JAVASCRIPT_SRC = "javascriptSrc";

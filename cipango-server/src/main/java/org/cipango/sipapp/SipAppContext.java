@@ -105,7 +105,9 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		"3262", // Reliability of Provisional Responses
 		"3265", // (SIP)-Specific Event Notification. 
 		"3311", // (SIP) UPDATE Method
-		"3428"  // SIP Extension for Instant Messaging  
+		"3428", // SIP Extension for Instant Messaging  
+		"6026"	// Correct Transaction Handling for 2xx Responses to Session Initiation Protocol (SIP) INVITE Requests
+
 	};
     
     /*
@@ -403,10 +405,7 @@ public class SipAppContext extends WebAppContext implements SipHandler
 		
 		
 		super.startContext();
-		      
-		if (_name == null)
-			_name = getDefaultName();		
-		
+		      		
 		if (_servletHandler != null && _servletHandler.isStarted())
     	{
     	    for (Decorator decorator : getDecorators())
@@ -743,6 +742,19 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	{
 		return _specVersion;
 	}
+    
+    public String getSpecVersionAsString()
+	{
+		switch (_specVersion)
+		{
+		case VERSION_10:
+			return "1.0";
+		case VERSION_11:
+			return "1.1";
+		default:
+			return String.valueOf(_specVersion);
+		}
+	}
 
 	public void setSpecVersion(int specVersion)
 	{
@@ -757,6 +769,14 @@ public class SipAppContext extends WebAppContext implements SipHandler
 	public SipMetaData getSipMetaData()
 	{
 		return _sipMetaData;
+	}
+		
+	@Override
+	public String toString()
+	{
+		if (_name != null)
+			return super.toString() + ", " + _name;
+		return super.toString();
 	}
 
 	    	

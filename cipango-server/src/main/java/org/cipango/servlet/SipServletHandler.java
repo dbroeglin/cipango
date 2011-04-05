@@ -16,7 +16,10 @@ package org.cipango.servlet;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import javax.servlet.Servlet;
@@ -42,9 +45,11 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandler.Context;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler.Decorator;
 
 import org.eclipse.jetty.util.LazyList;
+import org.eclipse.jetty.util.TypeUtil;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.MultiException;
 
@@ -378,5 +383,21 @@ public class SipServletHandler extends ServletHandler implements SipHandler
 	{
 		for (Decorator decorator : _context.getDecorators())
 			decorator.destroyServletInstance(servlet);
+	}
+	
+	@Override
+	public void dump(Appendable out, String indent) throws IOException
+	{
+		super.dump(out, indent);
+		out.append(indent).append(" |\n");
+		Collection<?> c;
+		if (_mainServlet != null)
+			c = Collections.singleton("Main servlet=" + _mainServlet.getName());
+		else
+			c = TypeUtil.asList(getSipServletMappings());
+		
+		dump(out,indent,
+                c,
+                TypeUtil.asList(getSipServlets()));
 	}
 }

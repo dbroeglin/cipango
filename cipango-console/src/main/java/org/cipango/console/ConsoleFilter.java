@@ -18,25 +18,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.security.Principal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import javax.management.Attribute;
-import javax.management.JMException;
-import javax.management.MBeanAttributeInfo;
-import javax.management.MBeanInfo;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
-import javax.management.ReflectionException;
+import javax.management.QueryExp;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -54,31 +52,26 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.cipango.console.printer.AbstractLogPrinter.Output;
-import org.cipango.console.printer.CallsPrinter;
+import org.cipango.console.printer.ApplicationPrinter;
 import org.cipango.console.printer.DarPrinter;
-import org.cipango.console.printer.DiameterLogPrinter;
-import org.cipango.console.printer.DiameterStatisticsPrinter;
-import org.cipango.console.printer.ErrorPrinter;
-import org.cipango.console.printer.FileLogPrinter;
-import org.cipango.console.printer.HtmlPrinter;
-import org.cipango.console.printer.HttpStatisticsPrinter;
+import org.cipango.console.printer.DumpPrinter;
 import org.cipango.console.printer.MenuPrinter;
-import org.cipango.console.printer.MultiplePrinter;
 import org.cipango.console.printer.OamPrinter;
-import org.cipango.console.printer.ObjectPrinter;
-import org.cipango.console.printer.PrinterUtil;
-import org.cipango.console.printer.Property;
-import org.cipango.console.printer.ServletMappingPrinter;
-import org.cipango.console.printer.SetPrinter;
-import org.cipango.console.printer.SipLogPrinter;
-import org.cipango.console.printer.SipStatisticPrinter;
 import org.cipango.console.printer.SystemPropertiesPrinter;
-import org.cipango.console.printer.UploadSarPrinter;
+import org.cipango.console.printer.generic.ErrorPrinter;
+import org.cipango.console.printer.generic.HtmlPrinter;
+import org.cipango.console.printer.generic.MultiplePrinter;
+import org.cipango.console.printer.generic.PrinterUtil;
+import org.cipango.console.printer.generic.PropertiesPrinter;
+import org.cipango.console.printer.generic.SetPrinter;
+import org.cipango.console.printer.logs.AbstractLogPrinter.Output;
+import org.cipango.console.printer.logs.CallsPrinter;
+import org.cipango.console.printer.logs.DiameterLogPrinter;
+import org.cipango.console.printer.logs.FileLogPrinter;
+import org.cipango.console.printer.logs.SipLogPrinter;
+import org.cipango.console.printer.statistics.DiameterStatisticsPrinter;
+import org.cipango.console.printer.statistics.HttpStatisticsPrinter;
+import org.cipango.console.printer.statistics.SipStatisticPrinter;
 import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.log.Logger;
 import org.w3c.dom.Node;
@@ -87,8 +80,19 @@ import org.w3c.dom.Node;
 public class ConsoleFilter implements Filter
 {
 	
+	public static final QueryExp APPLICATION_PAGES_QUERY = new QueryExp()
+	{			
+		public void setMBeanServer(MBeanServer s)
+		{
+		}
+		
+		public boolean apply(ObjectName name)
+		{
+			return name.getDomain().equals("org.cipango.console") && name.getKeyProperty("page") != null;
+		}
+	};
+	
 	public static final ObjectName 
-		APPLICATION_PAGES = ObjectNameFactory.create("org.cipango.console:page=*"),
 		CONNECTOR_MANAGER = ObjectNameFactory.create("org.cipango.server:type=connectormanager,id=0"),
 		CONTEXT_DEPLOYER = ObjectNameFactory.create("org.cipango.deployer:type=contextdeployer,id=0"),
 		DAR = ObjectNameFactory.create("org.cipango.dar:type=defaultapplicationrouter,id=0"),
@@ -113,6 +117,7 @@ public class ConsoleFilter implements Filter
 	private StatisticGraph _statisticGraph;
 	private Deployer _deployer;
 	private ServletContext _servletContext;
+	private Map<String, List<Action>> _actions = new HashMap<String, List<Action>>();
 	
 	public void init(FilterConfig config) throws ServletException
 	{
@@ -130,9 +135,11 @@ public class ConsoleFilter implements Filter
 				_logger.warn("Failed to start statistic graph", e);
 			}
 			_deployer = new Deployer(_mbsc);
-			
 			if (_servletContext.getAttribute(MenuFactory.class.getName()) == null)
 				_servletContext.setAttribute(MenuFactory.class.getName(), new MenuFactoryImpl(_mbsc));
+			
+			Action.load(ApplicationPrinter.class);
+			registerActions();
 		}
 	}
 	
@@ -141,6 +148,45 @@ public class ConsoleFilter implements Filter
 	{	
 		if (_statisticGraph != null)
 			_statisticGraph.stop();
+	}
+	
+	protected void registerActions()
+	{
+		synchronized (Action.ACTIONS)
+		{
+			for (Action action : Action.ACTIONS)
+				registerAction(action);
+			Action.ACTIONS.clear();
+		}
+	}
+	
+	public void registerAction(Action action)
+	{
+		action.setConsoleFilter(this);
+		List<Action> list = _actions.get(action.getPage().getName());
+		if (list == null)
+		{
+			list = new ArrayList<Action>();
+			_actions.put(action.getPage().getName(), list);
+		}
+		list.add(action);
+	}
+	
+	protected Action getAction(Page page, HttpServletRequest request)
+	{
+		String param = request.getParameter(Parameters.ACTION);
+		if (param == null || page == null)
+			return null;
+		
+		List<Action> list = _actions.get(page.getName());
+		if (list != null)
+		{
+			for (Action action : list)
+				if (action.getParameter().equalsIgnoreCase(param))
+					return action;
+		}
+		return null;
+
 	}
 	
 	public MenuFactory getMenuFactory()
@@ -223,44 +269,33 @@ public class ConsoleFilter implements Filter
 			if (currentPage != null && !currentPage.isEnabled(_mbsc))
 			{
 				forward = false;
-				request.getSession().setAttribute(Attributes.PROBLEM, "The page " + command + " is not available");
+				request.getSession().setAttribute(Attributes.WARN, "The page " + command + " is not available");
 				response.sendRedirect(MenuPrinter.ABOUT.getName());
 				return;
 			}
 				
-			if (currentPage != null && !currentPage.isDynamic()) // Apply generic action only on page managed by the console
+			if (currentPage != null)
 			{
-				try
+				registerActions();
+				Action action = getAction(currentPage, request);
+				if (action != null)
 				{
-					boolean hasActions = processGenericAction(request);
-					if(hasActions)
-					{
-						forward = false;
-						response.sendRedirect(command);
-						return;
-					}
-				}
-				catch (ReflectionException e)
-				{
-					Throwable cause = e.getCause();
-					request.getSession().setAttribute(Attributes.PROBLEM, "Unable to process action: "
-							+ cause);
-				}
-				catch (Throwable e)
-				{
-					_logger.warn(e.getMessage(), e);
-					request.getSession().setAttribute(Attributes.PROBLEM, "Unable to process action: " + e
-							+ ":" + e.getMessage());
-				}
-				
+					action.process(request);
+					forward = false;
+					response.sendRedirect(command);
+				} 
 			}
 
 			if (command.equals(MenuPrinter.CONFIG_SIP.getName()))
 				doSipConfig(request);
 			else if (command.equals(MenuPrinter.MAPPINGS.getName()))
-				doApplications(request);
+			{
+				request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
+				request.setAttribute(Attributes.CONTENT, new ApplicationPrinter(_mbsc));
+			}
 			else if (command.equals(MenuPrinter.STATISTICS_SIP.getName()))
-				doSipStatistics(request);
+				request.setAttribute(Attributes.CONTENT, new SipStatisticPrinter(_mbsc, _statisticGraph, 
+						(Integer) request.getSession().getAttribute(Parameters.TIME)));
 			else if (command.equals(MenuPrinter.ABOUT.getName()))
 				doAbout(request);
 			else if (command.equals(MenuPrinter.SYSTEM_PROPERTIES.getName()))
@@ -274,7 +309,7 @@ public class ConsoleFilter implements Filter
 			else if (command.equals(MenuPrinter.STATISTICS_HTTP.getName()))
 				request.setAttribute(Attributes.CONTENT, new HttpStatisticsPrinter(_mbsc));
 			else if (command.equals(MenuPrinter.HTTP_LOGS.getName()))
-				doHttpLog(request);
+				request.setAttribute(Attributes.CONTENT, new FileLogPrinter(_mbsc, MenuPrinter.HTTP_LOGS, HTTP_LOG, false));
 			else if (command.equals(MenuPrinter.DAR.getName()))
 				request.setAttribute(Attributes.CONTENT, new DarPrinter(_mbsc));
 			else if (command.equals("statisticGraph.png"))
@@ -290,10 +325,10 @@ public class ConsoleFilter implements Filter
 			{
 				MultiplePrinter printer = new MultiplePrinter();
 				ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "connectors");
-				printer.addLast(new SetPrinter(connectors, "snmp.connectors", _mbsc));
+				printer.add(new SetPrinter(connectors, "snmp.connectors", _mbsc));
 				
 				ObjectName[] traps = (ObjectName[]) _mbsc.getAttribute(SNMP_AGENT, "trapReceivers");
-				printer.addLast(new SetPrinter(traps, "snmp.trap", _mbsc));
+				printer.add(new SetPrinter(traps, "snmp.trap", _mbsc));
 				request.setAttribute(Attributes.CONTENT, printer);
 			}
 			else if (command.equals(MenuPrinter.CALLS.getName()))
@@ -317,18 +352,12 @@ public class ConsoleFilter implements Filter
 				forward = false;
 				doMessageSvg(request, response);
 			}
-			else if (command.equals("signout"))
+			else if (command.equals("dump.txt"))
 			{
 				forward = false;
-				request.getSession(false).invalidate();
-				request.setAttribute(Attributes.INFO, "sucessfull signout");
-				request.getRequestDispatcher("/login.jsp").forward(request, response);
-			}
-			else if (command.equals("auth-fail"))
-			{
-				forward = false;
-				request.setAttribute(Attributes.PROBLEM, "Invalid login or password");
-				request.getRequestDispatcher("/login.jsp").forward(request, response);
+				response.setContentType("text/plain");
+				response.setBufferSize(65536);
+				new DumpPrinter(getMbsc(), this).print(response.getWriter());
 			}
 			else if (doResource(command, response))
 			{
@@ -375,166 +404,42 @@ public class ConsoleFilter implements Filter
 		}
 	}
 	
-	private void doAbout(HttpServletRequest request) throws JMException, IOException
+	private void doAbout(HttpServletRequest request) throws Exception
 	{
 		MultiplePrinter printer = new MultiplePrinter();
-		ObjectPrinter server = new ObjectPrinter(ConsoleFilter.SERVER, "version", _mbsc, false);
+		printer.add(new PropertiesPrinter(getVersion()));
+		printer.add(new PropertiesPrinter(getEnvironment()));
+		request.setAttribute(Attributes.CONTENT, printer);
+	}
+	
+	public PropertyList getVersion() throws Exception
+	{
+		PropertyList properties = new PropertyList(_mbsc, ConsoleFilter.SERVER, "version");
 		Long startupTime = (Long) _mbsc.getAttribute(ConsoleFilter.SERVER, "startupTime");
-		List<Property> properties = new ArrayList<Property>();
 		properties.add(new Property("Startup Time", new Date(startupTime)));
 		properties.add(new Property("Server Uptime", PrinterUtil.getDuration(System.currentTimeMillis() - startupTime)));
-		server.setProperties(properties);
-		printer.addLast(server);
-		
-		ObjectPrinter env = new ObjectPrinter(ConsoleFilter.SERVER, "environment", _mbsc, false);
-		properties = new ArrayList<Property>();
-		properties.add(new Property("OS / Hardware", System.getProperty("os.name") + " " + System.getProperty("os.version")
+		return properties;
+	}
+	
+	public PropertyList getEnvironment() throws Exception
+	{
+		PropertyList env = new PropertyList();
+		env.setTitle("Environment");
+		env.add(new Property("OS / Hardware", System.getProperty("os.name") + " " + System.getProperty("os.version")
 				+ " - " + System.getProperty("os.arch")));
-		properties.add(new Property("Jetty Home", System.getProperty("jetty.home")));
-		properties.add(new Property("Java Runtime", System.getProperty("java.runtime.name") + " " + System.getProperty("java.runtime.version")));
+		env.add(new Property("Jetty Home", System.getProperty("jetty.home")));
+		env.add(new Property("Java Runtime", System.getProperty("java.runtime.name") + " " + System.getProperty("java.runtime.version")));
 		
 		Runtime r = Runtime.getRuntime();
 		long usedMemory = r.totalMemory() - r.freeMemory();
 		NumberFormat f = DecimalFormat.getPercentInstance();
 		f.setMinimumFractionDigits(1);
 		String percentage = f.format(((float) usedMemory) / r.maxMemory());
-		properties.add(new Property("Memory", (usedMemory >> 20) + " Mb of " + (r.maxMemory() >> 20) + " Mb (" +
+		env.add(new Property("Memory", (usedMemory >> 20) + " Mb of " + (r.maxMemory() >> 20) + " Mb (" +
 				percentage + ")"));
-		env.setProperties(properties);
-		printer.addLast(env);
-		request.setAttribute(Attributes.CONTENT, printer);
-		
+		return env;
 	}
-
-	private boolean processGenericAction(HttpServletRequest request)
-			throws Exception
-	{
-		String action = request.getParameter(Parameters.ACTION);
-		String actions = request.getParameter(Parameters.ACTIONS);
-		boolean hasAction = action != null || actions != null;
 		
-		String sObjectName = request.getParameter(Parameters.OBJECT_NAME);
-		
-		if (action != null && sObjectName != null)
-		{
-			ObjectName objectName = ObjectNameFactory.create(sObjectName);
-			if (action.equals("undeploy"))
-			{
-				_deployer.undeploy(objectName);	
-				String name = objectName.getKeyProperty("name");
-				request.getSession().setAttribute(Attributes.INFO, "Successfull request to undeploy application " + name);
-				Log.info("User " + request.getUserPrincipal() 
-						+ " requested to undeploy application " + name);
-			}
-			else
-			{
-				_mbsc.invoke(objectName, action, null, null);
-				request.getSession().setAttribute(Attributes.INFO, "Action " + action + " successfull");
-			}
-		}
-
-
-		if (actions == null)
-			return hasAction;
-		
-		@SuppressWarnings("rawtypes")
-		Enumeration enumeration = request.getParameterNames();
-		while (enumeration.hasMoreElements())
-		{
-			String element = (String) enumeration.nextElement();
-			if (element.endsWith(Parameters.DOT_VALUE))
-			{
-				String name = element.substring(0, element.lastIndexOf('.'));
-				sObjectName = request.getParameter(name + Parameters.DOT_OBJECT_NAME);
-				ObjectName objectName = ObjectNameFactory.create(sObjectName);
-				MBeanInfo mBeanInfo = _mbsc.getMBeanInfo(objectName);
-				MBeanAttributeInfo attributesInfos[] = mBeanInfo.getAttributes();
-
-				for (int i = 0; i < attributesInfos.length; i++)
-				{
-					if (name.equals(attributesInfos[i].getName()))
-					{
-						if (attributesInfos[i].isWritable())
-						{
-							String sValue = request.getParameter(name + Parameters.DOT_VALUE);
-							Object value;
-							String type = attributesInfos[i].getType();
-							if (type.equals(String.class.getName()))
-							{
-								value = sValue;
-							}
-							else if (type.equals(Integer.class.getName()) || type.equals("int"))
-							{
-								value = new Integer(sValue);
-							}
-							else if (type.equals(Boolean.class.getName())
-									|| type.equals("boolean"))
-							{
-								value = new Boolean(sValue);
-							}
-							else
-							{
-								_logger.warn("Unable to set {} = {}: Unknown type:" + type, name, sValue);
-								break;
-							}
-							Attribute attribute = new Attribute(name, value);
-							_mbsc.setAttribute(objectName, attribute);
-						}
-						break;
-					}
-				}
-			}
-		}			
-		return hasAction;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void doApplications(HttpServletRequest request)
-			throws Exception
-	{
-		if (ServletFileUpload.isMultipartContent(request))
-		{
-			FileItem item = null;
-			try
-			{
-				FileItemFactory factory = new DiskFileItemFactory();
-				ServletFileUpload upload = new ServletFileUpload(factory);
-				List<FileItem>  items = upload.parseRequest(request);
-	
-				Iterator<FileItem> it = items.iterator();
-				while (it.hasNext())
-				{
-					item = it.next();
-					if (!item.isFormField())
-					{
-						_deployer.deploy(item.getName(), item.get());
-						request.getSession().setAttribute(Attributes.INFO,
-								"Successful request to deploy " + item.getName());
-						Log.info("User " + request.getUserPrincipal() 
-								+ " requested to deploy application: " + item.getName());
-					}
-				}
-			}
-			catch (Throwable e)
-			{
-				_logger.warn("Unable to deploy " + item.getName(), e);
-				request.getSession().setAttribute(Attributes.PROBLEM, "Unable to deploy "
-						+ item.getName() + ": " + e.getMessage());
-			}
-		}
-
-		MultiplePrinter printer = new MultiplePrinter();
-
-		ObjectName[] contexts = PrinterUtil.getContexts(_mbsc);
-
-		printer.addLast(new SetPrinter(contexts, "appContexts", _mbsc));
-		printer.addLast(new ServletMappingPrinter(contexts, _mbsc));
-		printer.addLast(new UploadSarPrinter());
-		request.setAttribute(Attributes.JAVASCRIPT_SRC, "javascript/upload.js");
-
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
-	
 //  ---------------------------  SIP -------------------------------------
 
 	private void doSipConfig(HttpServletRequest request) throws Exception
@@ -542,45 +447,49 @@ public class ConsoleFilter implements Filter
 		MultiplePrinter printer = new MultiplePrinter();
 		ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(ConsoleFilter.CONNECTOR_MANAGER, "connectors");
 
-		printer.addLast(new SetPrinter(connectors, "sip.connectors", _mbsc));
+		printer.add(new SetPrinter(connectors, "sip.connectors", _mbsc));
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "sipThreadPool");
-		printer.addLast(new ObjectPrinter(threadPool, "sip.threadPool", _mbsc));
-		printer.addLast(new ObjectPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc));
+		
+		PropertyList properties = new PropertyList(_mbsc, threadPool, "sip.threadPool");
+		for (Property property : properties)
+		{
+			String name = property.getName();
+			int index = Math.max(name.indexOf("in pool"), name.indexOf("in the pool"));
+			if (index != -1)
+				property.setName(name.substring(0, index));
+		}
+		printer.add(new PropertiesPrinter(properties));
+		
+		printer.add(new PropertiesPrinter(ConsoleFilter.TRANSACTION_MANAGER, "sip.timers", _mbsc)
+		{
+			@Override
+			protected void printHeaders(Writer out, boolean hasNotes) throws Exception
+			{
+				out.write("<div class=\"data\">\n<table>\n"
+				+ "<tr><th>Name</th><th>Value</th><th>Default Value</th></tr>\n");
+			}
+		});
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-	
-	private void doSipStatistics(HttpServletRequest request)
-			throws Exception
-	{
-		SipStatisticPrinter printer = new SipStatisticPrinter(_mbsc, _statisticGraph);
-		String time = request.getParameter(Parameters.TIME);
-		if (time == null)
-			time = (String) request.getSession().getAttribute(Parameters.TIME);
-		else
-			request.getSession().setAttribute(Parameters.TIME, time);
-		printer.setTime(time);
-
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
-	
+		
 //  ---------------------------  Diameter -------------------------------------
 	
 	private void doDiameterConfig(HttpServletRequest request)
 	throws Exception
 	{		
 		MultiplePrinter printer = new MultiplePrinter();
-		printer.addLast(new ObjectPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
+		printer.add(new PropertiesPrinter(DIAMETER_NODE, "diameter.node",  _mbsc));
 		
 		ObjectName[] transports = (ObjectName[]) _mbsc.getAttribute(
 				ConsoleFilter.DIAMETER_NODE, "connectors");
-		printer.addLast(new SetPrinter(transports, "diameter.transport", _mbsc));
+		printer.add(new SetPrinter(transports, "diameter.transport", _mbsc));
 		
-		printer.addLast(new ObjectPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
+		printer.add(new PropertiesPrinter(DIAMETER_NODE, "diameter.timers",  _mbsc));
 
 		@SuppressWarnings("unchecked")
 		Set<ObjectName> peers = _mbsc.queryNames(ConsoleFilter.DIAMETER_PEERS, null);
-		printer.addLast(new SetPrinter(peers, "diameter.peers", _mbsc));	
+		printer.add(new SetPrinter(peers, "diameter.peers", _mbsc));	
 					
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
@@ -593,23 +502,23 @@ public class ConsoleFilter implements Filter
 		MultiplePrinter printer = new MultiplePrinter();
 		ObjectName[] connectors = (ObjectName[]) _mbsc.getAttribute(SERVER, "connectors");
 	
-		printer.addLast(new SetPrinter(connectors, "http.connectors", _mbsc));
+		printer.add(new SetPrinter(connectors, "http.connectors", _mbsc));
 		
 		ObjectName threadPool = (ObjectName) _mbsc.getAttribute(
 				ConsoleFilter.SERVER, "threadPool");
-		printer.addLast(new ObjectPrinter(threadPool, "http.threadPool", _mbsc, true));
+		PropertyList properties = new PropertyList(_mbsc, threadPool, "http.threadPool");
+		for (Property property : properties)
+		{
+			String name = property.getName();
+			int index = Math.max(name.indexOf("in pool"), name.indexOf("in the pool"));
+			if (index != -1)
+				property.setName(name.substring(0, index));
+		}
+		printer.add(new PropertiesPrinter(properties));
 							
 		request.setAttribute(Attributes.CONTENT, printer);
 	}
-	
-	private void doHttpLog(HttpServletRequest request)
-	throws Exception
-	{		
-		HtmlPrinter printer = new FileLogPrinter(_mbsc, MenuPrinter.HTTP_LOGS, HTTP_LOG, false);
-							
-		request.setAttribute(Attributes.CONTENT, printer);
-	}
-	
+		
 	private void doGraph(HttpServletRequest request, HttpServletResponse response) throws Exception
 	{
 		try
@@ -646,7 +555,7 @@ public class ConsoleFilter implements Filter
 		response.setContentType("image/svg+xml");
 		int maxMessages = 
 			PrinterUtil.getInt(request.getParameter(Parameters.MAX_MESSAGES), SipLogPrinter.DEFAULT_MAX_MESSAGES);
-		String msgFilter = request.getParameter(Parameters.MESSAGE_FILTER);
+		String msgFilter = request.getParameter(Parameters.SIP_MESSAGE_FILTER);
 		if (_mbsc.isRegistered(SIP_CONSOLE_MSG_LOG))
 		{
 			String userAgent = request.getHeader("User-Agent");
@@ -720,5 +629,14 @@ public class ConsoleFilter implements Filter
 	{
 		return _mbsc;
 	}
-
+	
+	public StatisticGraph getStatisticGraph()
+	{
+		return _statisticGraph;
+	}
+	
+	public Deployer getDeployer()
+	{
+		return _deployer;
+	}
 }

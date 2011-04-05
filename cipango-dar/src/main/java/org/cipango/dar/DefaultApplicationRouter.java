@@ -15,8 +15,11 @@
 package org.cipango.dar;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +35,8 @@ import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 import javax.servlet.sip.ar.SipRouteModifier;
 import javax.servlet.sip.ar.SipTargetedRequestInfo;
 
+import org.eclipse.jetty.util.component.AggregateLifeCycle;
+import org.eclipse.jetty.util.component.Dumpable;
 import org.eclipse.jetty.util.log.Log;
 
 /**
@@ -39,7 +44,7 @@ import org.eclipse.jetty.util.log.Log;
  * Looks for its configuration from the property javax.servlet.sip.ar.dar.configuration
  * or etc/dar.properties if not defined. 
  */
-public class DefaultApplicationRouter implements SipApplicationRouter
+public class DefaultApplicationRouter implements SipApplicationRouter, Dumpable
 {
 	public static final String __J_S_DAR_CONFIGURATION = "javax.servlet.sip.ar.dar.configuration";
 	
@@ -233,6 +238,7 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 			Log.debug("DAR configuration error: " + e);
 		}
 		
+		
 		if ((_routerInfoMap == null || _routerInfoMap.isEmpty()) && !_applicationNames.isEmpty())
 			Log.info("No DAR configuration. Using application: " + _applicationNames.first());
 	}
@@ -241,4 +247,54 @@ public class DefaultApplicationRouter implements SipApplicationRouter
 	{
 		init();
 	}
+
+	public String dump()
+	{
+		return AggregateLifeCycle.dump(this);
+	}
+
+	public void dump(Appendable out, String indent) throws IOException
+	{
+		out.append("DefaultApplicationRouter ");
+		if (_routerInfoMap == null || _routerInfoMap.isEmpty())
+		{
+			if (!_applicationNames.isEmpty())
+				out.append("default application: ").append(getDefaultApplication());
+			else
+				out.append("No applications");
+		}
+		else
+		{
+			out.append("\n");
+			List<Dumpable> l = new ArrayList<Dumpable>();
+			Iterator<String> it = _routerInfoMap.keySet().iterator();
+			while (it.hasNext())
+				l.add(new DumpableMethod(it.next()));
+			AggregateLifeCycle.dump(out,indent, l);
+		}
+			
+	}
+		
+	public class DumpableMethod implements Dumpable
+	{
+		private String _method;
+		
+		public DumpableMethod(String method)
+		{
+			_method = method;
+		}
+		
+		public String dump()
+		{
+			return AggregateLifeCycle.dump(this);
+		}
+	
+		public void dump(Appendable out, String indent) throws IOException
+		{
+			out.append(_method).append("\n");
+			AggregateLifeCycle.dump(out,indent, Arrays.asList(_routerInfoMap.get(_method)));
+		}
+		
+	}
 }
+

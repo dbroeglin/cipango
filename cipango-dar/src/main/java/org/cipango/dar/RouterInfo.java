@@ -57,4 +57,19 @@ public class RouterInfo
 	{
 		return _region;
 	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append('(');
+		sb.append('"').append(getName()).append("\", ");
+		sb.append('"').append(getIdentity()).append("\", ");
+		sb.append('"').append(getRegion().getType()).append("\", ");
+		sb.append('"').append(getUri()).append("\", ");
+		sb.append('"').append(getRouteModifier()).append("\", ");
+		sb.append('"').append('"');
+		sb.append(')');
+		return sb.toString();
+	}
 }

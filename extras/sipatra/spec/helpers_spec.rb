@@ -6,9 +6,13 @@ class FakeApp
   public :message # or we would NOT have access to the WRONG private method of Object
 end
 
-describe 'When', Sipatra::HelperMethods, 'is included in', FakeApp do
+describe 'When', Sipatra::HelperMethods, 'is included; ', FakeApp do
   def mock_address
     @mock_address ||= mock('Address')
+  end
+  
+  def mock_uri
+    @mock_uri ||= mock('URI')
   end
   
   def mock_proxy
@@ -113,6 +117,38 @@ describe 'When', Sipatra::HelperMethods, 'is included in', FakeApp do
     end
   end
   
+  describe "#create_uri" do
+    before do
+      subject.stub!(:sip_factory => mock_sip_factory)
+      mock_sip_factory.should_receive(:createURI).with('some_uri').and_return(mock_uri)
+    end
+    
+    it "should createURI and set LR to true" do
+      mock_uri.should_receive(:setLrParam).with(true)
+      mock_uri.should_not_receive(:setParameter)
+
+      subject.create_uri('some_uri').should == mock_uri
+    end
+
+    it "should createURI and set LR to false" do
+      mock_uri.should_receive(:setLrParam).with(false)
+      mock_uri.should_not_receive(:setParameter)
+
+      subject.create_uri('some_uri', :lr => false).should == mock_uri
+    end
+
+    it "should createURI, set LR to false and other parameters" do
+      mock_uri.should_receive(:setLrParam).with(false)
+      mock_uri.should_receive(:setParameter).with("a_name", "a value")
+      mock_uri.should_receive(:setParameter).with("another_name", "another value")
+
+      subject.create_uri('some_uri', 
+                         :lr => false, 
+                         :a_name => "a value", 
+                         "another_name" => :"another value").should == mock_uri
+    end
+  end
+
   describe "#send_response" do    
     it 'should raise an ArgumentError when call with an incorrect symbol' do
       lambda { subject.send_response(:toto) }.should raise_exception(ArgumentError)

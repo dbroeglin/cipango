@@ -10,7 +10,6 @@ end
 
 request do
   puts "#{message.method} #{message.requestURI} [default]"
-  proxy "sip:#{message.requestURI.user}@127.0.100.1:5060"
 end
 
 #ack do

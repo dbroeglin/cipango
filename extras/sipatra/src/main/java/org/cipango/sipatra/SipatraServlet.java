@@ -52,6 +52,7 @@ public class SipatraServlet extends SipServlet
 		{
 			GenericObjectPool pool = (GenericObjectPool) message.getSession().getServletContext().getAttribute(Attributes.POOL);
 			container = (ScriptingContainer) pool.borrowObject();
+            long beginTime = System.currentTimeMillis();
 			try 
 			{
 				Object app = container.runScriptlet("Sipatra::Application::new");
@@ -74,6 +75,9 @@ public class SipatraServlet extends SipServlet
 				{
 					pool.returnObject(container);
 				}
+                _log.trace("Processed '%s' (%s, %s) in %dms", new Object[] { 
+                           message.getMethod(), message.getSession().getId(), 
+                           message.getCallId(), System.currentTimeMillis() - beginTime });
 			}
 		} 
 		catch(Exception e) 
